@@ -26,6 +26,8 @@ public static class ParkRules
             return new ActionOutcome { Success = false, Message = "Place the item on a green pad." };
         if (data.ParkPlacements.Any(p => p.Slot == slot))
             return new ActionOutcome { Success = false, Message = "That pad already has something on it." };
+        if (Count(data, item) >= 1)
+            return new ActionOutcome { Success = false, Message = $"You already placed the {Cap(item).ToLowerInvariant()}." };
         int price = BudgetRules.ParkPrice(item);
         if (Spent(data) + price > BudgetRules.ParkBudget)
             return new ActionOutcome { Success = false, Message = "That would use more than the 20-coin park budget." };

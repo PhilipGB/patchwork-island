@@ -9,6 +9,9 @@ public partial class WorldMarker : Node3D
     private MeshInstance3D _beam;
     private MeshInstance3D _baseRing;
     private float _time;
+    private bool _reducedMotion;
+
+    public void SetReducedMotion(bool reduced) => _reducedMotion = reduced;
 
     public override void _Ready()
     {
@@ -55,6 +58,17 @@ public partial class WorldMarker : Node3D
     public override void _Process(double delta)
     {
         if (!Visible) return;
+        if (_reducedMotion)
+        {
+            if (_icon != null)
+            {
+                _icon.Position = new Vector3(0, 4.4f, 0);
+                _icon.Rotation = Vector3.Zero;
+            }
+            if (_baseRing != null) _baseRing.Scale = Vector3.One;
+            return;
+        }
+
         _time += (float)delta;
         if (_icon != null)
         {

@@ -23,6 +23,9 @@ public partial class PlayerController : CharacterBody3D
     private Node3D _leftLeg, _rightLeg, _leftArm, _rightArm, _head;
     private MeshInstance3D _capTop, _capBrim;
     private float _yaw;
+
+    /// <summary>Current model facing, saved so a reload faces the same way.</summary>
+    public float FacingYaw => _yaw;
     private float _animTime;
     private float _scanTimer;
     private float _jumpBuffer;

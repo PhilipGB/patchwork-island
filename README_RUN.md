@@ -1,8 +1,8 @@
 # Patchwork Island — run and test guide
 
-> Status: P6 complete. All ten missions, practice racing and the all-jobs
-> celebration are playable; save/load, onboarding polish and final packaging are
-> the remaining milestones.
+> Status: P7 complete. All ten missions, practice racing, the all-jobs
+> celebration, save/load, settings and onboarding are playable. Final release
+> verification and packaging are the remaining milestone.
 
 ## Prerequisites
 
@@ -91,7 +91,9 @@ time-trial, M10 home). The bridge opens the east meadow; the yellow van waits by
 the house; the playground and village green persist in the world; the house
 interior has a furniture catalogue stand. After M09 the job board offers a
 reward-free practice race. Finishing all ten shows the village celebration and
-leaves free roam available. Save/load and final packaging arrive in P7–P8.
+leaves free roam available. Progress autosaves, can be saved from the pause
+menu, and is restored by **Continue adventure**. Final release verification and
+packaging arrive in P8.
 
 ## Developer QA scenarios
 
@@ -113,4 +115,21 @@ They do not alter unlock tests or normal play.
 
 ## Save data
 
-Save location is documented once persistence lands (P7).
+Godot writes `user://save.json` and keeps `user://save.json.bak`:
+
+- Linux: `~/.local/share/godot/app_userdata/Patchwork Island/save.json`
+- Windows: `%APPDATA%\Godot\app_userdata\Patchwork Island\save.json`
+
+Writes are atomic (temporary file, flush, move). An unreadable save is renamed
+`save.json.corrupt-<timestamp>` and the backup is loaded if possible. Settings,
+player/van positions, missions, bridge/swing parts, park/furniture placements,
+wallet, inventory and the celebration flag are all stored. Autosave runs every
+20 seconds while playing and after mission start/completion.
+
+## Accessibility / settings
+
+The pause menu and title screen both open Settings. Music, sound-effects and
+reduced-motion toggles are persisted. Reduced motion stops marker bobbing.
+There is no bundled audio yet, so visual confirmations are always shown; the
+sound toggles are ready for a future audio pass. The HUD, title, job board and
+furniture catalogue are tuned for 1280×720 and scale to larger windows.

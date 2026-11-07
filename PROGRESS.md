@@ -396,6 +396,88 @@ Known polish issues: gate arches can still block the camera at very close range
 (P7), and the celebration bunting is deliberately simple primitive geometry.
 No save yet.
 
-## P7–P8
+## P7 — Save/load, onboarding, accessibility and polish — PASS
+
+Implemented on branch `p7-save-load-polish`:
+
+- Versioned JSON save at `user://save.json` with a `.bak` previous save.
+  Writes go to a temporary file, flush to disk, then atomically move into place.
+  Missing saves start a fresh adventure; unreadable saves are renamed to
+  `save.json.corrupt-<timestamp>` and the backup is loaded with a player-facing
+  recovery notice. Saves newer than the current schema are rejected safely.
+- Title flow now distinguishes **Continue adventure** from **Start a new game**.
+  New Game asks for confirmation when a save exists, and cancelling returns to
+  the title. The title layout was tightened so Continue/New Game/Settings/Quit
+  all fit at 1280×720 without scrolling.
+- Saved state includes player and van positions/facing, driving state, wallet,
+  inventory, quest counters, active/completed missions, tutorials, hints,
+  cosmetics, bridge/swing pieces and colliders, park and furniture placements,
+  owned furniture, celebration flag and settings. Rebuilding the bridge from a
+  save recreates its physical deck collider, not just its visuals.
+- Autosave every 20 seconds while playing, after mission start/completion, on
+  pause-menu Save, Return to title and Quit. Pause menu Save still writes on
+  demand. New Game rebuilds all four build systems and clears every world effect
+  instead of only resetting the bridge.
+- Settings modal with persisted Music, Sound-effects and Reduced-motion toggles.
+  Reduced motion stops marker bobbing/spinning. There are no audio assets yet,
+  so visual feedback remains the complete feedback channel; the toggles are
+  stored for the future audio pass.
+- First-use tutorials for walking and building (driving already had one), the
+  existing layered hints/waypoint marker, and camera-only blockers on signboards
+  and race-gate posts to stop close-range camera clipping.
+- Furniture catalogue's **Place furniture** action now sits above the item list
+  so it is visible at 720p without scrolling. Park Planner now enforces exactly
+  one of each requested item and auto-selects the next missing piece.
+- Fixed restored furniture/park visuals being invisible after loading (placed
+  sockets now become visible on restore) and kept only furniture pads clickable
+  for rearrangement so bridge/swing sockets are not blocked.
+
+Automated tests:
+
+```text
+$ dotnet tests/bin/Debug/net8.0/PatchworkIsland.Tests.dll
+PASS  save files round trip atomically and keep a backup
+PASS  damaged save recovers the backup and quarantines the bad file
+PASS  missing and newer saves are handled safely
+PASS  M08 park budget, pad uniqueness and undo
+...
+RESULT: 27 passed, 0 failed
+```
+
+Build/headless:
+
+```text
+$ dotnet build PatchworkIsland.sln -> 0 errors, 0 warnings
+$ godot --headless --path . --quit-after 120 -> exit 0
+```
+
+Real-input GUI checks (Xvfb + llvmpipe + xdotool):
+
+- M03 partial save: placed 3/3 supports, paused and used **Save now**, quit and
+  relaunched, chose **Continue adventure**; the bridge opened with 3/3 supports
+  visibly restored. Added the four planks, completed +20, relaunched and walked
+  across the restored completed bridge from x=34.2 to x=57.5.
+- M08 partial save: placed bench and flowerbed (10/20 spent), saved, quit and
+  continued; both objects were visible on their pads and the budget/counts were
+  still 10/20. Undid the deliberate duplicate-bench check, selected the lamp and
+  completed +20 (wallet 72 → 92).
+- M10 save: bought and placed the full 21-coin set, completed +20, quit and
+  continued; all table/chairs/plant visuals were present in the room and the
+  saved wallet was 91.
+- Settings: toggled Music off and Reduced motion on; the values persisted in the
+  save file. New Game confirmation replaced the whole save with a fresh state
+  (0 coins, empty bridge/furniture, no completed missions).
+- Corrupt save: replaced the main file with invalid JSON while a backup existed;
+  relaunching recovered the backup and showed “The main save was damaged.
+  Recovered the previous save…” with the bad file kept aside.
+- Genuine evidence: `evidence/p7_01_title_continue.png` …
+  `evidence/p7_08_new_game.png`.
+
+Known limitations: no original audio files are bundled yet (all feedback is
+visual and the sound toggles are persisted), and text scaling is fixed rather
+than adjustable. The full ten-mission clean-save walkthrough is the P8 release
+gate.
+
+## P8
 
 TODO. See IMPLEMENTATION_PLAN.md.

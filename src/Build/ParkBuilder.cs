@@ -88,7 +88,7 @@ public partial class ParkBuilder : Node3D, IBuildMode
             return;
         }
         Active = true;
-        _selected = "bench";
+        _selected = ParkRules.Items.FirstOrDefault(item => ParkRules.Count(_data, item) == 0) ?? "bench";
         _buildCamera.Current = true;
         _onBuildModeChanged?.Invoke(true);
         _hud.SetPrompt(null);
@@ -170,6 +170,7 @@ public partial class ParkBuilder : Node3D, IBuildMode
             socket.ClearPlacement();
             socket.SetEnabled(true);
         }
+        _selected = ParkRules.Items.FirstOrDefault(item => ParkRules.Count(_data, item) == 0) ?? removed.Type;
         RefreshSockets();
         RefreshBar();
         _onProgress?.Invoke();
@@ -209,7 +210,7 @@ public partial class ParkBuilder : Node3D, IBuildMode
                 Detail = count > 0 ? "placed" : $"{price}",
                 Icon = item switch { "bench" => "bench", "flowerbed" => "flowerbed", _ => "lamp" },
                 Selected = _selected == item,
-                Enabled = canAdd || count > 0,
+                Enabled = canAdd,
                 Action = () => SelectItem(item),
             });
         }

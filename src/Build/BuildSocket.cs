@@ -67,9 +67,8 @@ public partial class BuildSocket : StaticBody3D
     {
         Placed = true;
         SocketEnabled = false;
-        // Keep the pad pickable by the build camera while build mode is open;
-        // it never collides with the player or the van (layers 1/4/8 differ).
-        CollisionLayer = 8;
+        CollisionLayer = 0;
+        Visible = true;
         if (_ghost != null) _ghost.Visible = false;
         if (_ghostIcon != null) _ghostIcon.Visible = false;
         if (_ghostLabel != null) _ghostLabel.Visible = false;

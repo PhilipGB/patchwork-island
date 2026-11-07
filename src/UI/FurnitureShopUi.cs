@@ -53,6 +53,14 @@ public partial class FurnitureShopUi : Node
             20, Palette.Navy);
         listText.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
 
+        // Keep the essential action above the fold at 720p.
+        _placeButton = UiKit.Button(body, "Place furniture", 22, new Vector2(0, 52), new Color("E8E1FF"), Palette.Lavender);
+        _placeButton.Pressed += () =>
+        {
+            _hud.CloseModal();
+            _onPlace?.Invoke();
+        };
+
         foreach (var item in FurnitureRules.Items)
         {
             AddItemRow(body, item);
@@ -82,12 +90,6 @@ public partial class FurnitureShopUi : Node
             _statusLabel.AddThemeColorOverride("font_color", Palette.Success);
         };
 
-        _placeButton = UiKit.Button(body, "Place furniture", 22, new Vector2(0, 52), new Color("E8E1FF"), Palette.Lavender);
-        _placeButton.Pressed += () =>
-        {
-            _hud.CloseModal();
-            _onPlace?.Invoke();
-        };
     }
 
     private void AddItemRow(VBoxContainer body, string item)

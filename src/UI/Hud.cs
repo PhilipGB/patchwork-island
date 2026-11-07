@@ -372,32 +372,30 @@ public partial class Hud : CanvasLayer
 
     public void ShowTitleScreen(bool hasSave, Action onContinue, Action onNewGame, Action onSettings, Action onQuit)
     {
-        var body = OpenModal("", new Vector2(700, 560), Palette.Lavender, false, null, false);
-        var logo = UiKit.Label(body, "PATCHWORK\nISLAND", 64, Palette.Lavender, HorizontalAlignment.Center);
-        logo.AddThemeConstantOverride("line_spacing", -10);
-        var sub = UiKit.Label(body, "A happy little village adventure", 24, Palette.Navy, HorizontalAlignment.Center);
+        var body = OpenModal("", new Vector2(720, 650), Palette.Lavender, false, null, false);
+        var logo = UiKit.Label(body, "PATCHWORK\nISLAND", 52, Palette.Lavender, HorizontalAlignment.Center);
+        logo.AddThemeConstantOverride("line_spacing", -8);
+        var sub = UiKit.Label(body, "A happy little village adventure", 22, Palette.Navy, HorizontalAlignment.Center);
         var controls = UiKit.Label(body,
             "WASD / arrows to walk   •   Space to jump   •   E to interact\nMouse wheel to zoom   •   Right-drag to look around   •   Esc to pause",
-            18, new Color("42526B"), HorizontalAlignment.Center);
-        controls.CustomMinimumSize = new Vector2(600, 54);
-        UiKit.Spacer(body, 0, 12);
+            17, new Color("42526B"), HorizontalAlignment.Center);
+        controls.CustomMinimumSize = new Vector2(600, 48);
+        UiKit.Spacer(body, 0, 6);
         if (hasSave)
         {
-            var continueButton = UiKit.Button(body, "Continue adventure", 26, new Vector2(0, 58), Palette.Cream, Palette.Blue);
+            var continueButton = UiKit.Button(body, "Continue adventure", 24, new Vector2(0, 54), Palette.Cream, Palette.Blue);
             continueButton.Pressed += () => onContinue?.Invoke();
         }
-        var newButton = UiKit.Button(body, hasSave ? "Start a new game" : "Start adventure", 26,
-            new Vector2(0, 58), new Color("FFF3C9"), Palette.Orange);
+        var newButton = UiKit.Button(body, hasSave ? "Start a new game" : "Start adventure", 24,
+            new Vector2(0, 54), new Color("FFF3C9"), Palette.Orange);
         newButton.Pressed += () => onNewGame?.Invoke();
-        if (hasSave)
+        if (onSettings != null)
         {
-            var settings = UiKit.Button(body, "Settings", 21, new Vector2(0, 48), Palette.Cream, Palette.Stone);
+            var settings = UiKit.Button(body, "Settings", 20, new Vector2(0, 46), Palette.Cream, Palette.Stone);
             settings.Pressed += () => onSettings?.Invoke();
         }
-        var quit = UiKit.Button(body, "Quit", 20, new Vector2(0, 44), Palette.Cream, Palette.Stone);
+        var quit = UiKit.Button(body, "Quit", 19, new Vector2(0, 42), Palette.Cream, Palette.Stone);
         quit.Pressed += () => onQuit?.Invoke();
-        UiKit.Spacer(body, 0, 4);
-        UiKit.Label(body, "No internet, no accounts, no losing.", 17, new Color("5C6B7A"), HorizontalAlignment.Center);
     }
 
     public void ShowPauseMenu(Action resume, Action saveNow, Action settings, Action newGame,

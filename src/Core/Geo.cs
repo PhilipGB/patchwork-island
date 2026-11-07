@@ -252,6 +252,19 @@ public static class Geo
 
         Label(root, new Vector3(textOffset, 0.01f, 0.12f), text, fontSize, Palette.Navy,
             false, 0.0085f, 0, null, "SignText");
+
+        // Invisible camera-only blocker: signs should never swallow the view.
+        var cameraBlocker = new StaticBody3D
+        {
+            Name = "SignCameraBlocker",
+            CollisionLayer = 16,
+            CollisionMask = 0,
+        };
+        cameraBlocker.AddChild(new CollisionShape3D
+        {
+            Shape = new BoxShape3D { Size = new Vector3(width + 0.2f, height + 0.2f, 0.35f) },
+        });
+        root.AddChild(cameraBlocker);
         return root;
     }
 

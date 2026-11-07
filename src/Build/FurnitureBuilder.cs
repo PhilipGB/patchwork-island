@@ -150,6 +150,7 @@ public partial class FurnitureBuilder : Node3D, IBuildMode
         var placedVisual = BuildFurnitureVisual(_selected);
         socket.SetPlacedVisual(placedVisual);
         socket.MarkPlaced();
+        socket.SetClickable(true);
         _visuals[socket.SocketId] = placedVisual;
         string next = FurnitureRules.Items.FirstOrDefault(item => FurnitureRules.Available(_data, item) > 0);
         if (next != null) _selected = next;
