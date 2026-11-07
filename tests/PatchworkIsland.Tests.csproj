@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>PatchworkIsland.Tests</AssemblyName>
+    <RootNamespace>PatchworkIsland.Tests</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../src/Core/GameData.cs" Link="Core/GameData.cs" />
+    <Compile Include="../src/Core/MissionCatalog.cs" Link="Core/MissionCatalog.cs" />
+    <Compile Include="../src/Core/MissionService.cs" Link="Core/MissionService.cs" />
+  </ItemGroup>
+</Project>

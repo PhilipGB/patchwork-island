@@ -165,19 +165,17 @@ public static class Geo
         return mesh;
     }
 
-    public static MeshInstance3D Triangle(Node parent, string name, Vector3 a, Vector3 b, Vector3 c, Color color)
+    public static MeshInstance3D Triangle(Node parent, string name, Vector3 a, Vector3 b, Vector3 c,
+        Color color, bool flip = false)
     {
         var surface = new SurfaceTool();
         surface.Begin(Mesh.PrimitiveType.Triangles);
-        var normal = (b - a).Cross(c - a).Normalized();
+        Vector3 normal = (b - a).Cross(c - a).Normalized();
+        if (flip) normal = -normal;
         surface.SetNormal(normal);
         surface.AddVertex(a);
         surface.AddVertex(b);
         surface.AddVertex(c);
-        surface.SetNormal(-normal);
-        surface.AddVertex(a);
-        surface.AddVertex(c);
-        surface.AddVertex(b);
         var mesh = new MeshInstance3D
         {
             Name = name,

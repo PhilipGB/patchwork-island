@@ -418,14 +418,15 @@ public partial class Hud : CanvasLayer
 
     public void ShowSuccess(string title, int coins, string detail, Action onClose)
     {
-        var body = OpenModal("JOB COMPLETE!", new Vector2(600, 360), Palette.Success, false, onClose, false);
-        var row = UiKit.HBox(body);
+        var body = OpenModal("JOB COMPLETE!", new Vector2(620, 390), Palette.Success, true, onClose, false);
+        var row = UiKit.HBox(body, 10);
         UiKit.Icon(row, "star", 48);
-        UiKit.Label(row, title, 30, Palette.Success);
+        var titleLabel = UiKit.Label(row, title, 30, Palette.Success, HorizontalAlignment.Left, false);
+        titleLabel.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         UiKit.Label(body, detail, 22, Palette.Navy);
-        var coinRow = UiKit.HBox(body);
+        var coinRow = UiKit.HBox(body, 10);
         UiKit.Icon(coinRow, "coin", 34);
-        UiKit.Label(coinRow, $"+{coins} coins", 28, Palette.Navy);
+        UiKit.Label(coinRow, $"+{coins} coins", 28, Palette.Navy, HorizontalAlignment.Left, false);
         var button = UiKit.Button(body, "Continue", 24, new Vector2(0, 56), new Color("DFF6E3"), Palette.Success);
         button.Pressed += () => CloseModal();
     }

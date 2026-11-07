@@ -83,6 +83,74 @@ Limitations / deferred:
 - Audio device is unavailable in this environment; Godot falls back to dummy
   audio. No audio was claimed.
 
-## P2–P8
+## P2 — Mission framework and first delivery — PASS
+
+Implemented on branch `p2-missions`:
+
+- `GameData` + `MissionService` pure state machine loaded from `data/missions.json`
+  (all ten missions, authored titles, hints, rewards and prerequisites).
+- Job board/journal (E at the board, J anywhere) with rows for all ten jobs,
+  status (available, current, done, locked, coming-in-next-milestone), rewards,
+  prerequisites and Start buttons. Keyboard-focusable.
+- World objective marker/beam/icon and top-centre destination arrow + distance,
+  mission-specific progress rows, Hint button/H with layered authored hints.
+- M01 "The Red House Delivery": exactly three pickable apples on the market
+  crate, inventory count 0→3, hand-in at the RED HOUSE, +10 coins, red cap
+  visible reward, delivery-only completion.
+- M02 "Workshop Supplies": five wood at the grove + three stones at the stone
+  patch, 5+3 counter feedback, submission at WORKSHOP, +12 coins.
+- Exactly-once rewards, duplicate-pickup rejection, inactive-job pickup gating,
+  mission switching with preserved progress, success panel, dismissal.
+- Pickups now have item icons/floating labels and a generous 3.9 m pick radius.
+
+Automated tests (new dependency-free runner, exit code checked):
+
+```text
+$ dotnet run --project tests/PatchworkIsland.Tests.csproj
+PASS  catalog contains exactly ten missions
+PASS  initial availability and prerequisites
+PASS  starting a job and switching preserves progress
+PASS  duplicate pickup is rejected and not consumed twice
+PASS  M01 cannot complete early; completion awards 10 exactly once
+PASS  M01 unlock opens M04
+PASS  M02 counts 5 wood + 3 stone and awards 12 once
+PASS  locked mission cannot start
+PASS  completed mission cannot be restarted for another reward
+PASS  picking items for an inactive job is rejected
+PASS  hints progress through the authored layers
+PASS  game state survives a JSON round trip
+RESULT: 12 passed, 0 failed
+```
+
+Build/headless:
+
+```text
+$ dotnet build PatchworkIsland.sln        -> succeeded, 0 warnings, 0 errors
+$ godot --headless --path . --quit-after 120 -> exit 0
+```
+
+Real-input GUI walkthrough (Xvfb 1280×720, Openbox, llvmpipe, xdotool):
+
+- Started a clean game, opened job board with J, clicked M01 Start.
+- Walked to the SHOP crate with WASD, picked exactly 3 apples with E; HUD
+  counters advanced to 3/3 and objective switched from SHOP APPLES to RED HOUSE.
+- Walked to RED HOUSE, pressed E: success panel showed +10 coins and the cap
+  turned red; objective/coins updated. Duplicate delivery is gated by completion.
+- Opened journal with J, started Workshop Supplies through keyboard focus
+  (Tab/Enter), walked to grove, collected five wood (5/5), crossed to the stone
+  patch, collected three stones (3/3), objective switched to WORKSHOP.
+- Pressed E at WORKSHOP: success panel showed 5 wood + 3 stone / +12 coins;
+  total wallet 22 and M03 prerequisites unlocked (tested in pure tests).
+- Genuine screenshots: `evidence/p2_01_start.png` …
+  `evidence/p2_09_workshop.png`, including job board, crate, delivery and
+  both success panels.
+
+Outstanding visual issues (not blockers for P2): camera can get close to walls or
+an awning in tight corners; standalone sign boards need visible support posts;
+stone-patch approach needs a clearer path. These are scheduled for P5/P7 polish.
+No save/load yet; that is P7. M03+ are shown as locked/coming-soon in this
+milestone and are implemented next.
+
+## P3–P8
 
 TODO. See IMPLEMENTATION_PLAN.md.
