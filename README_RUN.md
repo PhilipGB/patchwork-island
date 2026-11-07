@@ -1,7 +1,8 @@
 # Patchwork Island — run and test guide
 
-> Status: P5 complete. M01–M08 and M10 are fully playable; M09, save/load and
-> final packaging are the remaining milestones.
+> Status: P6 complete. All ten missions, practice racing and the all-jobs
+> celebration are playable; save/load, onboarding polish and final packaging are
+> the remaining milestones.
 
 ## Prerequisites
 
@@ -58,8 +59,8 @@ dotnet run --project tests/PatchworkIsland.Tests.csproj
 
 The runner currently covers mission catalog, prerequisites, unlocks, duplicate
 pickups, exactly-once rewards, mission switching, hints, bridge/swing snapping,
-grocery and park budgets, furniture costs/starter fallback, checkpoint order and
-JSON round-trips.
+grocery and park budgets, furniture costs/starter fallback, ordered checkpoints,
+optional race-bonus boundaries, the full ten-job graph and JSON round-trips.
 
 If a concurrently running Godot instance makes `dotnet run` wait on the project
 DLL, build once and execute the test assembly directly:
@@ -84,12 +85,13 @@ godot --path . -- --capture-title  # title screen screenshot
 4. Follow the gold marker and top-centre arrow, press **E** on highlighted
    objects, and return to the labelled destination or build site.
 
-Nine missions are fully playable (M01 apples, M02 supplies, M03 bridge,
-M04 groceries, M05 rally, M06 parcels, M07 swings, M08 park, M10 home). The
-bridge opens the east meadow; the yellow van waits by the house; the playground
-and village green persist in the world; the house interior has a furniture
-catalogue stand. M09 (optional race challenge), save/load and final packaging
-arrive in the next milestones. There is no save yet (P7).
+All ten missions are fully playable (M01 apples, M02 supplies, M03 bridge,
+M04 groceries, M05 rally, M06 parcels, M07 swings, M08 park, M09 optional
+time-trial, M10 home). The bridge opens the east meadow; the yellow van waits by
+the house; the playground and village green persist in the world; the house
+interior has a furniture catalogue stand. After M09 the job board offers a
+reward-free practice race. Finishing all ten shows the village celebration and
+leaves free roam available. Save/load and final packaging arrive in P7–P8.
 
 ## Developer QA scenarios
 
@@ -102,7 +104,9 @@ godot --path . -- --scenario-m05   # M01–M04 complete + bridge, rally active
 godot --path . -- --scenario-m06   # M01–M04 complete, post job active
 godot --path . -- --scenario-m07   # M01–M04 + bridge, swings active
 godot --path . -- --scenario-m08   # M07 + playground done, park active
+godot --path . -- --scenario-m09   # M05 done, bonus race active in the meadow
 godot --path . -- --scenario-m10   # M08 + park done, furniture job active
+godot --path . -- --scenario-final # nine jobs done, M10 active; finish for celebration
 ```
 
 They do not alter unlock tests or normal play.

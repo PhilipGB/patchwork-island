@@ -39,6 +39,8 @@ internal static class Program
             Equal(MissionStatus.Available, s.GetStatus("M02"), "M02 status");
             Equal(MissionStatus.Locked, s.GetStatus("M03"), "M03 locked by M02");
             Equal(MissionStatus.Locked, s.GetStatus("M04"), "M04 locked by M01");
+            Equal(MissionStatus.Locked, s.GetStatus("M09"), "M09 locked by M05");
+            Equal(MissionStatus.Locked, s.GetStatus("M10"), "M10 locked by M04 + M08");
         });
 
         Run("starting a job and switching preserves progress", () =>
@@ -390,6 +392,50 @@ internal static class Program
             Equal(20, completion.CoinsAwarded, "free set mission reward");
             var again = FurnitureRules.GrantFreeStarterSet(data);
             Check(!again.Success, "free set cannot be farmed for spare items");
+        });
+
+        Run("all ten jobs form a completable graph", () =>
+        {
+            var s = CompleteM08(Fresh(catalog));
+            s = CompleteM04(s);
+            Equal(MissionStatus.Available, s.GetStatus("M05"), "M05 after bridge");
+            Check(s.StartMission("M05").Success, "start M05");
+            for (int gate = 1; gate <= 4; gate++)
+                Check(s.AdvanceCheckpoint(gate).Success, $"M05 gate {gate}");
+            Check(s.CompleteActive().Success, "M05 complete");
+            Equal(MissionStatus.Available, s.GetStatus("M09"), "M09 after M05");
+
+            Equal(MissionStatus.Available, s.GetStatus("M06"), "M06 after M04");
+            Check(s.StartMission("M06").Success, "start M06");
+            Check(s.CollectPickup("blue_parcel_0", "blue_parcel", "M06", 2).Success, "blue 1");
+            Check(s.CollectPickup("blue_parcel_1", "blue_parcel", "M06", 2).Success, "blue 2");
+            Check(s.CollectPickup("orange_parcel_0", "orange_parcel", "M06", 1).Success, "orange");
+            Check(s.DeliverBlueParcels().Success, "blue delivered");
+            Check(s.DeliverOrangeParcel().Success, "orange delivered");
+            Check(s.CompleteActive().Success, "M06 complete");
+
+            Check(s.StartMission("M09").Success, "start M09");
+            for (int gate = 1; gate <= 4; gate++)
+                Check(s.AdvanceCheckpoint(gate).Success, $"M09 gate {gate}");
+            var m09 = s.CompleteActive(0);
+            Check(m09.Success, "M09 complete");
+            Equal(15, m09.CoinsAwarded, "M09 base reward");
+
+            Equal(MissionStatus.Available, s.GetStatus("M10"), "M10 after M04 + M08");
+            Check(s.StartMission("M10").Success, "start M10");
+            Check(FurnitureRules.GrantFreeStarterSet(s.Data).Success, "free furniture avoids softlock");
+            Check(FurnitureRules.Place(s.Data, "table", "house0").Success, "table");
+            Check(FurnitureRules.Place(s.Data, "chair", "house1").Success, "chair 1");
+            Check(FurnitureRules.Place(s.Data, "chair", "house2").Success, "chair 2");
+            Check(FurnitureRules.Place(s.Data, "plant", "house3").Success, "plant");
+            var m10 = s.CompleteActive();
+            Check(m10.Success, "M10 complete");
+            Check(m10.AllComplete, "all-complete flag set");
+            Equal(10, s.Data.CompletedMissions.Distinct().Count(), "ten distinct completions");
+            Equal(MissionStatus.Completed, s.GetStatus("M09"), "M09 stays completed");
+            int wallet = s.Data.Coins;
+            Check(!s.CompleteActive().Success, "cannot claim an eleventh reward");
+            Equal(wallet, s.Data.Coins, "wallet unchanged after repeat");
         });
 
         Run("game state survives a JSON round trip", () =>

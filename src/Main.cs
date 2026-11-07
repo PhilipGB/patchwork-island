@@ -22,7 +22,7 @@ public partial class Main : Node3D
     private MissionCatalog _catalog;
     private GameData _data;
     private MissionService _missions;
-    private readonly HashSet<string> _implemented = new() { "M01", "M02", "M03", "M04", "M05", "M06", "M07", "M08", "M10" };
+    private readonly HashSet<string> _implemented = new() { "M01", "M02", "M03", "M04", "M05", "M06", "M07", "M08", "M09", "M10" };
     private readonly List<Pickup> _pickups = new();
     private Interactable _jobStation;
     private Interactable _redHouseStation;
@@ -47,6 +47,12 @@ public partial class Main : Node3D
     private float _raceCheckTimer;
     private float _raceHudTimer;
     private float _raceWrongHintCooldown;
+    private bool _practiceRaceActive;
+    private int _practiceCheckpoint;
+    private float _practiceElapsed;
+    private float _practiceCheckTimer;
+    private float _practiceHudTimer;
+    private bool _celebrationShown;
 
     private bool _started;
     private float _uiRefresh;
@@ -189,6 +195,19 @@ public partial class Main : Node3D
             _hud.ShowToast("SCENARIO: M08 active. Press E at the village green.", 5f);
             return;
         }
+        if (HasUserArg("--scenario-m09"))
+        {
+            _started = true;
+            _van.GlobalPosition = new Vector3(55f, 0.15f, 1.5f);
+            _van.Rotation = new Vector3(0, Mathf.DegToRad(35f), 0);
+            _player.Teleport(new Vector3(55f, 0.2f, 6.0f), Mathf.Pi);
+            _rig.SetView(180f, 18f, 8.2f);
+            _player.SetControlEnabled(true);
+            Input.MouseMode = Input.MouseModeEnum.Captured;
+            RefreshMissionState();
+            _hud.ShowToast("SCENARIO: M09 active in the meadow. Drive gates 1-2-3-4; under 75 s is an optional bonus.", 5f);
+            return;
+        }
         if (HasUserArg("--scenario-m10"))
         {
             _started = true;
@@ -198,6 +217,17 @@ public partial class Main : Node3D
             Input.MouseMode = Input.MouseModeEnum.Captured;
             RefreshMissionState();
             _hud.ShowToast("SCENARIO: M10 active. Walk into your house and press E at FURNITURE.", 5f);
+            return;
+        }
+        if (HasUserArg("--scenario-final"))
+        {
+            _started = true;
+            _player.Teleport(new Vector3(-38f, 0.2f, 21.0f), Mathf.Pi);
+            _rig.SetView(180f, 18f, 8.2f);
+            _player.SetControlEnabled(true);
+            Input.MouseMode = Input.MouseModeEnum.Captured;
+            RefreshMissionState();
+            _hud.ShowToast("SCENARIO: final job active. Furnish the house to trigger the village celebration.", 5f);
             return;
         }
         if (HasUserArg("--capture-title"))
@@ -301,6 +331,32 @@ public partial class Main : Node3D
             _data.SwingPieces.AddRange(BuildRules.SwingSockets);
             _data.Coins = 72;
             _data.ActiveMission = "M08";
+            if (!_data.UnlockedCosmetics.Contains("red_cap")) _data.UnlockedCosmetics.Add("red_cap");
+        }
+        else if (HasUserArg("--scenario-m09"))
+        {
+            foreach (string id in new[] { "M01", "M02", "M03", "M04", "M05" })
+                if (!_data.CompletedMissions.Contains(id)) _data.CompletedMissions.Add(id);
+            _data.BridgePieces.Clear();
+            _data.BridgePieces.AddRange(new[] { "support_0", "support_1", "support_2", "plank_0", "plank_1", "plank_2", "plank_3" });
+            _data.Coins = 69;
+            _data.ActiveMission = "M09";
+            if (!_data.UnlockedCosmetics.Contains("red_cap")) _data.UnlockedCosmetics.Add("red_cap");
+        }
+        else if (HasUserArg("--scenario-final"))
+        {
+            foreach (string id in new[] { "M01", "M02", "M03", "M04", "M05", "M06", "M07", "M08", "M09" })
+                if (!_data.CompletedMissions.Contains(id)) _data.CompletedMissions.Add(id);
+            _data.BridgePieces.Clear();
+            _data.BridgePieces.AddRange(new[] { "support_0", "support_1", "support_2", "plank_0", "plank_1", "plank_2", "plank_3" });
+            _data.SwingPieces.Clear();
+            _data.SwingPieces.AddRange(BuildRules.SwingSockets);
+            _data.ParkPlacements.Clear();
+            _data.ParkPlacements.Add(new PlacedItem("bench", "park0"));
+            _data.ParkPlacements.Add(new PlacedItem("flowerbed", "park1"));
+            _data.ParkPlacements.Add(new PlacedItem("lamp", "park2"));
+            _data.Coins = 137;
+            _data.ActiveMission = "M10";
             if (!_data.UnlockedCosmetics.Contains("red_cap")) _data.UnlockedCosmetics.Add("red_cap");
         }
         else if (HasUserArg("--scenario-m10"))
@@ -796,11 +852,12 @@ public partial class Main : Node3D
             _hud.ShowBigToast("Finish this build first, then choose another job.", 2.6f, Palette.Lavender);
             return;
         }
-        JobBoardUi.Show(_hud, _missions, _implemented, StartMissionFromBoard);
+        JobBoardUi.Show(_hud, _missions, _implemented, StartMissionFromBoard, StartPracticeRace);
     }
 
     private void StartMissionFromBoard(string missionId)
     {
+        _practiceRaceActive = false;
         var result = _missions.StartMission(missionId);
         _hud.CloseModal();
         if (!result.Success)
@@ -950,6 +1007,110 @@ public partial class Main : Node3D
         RefreshMissionState();
     }
 
+    // --------------------------------------------------------- free-roam practice
+
+    private void StartPracticeRace()
+    {
+        if (!_data.IsCompleted("M05") && !_data.IsCompleted("M09"))
+        {
+            _hud.ShowHint("Finish Village Road Rally before practising the race.");
+            return;
+        }
+        if (_missions.ActiveMission != null)
+        {
+            _hud.ShowHint("Finish or switch your current job before a practice race.");
+            return;
+        }
+
+        _hud.CloseModal();
+        _practiceRaceActive = true;
+        _practiceCheckpoint = 0;
+        _practiceElapsed = 0f;
+        _practiceCheckTimer = 0f;
+        _practiceHudTimer = 0f;
+        _hud.ShowBigToast(
+            "Practice race: get into the yellow van and drive through gates 1-2-3-4. No rewards, no time limit.",
+            5f, Palette.Yellow);
+        RefreshMissionState();
+    }
+
+    private void TickPracticeRace(float dt)
+    {
+        if (!_practiceRaceActive || !_driving) return;
+
+        if (_practiceCheckpoint > 0 && _practiceCheckpoint < 4)
+            _practiceElapsed += dt;
+
+        _practiceHudTimer -= dt;
+        if (_practiceHudTimer <= 0f)
+        {
+            _practiceHudTimer = 0.8f;
+            RefreshMissionState();
+        }
+
+        _practiceCheckTimer -= dt;
+        if (_practiceCheckTimer > 0f || _practiceCheckpoint >= 4) return;
+        _practiceCheckTimer = 0.15f;
+
+        Vector3 gate = _world.RaceGates[_practiceCheckpoint].Position;
+        float distance = new Vector2(_van.GlobalPosition.X - gate.X, _van.GlobalPosition.Z - gate.Z).Length();
+        if (distance > 7f) return;
+
+        _practiceCheckpoint++;
+        if (_practiceCheckpoint == 1)
+        {
+            _practiceElapsed = 0f;
+            _hud.ShowBigToast("Gate 1! Practice timer started.", 2.4f, Palette.Yellow);
+        }
+        else if (_practiceCheckpoint < 4)
+        {
+            _hud.ShowBigToast($"Gate {_practiceCheckpoint}! Next: gate {_practiceCheckpoint + 1}.", 2.2f, Palette.Lavender);
+        }
+        else
+        {
+            float time = _practiceElapsed;
+            _practiceRaceActive = false;
+            _practiceCheckpoint = 0;
+            _practiceElapsed = 0f;
+            _hud.ShowBigToast(
+                time <= 75f
+                    ? $"Practice lap complete in {FormatTime(time)} — a gold-lap pace!"
+                    : $"Practice lap complete in {FormatTime(time)}. Nicely driven!",
+                5f, Palette.Yellow);
+        }
+        RefreshMissionState();
+    }
+
+    private void RefreshPracticeMissionUi()
+    {
+        var rows = new List<(string Icon, string Text)>
+        {
+            ("flag", $"Gate {_practiceCheckpoint} / 4"),
+            ("star", _practiceCheckpoint > 0 && _practiceCheckpoint < 4
+                ? $"Practice time {FormatTime(_practiceElapsed)}"
+                : "No rewards · any pace is fine"),
+        };
+        _hud.SetMission("Practice Race", "Drive the yellow van through gates 1-2-3-4. Just for fun!", "flag", rows);
+
+        if (!_driving)
+        {
+            SetObjective(_van.GlobalPosition, "YELLOW VAN", "van", Palette.Yellow);
+        }
+        else if (_practiceCheckpoint == 0 && _van.GlobalPosition.X < 40f)
+        {
+            SetObjective(_world.BridgeCenter, "BRIDGE TO MEADOW", "waypoint", Palette.Water);
+        }
+        else if (_practiceCheckpoint < 4)
+        {
+            var gate = _world.RaceGates[_practiceCheckpoint];
+            SetObjective(gate.Position, $"GATE {_practiceCheckpoint + 1}", "flag", Palette.Yellow);
+        }
+        else
+        {
+            SetObjective(_world.RaceStartFlag.GlobalPosition, "FINISH", "flag", Palette.Yellow);
+        }
+    }
+
     private void TickRace(float dt)
     {
         var mission = _missions.ActiveMission;
@@ -1075,6 +1236,16 @@ public partial class Main : Node3D
         _hud.SetCoins(_data.Coins);
         ApplyCosmetics();
         RefreshPickupVisibility();
+        if (_world.GoldCourseFlag != null)
+            _world.GoldCourseFlag.Visible = _data.IsCompleted("M09");
+        if (_world.CelebrationDecor != null)
+            _world.CelebrationDecor.Visible = AllMissionsComplete();
+
+        if (_practiceRaceActive)
+        {
+            RefreshPracticeMissionUi();
+            return;
+        }
 
         var mission = _missions.ActiveMission;
         if (mission == null)
@@ -1297,14 +1468,62 @@ public partial class Main : Node3D
             "M06" => "2 BLUE parcels to RED HOUSE + 1 ORANGE parcel to WORKSHOP — every address correct!",
             "M07" => "4 ropes + 2 seats = 6 pieces. Both swings are fixed and ready to ride!",
             "M08" => $"Bench 6 + flowers 4 + lamp 9 = 19, leaving 1 of the 20 job coins. Beautiful green!",
+            "M09" => result.BonusCoins > 0
+                ? $"Four gates in {_raceElapsed:0.0}s — a gold-lap bonus +{result.BonusCoins}!"
+                : $"Four gates finished in {_raceElapsed:0.0}s. Any pace is a winning pace — the gold flag is yours!",
             "M10" => "Table 8 + 2 chairs 10 + plant 3 = 21. Your home is ready to enjoy!",
             _ => result.Message,
         };
-        _hud.ShowSuccess(result.Mission.Title, result.TotalCoins, detail, () => { });
+        Action afterSuccess = result.AllComplete
+            ? () => Callable.From(ShowVillageCelebration).CallDeferred()
+            : () => { };
+        _hud.ShowSuccess(result.Mission.Title, result.TotalCoins, detail, afterSuccess);
         if (result.AllComplete && _catalog.Missions.Count >= 10)
-        {
             _world.CelebrationDecor.Visible = true;
-        }
+    }
+
+    private bool AllMissionsComplete() =>
+        _catalog != null && _catalog.Missions.Count >= 10 &&
+        _catalog.Missions.All(mission => _data.IsCompleted(mission.Id));
+
+    private void ShowVillageCelebration()
+    {
+        if (_celebrationShown || _data.CelebrationSeen || !AllMissionsComplete()) return;
+        _celebrationShown = true;
+        _data.CelebrationSeen = true;
+        _world.CelebrationDecor.Visible = true;
+
+        var body = _hud.OpenModal("VILLAGE FIXED!", new Vector2(760, 500), Palette.Yellow);
+        var titleRow = UiKit.HBox(body, 12);
+        UiKit.Icon(titleRow, "star", 52);
+        var title = UiKit.Label(titleRow, "All ten jobs complete!", 30, Palette.Success, HorizontalAlignment.Left, false);
+        title.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        UiKit.Label(body,
+            "Patchwork Island is sparkling! The bridge is open, the swings work, the green is decorated and your home is cosy.",
+            22, Palette.Navy);
+        UiKit.Label(body,
+            "Free roam is yours. Drive the meadow course, visit the playground, or rearrange your house. " +
+            "The job board keeps a practice race and a record of every finished job.",
+            18, new Color("5C6B7A"));
+
+        var actions = UiKit.HBox(body, 10);
+        var roam = UiKit.Button(actions, "Play freely", 21, new Vector2(0, 54), new Color("DFF6E3"), Palette.Success);
+        roam.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        roam.Pressed += () => _hud.CloseModal();
+        var practice = UiKit.Button(actions, "Practice race", 21, new Vector2(0, 54), new Color("FFF3C9"), Palette.Orange);
+        practice.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        practice.Pressed += () =>
+        {
+            _hud.CloseModal();
+            StartPracticeRace();
+        };
+        var jobs = UiKit.Button(actions, "See the job board", 21, new Vector2(0, 54), Palette.Cream, Palette.Blue);
+        jobs.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        jobs.Pressed += () =>
+        {
+            _hud.CloseModal();
+            Callable.From(OpenJobBoard).CallDeferred();
+        };
     }
 
     private void SetObjective(Vector3 position, string label, string icon, Color color)
@@ -1441,6 +1660,9 @@ public partial class Main : Node3D
         }
         _van.ResetToParking();
         _raceElapsed = 0f;
+        _practiceRaceActive = false;
+        _practiceCheckpoint = 0;
+        _practiceElapsed = 0f;
         _data = new GameData();
         _missions = new MissionService(_data, _catalog);
         if (_bridgeBuilder != null)
@@ -1478,6 +1700,7 @@ public partial class Main : Node3D
 
         _raceWrongHintCooldown = Mathf.Max(0f, _raceWrongHintCooldown - (float)delta);
         TickRace((float)delta);
+        TickPracticeRace((float)delta);
 
         _uiRefresh -= (float)delta;
         if (_uiRefresh <= 0f)
