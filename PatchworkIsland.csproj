@@ -1,0 +1,14 @@
+<Project Sdk="Godot.NET.Sdk/4.7.2">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <Nullable>disable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>PatchworkIsland</RootNamespace>
+    <AssemblyName>PatchworkIsland</AssemblyName>
+    <GodotUseAndroidGodotSharp Condition="$(GodotTargetPlatform) == 'android'">false</GodotUseAndroidGodotSharp>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="tests/**/*.cs" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,22 @@
+# Godot 4 / .NET
+.godot/
+bin/
+obj/
+*.user
+*.suo
+.vs/
+.idea/
+.vscode/
+export_presets.cfg
+dist/
+*.tmp
+*.log
+
+# Test output
+TestResults/
+tests/**/bin/
+tests/**/obj/
+tests/**/.godot/
+
+# Local handoff originals kept in repo, but generated junk excluded
+*.import
