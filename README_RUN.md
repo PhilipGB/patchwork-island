@@ -1,6 +1,7 @@
 # Patchwork Island — run and test guide
 
-> Status: P0 skeleton. This document is expanded as milestones are completed.
+> Status: P5 complete. M01–M08 and M10 are fully playable; M09, save/load and
+> final packaging are the remaining milestones.
 
 ## Prerequisites
 
@@ -56,7 +57,17 @@ dotnet run --project tests/PatchworkIsland.Tests.csproj
 ```
 
 The runner currently covers mission catalog, prerequisites, unlocks, duplicate
-pickups, exactly-once rewards, mission switching, hints and JSON round-trips.
+pickups, exactly-once rewards, mission switching, hints, bridge/swing snapping,
+grocery and park budgets, furniture costs/starter fallback, checkpoint order and
+JSON round-trips.
+
+If a concurrently running Godot instance makes `dotnet run` wait on the project
+DLL, build once and execute the test assembly directly:
+
+```bash
+dotnet build tests/PatchworkIsland.Tests.csproj -nodeReuse:false -p:UseSharedCompilation=false
+dotnet tests/bin/Debug/net8.0/PatchworkIsland.Tests.dll
+```
 
 ## Headless capture harness
 
@@ -69,13 +80,16 @@ godot --path . -- --capture-title  # title screen screenshot
 
 1. Esc/Enter on the title screen starts the game.
 2. Walk to the yellow JOBS board by the town hall, or press **J** anywhere.
-3. Choose The Red House Delivery or Workshop Supplies.
+3. Choose an available job. Prerequisites are shown on locked cards.
 4. Follow the gold marker and top-centre arrow, press **E** on highlighted
-   objects, and return to the labelled destination.
+   objects, and return to the labelled destination or build site.
 
-Six missions are fully playable in this milestone (M01 apples, M02 supplies,
-M03 bridge, M04 groceries, M05 rally, M06 parcels). The bridge opens the east
-meadow; the yellow van is parked by your house. There is no save yet (P7).
+Nine missions are fully playable (M01 apples, M02 supplies, M03 bridge,
+M04 groceries, M05 rally, M06 parcels, M07 swings, M08 park, M10 home). The
+bridge opens the east meadow; the yellow van waits by the house; the playground
+and village green persist in the world; the house interior has a furniture
+catalogue stand. M09 (optional race challenge), save/load and final packaging
+arrive in the next milestones. There is no save yet (P7).
 
 ## Developer QA scenarios
 
@@ -86,6 +100,9 @@ godot --path . -- --scenario-m03   # M01+M02 complete, bridge job active
 godot --path . -- --scenario-m04   # M01 complete, Market Basket active
 godot --path . -- --scenario-m05   # M01–M04 complete + bridge, rally active
 godot --path . -- --scenario-m06   # M01–M04 complete, post job active
+godot --path . -- --scenario-m07   # M01–M04 + bridge, swings active
+godot --path . -- --scenario-m08   # M07 + playground done, park active
+godot --path . -- --scenario-m10   # M08 + park done, furniture job active
 ```
 
 They do not alter unlock tests or normal play.

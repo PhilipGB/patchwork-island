@@ -22,7 +22,7 @@ public partial class Main : Node3D
     private MissionCatalog _catalog;
     private GameData _data;
     private MissionService _missions;
-    private readonly HashSet<string> _implemented = new() { "M01", "M02", "M03", "M04", "M05", "M06" };
+    private readonly HashSet<string> _implemented = new() { "M01", "M02", "M03", "M04", "M05", "M06", "M07", "M08", "M10" };
     private readonly List<Pickup> _pickups = new();
     private Interactable _jobStation;
     private Interactable _redHouseStation;
@@ -32,7 +32,14 @@ public partial class Main : Node3D
     private Interactable _bridgeStation;
     private Interactable _townHallStation;
     private Interactable _parkingStation;
+    private Interactable _playgroundStation;
+    private Interactable _parkStation;
+    private Interactable _furnitureStation;
     private BridgeBuilder _bridgeBuilder;
+    private SwingBuilder _swingBuilder;
+    private ParkBuilder _parkBuilder;
+    private FurnitureBuilder _furnitureBuilder;
+    private readonly List<IBuildMode> _buildModes = new();
     private VanController _van;
     private bool _buildMode;
     private bool _driving;
@@ -90,6 +97,25 @@ public partial class Main : Node3D
         _van.EnterRequested += EnterVan;
         _van.Crashed += OnVanCrashed;
 
+        _swingBuilder = new SwingBuilder();
+        AddChild(_swingBuilder);
+        _swingBuilder.Initialize(_data, _missions, _rig, _hud, _world, OnSwingsBuilt, SetBuildMode, RefreshMissionState);
+
+        _parkBuilder = new ParkBuilder();
+        AddChild(_parkBuilder);
+        _parkBuilder.Initialize(_data, _missions, _rig, _hud, OnParkBuilt, SetBuildMode, RefreshMissionState);
+        _parkBuilder.SetPads(_world.ParkPads.ToArray());
+
+        _furnitureBuilder = new FurnitureBuilder();
+        AddChild(_furnitureBuilder);
+        _furnitureBuilder.Initialize(_data, _missions, _rig, _hud, OnHomeFurnished, SetBuildMode, RefreshMissionState);
+        _furnitureBuilder.SetPads(_world.HousePads.ToArray());
+
+        _buildModes.Add(_bridgeBuilder);
+        _buildModes.Add(_swingBuilder);
+        _buildModes.Add(_parkBuilder);
+        _buildModes.Add(_furnitureBuilder);
+
         CreateStations();
         SpawnPickups();
         RefreshMissionState();
@@ -139,6 +165,39 @@ public partial class Main : Node3D
             Input.MouseMode = Input.MouseModeEnum.Captured;
             RefreshMissionState();
             _hud.ShowToast("SCENARIO: M06 active. Collect BLUE and ORANGE parcels at the post counter.", 5f);
+            return;
+        }
+        if (HasUserArg("--scenario-m07"))
+        {
+            _started = true;
+            _player.Teleport(new Vector3(-38f, 0.2f, 3.0f), 0f);
+            _rig.SetView(0f, 18f, 8.2f);
+            _player.SetControlEnabled(true);
+            Input.MouseMode = Input.MouseModeEnum.Captured;
+            RefreshMissionState();
+            _hud.ShowToast("SCENARIO: M07 active. Press E by the broken swings.", 5f);
+            return;
+        }
+        if (HasUserArg("--scenario-m08"))
+        {
+            _started = true;
+            _player.Teleport(new Vector3(10f, 0.2f, 7.8f), Mathf.Pi);
+            _rig.SetView(180f, 18f, 8.2f);
+            _player.SetControlEnabled(true);
+            Input.MouseMode = Input.MouseModeEnum.Captured;
+            RefreshMissionState();
+            _hud.ShowToast("SCENARIO: M08 active. Press E at the village green.", 5f);
+            return;
+        }
+        if (HasUserArg("--scenario-m10"))
+        {
+            _started = true;
+            _player.Teleport(new Vector3(-38f, 0.2f, 17.0f), Mathf.Pi);
+            _rig.SetView(180f, 18f, 8.2f);
+            _player.SetControlEnabled(true);
+            Input.MouseMode = Input.MouseModeEnum.Captured;
+            RefreshMissionState();
+            _hud.ShowToast("SCENARIO: M10 active. Walk into your house and press E at FURNITURE.", 5f);
             return;
         }
         if (HasUserArg("--capture-title"))
@@ -222,6 +281,44 @@ public partial class Main : Node3D
             _data.ActiveMission = "M06";
             if (!_data.UnlockedCosmetics.Contains("red_cap")) _data.UnlockedCosmetics.Add("red_cap");
         }
+        else if (HasUserArg("--scenario-m07"))
+        {
+            foreach (string id in new[] { "M01", "M02", "M03", "M04" })
+                if (!_data.CompletedMissions.Contains(id)) _data.CompletedMissions.Add(id);
+            _data.BridgePieces.Clear();
+            _data.BridgePieces.AddRange(new[] { "support_0", "support_1", "support_2", "plank_0", "plank_1", "plank_2", "plank_3" });
+            _data.Coins = 54;
+            _data.ActiveMission = "M07";
+            if (!_data.UnlockedCosmetics.Contains("red_cap")) _data.UnlockedCosmetics.Add("red_cap");
+        }
+        else if (HasUserArg("--scenario-m08"))
+        {
+            foreach (string id in new[] { "M01", "M02", "M03", "M04", "M07" })
+                if (!_data.CompletedMissions.Contains(id)) _data.CompletedMissions.Add(id);
+            _data.BridgePieces.Clear();
+            _data.BridgePieces.AddRange(new[] { "support_0", "support_1", "support_2", "plank_0", "plank_1", "plank_2", "plank_3" });
+            _data.SwingPieces.Clear();
+            _data.SwingPieces.AddRange(BuildRules.SwingSockets);
+            _data.Coins = 72;
+            _data.ActiveMission = "M08";
+            if (!_data.UnlockedCosmetics.Contains("red_cap")) _data.UnlockedCosmetics.Add("red_cap");
+        }
+        else if (HasUserArg("--scenario-m10"))
+        {
+            foreach (string id in new[] { "M01", "M02", "M03", "M04", "M07", "M08" })
+                if (!_data.CompletedMissions.Contains(id)) _data.CompletedMissions.Add(id);
+            _data.BridgePieces.Clear();
+            _data.BridgePieces.AddRange(new[] { "support_0", "support_1", "support_2", "plank_0", "plank_1", "plank_2", "plank_3" });
+            _data.SwingPieces.Clear();
+            _data.SwingPieces.AddRange(BuildRules.SwingSockets);
+            _data.ParkPlacements.Clear();
+            _data.ParkPlacements.Add(new PlacedItem("bench", "park0"));
+            _data.ParkPlacements.Add(new PlacedItem("flowerbed", "park1"));
+            _data.ParkPlacements.Add(new PlacedItem("lamp", "park2"));
+            _data.Coins = 92;
+            _data.ActiveMission = "M10";
+            if (!_data.UnlockedCosmetics.Contains("red_cap")) _data.UnlockedCosmetics.Add("red_cap");
+        }
     }
 
     private void BuildEnvironment()
@@ -297,9 +394,21 @@ public partial class Main : Node3D
             "E: Call van to parking", ResetVanAtSign, () => !_driving, true, 3.2f, "VanParkingStation");
         _parkingStation.SetPrompt(() => _driving ? "E: Parking sign" : "E: Call van to parking");
 
+        _playgroundStation = Interactable.Create(this, new Vector3(-38f, 0.1f, -1.5f),
+            "E: Playground worksite", InteractPlayground, null, true, 4.0f, "PlaygroundStation");
+        _playgroundStation.SetPrompt(PlaygroundPrompt);
+
+        _parkStation = Interactable.Create(this, _world.VillageGreenSign + new Vector3(0, 0.1f, -0.9f),
+            "E: Village green", InteractPark, null, true, 4.0f, "ParkStation");
+        _parkStation.SetPrompt(ParkPrompt);
+
+        _furnitureStation = Interactable.Create(this, _world.FurnitureStation,
+            "E: Furniture catalogue", InteractFurniture, null, true, 3.6f, "FurnitureStation");
+        _furnitureStation.SetPrompt(FurniturePrompt);
+
         _houseStation = Interactable.Create(this, _world.PlayerHouseDoor + new Vector3(0, 0.1f, -1.0f),
-            "E: Go inside YOUR HOUSE", () => _hud.ShowBigToast("Your cosy house. Furniture jobs open later."),
-            null, true, 3.2f, "HouseStation");
+            "E: Go inside YOUR HOUSE", InteractHouseDoor, null, true, 3.2f, "HouseStation");
+        _houseStation.SetPrompt(() => _data.ActiveMission == "M10" ? "E: Go inside YOUR HOUSE" : "E: Look at YOUR HOUSE");
     }
 
     private string RedHousePrompt()
@@ -357,6 +466,27 @@ public partial class Main : Node3D
                 : "E: TOWN HALL — basket not ready";
         }
         return "E: Look at TOWN HALL";
+    }
+
+    private string PlaygroundPrompt()
+    {
+        if (_data.IsCompleted("M07")) return "E: Playground — swings fixed";
+        if (_data.ActiveMission == "M07") return "E: Fix the swings";
+        return "E: Playground worksite";
+    }
+
+    private string ParkPrompt()
+    {
+        if (_data.IsCompleted("M08")) return "E: Village green — decorated";
+        if (_data.ActiveMission == "M08") return "E: Decorate the village green";
+        return "E: Village green";
+    }
+
+    private string FurniturePrompt()
+    {
+        if (_data.IsCompleted("M10")) return "E: Rearrange furniture";
+        if (_data.ActiveMission == "M10") return "E: Furnish your home";
+        return "E: Furniture catalogue";
     }
 
     private string BridgeSitePrompt()
@@ -435,6 +565,61 @@ public partial class Main : Node3D
         {
             RefreshMissionState();
         }
+    }
+
+    private void InteractHouseDoor()
+    {
+        if (_data.ActiveMission == "M10")
+            _hud.ShowBigToast("Walk inside. The furniture catalogue is on the little stand.", 3.2f, Palette.Lavender);
+        else if (_data.IsCompleted("M10"))
+            _hud.ShowBigToast("Your cosy, furnished home.", 2.6f, Palette.Success);
+        else
+            _hud.ShowBigToast("Your cosy house. Furniture jobs open later.", 2.6f);
+    }
+
+    private void InteractPlayground()
+    {
+        if (_data.IsCompleted("M07"))
+        {
+            _hud.ShowBigToast("The swings are fixed. Press E at either seat for a swing!", 3.4f, Palette.Success);
+            return;
+        }
+        if (_data.ActiveMission == "M07")
+        {
+            _swingBuilder?.OpenBuildMode();
+            return;
+        }
+        _hud.ShowHint("Start Fix the Swings at the yellow JOBS board. The workshop unlocks it.");
+    }
+
+    private void InteractPark()
+    {
+        if (_data.IsCompleted("M08"))
+        {
+            _hud.ShowBigToast("Bench + flowerbed + lamp = a lovely village green.", 3.2f, Palette.Success);
+            return;
+        }
+        if (_data.ActiveMission == "M08")
+        {
+            _parkBuilder?.OpenBuildMode();
+            return;
+        }
+        _hud.ShowHint("Start Park Planner at the yellow JOBS board after fixing the swings.");
+    }
+
+    private void InteractFurniture()
+    {
+        if (_data.ActiveMission == "M10")
+        {
+            FurnitureShopUi.Show(_hud, _data, () => _furnitureBuilder?.OpenBuildMode(), RefreshMissionState);
+            return;
+        }
+        if (_data.IsCompleted("M10"))
+        {
+            _furnitureBuilder?.OpenBuildMode();
+            return;
+        }
+        _hud.ShowHint("Start Home Sweet Home at the yellow JOBS board after Park Planner.");
     }
 
     private void InteractShop()
@@ -828,6 +1013,31 @@ public partial class Main : Node3D
         return $"{total / 60}:{total % 60:00}";
     }
 
+    private IBuildMode GetActiveBuildMode()
+    {
+        foreach (var mode in _buildModes)
+            if (mode != null && mode.Active) return mode;
+        return null;
+    }
+
+    private void OnSwingsBuilt()
+    {
+        var result = _missions.CompleteActive(0);
+        if (result.Success) OnMissionCompleted(result);
+    }
+
+    private void OnParkBuilt()
+    {
+        var result = _missions.CompleteActive(0);
+        if (result.Success) OnMissionCompleted(result);
+    }
+
+    private void OnHomeFurnished()
+    {
+        var result = _missions.CompleteActive(0);
+        if (result.Success) OnMissionCompleted(result);
+    }
+
     private void OnBridgeBuilt()
     {
         var result = _missions.CompleteActive(0);
@@ -956,6 +1166,16 @@ public partial class Main : Node3D
                 }
                 break;
             }
+            case "M07":
+                SetObjective(_world.PlaygroundCenter, "PLAYGROUND", "hammer", Palette.Lavender);
+                break;
+            case "M08":
+                SetObjective(_world.VillageGreenSign, "VILLAGE GREEN", "flowerbed", Palette.Lavender);
+                break;
+            case "M10":
+                SetObjective(IsInsidePlayerHouse(_player.GlobalPosition) ? _world.FurnitureStation : _world.PlayerHouseDoor,
+                    IsInsidePlayerHouse(_player.GlobalPosition) ? "FURNITURE" : "YOUR HOUSE", "house", Palette.Lavender);
+                break;
             default:
                 SetObjective(_world.JobBoard, "JOBS BOARD", "star", Palette.Yellow);
                 break;
@@ -1014,6 +1234,29 @@ public partial class Main : Node3D
             rows.Add(("parcel", $"ORANGE → WORKSHOP: {orange}/1"));
             rows.Add(("van", $"Carrying {_data.GetItem("blue_parcel")} blue · {_data.GetItem("orange_parcel")} orange"));
         }
+        else if (missionId == "M07")
+        {
+            int ropes = BuildRules.CountOf(_data.SwingPieces, new[] { "s1_rope_l", "s1_rope_r", "s2_rope_l", "s2_rope_r" });
+            int seats = BuildRules.CountOf(_data.SwingPieces, new[] { "s1_seat", "s2_seat" });
+            rows.Add(("rope", $"{ropes} / 4 ropes"));
+            rows.Add(("seat", $"{seats} / 2 seats"));
+            rows.Add(("star", "4 ropes + 2 seats = 6 pieces"));
+        }
+        else if (missionId == "M08")
+        {
+            int spent = ParkRules.Spent(_data);
+            rows.Add(("bench", $"Bench: {ParkRules.Count(_data, "bench")}/1"));
+            rows.Add(("flowerbed", $"Flowerbed: {ParkRules.Count(_data, "flowerbed")}/1"));
+            rows.Add(("lamp", $"Lamp: {ParkRules.Count(_data, "lamp")}/1"));
+            rows.Add(("coin", $"Job budget spent {spent}/20 · {ParkRules.Left(_data)} left"));
+        }
+        else if (missionId == "M10")
+        {
+            rows.Add(("table", $"Table: {FurnitureRules.Placed(_data, "table")}/1"));
+            rows.Add(("chair", $"Chairs: {FurnitureRules.Placed(_data, "chair")}/2"));
+            rows.Add(("plant", $"Plant: {FurnitureRules.Placed(_data, "plant")}/1"));
+            rows.Add(("coin", $"House set costs 8+5+5+3 = 21"));
+        }
         else
         {
             rows.Add(("star", "Follow the glowing marker"));
@@ -1052,6 +1295,9 @@ public partial class Main : Node3D
                 ? $"Four gates in {_raceElapsed:0.0}s — optional speed bonus +{result.BonusCoins}!"
                 : $"Four gates finished in {_raceElapsed:0.0}s. Any pace is a winning pace!",
             "M06" => "2 BLUE parcels to RED HOUSE + 1 ORANGE parcel to WORKSHOP — every address correct!",
+            "M07" => "4 ropes + 2 seats = 6 pieces. Both swings are fixed and ready to ride!",
+            "M08" => $"Bench 6 + flowers 4 + lamp 9 = 19, leaving 1 of the 20 job coins. Beautiful green!",
+            "M10" => "Table 8 + 2 chairs 10 + plant 3 = 21. Your home is ready to enjoy!",
             _ => result.Message,
         };
         _hud.ShowSuccess(result.Mission.Title, result.TotalCoins, detail, () => { });
@@ -1083,23 +1329,24 @@ public partial class Main : Node3D
             return;
         }
 
-        if (_buildMode && _bridgeBuilder != null && _bridgeBuilder.Active)
+        var activeBuild = GetActiveBuildMode();
+        if (activeBuild != null)
         {
             if (@event.IsActionPressed("pause"))
             {
-                _bridgeBuilder.CloseBuildMode();
+                activeBuild.CloseBuildMode();
                 GetViewport().SetInputAsHandled();
                 return;
             }
             if (@event.IsActionPressed("rotate_part"))
             {
-                _bridgeBuilder.RotateSelected();
+                activeBuild.RotateSelected();
                 GetViewport().SetInputAsHandled();
                 return;
             }
             if (@event is InputEventMouseButton mb && mb.Pressed && mb.ButtonIndex == MouseButton.Left)
             {
-                _bridgeBuilder.HandleWorldClick(GetViewport().GetMousePosition());
+                activeBuild.HandleWorldClick(GetViewport().GetMousePosition());
                 GetViewport().SetInputAsHandled();
             }
             return;

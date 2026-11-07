@@ -437,7 +437,7 @@ public partial class Hud : CanvasLayer
     // ------------------------------------------------------------- build bar
 
     public void ShowBuildBar(string title, string instruction, IReadOnlyList<BuildBarOption> options,
-        string footer, Action onClose)
+        string footer, Action onClose, Action onUndo = null)
     {
         HideBuildBar();
         _buildRoot = new Control { Name = "BuildBar", MouseFilter = Control.MouseFilterEnum.Ignore };
@@ -454,6 +454,11 @@ public partial class Hud : CanvasLayer
         UiKit.Icon(titleRow, "hammer", 30);
         UiKit.Label(titleRow, title, 24, Palette.Navy, HorizontalAlignment.Left, false);
         UiKit.Spacer(titleRow);
+        if (onUndo != null)
+        {
+            var undo = UiKit.Button(titleRow, "Undo last", 18, new Vector2(125, 44), new Color("FFE0D6"), Palette.Red);
+            undo.Pressed += () => onUndo.Invoke();
+        }
         var close = UiKit.Button(titleRow, "Done  [Esc]", 19, new Vector2(150, 44), new Color("E8E1FF"), Palette.Lavender);
         close.Pressed += () => onClose?.Invoke();
 

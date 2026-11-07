@@ -21,7 +21,7 @@ public partial class BuildSocket : StaticBody3D
     private string _iconName;
 
     public void Setup(string socketId, string pieceType, Vector3 position, Vector3 ghostSize,
-        string iconName, float ghostOffsetY = 0f)
+        string iconName, float ghostOffsetY = 0f, bool showLabel = true, string labelText = null)
     {
         Name = $"Socket_{socketId}";
         SocketId = socketId;
@@ -45,12 +45,15 @@ public partial class BuildSocket : StaticBody3D
             Shape = new BoxShape3D { Size = ghostSize },
             Position = new Vector3(0, ghostOffsetY, 0),
         });
-        _ghostIcon = Geo.IconSprite(this, new Vector3(0, ghostOffsetY + ghostSize.Y * 0.5f + 0.65f, 0),
-            iconName, 0.018f, true);
-        _ghostLabel = Geo.Label(this, new Vector3(0, ghostOffsetY + ghostSize.Y * 0.5f + 1.25f, 0),
-            pieceType == "support" ? "SUPPORT" : "PLANK", 30,
-            pieceType == "support" ? Color.FromHtml("0E5B2B") : Color.FromHtml("5B3A16"),
-            true, 0.006f, 12);
+        if (!string.IsNullOrEmpty(iconName))
+            _ghostIcon = Geo.IconSprite(this, new Vector3(0, ghostOffsetY + ghostSize.Y * 0.5f + 0.65f, 0),
+                iconName, 0.018f, true);
+        if (showLabel)
+        {
+            string text = labelText ?? pieceType.ToUpperInvariant();
+            _ghostLabel = Geo.Label(this, new Vector3(0, ghostOffsetY + ghostSize.Y * 0.5f + 1.25f, 0),
+                text, 30, Color.FromHtml("0E5B2B"), true, 0.006f, 12);
+        }
     }
 
     public void SetPlacedVisual(Node3D visual)
@@ -64,17 +67,29 @@ public partial class BuildSocket : StaticBody3D
     {
         Placed = true;
         SocketEnabled = false;
-        CollisionLayer = 0;
+        // Keep the pad pickable by the build camera while build mode is open;
+        // it never collides with the player or the van (layers 1/4/8 differ).
+        CollisionLayer = 8;
         if (_ghost != null) _ghost.Visible = false;
         if (_ghostIcon != null) _ghostIcon.Visible = false;
         if (_ghostLabel != null) _ghostLabel.Visible = false;
         if (_placedVisual != null) _placedVisual.Visible = true;
     }
 
+    /// <summary>Lets build mode pick a placed item back up without showing its ghost.</summary>
+    public void SetClickable(bool enabled)
+    {
+        if (!Placed) return;
+        Visible = true;
+        CollisionLayer = enabled ? 8u : 0u;
+    }
+
     public void SetEnabled(bool enabled)
     {
         SocketEnabled = enabled;
-        Visible = enabled;
+        // A placed visual stays visible outside build mode (for example after a
+        // mission completes); only empty ghost pads are hidden.
+        Visible = enabled || Placed;
         CollisionLayer = enabled && !Placed ? 8u : 0u;
     }
 
@@ -84,6 +99,22 @@ public partial class BuildSocket : StaticBody3D
         _ghost.MaterialOverride = Geo.GhostMat(valid ? Color.FromHtml("57E27F") : Color.FromHtml("D77970"));
         if (_ghostIcon != null)
             _ghostIcon.Modulate = valid ? Colors.White : new Color(1f, 0.55f, 0.5f, 0.8f);
+    }
+
+    public void ClearPlacement()
+    {
+        Placed = false;
+        SocketEnabled = true;
+        CollisionLayer = 8;
+        if (_placedVisual != null) _placedVisual.Visible = false;
+        if (_ghost != null) _ghost.Visible = true;
+        if (_ghostIcon != null) _ghostIcon.Visible = true;
+        if (_ghostLabel != null) _ghostLabel.Visible = true;
+    }
+
+    public void HidePlacedVisual()
+    {
+        if (_placedVisual != null) _placedVisual.Visible = false;
     }
 
     public void HideGhost()

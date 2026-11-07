@@ -129,7 +129,7 @@ public partial class CameraRig : Camera3D
         var exclude = new Godot.Collections.Array<Rid>();
         if (Target is CollisionObject3D collisionObject)
             exclude.Add(collisionObject.GetRid());
-        var query = PhysicsRayQueryParameters3D.Create(_smoothedPivot, desired, 1u, exclude);
+        var query = PhysicsRayQueryParameters3D.Create(_smoothedPivot, desired, 1u | 16u, exclude);
         query.HitFromInside = false;
         var hit = GetWorld3D().DirectSpaceState.IntersectRay(query);
         if (hit.Count > 0)

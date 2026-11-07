@@ -294,6 +294,104 @@ internal static class Program
             Check(!s.DeliverOrangeParcel().Success, "orange cannot double-deliver");
         });
 
+        Run("M07 swing assembly enforces ropes and seats", () =>
+        {
+            var s = CompleteBridge(Fresh(catalog));
+            Check(s.StartMission("M07").Success, "start M07");
+            Check(!s.PlaceSwingPiece("seat", "s1_seat").Success, "seat before ropes rejected");
+            Check(!s.PlaceSwingPiece("rope", "s1_seat").Success, "rope in seat socket rejected");
+            Check(s.PlaceSwingPiece("rope", "s1_rope_l").Success, "s1 rope left");
+            Check(!s.PlaceSwingPiece("seat", "s1_seat").Success, "seat needs both ropes");
+            Check(s.PlaceSwingPiece("rope", "s1_rope_r").Success, "s1 rope right");
+            Check(s.PlaceSwingPiece("seat", "s1_seat").Success, "s1 seat");
+            Check(!s.PlaceSwingPiece("seat", "s1_seat").Success, "duplicate seat rejected");
+            Check(s.PlaceSwingPiece("rope", "s2_rope_l").Success, "s2 rope left");
+            Check(s.PlaceSwingPiece("rope", "s2_rope_r").Success, "s2 rope right");
+            Check(s.PlaceSwingPiece("seat", "s2_seat").Success, "s2 seat");
+            Equal(6, s.Data.SwingPieces.Count, "six swing pieces");
+            var completion = s.CompleteActive();
+            Check(completion.Success, "M07 complete");
+            Equal(18, completion.CoinsAwarded, "M07 reward");
+            Check(!s.CompleteActive().Success, "M07 cannot double award");
+        });
+
+        Run("M08 park budget, pad uniqueness and undo", () =>
+        {
+            var s = CompleteM07(Fresh(catalog));
+            Equal(MissionStatus.Available, s.GetStatus("M08"), "M08 unlocked");
+            Check(s.StartMission("M08").Success, "start M08");
+            int walletBefore = s.Data.Coins;
+            Check(ParkRules.Place(s.Data, "bench", "park0").Success, "place bench");
+            Check(ParkRules.Place(s.Data, "flowerbed", "park1").Success, "place flowerbed");
+            Check(ParkRules.Place(s.Data, "lamp", "park2").Success, "place lamp");
+            Equal(19, ParkRules.Spent(s.Data), "park total 6+4+9");
+            Equal(1, ParkRules.Left(s.Data), "one job coin left");
+            Equal(walletBefore, s.Data.Coins, "park budget separate from wallet");
+            var undo = ParkRules.UndoLast(s.Data);
+            Check(undo != null, "undo returns item");
+            Equal(0, ParkRules.Count(s.Data, "lamp"), "lamp removed");
+            Check(ParkRules.Place(s.Data, "lamp", "park2").Success, "lamp placed again");
+            Check(!ParkRules.Place(s.Data, "bench", "park3").Success, "budget prevents a second bench");
+            Check(!ParkRules.Place(s.Data, "bench", "park0").Success, "pad uniqueness enforced");
+            Equal(3, s.Data.ParkPlacements.Count, "three placements");
+            Check(MissionRules.IsObjectiveComplete(s.Data, "M08"), "park objective complete");
+            var complete = s.CompleteActive();
+            Check(complete.Success, "M08 complete");
+            Equal(20, complete.CoinsAwarded, "M08 reward");
+            Equal(walletBefore + 20, s.Data.Coins, "wallet after park reward");
+        });
+
+        Run("M10 furniture cost and house prerequisites", () =>
+        {
+            var s = CompleteM08(Fresh(catalog));
+            Equal(MissionStatus.Locked, s.GetStatus("M10"), "M10 locked until M04");
+            s = CompleteM04(s);
+            Equal(MissionStatus.Available, s.GetStatus("M10"), "M10 available after M04 + M08");
+            Check(s.StartMission("M10").Success, "start M10");
+            int walletBefore = s.Data.Coins;
+            Equal(21, FurnitureRules.FullSetCost, "full set 8+10+3");
+            Check(FurnitureRules.Buy(s.Data, "table").Success, "buy table");
+            Check(FurnitureRules.Buy(s.Data, "chair").Success, "buy chair 1");
+            Check(FurnitureRules.Buy(s.Data, "chair").Success, "buy chair 2");
+            Check(FurnitureRules.Buy(s.Data, "plant").Success, "buy plant");
+            Equal(walletBefore - 21, s.Data.Coins, "furniture spent 21 from wallet");
+            Check(FurnitureRules.Place(s.Data, "table", "house0").Success, "place table");
+            Check(FurnitureRules.Place(s.Data, "chair", "house1").Success, "place chair 1");
+            Check(FurnitureRules.Place(s.Data, "chair", "house2").Success, "place chair 2");
+            Check(!FurnitureRules.Place(s.Data, "chair", "house2").Success, "occupied pad rejected");
+            Check(FurnitureRules.Place(s.Data, "plant", "house3").Success, "place plant");
+            Equal(4, s.Data.FurniturePlacements.Count, "four furniture placements");
+            var moved = FurnitureRules.PickUp(s.Data, "house3");
+            Check(moved != null && moved.Type == "plant", "pick up plant");
+            Check(FurnitureRules.Place(s.Data, "plant", "house4").Success, "move plant to new pad");
+            Check(MissionRules.IsObjectiveComplete(s.Data, "M10"), "house objective complete");
+            var completion = s.CompleteActive();
+            Check(completion.Success, "M10 complete");
+            Equal(20, completion.CoinsAwarded, "M10 reward");
+        });
+
+        Run("M10 free starter set prevents a currency softlock", () =>
+        {
+            var data = new GameData { Coins = 0 };
+            foreach (string id in new[] { "M01", "M02", "M03", "M04", "M07", "M08" })
+                data.CompletedMissions.Add(id);
+            var s = new MissionService(data, catalog);
+            Check(s.StartMission("M10").Success, "start M10 with no coins");
+            Check(MissionRules.HasHouseFurniture(data) == false, "not furnished");
+            var free = FurnitureRules.GrantFreeStarterSet(data);
+            Check(free.Success, "free starter set granted");
+            Equal(0, data.Coins, "free set costs no coins");
+            Check(FurnitureRules.Place(data, "table", "house0").Success, "free table placed");
+            Check(FurnitureRules.Place(data, "chair", "house1").Success, "free chair 1 placed");
+            Check(FurnitureRules.Place(data, "chair", "house2").Success, "free chair 2 placed");
+            Check(FurnitureRules.Place(data, "plant", "house3").Success, "free plant placed");
+            var completion = s.CompleteActive();
+            Check(completion.Success, "free set still completes");
+            Equal(20, completion.CoinsAwarded, "free set mission reward");
+            var again = FurnitureRules.GrantFreeStarterSet(data);
+            Check(!again.Success, "free set cannot be farmed for spare items");
+        });
+
         Run("game state survives a JSON round trip", () =>
         {
             var s = CompleteM01(Fresh(catalog));
@@ -333,6 +431,33 @@ internal static class Program
             service.CollectPickup($"apple_{i}", "apple", "M01", 3);
         var result = service.DeliverApples();
         if (!result.Success) throw new Exception("M01 setup completion failed: " + result.Message);
+        return service;
+    }
+
+    private static MissionService CompleteM07(MissionService service)
+    {
+        CompleteBridge(service);
+        var started = service.StartMission("M07");
+        if (!started.Success) throw new Exception("M07 setup start failed: " + started.Message);
+        foreach (string id in new[] { "s1_rope_l", "s1_rope_r", "s2_rope_l", "s2_rope_r" })
+            service.PlaceSwingPiece("rope", id);
+        service.PlaceSwingPiece("seat", "s1_seat");
+        service.PlaceSwingPiece("seat", "s2_seat");
+        var result = service.CompleteActive(0);
+        if (!result.Success) throw new Exception("M07 setup completion failed: " + result.Message);
+        return service;
+    }
+
+    private static MissionService CompleteM08(MissionService service)
+    {
+        CompleteM07(service);
+        var started = service.StartMission("M08");
+        if (!started.Success) throw new Exception("M08 setup start failed: " + started.Message);
+        ParkRules.Place(service.Data, "bench", "park0");
+        ParkRules.Place(service.Data, "flowerbed", "park1");
+        ParkRules.Place(service.Data, "lamp", "park2");
+        var result = service.CompleteActive(0);
+        if (!result.Success) throw new Exception("M08 setup completion failed: " + result.Message);
         return service;
     }
 
