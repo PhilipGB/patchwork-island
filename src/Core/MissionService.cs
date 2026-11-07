@@ -332,6 +332,27 @@ public sealed class MissionService
         return new ActionOutcome { Success = true, Message = "ORANGE parcel delivered to the WORKSHOP." };
     }
 
+    // ---------------------------------------------------------------- swings
+
+    public PickupResult PlaceSwingPiece(string pieceType, string socketId)
+    {
+        if (Data.ActiveMission != "M07")
+            return new PickupResult { Success = false, Message = "Start Fix the Swings at the JOBS board first." };
+        if (Data.IsCompleted("M07"))
+            return new PickupResult { Success = false, Message = "The swings are already fixed." };
+        if (!BuildRules.ValidateSwingPlacement(pieceType, socketId, Data.SwingPieces, out string message))
+            return new PickupResult { Success = false, Message = message, Count = Data.SwingPieces.Count, Required = 6 };
+
+        Data.SwingPieces.Add(socketId);
+        return new PickupResult
+        {
+            Success = true,
+            Count = Data.SwingPieces.Distinct().Count(),
+            Required = 6,
+            Message = pieceType == "rope" ? "Rope tied on." : "Seat added.",
+        };
+    }
+
     // --------------------------------------------------------------- bridge
 
     public int BridgePlacedCount => Data.BridgePieces.Distinct().Count();

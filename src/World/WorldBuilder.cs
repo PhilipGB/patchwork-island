@@ -51,6 +51,8 @@ public partial class WorldBuilder : Node3D
     public Node3D FinishedBridge { get; private set; }
     public Node3D CelebrationDecor { get; private set; }
     public Node3D RaceStartFlag { get; private set; }
+    public Node3D PlaygroundFixSign { get; private set; }
+    public List<Label3D> BrokenSwingLabels { get; } = new();
     public List<Vector3> WoodSpawnPoints { get; } = new();
     public List<Vector3> StoneSpawnPoints { get; } = new();
     public List<Vector3> AppleSpawnPoints { get; } = new();
@@ -221,7 +223,18 @@ public partial class WorldBuilder : Node3D
         frontZ = frontSign * depth * 0.5f;
 
         Color trim = Palette.Cream.Darkened(0.06f);
-        Geo.StaticBox(root, "Foundation", new Vector3(0, 0.2f, 0), new Vector3(width + 0.6f, 0.4f, depth + 0.6f), Palette.Stone);
+        if (enterable)
+        {
+            // A thin, non-colliding plinth keeps the doorway walkable for children.
+            Geo.Box(root, new Vector3(0, 0.04f, 0),
+                new Vector3(width + 0.6f, 0.08f, depth + 0.6f), Palette.Stone, null, false, "Foundation");
+            Geo.Box(root, new Vector3(0, 0.035f, frontZ + frontSign * 0.5f),
+                new Vector3(doorWidth, 0.07f, 1.2f), Palette.StoneDark, null, false, "DoorThreshold");
+        }
+        else
+        {
+            Geo.StaticBox(root, "Foundation", new Vector3(0, 0.2f, 0), new Vector3(width + 0.6f, 0.4f, depth + 0.6f), Palette.Stone);
+        }
         // side walls
         Geo.StaticBox(root, "WallWest", new Vector3(-width * 0.5f + 0.15f, wallHeight * 0.5f + 0.25f, 0),
             new Vector3(0.3f, wallHeight, depth), wallColor);
@@ -241,6 +254,20 @@ public partial class WorldBuilder : Node3D
             Geo.Box(root, new Vector3(-doorWidth * 0.5f, 1.45f, frontZ), new Vector3(0.2f, 2.5f, 0.4f), trim);
             Geo.Box(root, new Vector3(doorWidth * 0.5f, 1.45f, frontZ), new Vector3(0.2f, 2.5f, 0.4f), trim);
             Geo.Box(root, new Vector3(0, 2.5f, frontZ), new Vector3(doorWidth + 0.2f, 0.2f, 0.4f), trim);
+            // Invisible camera blocker across the doorway: the player walks
+            // through, but the third-person camera cannot slip outside.
+            var cameraBlocker = new StaticBody3D
+            {
+                Name = "DoorCameraBlocker",
+                Position = new Vector3(0, 2.4f, frontZ),
+                CollisionLayer = 16,
+                CollisionMask = 0,
+            };
+            cameraBlocker.AddChild(new CollisionShape3D
+            {
+                Shape = new BoxShape3D { Size = new Vector3(doorWidth, 4.8f, 0.12f) },
+            });
+            root.AddChild(cameraBlocker);
             // An open door leaf against the inner wall.
             Geo.Box(root, new Vector3(-doorWidth * 0.5f - 0.9f, 1.25f, frontZ + frontSign * 0.85f),
                 new Vector3(1.9f, 2.3f, 0.12f), Palette.Wood, new Vector3(0, frontSign * 75f, 0));
@@ -349,8 +376,12 @@ public partial class WorldBuilder : Node3D
         Geo.Box(this, new Vector3(-33.2f, 1.55f, 17.2f), new Vector3(0.7f, 0.65f, 1.1f), Palette.Blue);
         Geo.Box(this, new Vector3(-33.2f, 1.72f, 17.77f), new Vector3(0.5f, 0.12f, 0.05f), Palette.Cream);
         Geo.Label(this, new Vector3(-33.2f, 2.3f, 17.2f), "MAIL", 40, Palette.Navy, true, 0.005f);
-        // Interior furniture station sign.
-        Geo.SignBoard(root, new Vector3(-4.3f, 1.6f, 0.2f), 90f, "DECORATE", Palette.Lavender, 2.4f, 0.55f, null, 36);
+        // Interior furniture catalogue stand.
+        Geo.Box(this, new Vector3(-40.5f, 0.45f, 21.1f), new Vector3(1.7f, 0.9f, 0.7f), Palette.Wood);
+        Geo.Box(this, new Vector3(-40.5f, 0.93f, 21.1f), new Vector3(1.5f, 0.1f, 0.55f), Palette.Cream);
+        Geo.Box(this, new Vector3(-40.5f, 1.18f, 21.05f), new Vector3(0.55f, 0.4f, 0.06f), Palette.Lavender,
+            new Vector3(-16, 0, 0));
+        Geo.Label(this, new Vector3(-40.5f, 1.65f, 21.1f), "FURNITURE", 42, Palette.Navy, true, 0.006f);
         // Keep yard clear / pads for furniture (grid of six).
         for (int i = 0; i < 6; i++)
         {
@@ -493,7 +524,9 @@ public partial class WorldBuilder : Node3D
     {
         Geo.Box(this, new Vector3(PlaygroundCenter.X, 0.015f, PlaygroundCenter.Z), new Vector3(18f, 0.03f, 13f),
             Color.FromHtml("D8D09B"), null, false, "PlaygroundSand");
-        Geo.SignBoard(this, new Vector3(PlaygroundCenter.X, 2.2f, PlaygroundCenter.Z + 7.2f), 180f, "PLAYGROUND", Palette.Lavender, 5.2f, 0.9f, "flag", 46);
+        Geo.SignBoard(this, new Vector3(PlaygroundCenter.X - 6.0f, 2.1f, PlaygroundCenter.Z + 6.5f), 0f, "PLAYGROUND", Palette.Lavender, 5.2f, 0.9f, "flag", 46);
+        Geo.Box(this, new Vector3(PlaygroundCenter.X - 8.8f, 0.8f, PlaygroundCenter.Z + 6.5f), new Vector3(0.18f, 1.6f, 0.18f), Palette.WoodDark);
+        Geo.Box(this, new Vector3(PlaygroundCenter.X - 3.2f, 0.8f, PlaygroundCenter.Z + 6.5f), new Vector3(0.18f, 1.6f, 0.18f), Palette.WoodDark);
 
         foreach (var frame in SwingFrames)
         {
@@ -507,7 +540,7 @@ public partial class WorldBuilder : Node3D
             Geo.Box(f, new Vector3(1.8f, 1.6f, 1.8f), new Vector3(0.22f, 3.4f, 0.22f), wood, new Vector3(-12, 0, 12));
             Geo.Box(f, new Vector3(0, 3.26f, 0.9f), new Vector3(4.2f, 0.24f, 0.24f), Palette.WoodDark);
             // Empty frame sign.
-            Geo.Label(f, new Vector3(0, 3.75f, 0.9f), "BROKEN", 36, Palette.Navy, true, 0.006f);
+            BrokenSwingLabels.Add(Geo.Label(f, new Vector3(0, 3.75f, 0.9f), "BROKEN", 36, Palette.Navy, true, 0.006f));
         }
         // Sandpit and a broken rope heap.
         Geo.Box(this, new Vector3(-43f, 0.08f, -9.0f), new Vector3(5f, 0.16f, 4f), Color.FromHtml("E4CF92"));
@@ -515,7 +548,7 @@ public partial class WorldBuilder : Node3D
         Geo.Cylinder(this, new Vector3(-32.8f, 0.3f, -8.0f), 0.14f, 0.14f, 1.8f, Palette.WoodDark, 6,
             new Vector3(0, 0, 70));
         Geo.Box(this, new Vector3(-32.2f, 0.3f, -8.3f), new Vector3(0.9f, 0.2f, 0.6f), Palette.Blue);
-        Geo.SignBoard(this, new Vector3(-38f, 0.8f, -9.6f), 180f, "FIX ME", Palette.Red, 2.4f, 0.6f, "hammer", 34);
+        PlaygroundFixSign = Geo.SignBoard(this, new Vector3(-38f, 0.8f, -9.6f), 0f, "FIX ME", Palette.Red, 2.4f, 0.6f, "hammer", 34);
         AddKeepClear(PlaygroundCenter, new Vector2(11, 8));
     }
 

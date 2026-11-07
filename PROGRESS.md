@@ -265,6 +265,76 @@ close range (blocking the view temporarily); optional fast-lap bonus was verifie
 by pure rule tests but not earned in the slow GUI run; no save yet. Camera
 occlusion treatment is scheduled for P7.
 
-## P5–P8
+## P5 — Playground, park and home customisation — PASS
+
+Implemented on branch `p5-playground-park-home`:
+
+- M07 Fix the Swings: two frames with six labelled sockets. Four ropes must be
+  tied before the two seats can go on; wrong pieces are never consumed. The
+  completed playground swaps to hanging, animated swings; pressing E at either
+  seat makes the player swing, and the playground prompt reports the repaired
+  state.
+- M08 Park Planner: separate 20-coin job budget, bench 6 / flowerbed 4 / lamp 9,
+  six snap pads, live spent/left counters, Undo last with refund, and a
+  completed village green. Completion spends 19, leaves 1 job coin and awards
+  +20 career coins. Placed decorations remain visible after completion.
+- M10 Home Sweet Home: walkable house interior, furniture catalogue stand and
+  six floor pads. Buy a table (8), two chairs (5 each) and a plant (3) from the
+  wallet (21 total) or use the free basic starter set if the wallet is short.
+  Placed furniture can be picked up and moved after completion. Completion
+  awards +20.
+- The player-house doorway is now a walkable low threshold with an invisible
+  camera blocker, so the third-person camera stays inside instead of clipping
+  through the front wall/sign.
+- Fixed a shared build-mode bug where completing a mission hid every placed
+  socket and its visual. Placed objects now remain visible, and placed furniture
+  pads stay clickable for free rearrangement.
+- Added a standalone furniture catalogue stand, unlimited-ish placement pads,
+  and job-card markers/prompts for M07, M08 and M10.
+
+Automated tests:
+
+```text
+$ dotnet tests/bin/Debug/net8.0/PatchworkIsland.Tests.dll
+PASS  M07 swing assembly enforces ropes and seats
+PASS  M08 park budget, pad uniqueness and undo
+PASS  M10 furniture cost and house prerequisites
+PASS  M10 free starter set prevents a currency softlock
+PASS  game state survives a JSON round trip
+...
+RESULT: 23 passed, 0 failed
+```
+
+Build/headless:
+
+```text
+$ dotnet build PatchworkIsland.sln -> 0 errors, 0 warnings
+$ godot --headless --path . --quit-after 120 -> exit 0
+```
+
+Real-input GUI checks (Xvfb + llvmpipe + xdotool; developer scenarios used only
+to reach mission states quickly; the pure tests cover unlock order):
+
+- M07: opened the playground with E, placed four ropes then two seats. Success
+  panel showed +18 and wallet 72; after Continue both blue seats hang from the
+  frames and `E: Have a swing` appears at a seat.
+- M08: opened Park Planner, placed bench (6), flowerbed (4), tested Undo (back
+  to 10 spent), replaced them, placed the lamp (19 spent, 1 left). Success panel
+  showed +20 and wallet 92. A subsequent build-mode screenshot shows all three
+  decorations still on their pads.
+- M10: walked through the newly walkable doorway to the FURNITURE stand, bought
+  table + 2 chairs + plant (wallet 92 → 71), scrolled to Place furniture and
+  placed all four items. Success panel showed +20 and wallet 91. After
+  continuing, all furniture stayed visible in the room. Reopened the catalogue,
+  picked up a chair (ready count 1), and moved it to another pad.
+- Genuine evidence: `evidence/p5_01_swings_complete.png` …
+  `evidence/p5_09_furniture_rearranged.png`.
+
+Known polish issues: the furniture shop's Place button is below the fold at
+720p and needs scrolling; the park camera can sit inside the Village Green sign
+when standing right under it. Both are scheduled for the P7 camera/UI polish
+pass. No save yet.
+
+## P6–P8
 
 TODO. See IMPLEMENTATION_PLAN.md.

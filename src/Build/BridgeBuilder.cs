@@ -10,7 +10,7 @@ namespace PatchworkIsland;
 /// correct glowing socket places the selected part; invalid slots never consume
 /// anything. Completing all seven creates the physical bridge collider.
 /// </summary>
-public partial class BridgeBuilder : Node3D
+public partial class BridgeBuilder : Node3D, IBuildMode
 {
     public bool Active { get; private set; }
     public bool IsBuilt { get; private set; }
