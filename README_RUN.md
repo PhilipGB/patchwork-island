@@ -45,12 +45,32 @@ godot --headless --path . --quit-after 120
 | Esc / P | Pause / close menu |
 | F12 | Developer screenshot (writes `evidence/manual_*.png`) |
 
+## Automated tests
+
+```bash
+dotnet run --project tests/PatchworkIsland.Tests.csproj
+```
+
+The runner currently covers mission catalog, prerequisites, unlocks, duplicate
+pickups, exactly-once rewards, mission switching, hints and JSON round-trips.
+
 ## Headless capture harness
 
 ```bash
 godot --path . -- --capture        # gameplay screenshots to evidence/
 godot --path . -- --capture-title  # title screen screenshot
 ```
+
+## Current gameplay loop
+
+1. Esc/Enter on the title screen starts the game.
+2. Walk to the yellow JOBS board by the town hall, or press **J** anywhere.
+3. Choose The Red House Delivery or Workshop Supplies.
+4. Follow the gold marker and top-centre arrow, press **E** on highlighted
+   objects, and return to the labelled destination.
+
+Two missions are fully playable in this milestone; the remaining eight are
+implemented in subsequent milestones. There is no save yet (P7).
 
 ## Save data
 

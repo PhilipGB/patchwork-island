@@ -25,7 +25,7 @@ public partial class WorldBuilder : Node3D
     public Vector3 ShopCenter { get; } = new(5.0f, 0.0f, 9.0f);
     public Vector3 WorkshopDoor { get; } = new(25.0f, 0.0f, -10.3f);
     public Vector3 WorkshopCenter { get; } = new(25.0f, 0.0f, -16.0f);
-    public Vector3 AppleCrate { get; } = new(1.2f, 0.0f, 4.1f);
+    public Vector3 AppleCrate { get; } = new(-2.5f, 0.0f, 3.6f);
     public Vector3 PostCounter { get; } = new(-9.0f, 0.0f, 8.0f);
     public Vector3 BridgeSite { get; } = new(36.5f, 0.0f, 4.5f);
     public Vector3 BridgeCenter { get; } = new(45.0f, 0.0f, 0.0f);
@@ -264,11 +264,13 @@ public partial class WorldBuilder : Node3D
         Geo.Triangle(root, "GableFront",
             new Vector3(-width * 0.5f, wallHeight + 0.25f, gzFront),
             new Vector3(width * 0.5f, wallHeight + 0.25f, gzFront),
-            new Vector3(0, wallHeight + 0.25f + roofHeight, gzFront), wallColor);
+            new Vector3(0, wallHeight + 0.25f + roofHeight, gzFront), wallColor,
+            flip: frontSign < 0);
         Geo.Triangle(root, "GableBack",
             new Vector3(-width * 0.5f, wallHeight + 0.25f, -gzFront),
             new Vector3(width * 0.5f, wallHeight + 0.25f, -gzFront),
-            new Vector3(0, wallHeight + 0.25f + roofHeight, -gzFront), wallColor);
+            new Vector3(0, wallHeight + 0.25f + roofHeight, -gzFront), wallColor,
+            flip: frontSign > 0);
         // Chimney for warmth.
         Geo.Box(root, new Vector3(width * 0.28f, wallHeight + roofHeight + 0.1f, -depth * 0.18f),
             new Vector3(0.8f, 1.9f, 0.8f), Color.FromHtml("C7775D"));
@@ -424,16 +426,12 @@ public partial class WorldBuilder : Node3D
         // Produce stall / apple crate at the front.
         Geo.Box(this, new Vector3(AppleCrate.X, 0.55f, AppleCrate.Z), new Vector3(2.3f, 0.7f, 1.2f), Palette.Wood);
         Geo.Box(this, new Vector3(AppleCrate.X, 0.82f, AppleCrate.Z), new Vector3(2.1f, 0.18f, 1.0f), Color.FromHtml("7B5A37"));
-        Geo.SignBoard(this, new Vector3(AppleCrate.X, 1.3f, AppleCrate.Z - 0.95f), 180f, "APPLES", Palette.Red, 2.6f, 0.62f, "apple", 38);
+        Geo.SignBoard(this, new Vector3(AppleCrate.X - 2.9f, 1.15f, AppleCrate.Z - 0.5f), 180f, "APPLES", Palette.Red, 2.4f, 0.62f, "apple", 38);
         // Baskets and crates.
         Crate(new Vector3(-2.0f, 0, 2.2f));
         Crate(new Vector3(9.5f, 0, 2.2f));
         Crate(new Vector3(10.0f, 0, 2.7f));
         Geo.Cylinder(this, new Vector3(8.2f, 0.55f, 2.0f), 0.45f, 0.5f, 0.8f, Palette.Wood, 8);
-        // Apples visible in the crate.
-        for (int i = 0; i < 5; i++)
-            Geo.Sphere(this, new Vector3(AppleCrate.X - 0.8f + i * 0.4f, 1.03f, AppleCrate.Z - 0.2f + (i % 2) * 0.2f),
-                0.18f, Palette.Red, 8, 4);
         AddKeepClear(new Vector3(ShopCenter.X, 0, 1.2f), new Vector2(8, 4));
     }
 
@@ -530,24 +528,21 @@ public partial class WorldBuilder : Node3D
         // Grove clearing.
         Geo.Box(this, new Vector3(GroveCenter.X, 0.015f, GroveCenter.Z), new Vector3(18f, 0.03f, 14f),
             Color.FromHtml("6DBF4A"), null, false, "GroveClearing");
-        Geo.SignBoard(this, new Vector3(GroveCenter.X, 2.1f, GroveCenter.Z + 7.0f), 180f, "GROVE", Palette.GrassDark, 3.6f, 0.8f, "wood", 44);
+        Geo.SignBoard(this, new Vector3(GroveCenter.X + 2.0f, 2.1f, GroveCenter.Z + 7.0f), 0f, "GROVE — 5 WOOD", Palette.GrassDark, 5.2f, 0.8f, "wood", 38);
         for (int i = 0; i < 5; i++)
         {
             WoodSpawnPoints.Add(new Vector3(GroveCenter.X - 6f + i * 2.2f, 0.0f, GroveCenter.Z - 2.3f + (i % 2) * 1.0f));
         }
-        for (int i = 0; i < 4; i++)
-        {
-            Geo.Cylinder(this, new Vector3(GroveCenter.X - 7f + i * 1.0f, 0.3f, GroveCenter.Z + 2.0f),
-                0.22f, 0.22f, 1.9f, Palette.Wood, 6, new Vector3(0, 0, 90));
-        }
-        Geo.StaticBox(this, "GroveStump", new Vector3(GroveCenter.X + 5.5f, 0.3f, GroveCenter.Z + 3.2f),
+        Geo.StaticBox(this, "GroveStump", new Vector3(GroveCenter.X + 6.5f, 0.3f, GroveCenter.Z + 4.2f),
             new Vector3(1.2f, 0.6f, 1.2f), Palette.WoodDark);
+        AddRoadSegment(new Vector3(-26f, 0, -22f), new Vector3(-34f, 0, -30f), 3.5f, PathSand);
+        AddRoadSegment(new Vector3(-34f, 0, -30f), new Vector3(-38f, 0, -31f), 3.5f, PathSand);
         AddKeepClear(GroveCenter, new Vector2(12, 10));
 
         // Stone patch.
         Geo.Box(this, new Vector3(StonePatchCenter.X, 0.015f, StonePatchCenter.Z), new Vector3(14f, 0.03f, 11f),
             Color.FromHtml("B6C06D"), null, false, "StoneClearing");
-        Geo.SignBoard(this, new Vector3(StonePatchCenter.X, 2.1f, StonePatchCenter.Z + 5.8f), 180f, "STONE PATCH", Palette.StoneDark, 4.8f, 0.8f, "stone", 42);
+        Geo.SignBoard(this, new Vector3(StonePatchCenter.X, 2.1f, StonePatchCenter.Z + 5.8f), 0f, "STONE PATCH — 3", Palette.StoneDark, 5.4f, 0.8f, "stone", 38);
         for (int i = 0; i < 3; i++)
         {
             StoneSpawnPoints.Add(new Vector3(StonePatchCenter.X - 3.4f + i * 3.2f, 0.0f, StonePatchCenter.Z - 0.8f + (i % 2) * 2.0f));
@@ -718,12 +713,14 @@ public partial class WorldBuilder : Node3D
         Tree(new Vector3(62, 0, -28), 1.2f);
         Tree(new Vector3(90, 0, 12), 0.9f);
 
-        // Grove cluster (avoiding log pickups).
-        for (int i = 0; i < 8; i++)
-        {
-            float angle = i * Mathf.Pi * 2f / 8f;
-            Tree(new Vector3(GroveCenter.X + Mathf.Cos(angle) * 10f, 0, GroveCenter.Z + Mathf.Sin(angle) * 8f), 0.8f + (i % 3) * 0.2f);
-        }
+        // Grove cluster leaves a clear southern entrance for the wood pickups.
+        Tree(new Vector3(GroveCenter.X - 12, 0, GroveCenter.Z - 2), 1.0f);
+        Tree(new Vector3(GroveCenter.X - 10, 0, GroveCenter.Z - 11), 1.1f);
+        Tree(new Vector3(GroveCenter.X - 3, 0, GroveCenter.Z - 13), 0.9f);
+        Tree(new Vector3(GroveCenter.X + 7, 0, GroveCenter.Z - 9), 1.0f);
+        Tree(new Vector3(GroveCenter.X + 11, 0, GroveCenter.Z + 1), 1.2f);
+        Tree(new Vector3(GroveCenter.X - 9, 0, GroveCenter.Z + 8), 0.9f);
+        Fir(new Vector3(GroveCenter.X + 13, 0, GroveCenter.Z + 6), 0.9f);
         // Bushes and flowers.
         for (int i = 0; i < 18; i++)
         {
