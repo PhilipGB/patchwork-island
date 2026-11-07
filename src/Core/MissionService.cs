@@ -53,6 +53,17 @@ public static class MissionRules
 
     public static bool CanSubmitSupplies(GameData data) =>
         data.GetItem("wood") >= 5 && data.GetItem("stone") >= 3;
+
+    /// <summary>Optional race goal; never required for mission completion.</summary>
+    public static int OptionalRaceBonus(string missionId, float elapsedSeconds)
+    {
+        return missionId switch
+        {
+            "M05" when elapsedSeconds <= 90f => 5,
+            "M09" when elapsedSeconds <= 75f => 5,
+            _ => 0,
+        };
+    }
 }
 
 public enum MissionStatus
@@ -263,6 +274,62 @@ public sealed class MissionService
             return Fail($"The list needs 2 bread and 1 milk. You have {GroceryBread} bread and {GroceryMilk} milk.");
         Data.SetMissionCounter("M04", "delivered", 1);
         return CompleteActive(0);
+    }
+
+    // ---------------------------------------------------------- checkpoint race
+
+    public ActionOutcome AdvanceCheckpoint(int gateNumber)
+    {
+        if (Data.ActiveMission != "M05" && Data.ActiveMission != "M09")
+            return new ActionOutcome { Success = false, Message = "No race job is active." };
+        string id = Data.ActiveMission;
+        int current = Data.GetMissionCounter(id, "checkpoint");
+        if (current >= 4)
+            return new ActionOutcome { Success = false, Message = "The race is already finished." };
+        if (gateNumber != current + 1)
+            return new ActionOutcome { Success = false, Message = $"Gate {current + 1} is next." };
+
+        Data.SetMissionCounter(id, "checkpoint", gateNumber);
+        return new ActionOutcome
+        {
+            Success = true,
+            Message = gateNumber == 4 ? "Finish gate reached!" : $"Gate {gateNumber}! Now gate {gateNumber + 1}.",
+        };
+    }
+
+    // ------------------------------------------------------------- two-stop post
+
+    public ActionOutcome DeliverBlueParcels()
+    {
+        if (Data.ActiveMission != "M06")
+            return new ActionOutcome { Success = false, Message = "Start Two-Stop Post at the JOBS board first." };
+        int delivered = Data.GetMissionCounter("M06", "blueDelivered");
+        if (delivered >= 2)
+            return new ActionOutcome { Success = false, Message = "The RED HOUSE already has both blue parcels." };
+        int carried = Data.GetItem("blue_parcel");
+        if (carried <= 0)
+            return new ActionOutcome { Success = false, Message = "Pick up the BLUE parcels at the post counter first." };
+        int amount = Math.Min(carried, 2 - delivered);
+        Data.RemoveItem("blue_parcel", amount);
+        Data.SetMissionCounter("M06", "blueDelivered", delivered + amount);
+        return new ActionOutcome
+        {
+            Success = true,
+            Message = $"{amount} BLUE parcel{(amount == 1 ? "" : "s")} delivered to the RED HOUSE.",
+        };
+    }
+
+    public ActionOutcome DeliverOrangeParcel()
+    {
+        if (Data.ActiveMission != "M06")
+            return new ActionOutcome { Success = false, Message = "Start Two-Stop Post at the JOBS board first." };
+        if (Data.GetMissionCounter("M06", "orangeDelivered") >= 1)
+            return new ActionOutcome { Success = false, Message = "The WORKSHOP already has its orange parcel." };
+        if (Data.GetItem("orange_parcel") <= 0)
+            return new ActionOutcome { Success = false, Message = "Pick up the ORANGE parcel at the post counter first." };
+        Data.RemoveItem("orange_parcel", 1);
+        Data.SetMissionCounter("M06", "orangeDelivered", 1);
+        return new ActionOutcome { Success = true, Message = "ORANGE parcel delivered to the WORKSHOP." };
     }
 
     // --------------------------------------------------------------- bridge
