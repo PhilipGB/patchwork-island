@@ -236,6 +236,64 @@ internal static class Program
             Check(BuildRules.BridgeComplete(placed), "complete with seven");
         });
 
+        Run("checkpoint gates must be taken in order", () =>
+        {
+            var s = CompleteBridge(Fresh(catalog));
+            Check(s.StartMission("M05").Success, "start M05");
+            Check(!s.AdvanceCheckpoint(2).Success, "gate 2 before 1 rejected");
+            Check(s.AdvanceCheckpoint(1).Success, "gate 1 accepted");
+            Check(!s.AdvanceCheckpoint(3).Success, "gate 3 before 2 rejected");
+            Check(!s.AdvanceCheckpoint(1).Success, "gate 1 repeat rejected");
+            Check(s.AdvanceCheckpoint(2).Success, "gate 2 accepted");
+            Check(s.AdvanceCheckpoint(3).Success, "gate 3 accepted");
+            Check(!MissionRules.IsObjectiveComplete(s.Data, "M05"), "not complete before gate 4");
+            Check(s.AdvanceCheckpoint(4).Success, "gate 4 accepted");
+            Check(MissionRules.IsObjectiveComplete(s.Data, "M05"), "race complete");
+            var before = s.Data.Coins;
+            var complete = s.CompleteActive(0);
+            Check(complete.Success, "M05 complete");
+            Equal(15, complete.CoinsAwarded, "M05 base reward");
+            Equal(before + 15, s.Data.Coins, "wallet after M05");
+            Equal(MissionStatus.Available, s.GetStatus("M09"), "M09 unlocked");
+            Check(!s.CompleteActive(0).Success, "M05 cannot complete twice");
+        });
+
+        Run("optional race bonus never blocks completion", () =>
+        {
+            Equal(5, MissionRules.OptionalRaceBonus("M05", 89f), "M05 bonus inside 90s");
+            Equal(0, MissionRules.OptionalRaceBonus("M05", 91f), "M05 no bonus outside 90s");
+            Equal(5, MissionRules.OptionalRaceBonus("M09", 75f), "M09 bonus inside 75s");
+            Equal(0, MissionRules.OptionalRaceBonus("M09", 75.1f), "M09 no bonus outside 75s");
+            Equal(0, MissionRules.OptionalRaceBonus("M06", 1f), "no race bonus on non-race");
+        });
+
+        Run("two-stop post enforces parcels and destination types", () =>
+        {
+            var s = CompleteM04(Fresh(catalog));
+            Equal(MissionStatus.Available, s.GetStatus("M06"), "M06 unlocked after M04");
+            Check(s.StartMission("M06").Success, "start M06");
+            Check(!s.DeliverBlueParcels().Success, "cannot deliver blue without picking up");
+            Check(!s.DeliverOrangeParcel().Success, "cannot deliver orange without picking up");
+            Check(s.CollectPickup("blue_parcel_0", "blue_parcel", "M06", 2).Success, "blue 1");
+            Check(s.CollectPickup("blue_parcel_1", "blue_parcel", "M06", 2).Success, "blue 2");
+            Check(s.CollectPickup("orange_parcel_0", "orange_parcel", "M06", 1).Success, "orange 1");
+            Equal(2, s.Data.GetItem("blue_parcel"), "two blue carried");
+            Equal(1, s.Data.GetItem("orange_parcel"), "one orange carried");
+            var blue = s.DeliverBlueParcels();
+            Check(blue.Success, "deliver blue parcels");
+            Equal(0, s.Data.GetItem("blue_parcel"), "blue consumed");
+            Equal(2, s.Data.GetMissionCounter("M06", "blueDelivered"), "blue delivered count");
+            Check(!MissionRules.IsObjectiveComplete(s.Data, "M06"), "not complete with orange outstanding");
+            Check(!s.DeliverBlueParcels().Success, "blue cannot double-deliver");
+            var orange = s.DeliverOrangeParcel();
+            Check(orange.Success, "deliver orange parcel");
+            Check(MissionRules.IsObjectiveComplete(s.Data, "M06"), "M06 objective complete");
+            var completion = s.CompleteActive(0);
+            Check(completion.Success, "M06 complete");
+            Equal(15, completion.CoinsAwarded, "M06 reward");
+            Check(!s.DeliverOrangeParcel().Success, "orange cannot double-deliver");
+        });
+
         Run("game state survives a JSON round trip", () =>
         {
             var s = CompleteM01(Fresh(catalog));
@@ -244,6 +302,7 @@ internal static class Program
             s.Data.ParkPlacements.Add(new PlacedItem("bench", "park0"));
             s.Data.FurnitureOwned["chair"] = 2;
             s.Data.Player = new PlayerSnapshot { X = 1, Y = 2, Z = 3, RotationY = 4, Valid = true };
+            s.Data.Van = new VehicleSnapshot { X = 5, Y = 6, Z = 7, RotationY = 8, Valid = true };
             string jsonOut = JsonSerializer.Serialize(s.Data);
             var restored = JsonSerializer.Deserialize<GameData>(jsonOut);
             restored.Normalise();
@@ -254,6 +313,7 @@ internal static class Program
             Equal("bench", restored.ParkPlacements[0].Type, "park placement round trip");
             Equal(2, restored.FurnitureOwned["chair"], "furniture owned round trip");
             Equal(1f, restored.Player.X, "player X round trip");
+            Equal(5f, restored.Van.X, "van X round trip");
         });
 
         Console.WriteLine();
@@ -273,6 +333,33 @@ internal static class Program
             service.CollectPickup($"apple_{i}", "apple", "M01", 3);
         var result = service.DeliverApples();
         if (!result.Success) throw new Exception("M01 setup completion failed: " + result.Message);
+        return service;
+    }
+
+    private static MissionService CompleteM04(MissionService service)
+    {
+        CompleteM01(service);
+        var started = service.StartMission("M04");
+        if (!started.Success) throw new Exception("M04 setup start failed: " + started.Message);
+        service.AddGrocery("bread");
+        service.AddGrocery("bread");
+        service.AddGrocery("milk");
+        var result = service.DeliverGroceries();
+        if (!result.Success) throw new Exception("M04 setup completion failed: " + result.Message);
+        return service;
+    }
+
+    private static MissionService CompleteBridge(MissionService service)
+    {
+        CompleteM02(service);
+        var started = service.StartMission("M03");
+        if (!started.Success) throw new Exception("M03 setup start failed: " + started.Message);
+        for (int i = 0; i < 3; i++)
+            service.PlaceBridgePiece("support", $"support_{i}");
+        for (int i = 0; i < 4; i++)
+            service.PlaceBridgePiece("plank", $"plank_{i}");
+        var result = service.CompleteActive(0);
+        if (!result.Success) throw new Exception("M03 setup completion failed: " + result.Message);
         return service;
     }
 

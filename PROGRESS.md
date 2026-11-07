@@ -206,6 +206,65 @@ at some camera angles (labels and part counts mitigate); several standalone
 signs still float without posts; camera can be close to some walls. Deferred to
 P7 polish. No save yet.
 
-## P4–P8
+## P4 — Vehicle, checkpoint course and two-stop post — PASS
+
+Implemented on branch `p4-van-race-post`:
+
+- Arcade yellow delivery van (`CharacterBody3D`) with W/S accelerate-brake-reverse,
+  A/D steering, toy-like turn-in-place at a standstill, wheel spin, driver figure,
+  camera auto-follow, E enter/exit (low-speed exit), R reset, parking sign recall
+  and automatic recovery from a water crash.
+- Safe exit-position search (ground ray + capsule overlap check, bridge/water
+  aware); if no space is safe the van is parked first, so the player cannot be
+  trapped. Player can still walk and access all missions after leaving the van.
+- M05 Village Road Rally: four numbered checkpoints in order, real gate
+  proximity detection only while driving, live timer in the job card, optional
+  90 s bonus, no completion time limit, bridge-first waypoint routing.
+- M06 Two-Stop Post: two blue parcels and one orange parcel on the town-hall
+  post counter, colour-word HUD, correct-destination hand-ins, wrong-attempt
+  gating, +15 reward.
+- Job board now unlocks/starts M05 and M06. Van parking pad/sign added.
+
+Automated tests:
+
+```text
+$ dotnet run --project tests/PatchworkIsland.Tests.csproj
+PASS  checkpoint gates must be taken in order
+PASS  optional race bonus never blocks completion
+PASS  two-stop post enforces parcels and destination types
+...
+RESULT: 19 passed, 0 failed
+```
+
+Build/headless:
+
+```text
+$ dotnet build PatchworkIsland.sln -> succeeded, 0 errors
+$ godot --headless --path . --quit-after 120 -> exit 0
+```
+
+Real-input GUI checks (Xvfb + llvmpipe + xdotool):
+
+- Started the van from its parking pad with E; HUD switched to driving prompt,
+  auto camera followed, first-use driving tutorial shown.
+- Drove north to the main road, turned with tank-pivot + driving steering,
+  crossed the intact bridge (van x=46.3, y≈0 mid-bridge) and reached the meadow.
+- Passed gates 1 → 2 → 3 → 4 in order with the HUD advancing Gate 1/4 … 4/4.
+  Finished in 107.4 s (over the optional 90 s), success panel showed +15 coins
+  (wallet 69) and explicitly said any pace is winning — no forced timer.
+- Tested reverse (van speed −3.0 while reversing), low-speed E exit to a safe
+  spot with player control restored, and R reset back to parking.
+- M06: collected 2 blue + 1 orange parcels at POST COUNTER, delivered 2 blue to
+  RED HOUSE (2/2), then 1 orange to WORKSHOP (1/1); success panel +15 coins,
+  wallet 69, correct-destination copy.
+- Genuine evidence: `evidence/p4_01_van_entry.png` …
+  `evidence/p4_06_van_exit.png`.
+
+Known polish issues: camera may enter gate-arch/roof decoration geometry at
+close range (blocking the view temporarily); optional fast-lap bonus was verified
+by pure rule tests but not earned in the slow GUI run; no save yet. Camera
+occlusion treatment is scheduled for P7.
+
+## P5–P8
 
 TODO. See IMPLEMENTATION_PLAN.md.

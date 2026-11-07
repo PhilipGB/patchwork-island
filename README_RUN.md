@@ -43,6 +43,10 @@ godot --headless --path . --quit-after 120
 | J | Open the job journal |
 | H | Current job hint |
 | Esc / P | Pause / close menu |
+| E (near van) | Get in |
+| W/S, A/D (driving) | Accelerate/brake-reverse, steer; A/D pivots at a stop |
+| E (driving) | Get out when slow |
+| R (driving) | Reset van to parking |
 | F12 | Developer screenshot (writes `evidence/manual_*.png`) |
 
 ## Automated tests
@@ -69,9 +73,9 @@ godot --path . -- --capture-title  # title screen screenshot
 4. Follow the gold marker and top-centre arrow, press **E** on highlighted
    objects, and return to the labelled destination.
 
-Four missions are fully playable in this milestone (M01 apples, M02 supplies,
-M03 bridge, M04 groceries). The bridge opens the east meadow. There is no save
-yet (P7).
+Six missions are fully playable in this milestone (M01 apples, M02 supplies,
+M03 bridge, M04 groceries, M05 rally, M06 parcels). The bridge opens the east
+meadow; the yellow van is parked by your house. There is no save yet (P7).
 
 ## Developer QA scenarios
 
@@ -80,6 +84,8 @@ For faster visual QA only, these launch straight into a prepared state:
 ```bash
 godot --path . -- --scenario-m03   # M01+M02 complete, bridge job active
 godot --path . -- --scenario-m04   # M01 complete, Market Basket active
+godot --path . -- --scenario-m05   # M01–M04 complete + bridge, rally active
+godot --path . -- --scenario-m06   # M01–M04 complete, post job active
 ```
 
 They do not alter unlock tests or normal play.

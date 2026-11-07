@@ -386,8 +386,6 @@ public partial class WorldBuilder : Node3D
         // Post counter prop.
         Geo.Box(this, new Vector3(-9.0f, 0.6f, 8.0f), new Vector3(2.4f, 1.2f, 1.0f), Palette.Wood);
         Geo.Box(this, new Vector3(-9.0f, 0.72f, 8.0f), new Vector3(2.1f, 0.1f, 0.85f), Palette.Cream);
-        Geo.Box(this, new Vector3(-9.3f, 1.15f, 7.75f), new Vector3(0.55f, 0.45f, 0.4f), Palette.Blue);
-        Geo.Box(this, new Vector3(-8.5f, 1.1f, 7.75f), new Vector3(0.5f, 0.4f, 0.4f), Palette.Orange);
     }
 
     private void BuildRedHouse()
@@ -844,6 +842,18 @@ public partial class WorldBuilder : Node3D
         Bench(new Vector3(57f, 0, -8f), 0f);
         // Picnic / market signage.
         Geo.SignBoard(this, new Vector3(-1.3f, 1.0f, -14.0f), 180f, "TO VILLAGE", Palette.Blue, 3.0f, 0.6f, "waypoint", 28);
+
+        // Van parking pad and readable sign.
+        Geo.Box(this, new Vector3(VanSpawn.X, 0.025f, VanSpawn.Z - 0.4f), new Vector3(4.4f, 0.03f, 6.2f),
+            Color.FromHtml("8C877B"), null, false, "VanParkingPad");
+        for (int i = 0; i < 3; i++)
+        {
+            Geo.Box(this, new Vector3(VanSpawn.X - 1.6f + i * 1.6f, 0.045f, VanSpawn.Z - 1.8f),
+                new Vector3(0.18f, 0.02f, 2.2f), Palette.RoadMark);
+        }
+        Geo.Box(this, new Vector3(ParkingSign.X, 0.6f, ParkingSign.Z), new Vector3(0.18f, 1.2f, 0.18f), Palette.WoodDark);
+        Geo.SignBoard(this, new Vector3(ParkingSign.X, 1.7f, ParkingSign.Z), 90f, "VAN PARKING", Palette.Yellow, 4.2f, 0.8f, "van", 40);
+        Geo.Box(this, new Vector3(ParkingSign.X + 0.6f, 0.35f, ParkingSign.Z), new Vector3(0.1f, 0.7f, 0.1f), Palette.WoodDark);
         // A small paddock fence near the meadow.
         FenceLine(new Vector3(51.5f, 0, -18f), new Vector3(88f, 0, -18f), Palette.White);
         FenceLine(new Vector3(88f, 0, -18f), new Vector3(88f, 0, -8f), Palette.White);
