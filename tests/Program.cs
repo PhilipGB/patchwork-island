@@ -160,6 +160,82 @@ internal static class Program
             Check(one.Text != two.Text || two.Text != three.Text, "hints vary");
         });
 
+        Run("grocery arithmetic and task budget", () =>
+        {
+            Equal(10, BudgetRules.GroceryTotal(2, 1), "2 bread + 1 milk");
+            Equal(2, BudgetRules.GroceryChange(2, 1), "change from 12");
+            Check(BudgetRules.IsGroceryCorrect(2, 1), "exact basket accepted");
+            Check(!BudgetRules.CanAddGrocery(2, 1, "bread"), "cannot overspend budget");
+            Check(BudgetRules.CanAddGrocery(1, 0, "milk"), "affordable milk");
+            Equal(19, BudgetRules.ParkTotal(1, 1, 1), "park total 6+4+9");
+            Equal(1, BudgetRules.ParkBudget - BudgetRules.ParkTotal(1, 1, 1), "park change");
+            Equal(21, BudgetRules.FurnitureTotal(1, 2, 1), "house total 8+5+5+3");
+        });
+
+        Run("M04 uses only the task purse and awards 12 once", () =>
+        {
+            var s = CompleteM01(Fresh(catalog));
+            Equal(10, s.Data.Coins, "wallet after M01");
+            Check(s.StartMission("M04").Success, "start M04");
+            Check(s.AddGrocery("bread").Success, "add bread 1");
+            Check(s.AddGrocery("bread").Success, "add bread 2");
+            Check(s.AddGrocery("milk").Success, "add milk");
+            Equal(10, s.Data.Coins, "core wallet untouched by shopping");
+            Equal(10, s.GrocerySpent, "grocery total");
+            Equal(2, s.GroceryChange, "grocery change");
+            Check(!s.AddGrocery("bread").Success, "cannot exceed 12 job coins");
+            Equal(2, s.GroceryBread, "bread count unchanged after refusal");
+            Check(s.RemoveGrocery("milk").Success, "refund milk");
+            Equal(0, s.GroceryMilk, "milk refunded");
+            Check(s.AddGrocery("milk").Success, "buy milk again");
+            var delivered = s.DeliverGroceries();
+            Check(delivered.Success, "deliver groceries");
+            Equal(12, delivered.CoinsAwarded, "M04 reward");
+            Equal(22, s.Data.Coins, "wallet after M04");
+            Equal(MissionStatus.Available, s.GetStatus("M06"), "M06 unlocked");
+            Check(!s.DeliverGroceries().Success, "repeat delivery rejected");
+            Equal(22, s.Data.Coins, "M04 reward once");
+        });
+
+        Run("bridge snap order, invalid placement and completion", () =>
+        {
+            var s = CompleteM02(Fresh(catalog));
+            Check(s.StartMission("M03").Success, "start M03");
+            var plankFirst = s.PlaceBridgePiece("plank", "plank_0");
+            Check(!plankFirst.Success, "plank before supports rejected");
+            Check(s.Data.BridgePieces.Count == 0, "invalid plank not consumed");
+            var wrongSupport = s.PlaceBridgePiece("support", "plank_2");
+            Check(!wrongSupport.Success, "support in plank socket rejected");
+            for (int i = 0; i < 3; i++)
+                Check(s.PlaceBridgePiece("support", $"support_{i}").Success, $"support {i}");
+            Check(!s.PlaceBridgePiece("support", "support_0").Success, "duplicate support rejected");
+            for (int i = 0; i < 4; i++)
+                Check(s.PlaceBridgePiece("plank", $"plank_{i}").Success, $"plank {i}");
+            Equal(7, s.Data.BridgePieces.Count, "seven bridge pieces");
+            Check(MissionRules.IsObjectiveComplete(s.Data, "M03"), "bridge objective complete");
+            var completion = s.CompleteActive();
+            Check(completion.Success, "bridge mission completes");
+            Equal(20, completion.CoinsAwarded, "M03 reward");
+            Equal(MissionStatus.Available, s.GetStatus("M05"), "M05 unlocked");
+            Equal(MissionStatus.Available, s.GetStatus("M07"), "M07 unlocked");
+            Check(!s.CompleteActive().Success, "M03 cannot double-award");
+        });
+
+        Run("bridge rules are independent and enforce seven sockets", () =>
+        {
+            var placed = new List<string>();
+            Check(!BuildRules.ValidateBridgePlacement("plank", "plank_0", placed, out _), "no plank first");
+            Check(BuildRules.ValidateBridgePlacement("support", "support_0", placed, out _), "support valid");
+            placed.Add("support_0");
+            Check(!BuildRules.ValidateBridgePlacement("support", "support_0", placed, out _), "duplicate invalid");
+            placed.Add("support_1");
+            placed.Add("support_2");
+            Check(BuildRules.ValidateBridgePlacement("plank", "plank_0", placed, out _), "plank after supports");
+            Check(!BuildRules.BridgeComplete(placed), "not complete with three");
+            placed.AddRange(new[] { "plank_0", "plank_1", "plank_2", "plank_3" });
+            Check(BuildRules.BridgeComplete(placed), "complete with seven");
+        });
+
         Run("game state survives a JSON round trip", () =>
         {
             var s = CompleteM01(Fresh(catalog));
@@ -197,6 +273,19 @@ internal static class Program
             service.CollectPickup($"apple_{i}", "apple", "M01", 3);
         var result = service.DeliverApples();
         if (!result.Success) throw new Exception("M01 setup completion failed: " + result.Message);
+        return service;
+    }
+
+    private static MissionService CompleteM02(MissionService service)
+    {
+        var started = service.StartMission("M02");
+        if (!started.Success) throw new Exception("M02 setup start failed: " + started.Message);
+        for (int i = 0; i < 5; i++)
+            service.CollectPickup($"wood_{i}", "wood", "M02", 5);
+        for (int i = 0; i < 3; i++)
+            service.CollectPickup($"stone_{i}", "stone", "M02", 3);
+        var result = service.SubmitSupplies();
+        if (!result.Success) throw new Exception("M02 setup completion failed: " + result.Message);
         return service;
     }
 

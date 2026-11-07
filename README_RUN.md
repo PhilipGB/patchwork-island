@@ -69,8 +69,20 @@ godot --path . -- --capture-title  # title screen screenshot
 4. Follow the gold marker and top-centre arrow, press **E** on highlighted
    objects, and return to the labelled destination.
 
-Two missions are fully playable in this milestone; the remaining eight are
-implemented in subsequent milestones. There is no save yet (P7).
+Four missions are fully playable in this milestone (M01 apples, M02 supplies,
+M03 bridge, M04 groceries). The bridge opens the east meadow. There is no save
+yet (P7).
+
+## Developer QA scenarios
+
+For faster visual QA only, these launch straight into a prepared state:
+
+```bash
+godot --path . -- --scenario-m03   # M01+M02 complete, bridge job active
+godot --path . -- --scenario-m04   # M01 complete, Market Basket active
+```
+
+They do not alter unlock tests or normal play.
 
 ## Save data
 

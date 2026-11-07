@@ -97,6 +97,12 @@ public sealed class HintResult
     public int TotalLevels = 1;
 }
 
+public sealed class ActionOutcome
+{
+    public bool Success;
+    public string Message = "";
+}
+
 /// <summary>
 /// The mission state machine. It owns exactly-once rewards and prerequisites,
 /// but stays free of Godot so it is directly unit-testable.
@@ -208,6 +214,82 @@ public sealed class MissionService
     }
 
     /// <summary>Awards a mission exactly once; safe to call repeatedly.</summary>
+    // ------------------------------------------------------------ groceries
+
+    public int GroceryBread => Data.GetMissionCounter("M04", "bread");
+    public int GroceryMilk => Data.GetMissionCounter("M04", "milk");
+    public int GrocerySpent => BudgetRules.GroceryTotal(GroceryBread, GroceryMilk);
+    public int GroceryChange => BudgetRules.GroceryChange(GroceryBread, GroceryMilk);
+
+    public ActionOutcome AddGrocery(string item)
+    {
+        if (Data.ActiveMission != "M04")
+            return new ActionOutcome { Success = false, Message = "Start Market Basket at the JOBS board first." };
+        if (Data.IsCompleted("M04"))
+            return new ActionOutcome { Success = false, Message = "The basket is already delivered." };
+        if (!BudgetRules.CanAddGrocery(GroceryBread, GroceryMilk, item))
+            return new ActionOutcome { Success = false, Message = "That would use more than the 12 job coins." };
+
+        if (item == "bread") Data.IncrementMissionCounter("M04", "bread");
+        else if (item == "milk") Data.IncrementMissionCounter("M04", "milk");
+        else return new ActionOutcome { Success = false, Message = "The shop does not sell that." };
+
+        return new ActionOutcome
+        {
+            Success = true,
+            Message = $"{ItemName(item)} added. Total {GrocerySpent}, change {GroceryChange}.",
+        };
+    }
+
+    public ActionOutcome RemoveGrocery(string item)
+    {
+        if (Data.ActiveMission != "M04")
+            return new ActionOutcome { Success = false, Message = "No grocery job is active." };
+        if (item == "bread" && GroceryBread > 0) Data.SetMissionCounter("M04", "bread", GroceryBread - 1);
+        else if (item == "milk" && GroceryMilk > 0) Data.SetMissionCounter("M04", "milk", GroceryMilk - 1);
+        else return new ActionOutcome { Success = false, Message = "Nothing to put back." };
+        return new ActionOutcome
+        {
+            Success = true,
+            Message = $"Refunded. Total {GrocerySpent}, change {GroceryChange}.",
+        };
+    }
+
+    public MissionCompletionResult DeliverGroceries()
+    {
+        if (Data.ActiveMission != "M04")
+            return Fail("Start Market Basket at the JOBS board first.");
+        if (!BudgetRules.IsGroceryListComplete(GroceryBread, GroceryMilk))
+            return Fail($"The list needs 2 bread and 1 milk. You have {GroceryBread} bread and {GroceryMilk} milk.");
+        Data.SetMissionCounter("M04", "delivered", 1);
+        return CompleteActive(0);
+    }
+
+    // --------------------------------------------------------------- bridge
+
+    public int BridgePlacedCount => Data.BridgePieces.Distinct().Count();
+
+    public PickupResult PlaceBridgePiece(string pieceType, string socketId)
+    {
+        if (Data.ActiveMission != "M03")
+            return new PickupResult { Success = false, Message = "Start Build the Bridge at the JOBS board first." };
+        if (Data.IsCompleted("M03"))
+            return new PickupResult { Success = false, Message = "The bridge is already built." };
+        if (!BuildRules.ValidateBridgePlacement(pieceType, socketId, Data.BridgePieces, out string message))
+            return new PickupResult { Success = false, Message = message, Count = BridgePlacedCount, Required = 7 };
+
+        Data.BridgePieces.Add(socketId);
+        return new PickupResult
+        {
+            Success = true,
+            Count = BridgePlacedCount,
+            Required = 7,
+            Message = pieceType == "support"
+                ? $"Support {BuildRules.BridgeSupportCount(Data.BridgePieces)} of 3 placed."
+                : $"Plank {BuildRules.BridgePlankCount(Data.BridgePieces)} of 4 placed.",
+        };
+    }
+
     public MissionCompletionResult CompleteActive(int bonusCoins = 0)
     {
         if (string.IsNullOrEmpty(Data.ActiveMission))
