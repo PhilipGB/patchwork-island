@@ -17,6 +17,7 @@ public partial class Hud : CanvasLayer
 
     public bool ModalOpen => _modalLayer != null;
     public bool ModalDismissible { get; private set; } = true;
+    public bool BuildBarOpen => _buildRoot != null;
 
     private Control _root;
     private PanelContainer _missionCard;
@@ -41,6 +42,7 @@ public partial class Hud : CanvasLayer
     private VBoxContainer _modalBody;
     private Label _modalTitle;
     private bool _modalShadeStopsInput = true;
+    private Control _buildRoot;
 
     public override void _Ready()
     {
@@ -431,8 +433,72 @@ public partial class Hud : CanvasLayer
         button.Pressed += () => CloseModal();
     }
 
+
+    // ------------------------------------------------------------- build bar
+
+    public void ShowBuildBar(string title, string instruction, IReadOnlyList<BuildBarOption> options,
+        string footer, Action onClose)
+    {
+        HideBuildBar();
+        _buildRoot = new Control { Name = "BuildBar", MouseFilter = Control.MouseFilterEnum.Ignore };
+        _buildRoot.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+        _root.AddChild(_buildRoot);
+
+        var panel = UiKit.Panel(_buildRoot, Palette.Cream, Palette.Lavender, 20, 5);
+        UiKit.Anchor(panel, 0.5f, 1, 0.5f, 1, -500, -210, 500, -20);
+        panel.MouseFilter = Control.MouseFilterEnum.Stop;
+        var margin = UiKit.Margin(panel, 8, 8, 8, 8);
+        var box = UiKit.VBox(margin, 7);
+
+        var titleRow = UiKit.HBox(box, 10);
+        UiKit.Icon(titleRow, "hammer", 30);
+        UiKit.Label(titleRow, title, 24, Palette.Navy, HorizontalAlignment.Left, false);
+        UiKit.Spacer(titleRow);
+        var close = UiKit.Button(titleRow, "Done  [Esc]", 19, new Vector2(150, 44), new Color("E8E1FF"), Palette.Lavender);
+        close.Pressed += () => onClose?.Invoke();
+
+        var instructionLabel = UiKit.Label(box, instruction, 19, Palette.Navy);
+        instructionLabel.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+
+        var optionsRow = UiKit.HBox(box, 10);
+        for (int i = 0; i < options.Count; i++)
+        {
+            var option = options[i];
+            var wrapper = UiKit.HBox(optionsRow, 6);
+            if (!string.IsNullOrWhiteSpace(option.Icon))
+                UiKit.Icon(wrapper, option.Icon, 28);
+            var label = option.Selected ? $"▶ {option.Label}  {option.Detail}" : $"{option.Label}  {option.Detail}";
+            var button = UiKit.Button(wrapper, label, 19, new Vector2(220, 48),
+                option.Selected ? new Color("FFF3C9") : Palette.Cream,
+                option.Selected ? Palette.Orange : Palette.Blue);
+            button.Disabled = !option.Enabled;
+            int captured = i;
+            button.Pressed += () => options[captured].Action?.Invoke();
+        }
+        var footerLabel = UiKit.Label(box, footer, 16, new Color("5C6B7A"), HorizontalAlignment.Left, false);
+        footerLabel.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+    }
+
+    public void HideBuildBar()
+    {
+        if (_buildRoot == null) return;
+        var old = _buildRoot;
+        _buildRoot = null;
+        old.QueueFree();
+    }
+
     public void SetWorldDim(bool dim)
     {
         // Reserved for future reduced-motion / accessibility options.
     }
+}
+
+public sealed class BuildBarOption
+{
+    public string Label = "";
+    public string Detail = "";
+    public string Icon = "";
+    public bool Selected;
+    public bool Enabled = true;
+    public System.Action Action;
 }

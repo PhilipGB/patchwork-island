@@ -151,6 +151,61 @@ stone-patch approach needs a clearer path. These are scheduled for P5/P7 polish.
 No save/load yet; that is P7. M03+ are shown as locked/coming-soon in this
 milestone and are implemented next.
 
-## P3–P8
+## P3 — Bridge construction and grocery maths — PASS
+
+Implemented on branch `p3-bridge-market`:
+
+- M03 seven-socket bridge: three supports first, then four planks. Floating
+  labelled ghost sockets, a dedicated bridge build camera, large click areas,
+  support/plank part buttons, live HUD counts and no consumption of invalid
+  parts. Completing all seven builds a real walk/drive collider, side rails,
+  hides the closure barrier and opens the east meadow.
+- Incomplete bridge has no deck collider; falling into the river triggers a
+  friendly return to the west bank. Completed bridge is traversable on foot.
+- M04 Market Basket: dedicated 12-coin job purse, bread 3 / milk 4, add/remove
+  purchase UI, running total and change, disabled over-budget buttons, separate
+  from the permanent wallet, delivery at TOWN HALL and +12 reward.
+- Added authored bread/milk/rope/seat/bench/flowerbed/lamp/table/chair/plant
+  SVG UI icons in `assets/icons/`.
+
+Automated tests:
+
+```text
+$ dotnet run --project tests/PatchworkIsland.Tests.csproj
+PASS  grocery arithmetic and task budget
+PASS  M04 uses only the task purse and awards 12 once
+PASS  bridge snap order, invalid placement and completion
+PASS  bridge rules are independent and enforce seven sockets
+... 16 passed, 0 failed
+```
+
+Build/headless:
+
+```text
+$ dotnet build PatchworkIsland.sln -> 0 errors
+$ godot --headless --path . --quit-after 120 -> exit 0
+```
+
+Real-input GUI checks (Xvfb/llvmpipe, xdotool; developer scenario args used to
+reach the relevant state quickly, while unlocks are covered by the pure tests):
+
+- Started M03 with 22 coins, opened the worksite with E, clicked three floating
+  SUPPORT sockets (bar updated 1/3 → 3/3, HUD updated too), then four PLANK
+  sockets. Last plank showed success panel +20 coins, wallet 42, and opened the
+  bridge. Walked from x=34.2 to x=52.3 across the river; no fall/recovery fired.
+- Restarted an unfinished bridge, walked into the gap: recovered to x=35.5 with
+  `Splash! Back to dry land.` and kept the 1/3 support progress.
+- M04: opened shop at 10 wallet coins; added 2 bread + 1 milk; UI showed
+  Total 10 / 12 and Change 2 with green "Perfect basket", Add buttons disabled,
+  core wallet still 10. Walked to TOWN HALL, delivered, success +12 and wallet 22.
+- Genuine evidence: `evidence/p3_01_bridge_worksite.png` …
+  `evidence/p3_06_market_delivered.png`.
+
+Known polish issues: bridge ghost rows overlap in perspective and need patience
+at some camera angles (labels and part counts mitigate); several standalone
+signs still float without posts; camera can be close to some walls. Deferred to
+P7 polish. No save yet.
+
+## P4–P8
 
 TODO. See IMPLEMENTATION_PLAN.md.

@@ -127,8 +127,8 @@ public partial class WorldBuilder : Node3D
         }
 
         // Bridge abutments and the (initially closed) barrier.
-        Geo.StaticBox(this, "BridgeAbutWest", new Vector3(39.9f, 0.15f, 0f), new Vector3(2.2f, 0.5f, 9.5f), Palette.Stone);
-        Geo.StaticBox(this, "BridgeAbutEast", new Vector3(50.1f, 0.15f, 0f), new Vector3(2.2f, 0.5f, 9.5f), Palette.Stone);
+        Geo.Box(this, new Vector3(39.9f, -0.25f, 0f), new Vector3(2.2f, 0.5f, 9.5f), Palette.Stone, null, false, "BridgeAbutWest");
+        Geo.Box(this, new Vector3(50.1f, -0.25f, 0f), new Vector3(2.2f, 0.5f, 9.5f), Palette.Stone, null, false, "BridgeAbutEast");
 
         BridgeBarrier = new Node3D { Name = "BridgeBarrier", Position = new Vector3(38.2f, 0, 0) };
         AddChild(BridgeBarrier);

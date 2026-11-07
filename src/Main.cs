@@ -22,13 +22,17 @@ public partial class Main : Node3D
     private MissionCatalog _catalog;
     private GameData _data;
     private MissionService _missions;
-    private readonly HashSet<string> _implemented = new() { "M01", "M02" };
+    private readonly HashSet<string> _implemented = new() { "M01", "M02", "M03", "M04" };
     private readonly List<Pickup> _pickups = new();
     private Interactable _jobStation;
     private Interactable _redHouseStation;
     private Interactable _workshopStation;
     private Interactable _shopStation;
     private Interactable _houseStation;
+    private Interactable _bridgeStation;
+    private Interactable _townHallStation;
+    private BridgeBuilder _bridgeBuilder;
+    private bool _buildMode;
 
     private bool _started;
     private float _uiRefresh;
@@ -43,6 +47,7 @@ public partial class Main : Node3D
         ProcessMode = ProcessModeEnum.Always;
         BuildEnvironment();
         LoadMissionContent();
+        ApplyDeveloperScenario();
 
         _world = new WorldBuilder { Name = "WorldBuilder" };
         AddChild(_world);
@@ -68,6 +73,10 @@ public partial class Main : Node3D
         _marker = new WorldMarker();
         AddChild(_marker);
 
+        _bridgeBuilder = new BridgeBuilder();
+        AddChild(_bridgeBuilder);
+        _bridgeBuilder.Initialize(_data, _missions, _rig, _hud, _world, OnBridgeBuilt, SetBuildMode, RefreshMissionState);
+
         CreateStations();
         SpawnPickups();
         RefreshMissionState();
@@ -75,6 +84,28 @@ public partial class Main : Node3D
         _player.SetControlEnabled(false);
         Input.MouseMode = Input.MouseModeEnum.Visible;
 
+        if (HasUserArg("--scenario-m03"))
+        {
+            _started = true;
+            _player.Teleport(new Vector3(34.2f, 0.2f, 4.2f), -Mathf.Pi / 2f);
+            _rig.SetView(-90f, 18f, 8.2f);
+            _player.SetControlEnabled(true);
+            Input.MouseMode = Input.MouseModeEnum.Captured;
+            RefreshMissionState();
+            _hud.ShowToast("SCENARIO: M01+M02 done, Build the Bridge active. Press E at the worksite.", 4.5f);
+            return;
+        }
+        if (HasUserArg("--scenario-m04"))
+        {
+            _started = true;
+            _player.Teleport(new Vector3(5f, 0.2f, 0.8f), Mathf.Pi);
+            _rig.SetView(180f, 18f, 8.2f);
+            _player.SetControlEnabled(true);
+            Input.MouseMode = Input.MouseModeEnum.Captured;
+            RefreshMissionState();
+            _hud.ShowToast("SCENARIO: M01 done, Market Basket active. Press E at the SHOP.", 4.5f);
+            return;
+        }
         if (HasUserArg("--capture-title"))
         {
             _hud.ShowTitleScreen(false, null, StartAdventure, null, QuitGame);
@@ -116,6 +147,25 @@ public partial class Main : Node3D
             });
             _data = new GameData();
             _missions = new MissionService(_data, _catalog);
+        }
+    }
+
+    private void ApplyDeveloperScenario()
+    {
+        if (HasUserArg("--scenario-m03"))
+        {
+            if (!_data.CompletedMissions.Contains("M01")) _data.CompletedMissions.Add("M01");
+            if (!_data.CompletedMissions.Contains("M02")) _data.CompletedMissions.Add("M02");
+            _data.Coins = 22;
+            _data.ActiveMission = "M03";
+            if (!_data.UnlockedCosmetics.Contains("red_cap")) _data.UnlockedCosmetics.Add("red_cap");
+        }
+        else if (HasUserArg("--scenario-m04"))
+        {
+            if (!_data.CompletedMissions.Contains("M01")) _data.CompletedMissions.Add("M01");
+            _data.Coins = 10;
+            _data.ActiveMission = "M04";
+            if (!_data.UnlockedCosmetics.Contains("red_cap")) _data.UnlockedCosmetics.Add("red_cap");
         }
     }
 
@@ -180,6 +230,14 @@ public partial class Main : Node3D
             "E: Look at the SHOP", InteractShop, null, true, 3.2f, "ShopStation");
         _shopStation.SetPrompt(ShopPrompt);
 
+        _townHallStation = Interactable.Create(this, _world.TownHallDoor + new Vector3(0, 0.1f, -1.0f),
+            "E: Look at TOWN HALL", InteractTownHall, null, true, 3.2f, "TownHallStation");
+        _townHallStation.SetPrompt(TownHallPrompt);
+
+        _bridgeStation = Interactable.Create(this, _world.BridgeSite,
+            "E: Bridge worksite", InteractBridgeSite, null, true, 3.8f, "BridgeStation");
+        _bridgeStation.SetPrompt(BridgeSitePrompt);
+
         _houseStation = Interactable.Create(this, _world.PlayerHouseDoor + new Vector3(0, 0.1f, -1.0f),
             "E: Go inside YOUR HOUSE", () => _hud.ShowBigToast("Your cosy house. Furniture jobs open later."),
             null, true, 3.2f, "HouseStation");
@@ -212,9 +270,27 @@ public partial class Main : Node3D
 
     private string ShopPrompt()
     {
-        if (_data.ActiveMission == "M01" || _data.ActiveMission == "M02")
-            return "E: Look at the SHOP";
+        if (_data.ActiveMission == "M04") return "E: Shop for Market Basket";
         return "E: Look at the SHOP";
+    }
+
+    private string TownHallPrompt()
+    {
+        if (_data.IsCompleted("M04")) return "E: TOWN HALL — groceries delivered";
+        if (_data.ActiveMission == "M04")
+        {
+            return BudgetRules.IsGroceryListComplete(_missions.GroceryBread, _missions.GroceryMilk)
+                ? "E: Deliver groceries to TOWN HALL"
+                : "E: TOWN HALL — basket not ready";
+        }
+        return "E: Look at TOWN HALL";
+    }
+
+    private string BridgeSitePrompt()
+    {
+        if (_bridgeBuilder != null && _bridgeBuilder.IsBuilt) return "E: Bridge is open";
+        if (_data.ActiveMission == "M03") return "E: Build the bridge";
+        return "E: Bridge worksite";
     }
 
     private void InteractRedHouse()
@@ -253,10 +329,45 @@ public partial class Main : Node3D
 
     private void InteractShop()
     {
+        if (_data.ActiveMission == "M04")
+        {
+            GroceryUi.Show(_hud, _missions, RefreshMissionState);
+            return;
+        }
         if (_data.ActiveMission == "M01" && _data.GetItem("apple") < 3)
             _hud.ShowBigToast("The three apples are in the crate beside the SHOP.");
         else
-            _hud.ShowInfo("SHOP", "The little market sells bread and milk for future jobs. The apple crate is right outside.");
+            _hud.ShowInfo("SHOP", "The little market sells bread and milk. Start Market Basket at the JOBS board to use the 12-coin job purse.");
+    }
+
+    private void InteractTownHall()
+    {
+        if (_data.ActiveMission == "M04")
+        {
+            var result = _missions.DeliverGroceries();
+            if (result.Success) OnMissionCompleted(result);
+            else _hud.ShowHint(result.Message);
+            return;
+        }
+        if (_data.IsCompleted("M04"))
+            _hud.ShowBigToast("The Town Hall has its bread and milk. Thank you!");
+        else
+            _hud.ShowInfo("TOWN HALL", "The Town Hall clock keeps the village on time. Groceries and post arrive here.");
+    }
+
+    private void InteractBridgeSite()
+    {
+        if (_bridgeBuilder != null && _bridgeBuilder.IsBuilt)
+        {
+            _hud.ShowBigToast("The bridge is open. The meadow is across the river!", 3.2f, Palette.Success);
+            return;
+        }
+        if (_data.ActiveMission == "M03")
+        {
+            _bridgeBuilder?.OpenBuildMode();
+            return;
+        }
+        _hud.ShowHint("Start Build the Bridge at the yellow JOBS board. The workshop unlocks it after its supplies arrive.");
     }
 
     private void SpawnPickups()
@@ -361,6 +472,11 @@ public partial class Main : Node3D
     private void OpenJobBoard()
     {
         if (!_started) return;
+        if (_buildMode)
+        {
+            _hud.ShowBigToast("Finish this build first, then choose another job.", 2.6f, Palette.Lavender);
+            return;
+        }
         JobBoardUi.Show(_hud, _missions, _implemented, StartMissionFromBoard);
     }
 
@@ -394,6 +510,38 @@ public partial class Main : Node3D
     private void OnTargetChanged(Interactable target)
     {
         _hud.SetPrompt(target?.GetPrompt());
+    }
+
+    private void OnBridgeBuilt()
+    {
+        var result = _missions.CompleteActive(0);
+        if (result.Success)
+            OnMissionCompleted(result);
+        else
+            RefreshMissionState();
+    }
+
+    private void SetBuildMode(bool active)
+    {
+        _buildMode = active;
+        if (active)
+        {
+            _player.SetControlEnabled(false);
+            _hud.SetPrompt(null);
+            if (_marker != null) _marker.Visible = false;
+            Input.MouseMode = Input.MouseModeEnum.Visible;
+        }
+        else
+        {
+            _hud.HideBuildBar();
+            if (_started && !_hud.ModalOpen)
+            {
+                _player.SetControlEnabled(true);
+                Input.MouseMode = Input.MouseModeEnum.Captured;
+                _player.ForceRefreshInteraction();
+            }
+            RefreshMissionState();
+        }
     }
 
     private void RefreshMissionState()
@@ -435,6 +583,15 @@ public partial class Main : Node3D
                     SetObjective(_world.WorkshopDoor, "WORKSHOP", "hammer", Palette.Orange);
                 break;
             }
+            case "M03":
+                SetObjective(_world.BridgeCenter, "BRIDGE", "hammer", Palette.Wood);
+                break;
+            case "M04":
+                if (BudgetRules.IsGroceryListComplete(_missions.GroceryBread, _missions.GroceryMilk))
+                    SetObjective(_world.TownHallDoor, "TOWN HALL", "star", Palette.Blue);
+                else
+                    SetObjective(_world.ShopDoor, "SHOP BASKET", "basket", Palette.Blue);
+                break;
             default:
                 SetObjective(_world.JobBoard, "JOBS BOARD", "star", Palette.Yellow);
                 break;
@@ -457,6 +614,20 @@ public partial class Main : Node3D
             rows.Add(("wood", $"{wood} / 5 wood"));
             rows.Add(("stone", $"{stone} / 3 stone"));
             rows.Add(("hammer", wood >= 5 && stone >= 3 ? "Now visit WORKSHOP" : $"Collected {wood + stone} of 8"));
+        }
+        else if (missionId == "M03")
+        {
+            int supports = BuildRules.BridgeSupportCount(_data.BridgePieces);
+            int planks = BuildRules.BridgePlankCount(_data.BridgePieces);
+            rows.Add(("stone", $"{supports} / 3 supports"));
+            rows.Add(("wood", $"{planks} / 4 planks"));
+            rows.Add(("hammer", supports < 3 ? "Supports first" : "Now place the planks"));
+        }
+        else if (missionId == "M04")
+        {
+            rows.Add(("bread", $"{_missions.GroceryBread} / 2 bread"));
+            rows.Add(("milk", $"{_missions.GroceryMilk} / 1 milk"));
+            rows.Add(("coin", $"Spent {_missions.GrocerySpent} of 12 · change {_missions.GroceryChange}"));
         }
         else
         {
@@ -490,6 +661,8 @@ public partial class Main : Node3D
         {
             "M01" => "3 apples delivered to the RED HOUSE. A red cap is now yours!",
             "M02" => "5 wood + 3 stone delivered — all 8 supplies counted!",
+            "M03" => "3 supports + 4 planks = a strong bridge. The meadow is open!",
+            "M04" => "2 bread × 3 + 1 milk × 4 = 10. Change from 12 is 2. Delivered to TOWN HALL!",
             _ => result.Message,
         };
         _hud.ShowSuccess(result.Mission.Title, result.TotalCoins, detail, () => { });
@@ -505,7 +678,10 @@ public partial class Main : Node3D
         _destLabel = label;
         _destIcon = icon;
         _hasDestination = true;
-        _marker.ShowAt(position, color, icon);
+        if (_buildMode)
+            _marker.HideMarker();
+        else
+            _marker.ShowAt(position, color, icon);
         RefreshObjectiveUi();
     }
 
@@ -515,6 +691,28 @@ public partial class Main : Node3D
         {
             _ = CaptureManualScreenshot();
             GetViewport().SetInputAsHandled();
+            return;
+        }
+
+        if (_buildMode && _bridgeBuilder != null && _bridgeBuilder.Active)
+        {
+            if (@event.IsActionPressed("pause"))
+            {
+                _bridgeBuilder.CloseBuildMode();
+                GetViewport().SetInputAsHandled();
+                return;
+            }
+            if (@event.IsActionPressed("rotate_part"))
+            {
+                _bridgeBuilder.RotateSelected();
+                GetViewport().SetInputAsHandled();
+                return;
+            }
+            if (@event is InputEventMouseButton mb && mb.Pressed && mb.ButtonIndex == MouseButton.Left)
+            {
+                _bridgeBuilder.HandleWorldClick(GetViewport().GetMousePosition());
+                GetViewport().SetInputAsHandled();
+            }
             return;
         }
 
@@ -575,6 +773,15 @@ public partial class Main : Node3D
     {
         _data = new GameData();
         _missions = new MissionService(_data, _catalog);
+        if (_bridgeBuilder != null)
+        {
+            _bridgeBuilder.CloseBuildMode();
+            _bridgeBuilder.QueueFree();
+        }
+        if (_world.BridgeBarrier != null) _world.BridgeBarrier.Visible = true;
+        _bridgeBuilder = new BridgeBuilder();
+        AddChild(_bridgeBuilder);
+        _bridgeBuilder.Initialize(_data, _missions, _rig, _hud, _world, OnBridgeBuilt, SetBuildMode, RefreshMissionState);
         foreach (var pickup in _pickups)
             if (GodotObject.IsInstanceValid(pickup))
                 pickup.QueueFree();
@@ -618,7 +825,9 @@ public partial class Main : Node3D
         }
 
         Vector3 p = _player.GlobalPosition;
-        bool inRiver = p.X > 40.7f && p.X < 49.3f && p.Y < 0.2f;
+        bool onFinishedBridge = _bridgeBuilder != null && _bridgeBuilder.IsBuilt &&
+                                p.X > 39.0f && p.X < 51.0f && Mathf.Abs(p.Z) < 4.2f && p.Y > -0.4f;
+        bool inRiver = p.X > 40.7f && p.X < 49.3f && p.Y < 0.2f && !onFinishedBridge;
         if (p.Y < -5f || inRiver)
             RecoverPlayer("Splash! Back to dry land.");
     }
