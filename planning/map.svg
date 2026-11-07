@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="750" viewBox="0 0 1200 750">
+<rect width="1200" height="750" fill="#eef6ff"/>
+<text x="50" y="60" font-family="sans-serif" font-size="34" font-weight="700" fill="#27364B">Patchwork Island — starter village layout</text>
+<text x="50" y="88" font-family="sans-serif" font-size="17" fill="#53677f">Top-down schematic. West = village / east = unlocked meadow. Not to scale.</text>
+<rect x="50" y="118" width="1085" height="580" rx="50" fill="#86CF55" stroke="#439B4B" stroke-width="6"/>
+<path d="M710 120 Q660 240 725 350 Q770 470 715 695 L815 695 Q855 535 815 385 Q777 265 814 120 Z" fill="#24B5E4"/>
+<path d="M715 354 L814 354" stroke="#B98550" stroke-width="60"/>
+<path d="M711 337 L818 337 M711 371 L818 371" stroke="#88582f" stroke-width="7"/>
+<path d="M140 378 L700 378 M755 378 L1070 378 M370 240 L370 560" stroke="#6A7180" stroke-width="45" fill="none" stroke-linecap="round"/>
+<path d="M140 378 L700 378 M755 378 L1070 378 M370 240 L370 560" stroke="#FFF3D6" stroke-width="3" stroke-dasharray="15 18" fill="none"/>
+<g font-family="sans-serif" fill="#27364B" text-anchor="middle"><rect x="142" y="448" width="185" height="92" rx="12" fill="#FFF8EC" stroke="#F45A54" stroke-width="5"/><text x="235" y="482" font-size="22" font-weight="700">PLAYER HOUSE</text><text x="235" y="513" font-size="16">Van parked here</text>
+<rect x="285" y="227" width="170" height="88" rx="12" fill="#FFF8EC" stroke="#2674EC" stroke-width="5"/><text x="370" y="263" font-size="21" font-weight="700">TOWN HALL</text><text x="370" y="292" font-size="16">Jobs + post</text>
+<rect x="475" y="165" width="161" height="90" rx="12" fill="#FFF8EC" stroke="#F45A54" stroke-width="5"/><text x="555" y="202" font-size="22" font-weight="700">RED HOUSE</text><text x="555" y="231" font-size="16">Apple delivery</text>
+<rect x="480" y="445" width="170" height="86" rx="12" fill="#FFF8EC" stroke="#FFD23F" stroke-width="5"/><text x="565" y="480" font-size="22" font-weight="700">MARKET</text><text x="565" y="508" font-size="16">Groceries</text>
+<rect x="525" y="553" width="168" height="86" rx="12" fill="#FFF8EC" stroke="#B98550" stroke-width="5"/><text x="610" y="590" font-size="22" font-weight="700">WORKSHOP</text><text x="610" y="615" font-size="16">Supplies</text>
+<rect x="100" y="165" width="160" height="88" rx="12" fill="#FFF8EC" stroke="#946FE8" stroke-width="5"/><text x="180" y="202" font-size="21" font-weight="700">PLAYGROUND</text><text x="180" y="231" font-size="16">2 swing frames</text>
+<rect x="900" y="235" width="185" height="126" rx="14" fill="#FFF8EC" stroke="#F48B43" stroke-width="5"/><text x="993" y="276" font-size="22" font-weight="700">RACE COURSE</text><text x="993" y="308" font-size="18">Gates 1 → 4</text><text x="993" y="335" font-size="16">Wide ramps</text></g>
+<rect x="90" y="565" width="180" height="76" rx="10" fill="#369B47"/><text x="180" y="595" text-anchor="middle" font-family="sans-serif" font-size="21" font-weight="700" fill="white">GROVE</text><text x="180" y="621" text-anchor="middle" font-family="sans-serif" font-size="17" fill="white">5 logs</text>
+<rect x="290" y="580" width="185" height="68" rx="10" fill="#9CA3AD"/><text x="382" y="609" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="700" fill="#27364B">STONE PATCH</text><text x="382" y="635" text-anchor="middle" font-family="sans-serif" font-size="17" fill="#27364B">3 stones</text>
+<text x="765" y="309" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="19" fill="#27364B">BRIDGE</text><text x="993" y="586" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="27" fill="#27364B">MEADOW</text><text x="993" y="615" text-anchor="middle" font-family="sans-serif" font-size="18" fill="#27364B">Unlock after M03</text>
+<text x="1115" y="105" text-anchor="end" font-family="sans-serif" font-size="16" fill="#27364B">N ↑</text></svg>
