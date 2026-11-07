@@ -325,6 +325,7 @@ internal static class Program
             int walletBefore = s.Data.Coins;
             Check(ParkRules.Place(s.Data, "bench", "park0").Success, "place bench");
             Check(ParkRules.Place(s.Data, "flowerbed", "park1").Success, "place flowerbed");
+            Check(!ParkRules.Place(s.Data, "bench", "park2").Success, "only one bench allowed");
             Check(ParkRules.Place(s.Data, "lamp", "park2").Success, "place lamp");
             Equal(19, ParkRules.Spent(s.Data), "park total 6+4+9");
             Equal(1, ParkRules.Left(s.Data), "one job coin left");
@@ -438,6 +439,86 @@ internal static class Program
             Equal(wallet, s.Data.Coins, "wallet unchanged after repeat");
         });
 
+        Run("save files round trip atomically and keep a backup", () =>
+        {
+            string dir = TempDirectory("patchwork-save-roundtrip");
+            string path = Path.Combine(dir, SaveService.DefaultFileName);
+            try
+            {
+                var data = new GameData { Coins = 47, ActiveMission = "M03" };
+                data.CompletedMissions.Add("M01");
+                data.BridgePieces.Add("support_0");
+                data.ParkPlacements.Add(new PlacedItem("bench", "park0"));
+                data.FurnitureOwned["chair"] = 2;
+                data.Player = new PlayerSnapshot { X = 3, Y = 4, Z = 5, RotationY = 1.5f, Valid = true };
+                data.Van = new VehicleSnapshot { X = 7, Y = 0, Z = 8, RotationY = 0.5f, Valid = true };
+                data.Settings.MusicEnabled = false;
+                data.Settings.ReducedMotion = true;
+
+                SaveService.Save(data, path);
+                Check(File.Exists(path), "main save written");
+                Check(!File.Exists(path + ".tmp"), "temporary file cleaned up");
+                var loaded = SaveService.Load(path);
+                Check(loaded.Success, "save loaded");
+                Equal(47, loaded.Data.Coins, "coins restored");
+                Equal("M03", loaded.Data.ActiveMission, "active mission restored");
+                Equal(1, loaded.Data.BridgePieces.Count, "bridge pieces restored");
+                Equal("bench", loaded.Data.ParkPlacements[0].Type, "park placement restored");
+                Equal(2, loaded.Data.FurnitureOwned["chair"], "furniture owned restored");
+                Equal(3f, loaded.Data.Player.X, "player restored");
+                Equal(8f, loaded.Data.Van.Z, "van restored");
+                Check(!loaded.Data.Settings.MusicEnabled, "settings restored");
+                Check(loaded.Data.Settings.ReducedMotion, "reduced motion restored");
+                Check(loaded.Data.SavedAtUnix > 0, "timestamp written");
+            }
+            finally
+            {
+                Directory.Delete(dir, true);
+            }
+        });
+
+        Run("damaged save recovers the backup and quarantines the bad file", () =>
+        {
+            string dir = TempDirectory("patchwork-save-backup");
+            string path = Path.Combine(dir, SaveService.DefaultFileName);
+            try
+            {
+                SaveService.Save(new GameData { Coins = 12 }, path);
+                File.Copy(path, SaveService.BackupPath(path), true);
+                File.WriteAllText(path, "{ this is not valid json");
+                var loaded = SaveService.Load(path);
+                Check(loaded.Success, "backup recovered");
+                Check(loaded.UsedBackup, "backup flag set");
+                Check(loaded.RecoveredFromCorrupt, "corrupt flag set");
+                Equal(12, loaded.Data.Coins, "backup coins restored");
+                Check(!File.Exists(path), "corrupt main moved aside");
+                Check(Directory.GetFiles(dir, "save.json.corrupt-*").Length == 1, "corrupt file kept for inspection");
+            }
+            finally
+            {
+                Directory.Delete(dir, true);
+            }
+        });
+
+        Run("missing and newer saves are handled safely", () =>
+        {
+            string dir = TempDirectory("patchwork-save-invalid");
+            string path = Path.Combine(dir, SaveService.DefaultFileName);
+            try
+            {
+                var missing = SaveService.Load(path);
+                Check(!missing.Success, "missing save is not loaded");
+                File.WriteAllText(path, "{\"SchemaVersion\":99,\"Coins\":5}");
+                var newer = SaveService.Load(path);
+                Check(!newer.Success, "newer version rejected");
+                Check(newer.Message.Contains("newer"), "newer version message");
+            }
+            finally
+            {
+                Directory.Delete(dir, true);
+            }
+        });
+
         Run("game state survives a JSON round trip", () =>
         {
             var s = CompleteM01(Fresh(catalog));
@@ -469,6 +550,13 @@ internal static class Program
     }
 
     private static MissionService Fresh(MissionCatalog catalog) => new(new GameData(), catalog);
+
+    private static string TempDirectory(string prefix)
+    {
+        string path = Path.Combine(Path.GetTempPath(), prefix + "-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(path);
+        return path;
+    }
 
     private static MissionService CompleteM01(MissionService service)
     {

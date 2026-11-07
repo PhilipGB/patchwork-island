@@ -31,6 +31,7 @@ public sealed class GameData
 
     public PlayerSnapshot Player { get; set; } = new();
     public VehicleSnapshot Van { get; set; } = new();
+    public bool Driving { get; set; }
     public SettingsData Settings { get; set; } = new();
 
     public bool CelebrationSeen { get; set; }

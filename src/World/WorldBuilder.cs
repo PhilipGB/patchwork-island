@@ -719,6 +719,30 @@ public partial class WorldBuilder : Node3D
         Geo.Label(root, new Vector3(0, 6.9f, 0), number.ToString(), 160, gateColor, true, 0.007f);
         Flag(root, new Vector3(-5.2f, 4.8f, 0), gateColor);
         Flag(root, new Vector3(5.2f, 4.8f, 0), gateColor);
+
+        // Camera-only blockers keep the view out of the heavy gate posts/beam.
+        var cameraBlocker = new StaticBody3D
+        {
+            Name = "GateCameraBlocker",
+            CollisionLayer = 16,
+            CollisionMask = 0,
+        };
+        cameraBlocker.AddChild(new CollisionShape3D
+        {
+            Shape = new BoxShape3D { Size = new Vector3(0.9f, 4.9f, 0.9f) },
+            Position = new Vector3(-5.2f, 2.4f, 0),
+        });
+        cameraBlocker.AddChild(new CollisionShape3D
+        {
+            Shape = new BoxShape3D { Size = new Vector3(0.9f, 4.9f, 0.9f) },
+            Position = new Vector3(5.2f, 2.4f, 0),
+        });
+        cameraBlocker.AddChild(new CollisionShape3D
+        {
+            Shape = new BoxShape3D { Size = new Vector3(11.2f, 0.9f, 0.9f) },
+            Position = new Vector3(0, 4.75f, 0),
+        });
+        root.AddChild(cameraBlocker);
     }
 
     // ------------------------------------------------------------------- foliage

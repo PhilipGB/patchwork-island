@@ -61,12 +61,17 @@ public partial class Main : Node3D
     private string _destIcon = "star";
     private bool _hasDestination;
     private bool _lastIndoor;
+    private bool _saveAvailable;
+    private bool _loadedFromSave;
+    private string _saveNotice = "";
+    private float _autosaveTimer;
 
     public override void _Ready()
     {
         ProcessMode = ProcessModeEnum.Always;
         BuildEnvironment();
         LoadMissionContent();
+        LoadSavedGameIfAvailable();
         ApplyDeveloperScenario();
 
         _world = new WorldBuilder { Name = "WorldBuilder" };
@@ -93,37 +98,16 @@ public partial class Main : Node3D
         _marker = new WorldMarker();
         AddChild(_marker);
 
-        _bridgeBuilder = new BridgeBuilder();
-        AddChild(_bridgeBuilder);
-        _bridgeBuilder.Initialize(_data, _missions, _rig, _hud, _world, OnBridgeBuilt, SetBuildMode, RefreshMissionState);
-
         _van = new VanController();
         AddChild(_van);
         _van.Initialize(_world.VanSpawn, 0f, _hud);
         _van.EnterRequested += EnterVan;
         _van.Crashed += OnVanCrashed;
 
-        _swingBuilder = new SwingBuilder();
-        AddChild(_swingBuilder);
-        _swingBuilder.Initialize(_data, _missions, _rig, _hud, _world, OnSwingsBuilt, SetBuildMode, RefreshMissionState);
-
-        _parkBuilder = new ParkBuilder();
-        AddChild(_parkBuilder);
-        _parkBuilder.Initialize(_data, _missions, _rig, _hud, OnParkBuilt, SetBuildMode, RefreshMissionState);
-        _parkBuilder.SetPads(_world.ParkPads.ToArray());
-
-        _furnitureBuilder = new FurnitureBuilder();
-        AddChild(_furnitureBuilder);
-        _furnitureBuilder.Initialize(_data, _missions, _rig, _hud, OnHomeFurnished, SetBuildMode, RefreshMissionState);
-        _furnitureBuilder.SetPads(_world.HousePads.ToArray());
-
-        _buildModes.Add(_bridgeBuilder);
-        _buildModes.Add(_swingBuilder);
-        _buildModes.Add(_parkBuilder);
-        _buildModes.Add(_furnitureBuilder);
-
+        CreateBuilderSystems();
         CreateStations();
         SpawnPickups();
+        RestoreSavedState();
         RefreshMissionState();
 
         _player.SetControlEnabled(false);
@@ -243,7 +227,7 @@ public partial class Main : Node3D
             _ = CaptureTour();
             return;
         }
-        _hud.ShowTitleScreen(false, null, StartAdventure, null, QuitGame);
+        ShowTitle();
     }
 
     private void LoadMissionContent()
@@ -271,6 +255,104 @@ public partial class Main : Node3D
             });
             _data = new GameData();
             _missions = new MissionService(_data, _catalog);
+        }
+    }
+
+    private static string SavePath => ProjectSettings.GlobalizePath("user://" + SaveService.DefaultFileName);
+
+    private static bool IsDeveloperRun() =>
+        OS.GetCmdlineUserArgs().Any(arg => arg.StartsWith("--scenario") || arg.StartsWith("--capture"));
+
+    private void LoadSavedGameIfAvailable()
+    {
+        if (IsDeveloperRun()) return;
+        var loaded = SaveService.Load(SavePath);
+        if (loaded.Success)
+        {
+            _data = loaded.Data;
+            _missions = new MissionService(_data, _catalog);
+            _saveAvailable = true;
+            _loadedFromSave = true;
+            if (loaded.RecoveredFromCorrupt || loaded.UsedBackup)
+                _saveNotice = loaded.Message;
+        }
+        else if (!string.IsNullOrEmpty(loaded.Message) && loaded.Message != "No save file yet.")
+        {
+            _saveNotice = loaded.Message + " Starting a fresh adventure.";
+        }
+    }
+
+    private void RestoreSavedState()
+    {
+        if (!_loadedFromSave) return;
+
+        if (_data.Player.Valid)
+        {
+            _player.Teleport(new Vector3(_data.Player.X, _data.Player.Y, _data.Player.Z),
+                _data.Player.RotationY);
+            _rig.SetView(Mathf.RadToDeg(_data.Player.RotationY), 18f, 8.2f);
+        }
+        if (_data.Van.Valid)
+        {
+            _van.GlobalPosition = new Vector3(_data.Van.X, _data.Van.Y, _data.Van.Z);
+            _van.Rotation = new Vector3(0, _data.Van.RotationY, 0);
+        }
+        if (_data.Driving)
+        {
+            _driving = true;
+            _player.SetControlEnabled(false);
+            _player.Visible = false;
+            _van.SetDriven(true);
+            _rig.SetTarget(_van, true, 10.6f, 20f, 1.5f, true);
+        }
+        ApplySettings();
+    }
+
+    private void ApplySettings()
+    {
+        if (_marker != null)
+            _marker.SetReducedMotion(_data.Settings.ReducedMotion);
+    }
+
+    private void CaptureSnapshots()
+    {
+        _data.Player = new PlayerSnapshot
+        {
+            X = _player.GlobalPosition.X,
+            Y = _player.GlobalPosition.Y,
+            Z = _player.GlobalPosition.Z,
+            RotationY = _player.FacingYaw,
+            Valid = true,
+        };
+        _data.Van = new VehicleSnapshot
+        {
+            X = _van.GlobalPosition.X,
+            Y = _van.GlobalPosition.Y,
+            Z = _van.GlobalPosition.Z,
+            RotationY = _van.Rotation.Y,
+            Valid = true,
+        };
+        _data.Driving = _driving;
+    }
+
+    private bool SaveGame(bool notify)
+    {
+        if (_world == null || _player == null || _van == null) return false;
+        try
+        {
+            CaptureSnapshots();
+            SaveService.Save(_data, SavePath);
+            _saveAvailable = true;
+            if (notify)
+                _hud.ShowToast("Game saved. Your village will be waiting.", 2.8f, Palette.Success);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            GD.PrintErr($"Save failed: {ex}");
+            if (notify)
+                _hud.ShowToast("Could not save this time. Please try again.", 3f, Palette.Red);
+            return false;
         }
     }
 
@@ -812,9 +894,67 @@ public partial class Main : Node3D
         _player.SetControlEnabled(true);
         _hud.CloseModal();
         Input.MouseMode = Input.MouseModeEnum.Captured;
+        ApplySettings();
         RefreshMissionState();
-        _hud.ShowToast("Find the yellow JOBS board near the town hall. Walk with WASD or the arrow keys.", 6f);
+        _autosaveTimer = 20f;
+
+        if (!string.IsNullOrEmpty(_saveNotice))
+        {
+            _hud.ShowBigToast(_saveNotice, 6f, Palette.Orange);
+            _saveNotice = "";
+            return;
+        }
+        if (!_data.IsTutorialSeen("walk"))
+        {
+            _data.MarkTutorial("walk");
+            _hud.ShowBigToast("Walk with WASD or the arrow keys. E interacts, J opens the job board, Esc pauses.", 6f,
+                Palette.Yellow);
+            SaveGame(false);
+        }
+        else if (_missions.ActiveMission != null)
+        {
+            _hud.ShowBigToast($"Welcome back. {_missions.ActiveMission.Title} is waiting for you.", 4f, Palette.Yellow);
+        }
+        else
+        {
+            _hud.ShowBigToast("Find the yellow JOBS board near the town hall, or press J anywhere.", 5f,
+                Palette.Yellow);
+        }
     }
+
+    private void ContinueAdventure()
+    {
+        if (string.IsNullOrEmpty(_saveNotice))
+            _saveNotice = "Welcome back to Patchwork Island.";
+        StartAdventure();
+    }
+
+    private void StartNewGameFromTitle()
+    {
+        if (!_saveAvailable)
+        {
+            StartAdventure();
+            return;
+        }
+        _hud.Confirm("Start a new game?",
+            "This will replace the saved village with a fresh adventure. Your current save will be overwritten.",
+            "Start a new game",
+            () =>
+            {
+                ResetSession();
+                StartAdventure();
+            },
+            "Cancel", ShowTitle);
+    }
+
+    private void ShowTitle()
+    {
+        _started = false;
+        _player.SetControlEnabled(false);
+        _hud.ShowTitleScreen(_saveAvailable, ContinueAdventure, StartNewGameFromTitle, OpenSettingsFromTitle, QuitGame);
+    }
+
+    private void OpenSettingsFromTitle() => OpenSettings(ShowTitle);
 
     private void OnModalStateChanged(bool open)
     {
@@ -868,6 +1008,7 @@ public partial class Main : Node3D
         if (missionId == "M05" || missionId == "M09")
             _raceElapsed = _data.GetMissionCounter(missionId, "elapsedMs") / 1000f;
         RefreshMissionState();
+        SaveGame(false);
         var mission = _missions.ActiveMission;
         string firstHint = mission?.Hints != null && mission.Hints.Count > 0 ? mission.Hints[0] : "Follow the glowing marker.";
         _hud.ShowBigToast($"{result.Message} {firstHint}", 5f, Palette.Yellow);
@@ -1181,6 +1322,34 @@ public partial class Main : Node3D
         return null;
     }
 
+    private void CreateBuilderSystems()
+    {
+        _buildModes.Clear();
+
+        _bridgeBuilder = new BridgeBuilder();
+        AddChild(_bridgeBuilder);
+        _bridgeBuilder.Initialize(_data, _missions, _rig, _hud, _world, OnBridgeBuilt, SetBuildMode, RefreshMissionState);
+
+        _swingBuilder = new SwingBuilder();
+        AddChild(_swingBuilder);
+        _swingBuilder.Initialize(_data, _missions, _rig, _hud, _world, OnSwingsBuilt, SetBuildMode, RefreshMissionState);
+
+        _parkBuilder = new ParkBuilder();
+        AddChild(_parkBuilder);
+        _parkBuilder.Initialize(_data, _missions, _rig, _hud, OnParkBuilt, SetBuildMode, RefreshMissionState);
+        _parkBuilder.SetPads(_world.ParkPads.ToArray());
+
+        _furnitureBuilder = new FurnitureBuilder();
+        AddChild(_furnitureBuilder);
+        _furnitureBuilder.Initialize(_data, _missions, _rig, _hud, OnHomeFurnished, SetBuildMode, RefreshMissionState);
+        _furnitureBuilder.SetPads(_world.HousePads.ToArray());
+
+        _buildModes.Add(_bridgeBuilder);
+        _buildModes.Add(_swingBuilder);
+        _buildModes.Add(_parkBuilder);
+        _buildModes.Add(_furnitureBuilder);
+    }
+
     private void OnSwingsBuilt()
     {
         var result = _missions.CompleteActive(0);
@@ -1217,6 +1386,13 @@ public partial class Main : Node3D
             _hud.SetPrompt(null);
             if (_marker != null) _marker.Visible = false;
             Input.MouseMode = Input.MouseModeEnum.Visible;
+            if (!_data.IsTutorialSeen("build"))
+            {
+                _data.MarkTutorial("build");
+                _hud.ShowBigToast("Click a glowing pad or socket to build. Wrong pieces never cost anything. Esc steps away.", 5f,
+                    Palette.Lavender);
+                SaveGame(false);
+            }
         }
         else
         {
@@ -1480,6 +1656,7 @@ public partial class Main : Node3D
         _hud.ShowSuccess(result.Mission.Title, result.TotalCoins, detail, afterSuccess);
         if (result.AllComplete && _catalog.Missions.Count >= 10)
             _world.CelebrationDecor.Visible = true;
+        SaveGame(false);
     }
 
     private bool AllMissionsComplete() =>
@@ -1628,14 +1805,54 @@ public partial class Main : Node3D
 
     private void SaveNow()
     {
-        _hud.ShowToast("Saving arrives in the persistence milestone.", 2.5f, Palette.Stone);
+        SaveGame(true);
+        if (_hud.ModalOpen)
+            _hud.SetModalTitle("Paused — Saved");
     }
 
-    private void OpenSettings()
+    private void OpenSettings() => OpenSettings(null);
+
+    private void OpenSettings(Action onClosed)
     {
-        var body = _hud.OpenModal("Settings", new Vector2(560, 340), Palette.Lavender);
-        UiKit.Label(body, "Music and sound toggles arrive with the audio polish milestone.", 20, Palette.Navy);
-        UiKit.Label(body, "The game is fully playable without audio.", 18, new Color("5C6B7A"));
+        var body = _hud.OpenModal("Settings", new Vector2(620, 500), Palette.Lavender, true, onClosed);
+        UiKit.Label(body, "Sound and comfort", 24, Palette.Navy);
+        AddSettingsToggle(body, "Music", _data.Settings.MusicEnabled, value =>
+        {
+            _data.Settings.MusicEnabled = value;
+            SaveGame(false);
+        });
+        AddSettingsToggle(body, "Sound effects", _data.Settings.SfxEnabled, value =>
+        {
+            _data.Settings.SfxEnabled = value;
+            SaveGame(false);
+        });
+        AddSettingsToggle(body, "Reduced motion", _data.Settings.ReducedMotion, value =>
+        {
+            _data.Settings.ReducedMotion = value;
+            ApplySettings();
+            SaveGame(false);
+        });
+        UiKit.Label(body,
+            "The game always gives visual feedback, so it is fully playable with sound off. " +
+            "Large text and 720p-friendly layout are always on.",
+            18, new Color("5C6B7A"));
+        UiKit.Label(body, "Settings are saved with your village.", 17, new Color("5C6B7A"));
+    }
+
+    private static void AddSettingsToggle(VBoxContainer body, string label, bool initial, Action<bool> changed)
+    {
+        var row = UiKit.HBox(body, 10);
+        var text = UiKit.Label(row, label, 21, Palette.Navy);
+        text.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        var toggle = UiKit.Button(row, initial ? "On" : "Off", 19, new Vector2(120, 44),
+            initial ? new Color("DFF6E3") : Palette.Cream,
+            initial ? Palette.Success : Palette.Stone);
+        toggle.Pressed += () =>
+        {
+            bool next = toggle.Text != "On";
+            toggle.Text = next ? "On" : "Off";
+            changed(next);
+        };
     }
 
     private void ConfirmNewGame()
@@ -1650,12 +1867,30 @@ public partial class Main : Node3D
 
     private void ResetSession()
     {
+        foreach (var mode in _buildModes)
+        {
+            if (mode == null) continue;
+            if (mode.Active) mode.CloseBuildMode();
+        }
+        foreach (var mode in _buildModes)
+        {
+            if (mode is Node node && GodotObject.IsInstanceValid(node))
+            {
+                RemoveChild(node);
+                node.QueueFree();
+            }
+        }
+        _buildModes.Clear();
+        _bridgeBuilder = null;
+        _swingBuilder = null;
+        _parkBuilder = null;
+        _furnitureBuilder = null;
+
         if (_driving)
         {
             _driving = false;
             _van.SetDriven(false);
             _player.Visible = true;
-            _rig.SetTarget(_player, false, 8.2f, 18f, 1.55f, true);
             _player.SetControlEnabled(true);
         }
         _van.ResetToParking();
@@ -1663,17 +1898,17 @@ public partial class Main : Node3D
         _practiceRaceActive = false;
         _practiceCheckpoint = 0;
         _practiceElapsed = 0f;
+        _celebrationShown = false;
+        _lastIndoor = false;
+        _rig.SetIndoor(false);
         _data = new GameData();
         _missions = new MissionService(_data, _catalog);
-        if (_bridgeBuilder != null)
-        {
-            _bridgeBuilder.CloseBuildMode();
-            _bridgeBuilder.QueueFree();
-        }
+
         if (_world.BridgeBarrier != null) _world.BridgeBarrier.Visible = true;
-        _bridgeBuilder = new BridgeBuilder();
-        AddChild(_bridgeBuilder);
-        _bridgeBuilder.Initialize(_data, _missions, _rig, _hud, _world, OnBridgeBuilt, SetBuildMode, RefreshMissionState);
+        if (_world.CelebrationDecor != null) _world.CelebrationDecor.Visible = false;
+        if (_world.GoldCourseFlag != null) _world.GoldCourseFlag.Visible = false;
+
+        CreateBuilderSystems();
         foreach (var pickup in _pickups)
             if (GodotObject.IsInstanceValid(pickup))
                 pickup.QueueFree();
@@ -1681,17 +1916,32 @@ public partial class Main : Node3D
         SpawnPickups();
         _player.Teleport(_world.PlayerSpawn, -Mathf.Pi / 2f);
         _rig.SetView(-72f, 18f, 8.2f);
+        _rig.SetTarget(_player, false, 8.2f, 18f, 1.55f, true);
+        ApplySettings();
+        ApplyCosmetics();
         RefreshMissionState();
+        _saveAvailable = true;
+        SaveGame(false);
     }
 
     private void ReturnToTitle()
     {
-        _started = false;
-        _player.SetControlEnabled(false);
-        _hud.ShowTitleScreen(false, null, StartAdventure, null, QuitGame);
+        SaveGame(false);
+        _practiceRaceActive = false;
+        ShowTitle();
     }
 
-    private void QuitGame() => GetTree().Quit();
+    private void QuitGame()
+    {
+        if (_started) SaveGame(false);
+        GetTree().Quit();
+    }
+
+    public override void _Notification(int what)
+    {
+        if (what == NotificationWMCloseRequest && _started)
+            SaveGame(false);
+    }
 
     public override void _Process(double delta)
     {
@@ -1701,6 +1951,14 @@ public partial class Main : Node3D
         _raceWrongHintCooldown = Mathf.Max(0f, _raceWrongHintCooldown - (float)delta);
         TickRace((float)delta);
         TickPracticeRace((float)delta);
+
+        _autosaveTimer -= (float)delta;
+        if (_autosaveTimer <= 0f)
+        {
+            _autosaveTimer = 20f;
+            if (!_hud.ModalOpen)
+                SaveGame(false);
+        }
 
         _uiRefresh -= (float)delta;
         if (_uiRefresh <= 0f)
