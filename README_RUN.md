@@ -35,12 +35,22 @@ godot --headless --path . --quit-after 120
 
 | Input | Action |
 |---|---|
-| WASD / arrows | Move |
+| WASD / arrows | Move (camera-relative) |
 | Space | Jump |
-| E | Interact |
-| Esc | Pause / cancel |
+| E | Interact / use nearest highlighted thing |
+| Mouse wheel | Zoom camera |
+| Right-drag | Orbit camera |
+| J | Open the job journal |
+| H | Current job hint |
+| Esc / P | Pause / close menu |
+| F12 | Developer screenshot (writes `evidence/manual_*.png`) |
 
-(Full controls are added with gameplay in P1–P4.)
+## Headless capture harness
+
+```bash
+godot --path . -- --capture        # gameplay screenshots to evidence/
+godot --path . -- --capture-title  # title screen screenshot
+```
 
 ## Save data
 
