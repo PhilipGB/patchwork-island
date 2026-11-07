@@ -335,6 +335,67 @@ Known polish issues: the furniture shop's Place button is below the fold at
 when standing right under it. Both are scheduled for the P7 camera/UI polish
 pass. No save yet.
 
-## P6–P8
+## P6 — Optional mastery and complete progression — PASS
+
+Implemented on branch `p6-race-celebration`:
+
+- M09 Race the Clock is now on the job board. It reuses the four ordered meadow
+  gates, awards the normal 15 coins at any pace, and offers an optional +5 bonus
+  only when the lap is under 75 seconds. A gold course pennant appears by the
+  start/finish after completion.
+- All ten missions share one tested unlock graph: M09 unlocks after M05; M10
+  unlocks after M04 + M08; every other prerequisite comes from `MISSIONS.json`.
+  The graph has no dead-end ordering, and every reward remains exactly-once.
+- After M09, the job board offers a **Drive practice** race. It has its own HUD,
+  counts gates 1-2-3-4 in order, starts a practice timer at gate 1, awards no
+  coins, and can be ended by starting any normal mission. Free driving remains
+  available at all times.
+- Finishing all ten missions shows a one-time **VILLAGE FIXED!** celebration
+  modal with free-roam, practice-race and job-board choices. Colour bunting and
+  a "VILLAGE FIXED!" banner are visible in the village; the celebration flag is
+  stored in `GameData.CelebrationSeen` for the P7 save system.
+- M09 has its own completion copy and reward feedback; the job card shows the
+  optional 75-second target without ever forcing a time limit.
+
+Automated tests:
+
+```text
+$ dotnet tests/bin/Debug/net8.0/PatchworkIsland.Tests.dll
+PASS  M09 stays locked until M05
+PASS  all ten jobs form a completable graph
+PASS  M09 optional bonus boundaries are 75 s
+...
+RESULT: 24 passed, 0 failed
+```
+
+Build/headless:
+
+```text
+$ dotnet build PatchworkIsland.sln -> 0 errors, 0 warnings
+$ godot --headless --path . --quit-after 120 -> exit 0
+```
+
+Real-input GUI checks (Xvfb + llvmpipe + xdotool):
+
+- M09: started the developer meadow scenario, entered the van and drove the
+  four ordered gates. Gate toasts advanced 1 → 4; finish showed the M09 success
+  panel, "Four gates finished in 245.5s. Any pace is a winning pace — the gold
+  flag is yours!", +15 coins and wallet 69 → 84. The optional bonus was not
+  awarded because the lap was over 75 s.
+- Practice: opened the job board with J after M09, saw the **Drive practice**
+  card, started it, drove through gate 1 and confirmed the separate HUD showed
+  `Gate 1 / 4`, `Practice time 0:00` and the next-gate marker, with no coins.
+- Celebration: prepared nine completed jobs with `--scenario-final`, furnished
+  the house (wallet 116 → 136 after the +20 reward) and confirmed the one-time
+  **VILLAGE FIXED!** modal. Closed it and walked to the job board; coloured
+  celebration bunting was visible above the square.
+- Genuine evidence: `evidence/p6_01_m09_complete.png` …
+  `evidence/p6_04_celebration_world.png`.
+
+Known polish issues: gate arches can still block the camera at very close range
+(P7), and the celebration bunting is deliberately simple primitive geometry.
+No save yet.
+
+## P7–P8
 
 TODO. See IMPLEMENTATION_PLAN.md.

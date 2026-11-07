@@ -51,6 +51,7 @@ public partial class WorldBuilder : Node3D
     public Node3D FinishedBridge { get; private set; }
     public Node3D CelebrationDecor { get; private set; }
     public Node3D RaceStartFlag { get; private set; }
+    public Node3D GoldCourseFlag { get; private set; }
     public Node3D PlaygroundFixSign { get; private set; }
     public List<Label3D> BrokenSwingLabels { get; } = new();
     public List<Vector3> WoodSpawnPoints { get; } = new();
@@ -685,6 +686,15 @@ public partial class WorldBuilder : Node3D
         Geo.Box(RaceStartFlag, new Vector3(0, 3.0f, 0), new Vector3(0.12f, 6f, 0.12f), Palette.WoodDark);
         Geo.Box(RaceStartFlag, new Vector3(1.0f, 5.4f, 0), new Vector3(2.0f, 1.2f, 0.08f), Palette.Yellow, null, true);
         Geo.Label(RaceStartFlag, new Vector3(1.0f, 5.4f, 0.06f), "RACE", 54, Palette.Navy, false, 0.006f);
+
+        // M09's gold pennant appears only after the bonus race is completed.
+        GoldCourseFlag = new Node3D { Name = "GoldCourseFlag", Position = new Vector3(54.4f, 0, -6.8f), Visible = false };
+        AddChild(GoldCourseFlag);
+        Color gold = Color.FromHtml("F4C542");
+        Geo.Cylinder(GoldCourseFlag, new Vector3(0, 2.4f, 0), 0.09f, 0.12f, 4.8f, Palette.WoodDark, 6);
+        Geo.Box(GoldCourseFlag, new Vector3(1.05f, 4.45f, 0), new Vector3(2.1f, 1.35f, 0.08f), gold, null, true);
+        Geo.Label(GoldCourseFlag, new Vector3(1.05f, 4.45f, 0.06f), "GOLD LAP", 42, Palette.Navy, false, 0.006f);
+        Geo.Sphere(GoldCourseFlag, new Vector3(0, 5.05f, 0), 0.28f, gold, 8, 4, null, "GoldOrb");
         AddKeepClear(new Vector3(72, 0, 6), new Vector2(23, 23));
     }
 

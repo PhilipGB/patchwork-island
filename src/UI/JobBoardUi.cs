@@ -8,7 +8,8 @@ namespace PatchworkIsland;
 /// <summary>Readable job board / journal built as data-driven rows from MISSIONS.json.</summary>
 public static class JobBoardUi
 {
-    public static void Show(Hud hud, MissionService service, ISet<string> implemented, Action<string> startMission)
+    public static void Show(Hud hud, MissionService service, ISet<string> implemented, Action<string> startMission,
+        Action practiceRace = null)
     {
         var data = service.Data;
         var body = hud.OpenModal("Patchwork Jobs", new Vector2(900, 590), Palette.Blue);
@@ -29,6 +30,20 @@ public static class JobBoardUi
         }
 
         UiKit.Separator(body);
+
+        if (practiceRace != null && data.IsCompleted("M09"))
+        {
+            var practicePanel = UiKit.Panel(body, new Color("FFF3C9"), Palette.Orange, 14, 3);
+            var practiceRow = UiKit.HBox(practicePanel, 10);
+            UiKit.Icon(practiceRow, "flag", 28);
+            var practiceText = UiKit.Label(practiceRow,
+                "Practice race: gates 1-2-3-4, no rewards and no time limit.",
+                18, Palette.Navy);
+            practiceText.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+            var practice = UiKit.Button(practiceRow, "Drive practice", 18, new Vector2(170, 44),
+                Palette.Cream, Palette.Orange);
+            practice.Pressed += () => practiceRace();
+        }
 
         foreach (var mission in service.Catalog.Missions.OrderBy(m => m.Id))
         {
