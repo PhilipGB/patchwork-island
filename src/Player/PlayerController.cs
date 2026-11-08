@@ -22,6 +22,7 @@ public partial class PlayerController : CharacterBody3D
     private Node3D _model;
     private Node3D _leftLeg, _rightLeg, _leftArm, _rightArm, _head;
     private MeshInstance3D _capTop, _capBrim;
+    private Color _capColor = new(-1, -1, -1);
     private float _yaw;
 
     /// <summary>Current model facing, saved so a reload faces the same way.</summary>
@@ -106,6 +107,8 @@ public partial class PlayerController : CharacterBody3D
     public void SetCapColor(Color color)
     {
         if (_capTop == null) return;
+        if (color == _capColor) return;
+        _capColor = color;
         _capTop.MaterialOverride = Geo.Mat(color);
         _capBrim.MaterialOverride = Geo.Mat(color.Darkened(0.08f));
     }

@@ -14,6 +14,7 @@ public partial class VanController : CharacterBody3D
     public const float MaxReverseSpeed = 4.5f;
 
     public bool Driven { get; private set; }
+    public bool InputEnabled { get; private set; } = true;
     public float Speed { get; private set; }
     public event Action Crashed;
 
@@ -140,6 +141,12 @@ public partial class VanController : CharacterBody3D
         if (!driven) Speed = 0;
     }
 
+    public void SetInputEnabled(bool enabled)
+    {
+        InputEnabled = enabled;
+        if (!enabled) _steerInput = 0f;
+    }
+
     public void ResetToParking()
     {
         GlobalPosition = _parkingPosition;
@@ -175,8 +182,8 @@ public partial class VanController : CharacterBody3D
             return;
         }
 
-        float throttle = Input.GetAxis("move_back", "move_forward");
-        float steerAxis = Input.GetAxis("move_left", "move_right");
+        float throttle = InputEnabled ? Input.GetAxis("move_back", "move_forward") : 0f;
+        float steerAxis = InputEnabled ? Input.GetAxis("move_left", "move_right") : 0f;
         _steerInput = Mathf.MoveToward(_steerInput, steerAxis, dt * 4.2f);
 
         if (throttle > 0.05f)
