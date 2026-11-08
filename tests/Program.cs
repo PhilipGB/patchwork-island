@@ -822,10 +822,14 @@ internal static class Program
 
         Run("mission consistency catches previously unchecked fields", () =>
         {
-            string referenceJson = File.ReadAllText(Path.Combine(root, "MISSIONS.json"));
+            // Normalise line endings so the negative mutations work on both
+            // LF checkouts and Windows CRLF checkouts.
+            string referenceJson = File.ReadAllText(Path.Combine(root, "MISSIONS.json"))
+                .Replace("\r\n", "\n");
+            string runtimeJson = json.Replace("\r\n", "\n");
             string changedLearning = referenceJson.Replace("count 1–3", "count 1-3");
             Check(changedLearning != referenceJson, "test input changed");
-            Check(!MissionContentConsistency.Compare(changedLearning, json, out string learningError),
+            Check(!MissionContentConsistency.Compare(changedLearning, runtimeJson, out string learningError),
                 "learning drift is detected");
             Check(learningError.Contains("learning"), "error names the learning field");
 
@@ -833,14 +837,14 @@ internal static class Program
                 "\"required\": 3,\n        \"source\": \"market_crate\"",
                 "\"required\": 4,\n        \"source\": \"market_crate\"");
             Check(changedMechanics != referenceJson, "mechanics test input changed");
-            Check(!MissionContentConsistency.Compare(changedMechanics, json, out string mechanicsError),
+            Check(!MissionContentConsistency.Compare(changedMechanics, runtimeJson, out string mechanicsError),
                 "mechanics drift is detected");
             Check(mechanicsError.Contains("mechanics"), "error names the mechanics field");
 
             string changedMetadata = referenceJson.Replace(
                 "\"world\": \"Patchwork Island Village\"",
                 "\"world\": \"Wrong Island\"");
-            Check(!MissionContentConsistency.Compare(changedMetadata, json, out string metadataError),
+            Check(!MissionContentConsistency.Compare(changedMetadata, runtimeJson, out string metadataError),
                 "top-level metadata drift is detected");
             Check(metadataError.Contains("world"), "error names the metadata field");
         });
