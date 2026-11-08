@@ -63,10 +63,8 @@ public partial class Main : Node3D
     private string _destIcon = "star";
     private bool _hasDestination;
     private bool _lastIndoor;
-    private bool _hasSaveFile;
-    private bool _canContinue;
-    private bool _newerSavePresent;
-    private string _titleNotice = "";
+    private readonly SessionSaveState _session = new();
+    private readonly SaveFeedbackPolicy _saveFeedback = new();
     private string _recoveredJobNote = "";
     private bool _loadedFromSave;
     private string _saveNotice = "";
@@ -85,17 +83,24 @@ public partial class Main : Node3D
             ShowFatalContentError(ex.Message);
             return;
         }
+        if (HasUserArg("--selftest"))
+            DeleteSelfTestSaves();
         LoadSavedGameIfAvailable();
         ApplyDeveloperScenario();
 
-        _world = new WorldBuilder { Name = "WorldBuilder" };
+        _world = new WorldBuilder { Name = "WorldBuilder", ProcessMode = ProcessModeEnum.Pausable };
         AddChild(_world);
         _world.Build();
 
-        _player = new PlayerController { Name = "Player", Position = _world.PlayerSpawn };
+        _player = new PlayerController
+        {
+            Name = "Player",
+            Position = _world.PlayerSpawn,
+            ProcessMode = ProcessModeEnum.Pausable,
+        };
         AddChild(_player);
 
-        _rig = new CameraRig { Name = "CameraRig" };
+        _rig = new CameraRig { Name = "CameraRig", ProcessMode = ProcessModeEnum.Pausable };
         AddChild(_rig);
         _player.Rig = _rig;
         _rig.SetTarget(_player, false, 8.2f, 18f, 1.55f, true);
@@ -109,10 +114,10 @@ public partial class Main : Node3D
         _hud.HintButtonPressed += ShowCurrentHint;
         _player.TargetChanged += OnTargetChanged;
 
-        _marker = new WorldMarker();
+        _marker = new WorldMarker { ProcessMode = ProcessModeEnum.Pausable };
         AddChild(_marker);
 
-        _van = new VanController();
+        _van = new VanController { ProcessMode = ProcessModeEnum.Pausable };
         AddChild(_van);
         _van.Initialize(_world.VanSpawn, 0f, _hud);
         _van.EnterRequested += EnterVan;
@@ -198,6 +203,34 @@ public partial class Main : Node3D
             return;
         }
         ShowTitle();
+        if (IsSelfTest)
+        {
+            var test = new RuntimeSelfTest { Name = "RuntimeSelfTest", Main = this };
+            AddChild(test);
+        }
+    }
+
+    private static void DeleteSelfTestSaves()
+    {
+        string directory = ProjectSettings.GlobalizePath("user://");
+        foreach (string pattern in new[]
+                 {
+                     "selftest-save.json", "selftest-save.json.bak",
+                     "selftest-save.json.corrupt-*", "selftest-save.json.newer-*",
+                 })
+        {
+            foreach (string path in Directory.GetFiles(directory, pattern))
+            {
+                try
+                {
+                    File.Delete(path);
+                }
+                catch (Exception ex)
+                {
+                    GD.PrintErr($"Self-test cleanup failed: {ex.Message}");
+                }
+            }
+        }
     }
 
     private void BeginScenario(Vector3 position, float yaw, string message, float seconds = 4.5f)
@@ -256,23 +289,37 @@ public partial class Main : Node3D
         Callable.From(quit.GrabFocus).CallDeferred();
     }
 
-    private static string SavePath => ProjectSettings.GlobalizePath("user://" + SaveService.DefaultFileName);
+    private static bool IsSelfTest => HasUserArg("--selftest") || HasUserArg("--selftest-resume");
+
+    private static bool IsSelfTestResume => HasUserArg("--selftest-resume");
+
+    /// <summary>
+    /// F12, screenshot tours and scenario helpers are development tools. They
+    /// are available in the editor, in an explicit --dev run, or for the
+    /// existing scenario/capture/self-test command lines, never by accident in
+    /// a normal player session.
+    /// </summary>
+    internal static bool DeveloperMode =>
+        OS.HasFeature("editor") || HasUserArg("--dev") || IsDeveloperRun();
+
+    private static string SavePath => ProjectSettings.GlobalizePath(
+        IsSelfTest ? "user://selftest-save.json" : "user://" + SaveService.DefaultFileName);
 
     private static bool IsDeveloperRun() =>
-        OS.GetCmdlineUserArgs().Any(arg => arg.StartsWith("--scenario") || arg.StartsWith("--capture"));
+        IsSelfTest || OS.GetCmdlineUserArgs().Any(arg =>
+            arg.StartsWith("--scenario") || arg.StartsWith("--capture"));
 
     private void LoadSavedGameIfAvailable()
     {
-        if (IsDeveloperRun()) return;
+        if (IsDeveloperRun() && !IsSelfTestResume) return;
         var loaded = SaveService.Load(SavePath, _catalog);
+        _session.ApplyLoad(loaded);
         switch (loaded.Status)
         {
             case SaveLoadStatus.Loaded:
             case SaveLoadStatus.RecoveredBackup:
                 _data = loaded.Data;
                 _missions = new MissionService(_data, _catalog);
-                _hasSaveFile = true;
-                _canContinue = true;
                 _loadedFromSave = true;
                 _saveNotice = loaded.RecoveredFromCorrupt || loaded.UsedBackup ? loaded.Message : "";
                 break;
@@ -280,11 +327,6 @@ public partial class Main : Node3D
             case SaveLoadStatus.UnsupportedNewer:
                 // Never replace a newer save merely because this build cannot
                 // read it. A new game makes an explicit preservation copy first.
-                _hasSaveFile = true;
-                _canContinue = false;
-                _newerSavePresent = true;
-                _titleNotice = loaded.Message +
-                               " Start a new game only if you are happy to replace it; a preserved copy will be kept.";
                 break;
 
             case SaveLoadStatus.Unrecoverable:
@@ -339,7 +381,7 @@ public partial class Main : Node3D
         if (!MissionRules.IsObjectiveComplete(_data, missionId)) return;
 
         int bonus = 0;
-        float raceSeconds = 0f;
+        double raceSeconds = 0;
         if (missionId is "M05" or "M09")
         {
             raceSeconds = _raceTimer.ElapsedSeconds;
@@ -349,8 +391,6 @@ public partial class Main : Node3D
         if (!result.Success) return;
         result.RaceSeconds = raceSeconds;
         _recoveredJobNote = $"Recovered a finished job: {result.Message}";
-        _hasSaveFile = true;
-        _canContinue = true;
     }
 
     private void ApplySettings()
@@ -380,31 +420,47 @@ public partial class Main : Node3D
         _data.Driving = _driving;
     }
 
-    private bool SaveGame(bool notify)
+    private SaveResult SaveGame(SaveReason reason, bool allowNewerReplacement = false)
     {
-        if (_world == null || _player == null || _van == null) return false;
-        if (_newerSavePresent) return false;
+        if (_world == null || _player == null || _van == null)
+            return SaveResult.Invalid("The game world is not ready yet.");
+        if (_session.NewerSavePresent && !allowNewerReplacement)
+            return SaveResult.Invalid("A newer save is present; it was not overwritten.");
+
+        SaveResult result;
         try
         {
             CaptureSnapshots();
-            SaveService.Save(_data, SavePath, _catalog);
-            _hasSaveFile = true;
-            _canContinue = true;
-            if (notify)
-                _hud.ShowToast("Game saved. Your village will be waiting.", 2.8f, Palette.Success);
-            return true;
+            result = SaveService.TrySave(_data, SavePath, _catalog);
+            if (result.Success)
+                _session.RecordSaveSuccess();
         }
         catch (Exception ex)
         {
-            GD.PrintErr($"Save failed: {ex}");
-            if (notify)
-                _hud.ShowToast("Could not save this time. Please try again.", 3f, Palette.Red);
-            return false;
+            // TrySave handles expected failures; this is a last-resort guard so
+            // a save bug can never crash gameplay. Keep it visible and logged.
+            GD.PrintErr($"Save failed (unexpected): {ex}");
+            result = SaveResult.Invalid("An unexpected save error occurred. " + ex.Message, ex);
         }
+
+        if (!result.Success && result.Error != null)
+        {
+            if (result.Outcome == SaveOutcome.RecoverableFailure)
+                GD.PrintErr($"Save failed (recoverable I/O): {result.Error}");
+            else
+                GD.PrintErr($"Save refused (invalid state): {result.Error}");
+        }
+
+        var notice = _saveFeedback.Record(reason, result);
+        if (notice.Show)
+            _hud.ShowToast(notice.Text, notice.IsError ? 5.5f : 2.8f,
+                notice.IsError ? Palette.Red : Palette.Success);
+        return result;
     }
 
     private void ApplyDeveloperScenario()
     {
+        if (!DeveloperMode) return;
         if (HasUserArg("--scenario-m03"))
         {
             if (!_data.CompletedMissions.Contains("M01")) _data.CompletedMissions.Add("M01");
@@ -870,6 +926,7 @@ public partial class Main : Node3D
             var pickup = Pickup.Create(this, _world.ParcelSpawnPoints[i], id, type, "M06", required,
                 TakePickup, () => PickupPrompt(type, "M06", required),
                 () => _data.IsCompleted("M06"));
+            pickup.ProcessMode = ProcessModeEnum.Pausable;
             _pickups.Add(pickup);
         }
     }
@@ -883,6 +940,7 @@ public partial class Main : Node3D
             var pickup = Pickup.Create(this, positions[i], id, item, missionId, required, TakePickup,
                 () => PickupPrompt(item, missionId, required),
                 () => _data.IsCompleted(missionId));
+            pickup.ProcessMode = ProcessModeEnum.Pausable;
             _pickups.Add(pickup);
         }
     }
@@ -962,7 +1020,7 @@ public partial class Main : Node3D
         {
             _hud.ShowBigToast(_recoveredJobNote, 6f, Palette.Success);
             _recoveredJobNote = "";
-            SaveGame(false);
+            SaveGame(SaveReason.Recovery);
             return;
         }
         if (!string.IsNullOrEmpty(_saveNotice))
@@ -971,12 +1029,12 @@ public partial class Main : Node3D
             _saveNotice = "";
             return;
         }
-        if (!_newerSavePresent && !_data.IsTutorialSeen("walk"))
+        if (!_session.NewerSavePresent && !_data.IsTutorialSeen("walk"))
         {
             _data.MarkTutorial("walk");
             _hud.ShowBigToast("Walk with WASD or the arrow keys. E interacts, J opens the job board, Esc pauses.", 6f,
                 Palette.Yellow);
-            SaveGame(false);
+            SaveGame(SaveReason.Autosave);
         }
         else if (_missions.ActiveMission != null)
         {
@@ -998,22 +1056,24 @@ public partial class Main : Node3D
 
     private void StartNewGameFromTitle()
     {
-        if (!_hasSaveFile)
+        if (!_session.HasSaveFile)
         {
             StartAdventure();
             return;
         }
         _hud.Confirm("Start a new game?",
-            _newerSavePresent
+            _session.NewerSavePresent
                 ? "This will replace the newer save with a fresh adventure. A preserved copy of the newer save will be kept first."
                 : "This will replace the saved village with a fresh adventure. Your current save will be overwritten.",
             "Start a new game",
             () =>
             {
-                _newerSavePresent = false;
-                _titleNotice = "";
-                ResetSession();
+                var result = ResetSession();
                 StartAdventure();
+                if (!result.Success)
+                    _hud.ShowBigToast(
+                        "The new game is running, but it could not be saved yet. Use Save now from the pause menu to try again.",
+                        7f, Palette.Red);
             },
             "Cancel", ShowTitle);
     }
@@ -1022,8 +1082,8 @@ public partial class Main : Node3D
     {
         _started = false;
         SyncControlMode();
-        _hud.ShowTitleScreen(_hasSaveFile, _canContinue, ContinueAdventure, StartNewGameFromTitle,
-            OpenSettingsFromTitle, QuitGame, _titleNotice);
+        _hud.ShowTitleScreen(_session.HasSaveFile, _session.CanContinue, ContinueAdventure,
+            StartNewGameFromTitle, OpenSettingsFromTitle, QuitGame, _session.TitleNotice);
     }
 
     private void OpenSettingsFromTitle() => OpenSettings(ShowTitle);
@@ -1089,7 +1149,7 @@ public partial class Main : Node3D
         else
             _raceTimer = new RaceTimer();
         RefreshMissionState();
-        SaveGame(false);
+        SaveGame(SaveReason.MissionStart);
         var mission = _missions.ActiveMission;
         string firstHint = mission?.Hints != null && mission.Hints.Count > 0 ? mission.Hints[0] : "Follow the glowing marker.";
         _hud.ShowBigToast($"{result.Message} {firstHint}", 5f, Palette.Yellow);
@@ -1384,7 +1444,7 @@ public partial class Main : Node3D
 
         if (checkpoint + 1 >= 4)
         {
-            float raceSeconds = _raceTimer.ElapsedSeconds;
+            double raceSeconds = _raceTimer.ElapsedSeconds;
             int bonus = _raceTimer.OptionalBonus(mission.Id);
             var result = _missions.CompleteActive(bonus);
             if (result.Success)
@@ -1396,7 +1456,7 @@ public partial class Main : Node3D
         }
     }
 
-    private static string FormatTime(float seconds) => RaceTimer.Format(seconds);
+    private static string FormatTime(double seconds) => RaceTimer.Format(seconds);
 
     private IBuildMode GetActiveBuildMode()
     {
@@ -1409,20 +1469,20 @@ public partial class Main : Node3D
     {
         _buildModes.Clear();
 
-        _bridgeBuilder = new BridgeBuilder();
+        _bridgeBuilder = new BridgeBuilder { ProcessMode = ProcessModeEnum.Pausable };
         AddChild(_bridgeBuilder);
         _bridgeBuilder.Initialize(_data, _missions, _rig, _hud, _world, OnBridgeBuilt, SetBuildMode, RefreshMissionState);
 
-        _swingBuilder = new SwingBuilder();
+        _swingBuilder = new SwingBuilder { ProcessMode = ProcessModeEnum.Pausable };
         AddChild(_swingBuilder);
         _swingBuilder.Initialize(_data, _missions, _rig, _hud, _world, OnSwingsBuilt, SetBuildMode, RefreshMissionState);
 
-        _parkBuilder = new ParkBuilder();
+        _parkBuilder = new ParkBuilder { ProcessMode = ProcessModeEnum.Pausable };
         AddChild(_parkBuilder);
         _parkBuilder.Initialize(_data, _missions, _rig, _hud, OnParkBuilt, SetBuildMode, RefreshMissionState);
         _parkBuilder.SetPads(_world.ParkPads.ToArray());
 
-        _furnitureBuilder = new FurnitureBuilder();
+        _furnitureBuilder = new FurnitureBuilder { ProcessMode = ProcessModeEnum.Pausable };
         AddChild(_furnitureBuilder);
         _furnitureBuilder.Initialize(_data, _missions, _rig, _hud, OnHomeFurnished, SetBuildMode, RefreshMissionState);
         _furnitureBuilder.SetPads(_world.HousePads.ToArray());
@@ -1472,7 +1532,7 @@ public partial class Main : Node3D
                 _data.MarkTutorial("build");
                 _hud.ShowBigToast("Click a glowing pad or socket to build. Wrong pieces never cost anything. Esc steps away.", 5f,
                     Palette.Lavender);
-                SaveGame(false);
+                SaveGame(SaveReason.Autosave);
             }
         }
         else
@@ -1732,7 +1792,11 @@ public partial class Main : Node3D
         _hud.ShowSuccess(result.Mission.Title, result.TotalCoins, detail, afterSuccess);
         if (result.AllComplete && _catalog.Missions.Count >= 10)
             _world.CelebrationDecor.Visible = true;
-        SaveGame(false);
+        var save = SaveGame(SaveReason.MissionCompleted);
+        if (!save.Success)
+            _hud.SetModalStatus(
+                "Your job is complete in this session, but the save failed. Use Save now from the pause menu to retry.",
+                true);
     }
 
     private bool AllMissionsComplete() =>
@@ -1777,6 +1841,10 @@ public partial class Main : Node3D
             _hud.CloseModal();
             Callable.From(OpenJobBoard).CallDeferred();
         };
+
+        var save = SaveGame(SaveReason.Celebration);
+        if (!save.Success)
+            _hud.SetModalStatus("The celebration is shown, but it could not be saved yet. Use Save now.", true);
     }
 
     private void SetObjective(Vector3 position, string label, string icon, Color color)
@@ -1794,9 +1862,10 @@ public partial class Main : Node3D
 
     public override void _UnhandledInput(InputEvent @event)
     {
-        if (@event is InputEventKey keyEvent && keyEvent.Pressed && !keyEvent.Echo && keyEvent.Keycode == Key.F12)
+        if (@event is InputEventKey keyEvent && keyEvent.Pressed && !keyEvent.Echo &&
+            keyEvent.Keycode == Key.F12 && DeveloperMode)
         {
-            _ = CaptureManualScreenshot();
+            CaptureManualScreenshotSafely();
             GetViewport().SetInputAsHandled();
             return;
         }
@@ -1884,9 +1953,19 @@ public partial class Main : Node3D
 
     private void SaveNow()
     {
-        SaveGame(true);
-        if (_hud.ModalOpen)
+        var result = SaveGame(SaveReason.Manual);
+        if (!_hud.ModalOpen) return;
+        if (result.Success)
+        {
             _hud.SetModalTitle("Paused — Saved");
+            _hud.SetModalStatus("Game saved. Your village will be waiting.", false);
+        }
+        else
+        {
+            _hud.SetModalTitle("Save failed");
+            _hud.SetModalStatus(
+                "Nothing was lost on disk; your previous save is unchanged. Please try again.", true);
+        }
     }
 
     private void OpenSettingsFromPause() => OpenSettings(ShowPauseMenu);
@@ -1898,18 +1977,18 @@ public partial class Main : Node3D
         AddSettingsToggle(body, "Music", _data.Settings.MusicEnabled, value =>
         {
             _data.Settings.MusicEnabled = value;
-            SaveGame(false);
+            SaveGame(SaveReason.Settings);
         });
         AddSettingsToggle(body, "Sound effects", _data.Settings.SfxEnabled, value =>
         {
             _data.Settings.SfxEnabled = value;
-            SaveGame(false);
+            SaveGame(SaveReason.Settings);
         });
         AddSettingsToggle(body, "Reduced motion", _data.Settings.ReducedMotion, value =>
         {
             _data.Settings.ReducedMotion = value;
             ApplySettings();
-            SaveGame(false);
+            SaveGame(SaveReason.Settings);
         });
         UiKit.Label(body,
             "The game always gives visual feedback, so it is fully playable with sound off. " +
@@ -1939,12 +2018,18 @@ public partial class Main : Node3D
         _hud.Confirm("Start a new game?", "This restarts the village from the beginning. Are you sure?", "Start new game",
             () =>
             {
-                ResetSession();
-                _hud.ShowBigToast("New game started. Find the JOBS board!");
-            });
+                var result = ResetSession();
+                if (result.Success)
+                    _hud.ShowBigToast("New game started. Find the JOBS board!");
+                else
+                    _hud.ShowBigToast(
+                        "New game started, but it could not be saved yet. Use Save now to try again.",
+                        7f, Palette.Red);
+            },
+            "Cancel", ShowPauseMenu);
     }
 
-    private void ResetSession()
+    private SaveResult ResetSession()
     {
         foreach (var mode in _buildModes)
         {
@@ -1985,8 +2070,6 @@ public partial class Main : Node3D
         _rig.SetIndoor(false);
         _data = new GameData();
         _missions = new MissionService(_data, _catalog);
-        _newerSavePresent = false;
-        _titleNotice = "";
         _saveNotice = "";
         _recoveredJobNote = "";
 
@@ -2009,29 +2092,63 @@ public partial class Main : Node3D
         ApplySettings();
         ApplyCosmetics();
         RefreshMissionState();
-        _hasSaveFile = true;
-        _canContinue = true;
-        SaveGame(false);
+        var result = SaveGame(SaveReason.NewGame, allowNewerReplacement: true);
+        _session.RecordNewGameSave(result,
+            "A new game is running, but it could not be saved. The previous save on disk is still available " +
+            "from Continue; use Save now to retry the new game.");
         SyncControlMode();
+        return result;
     }
 
     private void ReturnToTitle()
     {
-        SaveGame(false);
+        var result = SaveGame(SaveReason.ReturnToTitle);
+        if (!result.Success)
+        {
+            _hud.Confirm("Return to title without saving?",
+                "Progress could not be saved. You can keep playing and try Save now again, or return to the title anyway.",
+                "Return anyway",
+                () =>
+                {
+                    _practiceRaceActive = false;
+                    _session.SetTitleNotice(
+                        "Your most recent progress could not be saved. Continue loads the last successfully saved village.");
+                    ShowTitle();
+                },
+                "Keep playing", ShowPauseMenu);
+            return;
+        }
         _practiceRaceActive = false;
         ShowTitle();
     }
 
     private void QuitGame()
     {
-        if (_started) SaveGame(false);
+        if (!_started)
+        {
+            GetTree().Quit();
+            return;
+        }
+        var result = SaveGame(SaveReason.Quit);
+        if (!result.Success)
+        {
+            _hud.Confirm("Quit without saving?",
+                "Progress could not be saved. You can keep playing and try Save now again, or quit and lose this session's unsaved work.",
+                "Quit anyway", () => GetTree().Quit(),
+                "Keep playing", ShowPauseMenu);
+            return;
+        }
         GetTree().Quit();
     }
 
     public override void _Notification(int what)
     {
         if (what == NotificationWMCloseRequest && _started)
-            SaveGame(false);
+        {
+            var result = SaveGame(SaveReason.WindowClose);
+            if (!result.Success)
+                GD.PrintErr("Window is closing and the final save failed: " + result.Message);
+        }
     }
 
     public override void _Process(double delta)
@@ -2048,8 +2165,8 @@ public partial class Main : Node3D
         if (_autosaveTimer <= 0f)
         {
             _autosaveTimer = 20f;
-            if (!_hud.ModalOpen && !_newerSavePresent)
-                SaveGame(false);
+            if (!_hud.ModalOpen && !_session.NewerSavePresent)
+                SaveGame(SaveReason.Autosave);
         }
 
         _uiRefresh -= (float)delta;
@@ -2120,6 +2237,84 @@ public partial class Main : Node3D
         _hud.SetDestination(_destLabel, distance, arrow, _destIcon);
     }
 
+    // ------------------------------------------------- runtime self-test hooks
+    // These are internal, non-shipping test seams used by RuntimeSelfTest. They
+    // call the same gameplay transitions a player would trigger; they do not
+    // bypass mission rules or validators.
+
+    internal bool RtStarted => _started;
+    internal bool RtPaused => GetTree().Paused;
+    internal string RtMode => _controlMode.ToString();
+    internal bool RtModalOpen => _hud.ModalOpen;
+    internal string RtModalTitle => _hud.ModalTitleText;
+    internal bool RtCanContinue => _session.CanContinue;
+    internal bool RtPlayerControlled => _player.ControlEnabled;
+    internal bool RtVanControlled => _van.InputEnabled;
+    internal bool RtPlayerVisible => _player.Visible;
+    internal Vector3 RtPlayerPosition => _player.GlobalPosition;
+    internal Vector3 RtVanPosition => _van.GlobalPosition;
+    internal ProcessModeEnum RtPlayerProcessMode => _player.ProcessMode;
+    internal ProcessModeEnum RtVanProcessMode => _van.ProcessMode;
+    internal ProcessModeEnum RtWorldProcessMode => _world.ProcessMode;
+    internal double RtRaceElapsed => _raceTimer.ElapsedSeconds;
+
+    internal void RtStart() => StartAdventure();
+    internal void RtContinue() => ContinueAdventure();
+    internal void RtPause() => ShowPauseMenu();
+    internal void RtResume() => ResumeGame();
+    internal void RtOpenSettingsFromPause() => OpenSettingsFromPause();
+    internal void RtOpenSettingsFromTitle() => OpenSettingsFromTitle();
+    internal void RtConfirmNewGame() => ConfirmNewGame();
+    internal void RtCloseModal() => _hud.CloseModal();
+    internal bool RtSaveNow() => SaveGame(SaveReason.Manual).Success;
+    internal bool RtForceAutosave() => SaveGame(SaveReason.Autosave).Success;
+    internal SaveResult RtStartNewGame() => ResetSession();
+    internal int RtCoins => _data.Coins;
+    internal int RtCompletedCount => _data.CompletedMissions.Count;
+    internal string RtActiveMission => _data.ActiveMission;
+
+    internal void RtSetPlayerAirborne()
+    {
+        _player.Velocity = Vector3.Zero;
+        _player.Teleport(_player.GlobalPosition + Vector3.Up * 3f);
+    }
+
+    internal void RtCompleteM01()
+    {
+        if (!_missions.StartMission("M01").Success) return;
+        for (int i = 0; i < 3; i++)
+            _missions.CollectPickup($"apple_{i}", "apple", "M01", 3);
+        var result = _missions.DeliverApples();
+        if (result.Success) OnMissionCompleted(result);
+    }
+
+    internal bool RtPrepareRace()
+    {
+        // Build a valid prerequisite state, including the physical bridge so
+        // the runtime test does not create a save the validator must reject.
+        if (!_data.CompletedMissions.Contains("M02")) _data.CompletedMissions.Add("M02");
+        if (!_data.CompletedMissions.Contains("M03"))
+        {
+            _data.CompletedMissions.Add("M03");
+            foreach (string socket in BuildRules.BridgeSockets)
+                if (!_data.BridgePieces.Contains(socket)) _data.BridgePieces.Add(socket);
+        }
+        if (!_missions.StartMission("M05").Success) return false;
+        _data.SetMissionCounter("M05", "checkpoint", 1);
+        _data.SetMissionCounter("M05", "elapsedMs", 12_500);
+        _raceTimer = RaceTimer.Restore(_data, "M05");
+        return true;
+    }
+
+    internal void RtEnterVan()
+    {
+        _vehicleSwitchCooldown = 0f;
+        _player.Teleport(_van.GlobalPosition + new Vector3(-2.6f, 0.1f, 0f), _van.Rotation.Y);
+        EnterVan();
+    }
+
+    internal void RtExitVan() => ExitVan();
+
     // ------------------------------------------------------------- dev capture
 
     private static bool HasUserArg(string needle)
@@ -2129,36 +2324,45 @@ public partial class Main : Node3D
         return false;
     }
 
+    private static string ScreenshotDirectory =>
+        ProjectSettings.GlobalizePath(IsSelfTest ? "user://selftest-captures" : "user://screenshots");
+
+    private static string DeveloperCaptureDirectory =>
+        ProjectSettings.GlobalizePath("user://dev-captures");
+
     private async Task CaptureTitle()
     {
-        await Wait(1.2f);
-        string dir = Path.Combine(Directory.GetCurrentDirectory(), "evidence");
-        Directory.CreateDirectory(dir);
-        await Snap("p2_00_title.png", dir);
+        try
+        {
+            await Wait(1.2f);
+            await Snap("p2_00_title.png", DeveloperCaptureDirectory);
+        }
+        catch (Exception ex)
+        {
+            GD.PrintErr($"Title capture failed: {ex}");
+        }
         GetTree().Quit();
     }
 
     private async Task CaptureTour()
     {
-        string dir = Path.Combine(Directory.GetCurrentDirectory(), "evidence");
-        Directory.CreateDirectory(dir);
         try
         {
             await Wait(1.3f);
-            await Snap("p2_01_start.png", dir);
+            await Snap("p2_01_start.png", DeveloperCaptureDirectory);
 
             var overview = new Camera3D { Fov = 55, Current = true };
             AddChild(overview);
             overview.GlobalPosition = new Vector3(-8f, 52f, 74f);
             overview.LookAt(new Vector3(8f, 0f, -2f), Vector3.Up);
             await Wait(0.7f);
-            await Snap("p2_02_village_overview.png", dir);
+            await Snap("p2_02_village_overview.png", DeveloperCaptureDirectory);
             overview.QueueFree();
             _rig.Current = true;
 
             JobBoardUi.Show(_hud, _missions, _implemented, _ => { });
             await Wait(0.6f);
-            await Snap("p2_03_job_board.png", dir);
+            await Snap("p2_03_job_board.png", DeveloperCaptureDirectory);
             _hud.CloseModal();
             await Wait(0.4f);
 
@@ -2168,7 +2372,7 @@ public partial class Main : Node3D
             _player.Teleport(new Vector3(-4.4f, 0.2f, 1.1f), Mathf.Pi);
             _rig.SetView(180f, 18f, 8.2f);
             await Wait(0.8f);
-            await Snap("p2_04_apple_crate.png", dir);
+            await Snap("p2_04_apple_crate.png", DeveloperCaptureDirectory);
 
             // Simulate a full M01 hand-in for screenshot evidence.
             _missions.CollectPickup("apple_0", "apple", "M01", 3);
@@ -2178,14 +2382,14 @@ public partial class Main : Node3D
             _player.Teleport(new Vector3(-20f, 0.2f, -14.0f), 0f);
             _rig.SetView(0f, 18f, 8.2f);
             await Wait(0.7f);
-            await Snap("p2_05_red_house_delivery.png", dir);
+            await Snap("p2_05_red_house_delivery.png", DeveloperCaptureDirectory);
 
             var completion = _missions.DeliverApples();
             if (completion.Success)
             {
                 OnMissionCompleted(completion);
                 await Wait(0.6f);
-                await Snap("p2_06_job_complete.png", dir);
+                await Snap("p2_06_job_complete.png", DeveloperCaptureDirectory);
                 _hud.CloseModal();
                 await Wait(0.4f);
             }
@@ -2195,17 +2399,17 @@ public partial class Main : Node3D
             _player.Teleport(new Vector3(-40f, 0.2f, -24.0f), 0f);
             _rig.SetView(0f, 20f, 9f);
             await Wait(0.7f);
-            await Snap("p2_07_grove.png", dir);
+            await Snap("p2_07_grove.png", DeveloperCaptureDirectory);
 
             _player.Teleport(new Vector3(14f, 0.2f, -27.0f), 0f);
             _rig.SetView(0f, 20f, 9f);
             await Wait(0.7f);
-            await Snap("p2_08_stone_patch.png", dir);
+            await Snap("p2_08_stone_patch.png", DeveloperCaptureDirectory);
 
             _player.Teleport(new Vector3(25f, 0.2f, -6.0f), 0f);
             _rig.SetView(0f, 18f, 8.2f);
             await Wait(0.7f);
-            await Snap("p2_09_workshop.png", dir);
+            await Snap("p2_09_workshop.png", DeveloperCaptureDirectory);
         }
         catch (Exception ex)
         {
@@ -2219,21 +2423,39 @@ public partial class Main : Node3D
         await ToSignal(GetTree().CreateTimer(seconds), SceneTreeTimer.SignalName.Timeout);
     }
 
-    private async Task CaptureManualScreenshot()
+    private void CaptureManualScreenshotSafely()
     {
-        GD.Print($"PLAYER_POS {_player.GlobalPosition} ACTIVE={_started} PAUSED={GetTree().Paused} CONTROL={_player.ControlEnabled} VEL={_player.Velocity} TARGET={_player.NearestInteractable?.Name} DRIVING={_driving} VAN_POS={_van.GlobalPosition} VAN_YAW={_van.Rotation.Y:0.00} VAN_SPEED={_van.Speed:0.0} NODES={GetTree().GetNodeCount()} MODE={_controlMode}");
-        string dir = Path.Combine(Directory.GetCurrentDirectory(), "evidence");
-        Directory.CreateDirectory(dir);
-        await Wait(0.15f);
-        await Snap($"manual_{DateTime.Now:HHmmss}.png", dir);
+        _ = CaptureManualScreenshotAsync();
+    }
+
+    private async Task CaptureManualScreenshotAsync()
+    {
+        try
+        {
+            GD.Print($"PLAYER_POS {_player.GlobalPosition} ACTIVE={_started} PAUSED={GetTree().Paused} CONTROL={_player.ControlEnabled} VEL={_player.Velocity} TARGET={_player.NearestInteractable?.Name} DRIVING={_driving} VAN_POS={_van.GlobalPosition} VAN_YAW={_van.Rotation.Y:0.00} VAN_SPEED={_van.Speed:0.0} NODES={GetTree().GetNodeCount()} MODE={_controlMode}");
+            await Wait(0.15f);
+            await Snap($"manual_{DateTime.Now:HHmmss}.png", ScreenshotDirectory);
+        }
+        catch (Exception ex)
+        {
+            GD.PrintErr($"Screenshot failed: {ex}");
+        }
     }
 
     private async Task Snap(string fileName, string directory)
     {
         await ToSignal(RenderingServer.Singleton, RenderingServer.SignalName.FramePostDraw);
-        var image = GetViewport().GetTexture().GetImage();
+        var viewport = GetViewport();
+        if (viewport == null) throw new InvalidOperationException("No viewport is available for a screenshot.");
+        var image = viewport.GetTexture()?.GetImage();
+        if (image == null) throw new InvalidOperationException("The viewport image is unavailable.");
+        Directory.CreateDirectory(directory);
         string path = Path.Combine(directory, fileName);
         Error error = image.SavePng(path);
-        GD.Print($"SCREENSHOT {path} -> {error}");
+        if (error != Error.Ok)
+            GD.PrintErr($"SCREENSHOT FAILED {path} -> {error}");
+        else
+            GD.Print($"SCREENSHOT {path} -> {error}");
     }
+
 }

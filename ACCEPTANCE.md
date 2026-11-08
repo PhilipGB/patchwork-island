@@ -6,8 +6,8 @@ Legend: **PASS**, **FAIL**, **NOT TESTED (environment)**, **NOT IMPLEMENTED**.
 Screenshot reference boards are not in-game evidence.
 
 Release baseline: `main` after the P8 final-release PR. P7.1 stability hardening
-was merged first (PR #9). Full evidence is recorded in `PROGRESS.md` and
-`evidence/p8_*.png`.
+was merged first (PR #9). P8.1 reliability hardening is recorded below and in
+`PROGRESS.md`; evidence is under `evidence/p8_*.png` and `evidence/p81_*.png`.
 
 ## A. Boot / controls / visual
 
@@ -150,6 +150,84 @@ was merged first (PR #9). Full evidence is recorded in `PROGRESS.md` and
   and the persisted sound toggles are ready for a future pass.
 - **Text scaling:** **NOT IMPLEMENTED** — fixed text size; layout scales to
   1080p and remains readable.
+
+## P8.1 — Reliability hardening (v1.0.1)
+
+All items below were exercised with the actual project or the dependency-free
+test assembly. No item was marked PASS from code inspection alone.
+
+- [x] M10 remains saveable after completion while furniture is picked up or
+  unplaced. **PASS** — automated regression completes M10, picks up a chair,
+  saves/reloads, replaces it, saves/reloads, then completes M06 with the chair
+  unplaced and reloads. Real GUI run: `p81_02`–`p81_07`; the saved file held
+  three placements and `FurnitureOwned` still had two chairs. Initial M10
+  completion still requires all physical placements (test).
+- [x] Long race times cannot invalidate a save. **PASS** — tests cover 59:59,
+  60:00, 60:00.001, 66:00, `int.MaxValue` ms, M05 and M09 independently,
+  save/reload, completion, later mission completion and no duplicate reward.
+  Real GUI run used a controlled `elapsedMs=3,960,000` state (documented
+  injection, not a real-time 66-minute session), completed M05 on load, played
+  and completed M06 normally, saved, quit and reloaded with both completions and
+  130 coins (`p81_10`–`p81_20`). This is a controlled boundary test, not a
+  claim of waiting 66 real minutes.
+- [x] Manual save success and failure are truthful. **PASS** — write-denial
+  under a read-only save directory showed **Save failed** with the diagnostic,
+  left the previous file intact, and a retry after restoring permissions showed
+  **Paused — Saved** (`p81_21`, `p81_22`, `p81_27`). Automated policy tests
+  assert failure never displays success text.
+- [x] Automatic save failures are visible but throttled. **PASS** — automated
+  tests cover first-failure notification, suppression of repeats across
+  automatic reasons, quiet automatic success, and re-notification after
+  recovery. Mission-completion failure bypasses the autosave throttle.
+- [x] Return-to-title and quit failures are not silent. **PASS** — real GUI
+  write-denial produced a **Quit without saving?** choice with the exact error
+  and preserved the old save after choosing quit (`p81_25`, `p81_26`).
+- [x] A failed New Game does not claim persistence. **PASS** — real GUI run:
+  memory reset to 0 coins/new missions while the disk kept the previous 9-job
+  130-coin save; the error was explicit and the old save loaded after relaunch
+  (`p81_24`–`p81_26`). Automated `SessionSaveState` tests cover first-ever,
+  replacement, newer-schema and recovered-backup cases.
+- [x] Godot pause semantics are verified, not inferred. **PASS** — two headless
+  runtime phases (42 + 10 assertions) use the real scene. Player and van process
+  modes are `Pausable`; airborne player physics and van motion stop while
+  paused; driving input is released; race time stops; HUD/modal controls keep
+  working; closing the final modal resumes the correct mode.
+- [x] Pause → New Game → Cancel returns to Pause. **PASS** — runtime assertion
+  plus real-input modal checks; Title → New Game → Cancel still returns to
+  Title, and Pause/Title → Settings → origin works.
+- [x] Domain invariants are enforced below the UI. **PASS** — swing placement
+  rejects unknown part types; furniture purchase is capped at the required set;
+  negative/excessive race bonuses are rejected without changing the wallet;
+  legitimate +5 bonuses and exactly-once rewards still work.
+- [x] Mission content cannot silently drift. **PASS** — `MissionContentConsistency`
+  deep-compares every scalar, array, object and top-level metadata field in
+  `MISSIONS.json` and `data/missions.json`. A negative test mutates `learning`,
+  `mechanics.required` and `world` and proves each is detected. Mechanics are
+  documented as authored reference data, not runtime balance authority.
+- [x] Developer tools are gated and safe. **PASS** — F12 and screenshot tours
+  require the editor, `--dev`, `--capture` or a scenario argument; screenshots
+  write to `user://screenshots` or `user://dev-captures`; capture failures are
+  caught and logged. Normal release sessions do not expose F12.
+- [x] The failed-write test is genuine on every platform. **PASS** — the test
+  occupies the atomic `.tmp` path with a directory, producing a real I/O failure
+  on Linux and Windows, asserts `RecoverableFailure`, checks the previous bytes
+  are unchanged, removes the obstacle and verifies a successful retry.
+- [x] Existing save compatibility is preserved. **PASS** — schema version is
+  unchanged; v1.0.0-shaped saves load in the real GUI (all-complete synthetic
+  schema-1 save and the long-race seed). Newer saves remain untouched, corrupt
+  saves recover from backup, and no new required save fields were added.
+- [x] Build, pure tests, Godot import/boot and runtime tests pass. **PASS** —
+  `dotnet build`: 0 warnings/0 errors; tests **60 passed, 0 failed**; editor and
+  boot exit 0; runtime **42 + 10 passed, 0 failed**. CI adds a Linux export and
+  exported-binary boot plus a Windows pure-test job.
+- [x] Exported Linux build launches after the fixes. **PASS** — v1.0.1 export
+  launched under Xvfb; title, Continue, job board and save loaded; headless
+  export boot exit 0. Windows export produced and inspected;
+  **Windows startup NOT TESTED** (no Windows/Wine).
+
+No P8 regression was found: all ten missions, bridge/swing/park restoration,
+furniture movement, free roam, reward-free practice, celebration-once and
+exactly-once rewards remain covered by the retained P8 evidence and tests.
 
 ## Release severity
 

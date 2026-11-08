@@ -75,6 +75,14 @@ public static class FurnitureRules
     public static int Available(GameData data, string item) =>
         Math.Max(0, Owned(data, item) - Placed(data, item));
 
+    /// <summary>
+    /// True when the player owns the complete M10 set. Unlike
+    /// <see cref="MissionRules.HasHouseFurniture"/> this does not require the
+    /// pieces to be placed, because completed-world rearrangement is allowed.
+    /// </summary>
+    public static bool OwnsRequiredSet(GameData data) =>
+        Required.All(pair => Owned(data, pair.Key) >= pair.Value);
+
     public static int MissingCost(GameData data)
     {
         int cost = 0;
@@ -92,6 +100,12 @@ public static class FurnitureRules
     {
         if (!Items.Contains(item))
             return new ActionOutcome { Success = false, Message = "The catalogue does not have that." };
+        if (Owned(data, item) >= Required[item])
+            return new ActionOutcome
+            {
+                Success = false,
+                Message = $"You already have enough {Label(item).ToLowerInvariant()}s for your home.",
+            };
         int price = BudgetRules.FurniturePrice(item);
         if (data.Coins < price)
             return new ActionOutcome { Success = false, Message = $"That costs {price} coins. You have {data.Coins}." };

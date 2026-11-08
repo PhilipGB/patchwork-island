@@ -93,6 +93,11 @@ public static class BuildRules
             message = "That part is already in place.";
             return false;
         }
+        if (pieceType != "rope" && pieceType != "seat")
+        {
+            message = "That is not a swing part.";
+            return false;
+        }
         bool ropeSocket = socketId.EndsWith("_rope_l") || socketId.EndsWith("_rope_r");
         if (pieceType == "rope" && !ropeSocket)
         {

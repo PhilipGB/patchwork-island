@@ -1,9 +1,12 @@
 # Patchwork Island — run and test guide
 
-> Status: P8 release complete. All ten missions, practice racing, the all-jobs
-> celebration, save/load, settings, onboarding, stability hardening and release
-> packaging are in place. See `ACCEPTANCE.md` and `PROGRESS.md` for the final
-> pass/fail matrix and evidence.
+> Status: P8.1 (v1.0.1) reliability release complete. All ten missions,
+> practice racing, the all-jobs celebration, save/load, settings, onboarding,
+> stability hardening and release packaging are in place. P8.1 fixes
+> post-completion furniture and long-race save invalidation, makes every save
+> failure visible, protects New Game persistence flags, verifies pause
+> behaviour at runtime and fixes pause-confirmation cancellation. See
+> `ACCEPTANCE.md` and `PROGRESS.md` for the final pass/fail matrix and evidence.
 
 ## Prerequisites
 
@@ -50,7 +53,7 @@ godot --headless --path . --quit-after 120
 | W/S, A/D (driving) | Accelerate/brake-reverse, steer; A/D pivots at a stop |
 | E (driving) | Get out when slow |
 | R (driving) | Reset van to parking |
-| F12 | Developer screenshot (writes `evidence/manual_*.png`) |
+| F12 | Developer screenshot/state log — only in the editor or with `--dev`; writes `user://screenshots/` |
 
 ## Automated tests
 
@@ -58,14 +61,30 @@ godot --headless --path . --quit-after 120
 dotnet run --project tests/PatchworkIsland.Tests.csproj
 ```
 
-The runner currently has **44 tests** and covers mission catalog, prerequisites,
+The runner currently has **60 tests** and covers mission catalog, prerequisites,
 unlocks, duplicate pickups, exactly-once rewards, mission switching, hints,
-bridge/swing snapping, grocery and park budgets, furniture costs/starter
-fallback, ordered checkpoints, optional race-bonus boundaries, the full ten-job
+bridge/swing snapping (including rejected unknown part types), grocery and park
+budgets, furniture costs/starter fallback/purchase caps, ordered checkpoints,
+optional race-bonus boundaries and invalid bonus rejection, the full ten-job
 graph, JSON round-trips, structural save validation, corrupt/backup recovery,
-newer-save preservation, atomic-write failure, race-time restoration,
-control-mode precedence, mission-catalogue integrity and
-`MISSIONS.json`/`data/missions.json` drift.
+newer-save preservation, a real cross-platform failed-write/retry, race-time
+restoration and saturation, post-completion furniture rearrangement, save
+feedback throttling, New Game persistence flags, control-mode precedence,
+mission-catalogue integrity and a complete-field comparison of
+`MISSIONS.json`/`data/missions.json`.
+
+## Godot runtime integration tests
+
+```bash
+godot --headless --path . -- --selftest
+godot --headless --path . -- --selftest-resume
+```
+
+These use an isolated `user://selftest-save.json` and run 52 assertions across
+two processes: title/modal pause, pausable player/van/world processing, stopped
+physics and race timers, Pause→Settings→Pause, Title→Settings→Title, New Game
+confirmation cancellation, mission-completion pause, New Game reset, manual and
+automatic saves, and save/relaunch while driving.
 
 If a concurrently running Godot instance makes `dotnet run` wait on the project
 DLL, build once and execute the test assembly directly:
@@ -78,9 +97,14 @@ dotnet tests/bin/Debug/net8.0/PatchworkIsland.Tests.dll
 ## Headless capture harness
 
 ```bash
-godot --path . -- --capture        # gameplay screenshots to evidence/
-godot --path . -- --capture-title  # title screen screenshot
+godot --path . -- --dev --capture        # gameplay screenshots to user://dev-captures/
+godot --path . -- --dev --capture-title  # title screen screenshot
 ```
+
+Developer screenshots are gated behind the editor or an explicit `--dev`,
+`--capture` or scenario argument. F12 writes to `user://screenshots/`, never to
+an arbitrary working directory, and reports file errors instead of throwing an
+unobserved task exception.
 
 ## Current gameplay loop
 
@@ -104,6 +128,18 @@ input, finishing with 136 coins (157 rewards minus 21 furniture), the
 celebration shown once, a reward-free practice lap, and a save/relaunch that
 preserved the bridge collider, furniture, coins and completed job board.
 
+The P8.1 regression scenarios, with real input, verified:
+
+- Completed M10 → picked up one chair → manual save → quit → Continue. The
+  chair stayed owned but unplaced; it was then moved to a new pad and persisted.
+- A controlled `M05` state with `elapsedMs=3,960,000` (66 minutes) was completed
+  and saved; M06 was then played and completed normally. Both completions,
+  the long counter and the 130-coin wallet survived quit/relaunch.
+- A write-denied manual save showed **Save failed**, left the previous file
+  byte-for-byte intact, and a retry after permissions were restored succeeded.
+- A failed New Game kept the old on-disk save and did not advertise the new
+  session as persisted. Quit-without-saving then restored the old save.
+
 ## Release packaging
 
 Export templates for Godot 4.7.2 .NET must be installed under
@@ -124,9 +160,11 @@ runtime or Wine. See `dist/SHA256SUMS` and `dist/README.txt`.
 
 ```text
 dotnet build PatchworkIsland.sln                         -> 0 warnings, 0 errors
-dotnet run --project tests/PatchworkIsland.Tests.csproj -> 44 passed, 0 failed
+dotnet run --project tests/PatchworkIsland.Tests.csproj -> 60 passed, 0 failed
 godot --headless --path . --editor --quit                -> exit 0
 godot --headless --path . --quit-after 120               -> exit 0
+godot --headless --path . -- --selftest                  -> 42 passed, 0 failed
+godot --headless --path . -- --selftest-resume           -> 10 passed, 0 failed
 Linux exported binary --headless --quit-after 120        -> exit 0
 Linux exported binary (Xvfb)                             -> title, Continue and job board verified
 ```
@@ -168,6 +206,16 @@ explicitly confirmed New Game keeps a `save.json.newer-vN-<timestamp>` copy
 first. Settings, player/van positions, missions, bridge/swing parts, park/furniture
 placements, wallet, inventory and the celebration flag are all stored. Autosave
 runs every 20 seconds while playing and after mission start/completion.
+
+Manual save success/failure is shown inside the pause modal. Automatic failures
+produce one visible warning until a later save succeeds. Return-to-title and
+quit failures offer a safe choice instead of implying success. A failed New
+Game leaves the previous persisted save and Continue state untouched.
+
+Completed M10 saves validate the owned furniture set rather than requiring all
+pieces to be placed, so rearrangement is always saveable. Completion itself
+still requires the physical placements. Race elapsed time has no gameplay cap
+and saturates safely at the integer-millisecond representation limit.
 
 ## Accessibility / settings
 

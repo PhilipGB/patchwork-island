@@ -76,6 +76,32 @@ public static class SaveService
         }
     }
 
+    /// <summary>
+    /// UI-facing wrapper: converts expected failures into a structured result
+    /// without hiding diagnostics. Invalid in-memory state and I/O failures are
+    /// kept separate so callers can phrase the message accurately.
+    /// </summary>
+    public static SaveResult TrySave(GameData data, string path, MissionCatalog catalog = null)
+    {
+        try
+        {
+            Save(data, path, catalog);
+            return SaveResult.Ok();
+        }
+        catch (InvalidDataException ex)
+        {
+            return SaveResult.Invalid(ex.Message, ex);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or NotSupportedException)
+        {
+            return SaveResult.Recoverable(ex.Message, ex);
+        }
+        catch (Exception ex)
+        {
+            return SaveResult.Invalid("An unexpected save error occurred. " + ex.Message, ex);
+        }
+    }
+
     public static SaveLoadResult Load(string path, MissionCatalog catalog = null)
     {
         if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))

@@ -41,6 +41,8 @@ public partial class Hud : CanvasLayer
     private Control _modalLayer;
     private VBoxContainer _modalBody;
     private Label _modalTitle;
+    private Label _modalStatus;
+    private VBoxContainer _modalStatusHost;
     private bool _modalShadeStopsInput = true;
     private bool _modalStateReported;
     private Control _buildRoot;
@@ -339,6 +341,9 @@ public partial class Hud : CanvasLayer
         }
         UiKit.Separator(outer);
 
+        _modalStatusHost = UiKit.VBox(outer, 4);
+        _modalStatusHost.Visible = false;
+
         var scroll = new ScrollContainer
         {
             HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
@@ -350,6 +355,7 @@ public partial class Hud : CanvasLayer
         _modalBody = UiKit.VBox(scroll, 10);
         _modalBody.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
 
+        _modalStatus = null;
         _modalClosedAction = onClosed;
         PublishModalState();
         Callable.From(FocusFirstModalButton).CallDeferred();
@@ -379,6 +385,8 @@ public partial class Hud : CanvasLayer
         _modalLayer = null;
         _modalBody = null;
         _modalTitle = null;
+        _modalStatus = null;
+        _modalStatusHost = null;
         closed.QueueFree();
         var action = _modalClosedAction;
         _modalClosedAction = null;
@@ -407,7 +415,27 @@ public partial class Hud : CanvasLayer
         if (_modalTitle != null) _modalTitle.Text = title;
     }
 
+    /// <summary>Inline save status inside the current modal, above its shade.</summary>
+    public void SetModalStatus(string text, bool isError)
+    {
+        if (_modalStatusHost == null) return;
+        Color color = isError ? Palette.Red : Palette.Success;
+        _modalStatusHost.Visible = true;
+        if (_modalStatus == null)
+        {
+            _modalStatus = UiKit.Label(_modalStatusHost, text, 18, color);
+            _modalStatus.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        }
+        else
+        {
+            _modalStatus.Text = text;
+            _modalStatus.AddThemeColorOverride("font_color", color);
+        }
+    }
+
     public VBoxContainer ModalBody => _modalBody;
+
+    public string ModalTitleText => _modalTitle?.Text ?? "";
 
     public void AddModalActionRow(VBoxContainer body, params (string Text, Action Action, Color? Color)[] actions)
     {
@@ -488,7 +516,7 @@ public partial class Hud : CanvasLayer
         var resumeButton = UiKit.Button(body, "Keep playing", 24, new Vector2(0, 56), new Color("DFF6E3"), Palette.Success);
         resumeButton.Pressed += () => CloseModal();
         var save = UiKit.Button(body, "Save now", 21, new Vector2(0, 48), Palette.Cream, Palette.Blue);
-        save.Pressed += () => { saveNow?.Invoke(); SetModalTitle("Paused — Saved"); };
+        save.Pressed += () => saveNow?.Invoke();
         var set = UiKit.Button(body, "Settings", 21, new Vector2(0, 48), Palette.Cream, Palette.Lavender);
         set.Pressed += () => settings?.Invoke();
         var newG = UiKit.Button(body, "Start a new game", 21, new Vector2(0, 48), new Color("FFE0D6"), Palette.Red);

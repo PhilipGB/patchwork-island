@@ -1,4 +1,4 @@
-# Patchwork Island — First Playable v1.0
+# Patchwork Island — First Playable v1.0.1
 
 A happy little 3D village adventure for players aged roughly 5–10. A storm has
 scattered the village's supplies. Deliver parcels, repair the bridge, drive the
@@ -10,9 +10,13 @@ tests, real-input GUI evidence and release build instructions.
 
 ## Current status
 
-**First playable — complete.** All ten missions, the optional bonus race, free
-practice racing, the all-jobs celebration, save/load, settings, onboarding,
-stability hardening and final release verification are implemented.
+**First playable — complete, with the v1.0.1 reliability update.** All ten
+missions, the optional bonus race, free practice racing, the all-jobs
+celebration, save/load, settings, onboarding, stability hardening and final
+release verification are implemented. v1.0.1 fixes save invalidation after
+furniture rearrangement and long races, makes every save failure visible,
+protects New Game persistence flags, verifies Godot pause behaviour at runtime,
+and returns modal cancellations to the correct screen.
 
 - Windows x64 and Linux x86_64 standalone exports were produced.
 - The Linux export was launched and played in this environment.
@@ -27,8 +31,8 @@ Prebuilt artifacts are under `dist/` after an export:
 ```text
 dist/windows/PatchworkIsland.exe        Windows x64, single executable
 dist/linux/PatchworkIsland.x86_64       Linux x86_64, single executable
-dist/PatchworkIsland-1.0.0-Windows-x86_64.zip
-dist/PatchworkIsland-1.0.0-Linux-x86_64.zip
+dist/PatchworkIsland-1.0.1-Windows-x86_64.zip
+dist/PatchworkIsland-1.0.1-Linux-x86_64.zip
 dist/SHA256SUMS
 ```
 
@@ -80,7 +84,7 @@ Or open `project.godot` in Godot 4.7.2 .NET and press F5.
 | R while driving | Reset the van to its parking spot |
 | Left click in build mode | Place a selected piece on a glowing socket/pad |
 | R in build mode | Show the rotation hint (bridge/swing/park/furniture snap automatically) |
-| F12 | Developer screenshot and state log |
+| F12 | Developer screenshot and state log (only with `--dev` or in the editor) |
 
 ## How to play
 
@@ -118,18 +122,34 @@ godot --headless --path . --editor --quit
 godot --headless --path . --quit-after 120
 ```
 
-The dependency-free runner currently has **44 tests** covering mission
+The dependency-free runner currently has **60 tests** covering mission
 prerequisites and unlocks, exactly-once rewards, duplicate pickups, mission
 switching, hints, bridge/swing socket rules, grocery and park budgets, house
 costs and free starter fallback, ordered checkpoints, optional race bonuses,
 the full ten-job graph, JSON round-trips, save validation, corrupt/backup
-recovery, newer-save preservation, atomic-write failure, race timer restoration,
-control-mode precedence, mission-catalogue integrity and content drift between
+recovery, newer-save preservation, cross-platform write failure/retry, race
+timer restoration and saturation, post-completion furniture rearrangement,
+save-feedback throttling, New Game persistence flags, control-mode precedence,
+mission-catalogue integrity and a complete-field comparison between
 `MISSIONS.json` and `data/missions.json`.
 
+Godot runtime integration checks (52 assertions across two phases) execute the
+real scene headlessly:
+
+```bash
+godot --headless --path . -- --selftest
+godot --headless --path . -- --selftest-resume
+```
+
+They cover title and modal pause, player/van physics stopping, race timers
+stopping, settings/New Game modal returns, mission-completion pause, New Game
+reset, autosave/manual save, and a driving save/continue cycle.
+
 A GitHub Actions workflow (`.github/workflows/build-and-test.yml`) pins Godot
-4.7.2 .NET, builds the project, runs the tests, imports the project and boots
-the main scene headlessly.
+4.7.2 .NET, builds the project, runs the pure and runtime tests, imports and
+boots the project, exports a real Linux release, verifies its embedded content
+and boots the exported binary. A separate Windows job runs the pure test suite
+on Windows.
 
 ## Export
 
@@ -162,6 +182,18 @@ missions, bridge/swing parts, park/furniture placements, wallet, inventory and
 the celebration flag are stored. Autosave runs every 20 seconds while playing
 and after mission start/completion.
 
+Save failures are explicit: manual saves show success or an inline failure in
+the pause menu, autosave failures produce one throttled warning until a later
+save succeeds, and return-to-title/quit failures offer a keep-playing or
+quit-without-saving choice. A failed New Game never marks the new session as
+the persisted save; Continue keeps loading the last valid file.
+
+After M10 is complete, furniture may be picked up and rearranged freely.
+Completion still requires the pieces to be physically placed, but a completed
+world remains saveable while a piece is temporarily held or unplaced. Race
+timers have no mandatory time limit; elapsed time saturates safely at the
+integer-millisecond persistence ceiling instead of invalidating the save.
+
 ## Accessibility / settings
 
 Music, sound-effects and reduced-motion toggles are persisted. Reduced motion
@@ -186,18 +218,27 @@ the game is fully playable with sound off.
 ## Verification summary
 
 - `dotnet build PatchworkIsland.sln`: 0 errors, 0 warnings.
-- Automated tests: **44 passed, 0 failed**.
+- Automated tests: **60 passed, 0 failed**.
+- Godot runtime self-tests: **42 + 10 assertions passed, 0 failed**.
 - Headless editor import and main-scene boot: exit 0.
 - Missing mission content: explicit FATAL and exit 1.
-- Full fresh-save walkthrough: M01–M10 completed with real keyboard/mouse input,
-  final wallet 136 (157 rewards − 21 furniture), celebration once, practice
-  race completed with no extra reward, save/quit/relaunch preserved the world.
+- Full fresh-save walkthrough (v1.0.0): M01–M10 completed with real
+  keyboard/mouse input, final wallet 136, celebration once, practice race
+  rewarded nothing, save/quit/relaunch preserved the world.
+- v1.0.1 save scenarios: completed M10 → picked up a chair → manual save →
+  quit → Continue; the chair remained owned and unplaced, then was moved to a
+  new pad and persisted. A 66-minute race state (`elapsedMs=3,960,000`) was
+  completed, M06 was then played normally, saved, quit and reloaded with both
+  completions and the correct wallet.
+- v1.0.1 failure UI: write-denied manual saves showed **Save failed**, left the
+  previous file intact, and a retry succeeded. A failed New Game did not claim
+  persistence, and quitting without saving preserved the old save.
 - Linux export: launched and played; mission catalogue loaded from the embedded
   pack; final save loaded.
 - Windows x64 export: produced and inspected; startup **NOT TESTED**.
 
-Detailed evidence and commands are in `PROGRESS.md`, `ACCEPTANCE.md` and
-`evidence/p8_*.png`.
+Detailed evidence and commands are in `PROGRESS.md`, `ACCEPTANCE.md`,
+`evidence/p8_*.png` and `evidence/p81_*.png`.
 
 ## Repository map
 

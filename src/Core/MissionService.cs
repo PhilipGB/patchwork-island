@@ -55,12 +55,14 @@ public static class MissionRules
         data.GetItem("wood") >= 5 && data.GetItem("stone") >= 3;
 
     /// <summary>Optional race goal; never required for mission completion.</summary>
-    public static int OptionalRaceBonus(string missionId, float elapsedSeconds)
+    public const int MaxOptionalRaceBonus = 5;
+
+    public static int OptionalRaceBonus(string missionId, double elapsedSeconds)
     {
         return missionId switch
         {
-            "M05" when elapsedSeconds <= 90f => 5,
-            "M09" when elapsedSeconds <= 75f => 5,
+            "M05" when elapsedSeconds <= 90.0 => MaxOptionalRaceBonus,
+            "M09" when elapsedSeconds <= 75.0 => MaxOptionalRaceBonus,
             _ => 0,
         };
     }
@@ -98,7 +100,7 @@ public sealed class MissionCompletionResult
     public int BonusCoins;
     public bool AllComplete;
     /// <summary>Elapsed race time captured for the completion panel, when relevant.</summary>
-    public float RaceSeconds;
+    public double RaceSeconds;
 
     public int TotalCoins => CoinsAwarded + BonusCoins;
 }
@@ -389,6 +391,20 @@ public sealed class MissionService
             return Fail("That job is missing from the content.");
         if (Data.IsCompleted(mission.Id))
             return Fail("That job is already finished.");
+
+        // Domain guard: callers may not inject an arbitrary wallet bonus.
+        // Only the two race jobs have an optional speed bonus, capped at the
+        // legitimate maximum. The base mission reward is always exactly once.
+        if (bonusCoins < 0)
+            return Fail("The speed bonus is invalid.");
+        if (bonusCoins > 0)
+        {
+            if (mission.Id is not ("M05" or "M09"))
+                return Fail("That job does not have a speed bonus.");
+            if (bonusCoins > MissionRules.MaxOptionalRaceBonus)
+                return Fail("The speed bonus is larger than the course allows.");
+        }
+
         if (!MissionRules.IsObjectiveComplete(Data, mission.Id))
             return Fail("This job is not finished yet.");
 

@@ -49,9 +49,17 @@ public static class SaveValidation
         ["M01"] = new() { ["delivered"] = 1 },
         ["M02"] = new() { ["delivered"] = 1 },
         ["M04"] = new() { ["bread"] = 4, ["milk"] = 3, ["delivered"] = 1 },
-        ["M05"] = new() { ["checkpoint"] = 4, ["started"] = 1, ["elapsedMs"] = 3_600_000 },
+        ["M05"] = new()
+        {
+            ["checkpoint"] = 4, ["started"] = 1,
+            ["elapsedMs"] = RaceTimer.MaxStoredMilliseconds,
+        },
         ["M06"] = new() { ["blueDelivered"] = 2, ["orangeDelivered"] = 1 },
-        ["M09"] = new() { ["checkpoint"] = 4, ["started"] = 1, ["elapsedMs"] = 3_600_000 },
+        ["M09"] = new()
+        {
+            ["checkpoint"] = 4, ["started"] = 1,
+            ["elapsedMs"] = RaceTimer.MaxStoredMilliseconds,
+        },
     };
 
     public static SaveValidationResult Validate(GameData data, MissionCatalog catalog = null)
@@ -257,7 +265,12 @@ public static class SaveValidation
                      ParkRules.Count(data, "bench") == 1 &&
                      ParkRules.Count(data, "flowerbed") == 1 &&
                      ParkRules.Count(data, "lamp") == 1,
-            "M10" => MissionRules.HasHouseFurniture(data),
+            // M10 is intentionally different: after completion the player may
+            // pick up and rearrange furniture. Ownership proves the set was
+            // acquired, while the placement list is still fully validated for
+            // valid slots, uniqueness and ownership limits elsewhere. The
+            // mission itself still requires physical placements to complete.
+            "M10" => FurnitureRules.OwnsRequiredSet(data),
             _ => true,
         };
     }
