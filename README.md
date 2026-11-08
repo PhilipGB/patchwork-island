@@ -233,9 +233,11 @@ the game is fully playable with sound off.
 - v1.0.1 failure UI: write-denied manual saves showed **Save failed**, left the
   previous file intact, and a retry succeeded. A failed New Game did not claim
   persistence, and quitting without saving preserved the old save.
-- Linux export: launched and played; mission catalogue loaded from the embedded
-  pack; final save loaded.
-- Windows x64 export: produced and inspected; startup **NOT TESTED**.
+- Linux v1.0.1 export: launched and played; mission catalogue and final save
+  loaded; the packaged binary also passed 42 + 10 runtime assertions headlessly.
+- F12 is inactive in the normal export (screenshot count unchanged).
+- Windows x64 export: produced and inspected with version `1.0.1.0`; startup
+  **NOT TESTED**.
 
 Detailed evidence and commands are in `PROGRESS.md`, `ACCEPTANCE.md`,
 `evidence/p8_*.png` and `evidence/p81_*.png`.

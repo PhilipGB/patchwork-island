@@ -221,9 +221,12 @@ test assembly. No item was marked PASS from code inspection alone.
   boot exit 0; runtime **42 + 10 passed, 0 failed**. CI adds a Linux export and
   exported-binary boot plus a Windows pure-test job.
 - [x] Exported Linux build launches after the fixes. **PASS** — v1.0.1 export
-  launched under Xvfb; title, Continue, job board and save loaded; headless
-  export boot exit 0. Windows export produced and inspected;
-  **Windows startup NOT TESTED** (no Windows/Wine).
+  (`cb60a80`) launched under Xvfb; title, Continue, 9-job save, 130 coins and
+  job board loaded (`p81_30`, `p81_31`); headless export boot exit 0; the
+  packaged binary itself passed 42 + 10 runtime assertions. F12 produced no
+  screenshot in the normal export (23 files before/after), confirming the
+  developer gate. Windows export produced and inspected with version `1.0.1.0`;
+  **Windows startup NOT TESTED** (no Windows/Wine). SHA-256 checksums verified.
 
 No P8 regression was found: all ten missions, bridge/swing/park restoration,
 furniture movement, free roam, reward-free practice, celebration-once and
