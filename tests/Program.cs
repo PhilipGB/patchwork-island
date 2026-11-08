@@ -512,6 +512,221 @@ internal static class Program
                 var newer = SaveService.Load(path);
                 Check(!newer.Success, "newer version rejected");
                 Check(newer.Message.Contains("newer"), "newer version message");
+                Check(File.Exists(path), "newer save must not be moved away as corrupt");
+                Check(Directory.GetFiles(dir, "*.corrupt-*").Length == 0, "newer save must not be quarantined");
+            }
+            finally
+            {
+                Directory.Delete(dir, true);
+            }
+        });
+
+        Run("structurally invalid nested records are rejected", () =>
+        {
+            string dir = TempDirectory("patchwork-save-structure");
+            string path = Path.Combine(dir, SaveService.DefaultFileName);
+            try
+            {
+                File.WriteAllText(path, "{\"SchemaVersion\":1,\"ParkPlacements\":[null]}");
+                var loaded = SaveService.Load(path);
+                Check(!loaded.Success, "null park placement must not load as a valid game");
+                Check(loaded.Message.Length > 0, "malformed save reports why it failed");
+            }
+            finally
+            {
+                Directory.Delete(dir, true);
+            }
+        });
+
+        Run("unknown and conflicting placements are rejected", () =>
+        {
+            string dir = TempDirectory("patchwork-save-placement");
+            string path = Path.Combine(dir, SaveService.DefaultFileName);
+            try
+            {
+                File.WriteAllText(path,
+                    "{\"SchemaVersion\":1,\"ParkPlacements\":[" +
+                    "{\"Type\":\"bench\",\"Slot\":\"park0\"}," +
+                    "{\"Type\":\"bench\",\"Slot\":\"park9\"}]}");
+                Check(!SaveService.Load(path).Success, "unknown pad and duplicate item rejected");
+            }
+            finally
+            {
+                Directory.Delete(dir, true);
+            }
+        });
+
+        Run("invalid mission references and counters are rejected", () =>
+        {
+            string dir = TempDirectory("patchwork-save-missions");
+            string path = Path.Combine(dir, SaveService.DefaultFileName);
+            try
+            {
+                File.WriteAllText(path, "{\"SchemaVersion\":1,\"ActiveMission\":\"M99\"}");
+                Check(!SaveService.Load(path, catalog).Success, "unknown active mission rejected");
+
+                File.WriteAllText(path,
+                    "{\"SchemaVersion\":1,\"ActiveMission\":\"M05\",\"MissionProgress\":{\"M05\":{\"checkpoint\":-2}}}");
+                Check(!SaveService.Load(path, catalog).Success, "negative checkpoint rejected");
+            }
+            finally
+            {
+                Directory.Delete(dir, true);
+            }
+        });
+
+        Run("a corrupt main save never replaces a good backup", () =>
+        {
+            string dir = TempDirectory("patchwork-save-backup-protect");
+            string path = Path.Combine(dir, SaveService.DefaultFileName);
+            try
+            {
+                SaveService.Save(new GameData { Coins = 33 }, path);
+                File.Copy(path, SaveService.BackupPath(path), true);
+                File.WriteAllText(path, "{\"SchemaVersion\":1,\"ParkPlacements\":[null]}");
+                var loaded = SaveService.Load(path);
+                Check(loaded.Success && loaded.UsedBackup, "good backup recovered");
+                Equal(33, loaded.Data.Coins, "backup coins");
+                Check(File.Exists(SaveService.BackupPath(path)), "backup remains in place");
+                var backupLoaded = SaveService.Load(SaveService.BackupPath(path));
+                Check(backupLoaded.Success && backupLoaded.Data.Coins == 33, "backup still valid after recovery");
+            }
+            finally
+            {
+                Directory.Delete(dir, true);
+            }
+        });
+
+        Run("saving over a corrupt main keeps the good backup", () =>
+        {
+            string dir = TempDirectory("patchwork-save-corrupt-write");
+            string path = Path.Combine(dir, SaveService.DefaultFileName);
+            try
+            {
+                SaveService.Save(new GameData { Coins = 33 }, path, catalog);
+                SaveService.Save(new GameData { Coins = 33 }, path, catalog);
+                File.WriteAllText(path, "{\"SchemaVersion\":1,\"ParkPlacements\":[null]}");
+                SaveService.Save(new GameData { Coins = 44 }, path, catalog);
+                var main = SaveService.Load(path, catalog);
+                Check(main.Success, "new main loads");
+                Equal(44, main.Data.Coins, "new main coins");
+                var backup = SaveService.Load(SaveService.BackupPath(path), catalog);
+                Check(backup.Success, "backup still loads");
+                Equal(33, backup.Data.Coins, "good backup was not replaced by corrupt data");
+                Check(Directory.GetFiles(dir, "save.json.corrupt-*").Length >= 1,
+                    "corrupt main was preserved for inspection");
+            }
+            finally
+            {
+                Directory.Delete(dir, true);
+            }
+        });
+
+        Run("a minimal historical save gets safe defaults", () =>
+        {
+            string dir = TempDirectory("patchwork-save-minimal");
+            string path = Path.Combine(dir, SaveService.DefaultFileName);
+            try
+            {
+                File.WriteAllText(path, "{\"SchemaVersion\":0}");
+                var loaded = SaveService.Load(path, catalog);
+                Check(loaded.Success, "old/minimal save loads");
+                Equal(0, loaded.Data.Coins, "default coins");
+                Check(loaded.Data.Settings.MusicEnabled, "default settings");
+                Check(loaded.Data.Player != null && loaded.Data.Van != null, "snapshots defaulted");
+            }
+            finally
+            {
+                Directory.Delete(dir, true);
+            }
+        });
+
+        Run("unrecoverable corruption is reported, not loaded", () =>
+        {
+            string dir = TempDirectory("patchwork-save-unrecoverable");
+            string path = Path.Combine(dir, SaveService.DefaultFileName);
+            try
+            {
+                File.WriteAllText(path, "{ broken");
+                File.WriteAllText(SaveService.BackupPath(path), "{ also broken");
+                var loaded = SaveService.Load(path, catalog);
+                Check(!loaded.Success, "no data loaded");
+                Equal(SaveLoadStatus.Unrecoverable, loaded.Status, "unrecoverable status");
+                Check(loaded.Message.Contains("backup"), "message explains the failed recovery");
+            }
+            finally
+            {
+                Directory.Delete(dir, true);
+            }
+        });
+
+        Run("completed world jobs require their physical state", () =>
+        {
+            var data = new GameData();
+            data.CompletedMissions.Add("M02");
+            data.CompletedMissions.Add("M03");
+            var validation = SaveValidation.Validate(data, catalog);
+            Check(!validation.IsValid, "M03 without bridge rejected");
+            data.BridgePieces.AddRange(BuildRules.BridgeSockets);
+            Check(SaveValidation.Validate(data, catalog).IsValid, "M03 with bridge accepted");
+            data.CompletedMissions.Add("M07");
+            Check(!SaveValidation.Validate(data, catalog).IsValid, "M07 without swings rejected");
+            data.SwingPieces.AddRange(BuildRules.SwingSockets);
+            Check(SaveValidation.Validate(data, catalog).IsValid, "M07 with swings accepted");
+        });
+
+        Run("a failed write leaves the previous save intact", () =>
+        {
+            string dir = TempDirectory("patchwork-save-write-failure");
+            string path = Path.Combine(dir, SaveService.DefaultFileName);
+            try
+            {
+                SaveService.Save(new GameData { Coins = 21 }, path);
+                string before = File.ReadAllText(path);
+                bool threw = false;
+                if (OperatingSystem.IsWindows())
+                {
+                    // The permission-based write failure is Linux/macOS specific.
+                    threw = true;
+                }
+                else
+                {
+                    // Make the directory non-writable for this process; the atomic
+                    // temporary file cannot be created, so the old save must remain.
+                    File.SetUnixFileMode(dir,
+                        UnixFileMode.UserRead | UnixFileMode.UserExecute);
+                    try { SaveService.Save(new GameData { Coins = 99 }, path); }
+                    catch (Exception) { threw = true; }
+                    finally
+                    {
+                        File.SetUnixFileMode(dir,
+                            UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+                    }
+                }
+                Check(threw, "failed write reports an error");
+                Equal(before, File.ReadAllText(path), "previous save bytes unchanged");
+            }
+            finally
+            {
+                Directory.Delete(dir, true);
+            }
+        });
+
+        Run("save/reload cannot duplicate a mission reward", () =>
+        {
+            string dir = TempDirectory("patchwork-save-reward");
+            string path = Path.Combine(dir, SaveService.DefaultFileName);
+            try
+            {
+                var s = CompleteM01(Fresh(catalog));
+                SaveService.Save(s.Data, path);
+                var loaded = SaveService.Load(path, catalog);
+                Check(loaded.Success, "save loaded with catalog");
+                var restored = new MissionService(loaded.Data, catalog);
+                Equal(10, restored.Data.Coins, "coins restored");
+                var repeat = restored.DeliverApples();
+                Check(!repeat.Success, "completed delivery rejected after reload");
+                Equal(10, restored.Data.Coins, "no duplicate reward");
             }
             finally
             {
@@ -539,6 +754,159 @@ internal static class Program
             Equal(2, restored.FurnitureOwned["chair"], "furniture owned round trip");
             Equal(1f, restored.Player.X, "player X round trip");
             Equal(5f, restored.Van.X, "van X round trip");
+        });
+
+        Run("control ownership has one deterministic mode", () =>
+        {
+            Equal(ControlMode.Title, ControlModeRules.Resolve(false, false, false, true), "title wins");
+            Equal(ControlMode.Modal, ControlModeRules.Resolve(true, true, true, true), "modal wins");
+            Equal(ControlMode.Building, ControlModeRules.Resolve(true, false, true, true), "building wins over driving");
+            Equal(ControlMode.Driving, ControlModeRules.Resolve(true, false, false, true), "driving");
+            Equal(ControlMode.Walking, ControlModeRules.Resolve(true, false, false, false), "walking");
+            Check(ControlModeRules.PlayerProcessesInput(ControlMode.Walking), "walking owns player input");
+            Check(!ControlModeRules.PlayerProcessesInput(ControlMode.Driving), "driving releases player input");
+            Check(ControlModeRules.VehicleProcessesInput(ControlMode.Driving), "driving owns van input");
+            Check(!ControlModeRules.VehicleProcessesInput(ControlMode.Modal), "modal releases van input");
+            Check(ControlModeRules.CapturesMouse(ControlMode.Walking), "walking captures mouse");
+            Check(!ControlModeRules.CapturesMouse(ControlMode.Building), "building shows mouse");
+            Check(ControlModeRules.PausesWorld(ControlMode.Modal), "modal pauses world");
+            Check(!ControlModeRules.PausesWorld(ControlMode.Driving), "driving does not pause");
+        });
+
+        Run("race elapsed time survives save and reload", () =>
+        {
+            string dir = TempDirectory("patchwork-save-race");
+            string path = Path.Combine(dir, SaveService.DefaultFileName);
+            try
+            {
+                var s = CompleteM04(CompleteBridge(Fresh(catalog)));
+                Check(s.StartMission("M05").Success, "start M05");
+                Check(s.AdvanceCheckpoint(1).Success, "gate 1");
+                Check(s.AdvanceCheckpoint(2).Success, "gate 2");
+                s.Data.SetMissionCounter("M05", "elapsedMs", 42_000);
+                SaveService.Save(s.Data, path, catalog);
+
+                var loaded = SaveService.Load(path, catalog);
+                Check(loaded.Success, "mid-race save loads");
+                Equal(2, loaded.Data.GetMissionCounter("M05", "checkpoint"), "checkpoint restored");
+                var timer = RaceTimer.Restore(loaded.Data, "M05");
+                Equal(42f, timer.ElapsedSeconds, "elapsed time restored");
+                timer.Tick(3.5f);
+                Equal(45.5f, timer.ElapsedSeconds, "timer continues rather than resetting");
+                Equal(5, timer.OptionalBonus("M05"), "bonus still earned inside 90 s");
+
+                var restored = new MissionService(loaded.Data, catalog);
+                Check(restored.AdvanceCheckpoint(3).Success, "gate 3 after reload");
+                Check(restored.AdvanceCheckpoint(4).Success, "gate 4 after reload");
+                var completion = restored.CompleteActive(timer.OptionalBonus("M05"));
+                Check(completion.Success, "race completes after reload");
+                Equal(15, completion.CoinsAwarded, "base race reward");
+                Equal(5, completion.BonusCoins, "optional bonus");
+                Equal(20, completion.TotalCoins, "total race reward");
+                Check(!restored.CompleteActive(0).Success, "race reward cannot repeat");
+
+                SaveService.Save(restored.Data, path, catalog);
+                var reloaded = SaveService.Load(path, catalog);
+                Check(reloaded.Success, "completed race reloads");
+                Check(reloaded.Data.IsCompleted("M05"), "M05 stays complete");
+                Check(!new MissionService(reloaded.Data, catalog).CompleteActive(0).Success,
+                    "reloaded race cannot claim again");
+            }
+            finally
+            {
+                Directory.Delete(dir, true);
+            }
+        });
+
+        Run("mission catalogue is complete and matches the content source", () =>
+        {
+            Check(MissionIntegrity.ValidateCatalog(catalog, out string error), "catalogue valid: " + error);
+            var reference = MissionCatalog.FromJson(
+                File.ReadAllText(Path.Combine(root, "MISSIONS.json")));
+            Equal(reference.Missions.Count, catalog.Missions.Count, "reference mission count");
+            foreach (var expected in reference.Missions)
+            {
+                var actual = catalog.Get(expected.Id);
+                Check(actual != null, $"runtime mission {expected.Id} exists");
+                Equal(expected.Title, actual.Title, $"{expected.Id} title");
+                Equal(expected.Short, actual.Short, $"{expected.Id} instruction");
+                Equal(expected.RewardCoins, actual.RewardCoins, $"{expected.Id} reward");
+                Equal(string.Join(",", expected.Prerequisites),
+                    string.Join(",", actual.Prerequisites), $"{expected.Id} prerequisites");
+                Equal(string.Join("|", expected.Hints),
+                    string.Join("|", actual.Hints), $"{expected.Id} hints");
+            }
+        });
+
+        Run("missing mission content fails integrity validation", () =>
+        {
+            var incomplete = new MissionCatalog(catalog.Missions.Where(m => m.Id != "M10"));
+            Check(!MissionIntegrity.ValidateCatalog(incomplete, out string error), "missing M10 rejected");
+            Check(error.Contains("M10"), "error names the missing mission");
+        });
+
+        Run("invalid numeric data is refused before writing", () =>
+        {
+            string dir = TempDirectory("patchwork-save-numeric");
+            string path = Path.Combine(dir, SaveService.DefaultFileName);
+            try
+            {
+                var data = new GameData
+                {
+                    Player = new PlayerSnapshot { X = float.NaN, Y = 1, Z = 1, Valid = true },
+                };
+                bool threw = false;
+                try { SaveService.Save(data, path, catalog); }
+                catch (InvalidDataException) { threw = true; }
+                Check(threw, "non-finite player position rejected");
+                Check(!File.Exists(path), "invalid data was not written");
+            }
+            finally
+            {
+                Directory.Delete(dir, true);
+            }
+        });
+
+        Run("explicit overwrite preserves a newer save", () =>
+        {
+            string dir = TempDirectory("patchwork-save-newer");
+            string path = Path.Combine(dir, SaveService.DefaultFileName);
+            try
+            {
+                File.WriteAllText(path, "{\"SchemaVersion\":99,\"Coins\":5}");
+                SaveService.Save(new GameData { Coins = 1 }, path, catalog);
+                var preserved = Directory.GetFiles(dir, "save.json.newer-v99-*");
+                Equal(1, preserved.Length, "newer save preserved before overwrite");
+                Check(File.ReadAllText(preserved[0]).Contains("\"SchemaVersion\":99"),
+                    "preserved copy keeps the original version");
+                var loaded = SaveService.Load(path, catalog);
+                Check(loaded.Success, "replacement save loads");
+                Equal(1, loaded.Data.Coins, "replacement coins");
+            }
+            finally
+            {
+                Directory.Delete(dir, true);
+            }
+        });
+
+        Run("missing main save recovers the backup", () =>
+        {
+            string dir = TempDirectory("patchwork-save-missing-main");
+            string path = Path.Combine(dir, SaveService.DefaultFileName);
+            try
+            {
+                SaveService.Save(new GameData { Coins = 18 }, path, catalog);
+                SaveService.Save(new GameData { Coins = 24 }, path, catalog);
+                File.Delete(path);
+                var loaded = SaveService.Load(path, catalog);
+                Check(loaded.Success, "backup loaded when main is missing");
+                Check(loaded.UsedBackup, "backup flag set");
+                Equal(18, loaded.Data.Coins, "previous save restored");
+            }
+            finally
+            {
+                Directory.Delete(dir, true);
+            }
         });
 
         Console.WriteLine();

@@ -11,6 +11,7 @@ namespace PatchworkIsland;
 public static class Geo
 {
     private static readonly Dictionary<string, StandardMaterial3D> Materials = new();
+    private static readonly Dictionary<string, Texture2D> IconTextures = new();
 
     public static StandardMaterial3D Mat(Color color, bool emissive = false, float alpha = 1f)
     {
@@ -270,10 +271,13 @@ public static class Geo
 
     public static Texture2D IconTexture(string name)
     {
+        if (string.IsNullOrWhiteSpace(name)) return null;
+        if (IconTextures.TryGetValue(name, out var cached))
+            return cached;
         string path = $"res://assets/icons/{name}.svg";
-        if (ResourceLoader.Exists(path))
-            return GD.Load<Texture2D>(path);
-        return null;
+        Texture2D texture = ResourceLoader.Exists(path) ? GD.Load<Texture2D>(path) : null;
+        IconTextures[name] = texture;
+        return texture;
     }
 
     public static Sprite3D IconSprite(Node parent, Vector3 pos, string name, float pixelSize = 0.025f,

@@ -43,7 +43,8 @@ public partial class Main : Node3D
     private VanController _van;
     private bool _buildMode;
     private bool _driving;
-    private float _raceElapsed;
+    private RaceTimer _raceTimer = new();
+    private ControlMode _controlMode;
     private float _raceCheckTimer;
     private float _raceHudTimer;
     private float _raceWrongHintCooldown;
@@ -53,6 +54,7 @@ public partial class Main : Node3D
     private float _practiceCheckTimer;
     private float _practiceHudTimer;
     private bool _celebrationShown;
+    private float _vehicleSwitchCooldown;
 
     private bool _started;
     private float _uiRefresh;
@@ -61,7 +63,11 @@ public partial class Main : Node3D
     private string _destIcon = "star";
     private bool _hasDestination;
     private bool _lastIndoor;
-    private bool _saveAvailable;
+    private bool _hasSaveFile;
+    private bool _canContinue;
+    private bool _newerSavePresent;
+    private string _titleNotice = "";
+    private string _recoveredJobNote = "";
     private bool _loadedFromSave;
     private string _saveNotice = "";
     private float _autosaveTimer;
@@ -70,7 +76,15 @@ public partial class Main : Node3D
     {
         ProcessMode = ProcessModeEnum.Always;
         BuildEnvironment();
-        LoadMissionContent();
+        try
+        {
+            LoadMissionContent();
+        }
+        catch (Exception ex)
+        {
+            ShowFatalContentError(ex.Message);
+            return;
+        }
         LoadSavedGameIfAvailable();
         ApplyDeveloperScenario();
 
@@ -108,115 +122,71 @@ public partial class Main : Node3D
         CreateStations();
         SpawnPickups();
         RestoreSavedState();
+        ReconcileRestoredProgress();
         RefreshMissionState();
 
-        _player.SetControlEnabled(false);
+        SyncControlMode();
         Input.MouseMode = Input.MouseModeEnum.Visible;
 
         if (HasUserArg("--scenario-m03"))
         {
-            _started = true;
-            _player.Teleport(new Vector3(34.2f, 0.2f, 4.2f), -Mathf.Pi / 2f);
-            _rig.SetView(-90f, 18f, 8.2f);
-            _player.SetControlEnabled(true);
-            Input.MouseMode = Input.MouseModeEnum.Captured;
-            RefreshMissionState();
-            _hud.ShowToast("SCENARIO: M01+M02 done, Build the Bridge active. Press E at the worksite.", 4.5f);
+            BeginScenario(new Vector3(34.2f, 0.2f, 4.2f), -Mathf.Pi / 2f,
+                "SCENARIO: M01+M02 done, Build the Bridge active. Press E at the worksite.");
             return;
         }
         if (HasUserArg("--scenario-m04"))
         {
-            _started = true;
-            _player.Teleport(new Vector3(5f, 0.2f, 0.8f), Mathf.Pi);
-            _rig.SetView(180f, 18f, 8.2f);
-            _player.SetControlEnabled(true);
-            Input.MouseMode = Input.MouseModeEnum.Captured;
-            RefreshMissionState();
-            _hud.ShowToast("SCENARIO: M01 done, Market Basket active. Press E at the SHOP.", 4.5f);
+            BeginScenario(new Vector3(5f, 0.2f, 0.8f), Mathf.Pi,
+                "SCENARIO: M01 done, Market Basket active. Press E at the SHOP.");
             return;
         }
         if (HasUserArg("--scenario-m05"))
         {
-            _started = true;
-            _player.Teleport(new Vector3(-31f, 0.2f, 18.5f), 0f);
-            _rig.SetView(0f, 18f, 8.2f);
-            _player.SetControlEnabled(true);
-            Input.MouseMode = Input.MouseModeEnum.Captured;
-            RefreshMissionState();
-            _hud.ShowToast("SCENARIO: M05 active. Drive the yellow van through gates 1-2-3-4.", 5f);
+            BeginScenario(new Vector3(-31f, 0.2f, 18.5f), 0f,
+                "SCENARIO: M05 active. Drive the yellow van through gates 1-2-3-4.", 5f);
             return;
         }
         if (HasUserArg("--scenario-m06"))
         {
-            _started = true;
-            _player.Teleport(new Vector3(-9f, 0.2f, 4.5f), Mathf.Pi);
-            _rig.SetView(180f, 18f, 8.2f);
-            _player.SetControlEnabled(true);
-            Input.MouseMode = Input.MouseModeEnum.Captured;
-            RefreshMissionState();
-            _hud.ShowToast("SCENARIO: M06 active. Collect BLUE and ORANGE parcels at the post counter.", 5f);
+            BeginScenario(new Vector3(-9f, 0.2f, 4.5f), Mathf.Pi,
+                "SCENARIO: M06 active. Collect BLUE and ORANGE parcels at the post counter.", 5f);
             return;
         }
         if (HasUserArg("--scenario-m07"))
         {
-            _started = true;
-            _player.Teleport(new Vector3(-38f, 0.2f, 3.0f), 0f);
-            _rig.SetView(0f, 18f, 8.2f);
-            _player.SetControlEnabled(true);
-            Input.MouseMode = Input.MouseModeEnum.Captured;
-            RefreshMissionState();
-            _hud.ShowToast("SCENARIO: M07 active. Press E by the broken swings.", 5f);
+            BeginScenario(new Vector3(-38f, 0.2f, 3.0f), 0f,
+                "SCENARIO: M07 active. Press E by the broken swings.", 5f);
             return;
         }
         if (HasUserArg("--scenario-m08"))
         {
-            _started = true;
-            _player.Teleport(new Vector3(10f, 0.2f, 7.8f), Mathf.Pi);
-            _rig.SetView(180f, 18f, 8.2f);
-            _player.SetControlEnabled(true);
-            Input.MouseMode = Input.MouseModeEnum.Captured;
-            RefreshMissionState();
-            _hud.ShowToast("SCENARIO: M08 active. Press E at the village green.", 5f);
+            BeginScenario(new Vector3(10f, 0.2f, 7.8f), Mathf.Pi,
+                "SCENARIO: M08 active. Press E at the village green.", 5f);
             return;
         }
         if (HasUserArg("--scenario-m09"))
         {
-            _started = true;
             _van.GlobalPosition = new Vector3(55f, 0.15f, 1.5f);
             _van.Rotation = new Vector3(0, Mathf.DegToRad(35f), 0);
-            _player.Teleport(new Vector3(55f, 0.2f, 6.0f), Mathf.Pi);
-            _rig.SetView(180f, 18f, 8.2f);
-            _player.SetControlEnabled(true);
-            Input.MouseMode = Input.MouseModeEnum.Captured;
-            RefreshMissionState();
-            _hud.ShowToast("SCENARIO: M09 active in the meadow. Drive gates 1-2-3-4; under 75 s is an optional bonus.", 5f);
+            BeginScenario(new Vector3(55f, 0.2f, 6.0f), Mathf.Pi,
+                "SCENARIO: M09 active in the meadow. Drive gates 1-2-3-4; under 75 s is an optional bonus.", 5f);
             return;
         }
         if (HasUserArg("--scenario-m10"))
         {
-            _started = true;
-            _player.Teleport(new Vector3(-38f, 0.2f, 17.0f), Mathf.Pi);
-            _rig.SetView(180f, 18f, 8.2f);
-            _player.SetControlEnabled(true);
-            Input.MouseMode = Input.MouseModeEnum.Captured;
-            RefreshMissionState();
-            _hud.ShowToast("SCENARIO: M10 active. Walk into your house and press E at FURNITURE.", 5f);
+            BeginScenario(new Vector3(-38f, 0.2f, 17.0f), Mathf.Pi,
+                "SCENARIO: M10 active. Walk into your house and press E at FURNITURE.", 5f);
             return;
         }
         if (HasUserArg("--scenario-final"))
         {
-            _started = true;
-            _player.Teleport(new Vector3(-38f, 0.2f, 21.0f), Mathf.Pi);
-            _rig.SetView(180f, 18f, 8.2f);
-            _player.SetControlEnabled(true);
-            Input.MouseMode = Input.MouseModeEnum.Captured;
-            RefreshMissionState();
-            _hud.ShowToast("SCENARIO: final job active. Furnish the house to trigger the village celebration.", 5f);
+            BeginScenario(new Vector3(-38f, 0.2f, 21.0f), Mathf.Pi,
+                "SCENARIO: final job active. Furnish the house to trigger the village celebration.", 5f);
             return;
         }
         if (HasUserArg("--capture-title"))
         {
-            _hud.ShowTitleScreen(false, null, StartAdventure, null, QuitGame);
+            _hud.ShowTitleScreen(false, false, null, StartAdventure, null, QuitGame);
             _ = CaptureTitle();
             return;
         }
@@ -230,32 +200,60 @@ public partial class Main : Node3D
         ShowTitle();
     }
 
+    private void BeginScenario(Vector3 position, float yaw, string message, float seconds = 4.5f)
+    {
+        _started = true;
+        _player.Teleport(position, yaw);
+        _rig.SetView(Mathf.RadToDeg(yaw), 18f, 8.2f);
+        SyncControlMode();
+        RefreshMissionState();
+        _hud.ShowBigToast(message, seconds);
+    }
+
     private void LoadMissionContent()
     {
-        try
+        string json = Godot.FileAccess.GetFileAsString("res://data/missions.json");
+        if (string.IsNullOrWhiteSpace(json))
+            throw new InvalidDataException("res://data/missions.json is missing or empty.");
+        _catalog = MissionCatalog.FromJson(json);
+        if (!MissionIntegrity.ValidateCatalog(_catalog, out string error))
+            throw new InvalidDataException("Mission content is incomplete: " + error);
+        _data = new GameData();
+        _missions = new MissionService(_data, _catalog);
+    }
+
+    private void ShowFatalContentError(string message)
+    {
+        GD.PrintErr("FATAL: Patchwork Island could not load its mission content: " + message);
+        if (DisplayServer.GetName() == "headless")
         {
-            string json = Godot.FileAccess.GetFileAsString("res://data/missions.json");
-            _catalog = MissionCatalog.FromJson(json);
-            _data = new GameData();
-            _missions = new MissionService(_data, _catalog);
+            GetTree().Quit(1);
+            return;
         }
-        catch (Exception ex)
-        {
-            GD.PrintErr($"Mission content failed to load: {ex}");
-            _catalog = new MissionCatalog(new List<MissionDefinition>
-            {
-                new()
-                {
-                    Id = "M01",
-                    Title = "The Red House Delivery",
-                    Short = "Deliver 3 apples to the RED HOUSE.",
-                    RewardCoins = 10,
-                    Hints = new List<string> { "Find the apples at the shop." },
-                },
-            });
-            _data = new GameData();
-            _missions = new MissionService(_data, _catalog);
-        }
+
+        var layer = new CanvasLayer { Name = "FatalError", Layer = 100, ProcessMode = ProcessModeEnum.Always };
+        AddChild(layer);
+        var root = new Control { MouseFilter = Control.MouseFilterEnum.Stop };
+        root.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+        layer.AddChild(root);
+        var shade = new ColorRect { Color = new Color("172434") };
+        shade.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+        root.AddChild(shade);
+        var center = new CenterContainer();
+        center.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+        root.AddChild(center);
+        var panel = UiKit.Panel(center, Palette.Cream, Palette.Red, 24, 6);
+        panel.CustomMinimumSize = new Vector2(760, 320);
+        var margin = UiKit.Margin(panel, 24, 22, 24, 22);
+        var box = UiKit.VBox(margin, 14);
+        UiKit.Label(box, "Patchwork Island could not start", 34, Palette.Red);
+        UiKit.Label(box,
+            "The mission content is missing or incomplete. The game stopped instead of starting an unfinished village.",
+            22, Palette.Navy);
+        UiKit.Label(box, message, 17, new Color("42526B"));
+        var quit = UiKit.Button(box, "Quit", 22, new Vector2(0, 52), new Color("FFE0D6"), Palette.Red);
+        quit.Pressed += () => GetTree().Quit(1);
+        Callable.From(quit.GrabFocus).CallDeferred();
     }
 
     private static string SavePath => ProjectSettings.GlobalizePath("user://" + SaveService.DefaultFileName);
@@ -266,19 +264,35 @@ public partial class Main : Node3D
     private void LoadSavedGameIfAvailable()
     {
         if (IsDeveloperRun()) return;
-        var loaded = SaveService.Load(SavePath);
-        if (loaded.Success)
+        var loaded = SaveService.Load(SavePath, _catalog);
+        switch (loaded.Status)
         {
-            _data = loaded.Data;
-            _missions = new MissionService(_data, _catalog);
-            _saveAvailable = true;
-            _loadedFromSave = true;
-            if (loaded.RecoveredFromCorrupt || loaded.UsedBackup)
-                _saveNotice = loaded.Message;
-        }
-        else if (!string.IsNullOrEmpty(loaded.Message) && loaded.Message != "No save file yet.")
-        {
-            _saveNotice = loaded.Message + " Starting a fresh adventure.";
+            case SaveLoadStatus.Loaded:
+            case SaveLoadStatus.RecoveredBackup:
+                _data = loaded.Data;
+                _missions = new MissionService(_data, _catalog);
+                _hasSaveFile = true;
+                _canContinue = true;
+                _loadedFromSave = true;
+                _saveNotice = loaded.RecoveredFromCorrupt || loaded.UsedBackup ? loaded.Message : "";
+                break;
+
+            case SaveLoadStatus.UnsupportedNewer:
+                // Never replace a newer save merely because this build cannot
+                // read it. A new game makes an explicit preservation copy first.
+                _hasSaveFile = true;
+                _canContinue = false;
+                _newerSavePresent = true;
+                _titleNotice = loaded.Message +
+                               " Start a new game only if you are happy to replace it; a preserved copy will be kept.";
+                break;
+
+            case SaveLoadStatus.Unrecoverable:
+                _saveNotice = loaded.Message + " Starting a fresh adventure.";
+                break;
+
+            case SaveLoadStatus.Missing:
+                break;
         }
     }
 
@@ -297,6 +311,11 @@ public partial class Main : Node3D
             _van.GlobalPosition = new Vector3(_data.Van.X, _data.Van.Y, _data.Van.Z);
             _van.Rotation = new Vector3(0, _data.Van.RotationY, 0);
         }
+        if (_data.ActiveMission is "M05" or "M09")
+            _raceTimer = RaceTimer.Restore(_data, _data.ActiveMission);
+        else
+            _raceTimer = new RaceTimer();
+
         if (_data.Driving)
         {
             _driving = true;
@@ -306,6 +325,32 @@ public partial class Main : Node3D
             _rig.SetTarget(_van, true, 10.6f, 20f, 1.5f, true);
         }
         ApplySettings();
+    }
+
+    /// <summary>
+    /// A save written between a world change and its reward (or after a crash)
+    /// must not leave an objective that can never complete. Complete any active
+    /// job whose physical objective is already satisfied, exactly once.
+    /// </summary>
+    private void ReconcileRestoredProgress()
+    {
+        if (_missions.ActiveMission == null) return;
+        string missionId = _missions.ActiveMission.Id;
+        if (!MissionRules.IsObjectiveComplete(_data, missionId)) return;
+
+        int bonus = 0;
+        float raceSeconds = 0f;
+        if (missionId is "M05" or "M09")
+        {
+            raceSeconds = _raceTimer.ElapsedSeconds;
+            bonus = _raceTimer.OptionalBonus(missionId);
+        }
+        var result = _missions.CompleteActive(bonus);
+        if (!result.Success) return;
+        result.RaceSeconds = raceSeconds;
+        _recoveredJobNote = $"Recovered a finished job: {result.Message}";
+        _hasSaveFile = true;
+        _canContinue = true;
     }
 
     private void ApplySettings()
@@ -338,11 +383,13 @@ public partial class Main : Node3D
     private bool SaveGame(bool notify)
     {
         if (_world == null || _player == null || _van == null) return false;
+        if (_newerSavePresent) return false;
         try
         {
             CaptureSnapshots();
-            SaveService.Save(_data, SavePath);
-            _saveAvailable = true;
+            SaveService.Save(_data, SavePath, _catalog);
+            _hasSaveFile = true;
+            _canContinue = true;
             if (notify)
                 _hud.ShowToast("Game saved. Your village will be waiting.", 2.8f, Palette.Success);
             return true;
@@ -891,20 +938,40 @@ public partial class Main : Node3D
     private void StartAdventure()
     {
         _started = true;
-        _player.SetControlEnabled(true);
+        if (_driving)
+        {
+            _player.Visible = false;
+            _van.SetDriven(true);
+            _rig.SetTarget(_van, true, 10.6f, 20f, 1.5f, true);
+        }
+        else
+        {
+            _player.Visible = true;
+            _van.SetDriven(false);
+            _rig.SetTarget(_player, false, 8.2f, 18f, 1.55f, true);
+        }
         _hud.CloseModal();
-        Input.MouseMode = Input.MouseModeEnum.Captured;
+        SyncControlMode();
         ApplySettings();
         RefreshMissionState();
         _autosaveTimer = 20f;
+        if (AllMissionsComplete() && !_data.CelebrationSeen)
+            Callable.From(ShowVillageCelebration).CallDeferred();
 
+        if (!string.IsNullOrEmpty(_recoveredJobNote))
+        {
+            _hud.ShowBigToast(_recoveredJobNote, 6f, Palette.Success);
+            _recoveredJobNote = "";
+            SaveGame(false);
+            return;
+        }
         if (!string.IsNullOrEmpty(_saveNotice))
         {
             _hud.ShowBigToast(_saveNotice, 6f, Palette.Orange);
             _saveNotice = "";
             return;
         }
-        if (!_data.IsTutorialSeen("walk"))
+        if (!_newerSavePresent && !_data.IsTutorialSeen("walk"))
         {
             _data.MarkTutorial("walk");
             _hud.ShowBigToast("Walk with WASD or the arrow keys. E interacts, J opens the job board, Esc pauses.", 6f,
@@ -931,16 +998,20 @@ public partial class Main : Node3D
 
     private void StartNewGameFromTitle()
     {
-        if (!_saveAvailable)
+        if (!_hasSaveFile)
         {
             StartAdventure();
             return;
         }
         _hud.Confirm("Start a new game?",
-            "This will replace the saved village with a fresh adventure. Your current save will be overwritten.",
+            _newerSavePresent
+                ? "This will replace the newer save with a fresh adventure. A preserved copy of the newer save will be kept first."
+                : "This will replace the saved village with a fresh adventure. Your current save will be overwritten.",
             "Start a new game",
             () =>
             {
+                _newerSavePresent = false;
+                _titleNotice = "";
                 ResetSession();
                 StartAdventure();
             },
@@ -950,38 +1021,46 @@ public partial class Main : Node3D
     private void ShowTitle()
     {
         _started = false;
-        _player.SetControlEnabled(false);
-        _hud.ShowTitleScreen(_saveAvailable, ContinueAdventure, StartNewGameFromTitle, OpenSettingsFromTitle, QuitGame);
+        SyncControlMode();
+        _hud.ShowTitleScreen(_hasSaveFile, _canContinue, ContinueAdventure, StartNewGameFromTitle,
+            OpenSettingsFromTitle, QuitGame, _titleNotice);
     }
 
     private void OpenSettingsFromTitle() => OpenSettings(ShowTitle);
 
     private void OnModalStateChanged(bool open)
     {
-        if (open)
-        {
+        // A close callback may already have opened the next modal. The Hud only
+        // reports real state transitions, and this guard protects older callers.
+        if (!open && _hud.ModalOpen) return;
+        if (open) _hud.SetPrompt(null);
+        SyncControlMode();
+    }
+
+    /// <summary>
+    /// One authoritative transition point for player, van, mouse and world
+    /// pause state. Scene code only changes the underlying flags and calls this.
+    /// </summary>
+    private void SyncControlMode()
+    {
+        if (_hud == null || _player == null || _van == null) return;
+        var mode = ControlModeRules.Resolve(_started, _hud.ModalOpen, _buildMode, _driving);
+        var previous = _controlMode;
+        _controlMode = mode;
+
+        _player.SetControlEnabled(ControlModeRules.PlayerProcessesInput(mode));
+        _van.SetInputEnabled(ControlModeRules.VehicleProcessesInput(mode));
+        GetTree().Paused = ControlModeRules.PausesWorld(mode);
+
+        var mouse = ControlModeRules.CapturesMouse(mode)
+            ? Input.MouseModeEnum.Captured
+            : Input.MouseModeEnum.Visible;
+        if (Input.MouseMode != mouse) Input.MouseMode = mouse;
+
+        if (!ControlModeRules.PlayerProcessesInput(mode) && !ControlModeRules.VehicleProcessesInput(mode))
             _hud.SetPrompt(null);
-            _player.SetControlEnabled(false);
-            Input.MouseMode = Input.MouseModeEnum.Visible;
-            GetTree().Paused = true;
-        }
-        else
-        {
-            GetTree().Paused = false;
-            if (_started)
-            {
-                if (_driving)
-                {
-                    Input.MouseMode = Input.MouseModeEnum.Captured;
-                }
-                else
-                {
-                    _player.SetControlEnabled(true);
-                    Input.MouseMode = Input.MouseModeEnum.Captured;
-                    _player.ForceRefreshInteraction();
-                }
-            }
-        }
+        if (mode == ControlMode.Walking && previous != ControlMode.Walking)
+            _player.ForceRefreshInteraction();
     }
 
     private void OpenJobBoard()
@@ -1005,8 +1084,10 @@ public partial class Main : Node3D
             _hud.ShowHint(result.Message);
             return;
         }
-        if (missionId == "M05" || missionId == "M09")
-            _raceElapsed = _data.GetMissionCounter(missionId, "elapsedMs") / 1000f;
+        if (missionId is "M05" or "M09")
+            _raceTimer = RaceTimer.Restore(_data, missionId);
+        else
+            _raceTimer = new RaceTimer();
         RefreshMissionState();
         SaveGame(false);
         var mission = _missions.ActiveMission;
@@ -1036,6 +1117,7 @@ public partial class Main : Node3D
     private void EnterVan()
     {
         if (!_started || _hud.ModalOpen || _buildMode || _driving) return;
+        if (_vehicleSwitchCooldown > 0f) return;
         if (_player.GlobalPosition.DistanceTo(_van.GlobalPosition) > 5.2f)
         {
             _hud.ShowHint("Walk closer to the yellow van, then press E.");
@@ -1046,6 +1128,7 @@ public partial class Main : Node3D
         _player.Visible = false;
         _van.SetDriven(true);
         _rig.SetTarget(_van, true, 10.6f, 20f, 1.5f, true);
+        SyncControlMode();
         _hud.SetPrompt(null);
         bool first = !_data.IsTutorialSeen("drive");
         if (first)
@@ -1083,8 +1166,8 @@ public partial class Main : Node3D
         _player.Teleport(spot, _van.Rotation.Y);
         _rig.SetTarget(_player, false, 8.2f, 18f, 1.55f, true);
         _rig.SetView(Mathf.RadToDeg(_van.Rotation.Y), 18f, 8.2f);
-        _player.SetControlEnabled(true);
-        Input.MouseMode = Input.MouseModeEnum.Captured;
+        _vehicleSwitchCooldown = 0.45f;
+        SyncControlMode();
         _hud.ShowToast("Out of the van. E gets back in.", 2.2f, Palette.Yellow);
         RefreshMissionState();
     }
@@ -1260,8 +1343,8 @@ public partial class Main : Node3D
         int checkpoint = _data.GetMissionCounter(mission.Id, "checkpoint");
         if (checkpoint > 0 && checkpoint < 4)
         {
-            _raceElapsed += dt;
-            _data.SetMissionCounter(mission.Id, "elapsedMs", (int)(_raceElapsed * 1000f));
+            _raceTimer.Tick(dt);
+            _raceTimer.Store(_data, mission.Id);
         }
 
         _raceHudTimer -= dt;
@@ -1292,28 +1375,28 @@ public partial class Main : Node3D
 
         if (checkpoint == 0)
         {
-            _raceElapsed = 0f;
+            _raceTimer.Restart();
             _data.SetMissionCounter(mission.Id, "started", 1);
         }
-        _data.SetMissionCounter(mission.Id, "elapsedMs", (int)(_raceElapsed * 1000f));
+        _raceTimer.Store(_data, mission.Id);
         _hud.ShowBigToast(advance.Message, 2.4f, Palette.Yellow);
         RefreshMissionState();
 
         if (checkpoint + 1 >= 4)
         {
-            int bonus = MissionRules.OptionalRaceBonus(mission.Id, _raceElapsed);
+            float raceSeconds = _raceTimer.ElapsedSeconds;
+            int bonus = _raceTimer.OptionalBonus(mission.Id);
             var result = _missions.CompleteActive(bonus);
             if (result.Success)
+            {
+                result.RaceSeconds = raceSeconds;
                 OnMissionCompleted(result);
-            _raceElapsed = 0f;
+                _raceTimer = new RaceTimer();
+            }
         }
     }
 
-    private static string FormatTime(float seconds)
-    {
-        int total = Mathf.Max(0, Mathf.RoundToInt(seconds));
-        return $"{total / 60}:{total % 60:00}";
-    }
+    private static string FormatTime(float seconds) => RaceTimer.Format(seconds);
 
     private IBuildMode GetActiveBuildMode()
     {
@@ -1382,10 +1465,8 @@ public partial class Main : Node3D
         _buildMode = active;
         if (active)
         {
-            _player.SetControlEnabled(false);
             _hud.SetPrompt(null);
             if (_marker != null) _marker.Visible = false;
-            Input.MouseMode = Input.MouseModeEnum.Visible;
             if (!_data.IsTutorialSeen("build"))
             {
                 _data.MarkTutorial("build");
@@ -1397,14 +1478,9 @@ public partial class Main : Node3D
         else
         {
             _hud.HideBuildBar();
-            if (_started && !_hud.ModalOpen)
-            {
-                _player.SetControlEnabled(true);
-                Input.MouseMode = Input.MouseModeEnum.Captured;
-                _player.ForceRefreshInteraction();
-            }
             RefreshMissionState();
         }
+        SyncControlMode();
     }
 
     private void RefreshMissionState()
@@ -1565,7 +1641,7 @@ public partial class Main : Node3D
             int checkpoint = _data.GetMissionCounter(missionId, "checkpoint");
             rows.Add(("flag", $"Gate {checkpoint} / 4"));
             if (checkpoint > 0 && checkpoint < 4)
-                rows.Add(("star", $"Time {FormatTime(_raceElapsed)} · bonus under {FormatTime(missionId == "M09" ? 75 : 90)}"));
+                rows.Add(("star", $"Time {FormatTime(_raceTimer.ElapsedSeconds)} · bonus under {FormatTime(missionId == "M09" ? 75 : 90)}"));
             else if (!_driving)
                 rows.Add(("van", "Get into the yellow van"));
             else if (checkpoint == 0 && _van.GlobalPosition.X < 40f)
@@ -1639,14 +1715,14 @@ public partial class Main : Node3D
             "M03" => "3 supports + 4 planks = a strong bridge. The meadow is open!",
             "M04" => "2 bread × 3 + 1 milk × 4 = 10. Change from 12 is 2. Delivered to TOWN HALL!",
             "M05" => result.BonusCoins > 0
-                ? $"Four gates in {_raceElapsed:0.0}s — optional speed bonus +{result.BonusCoins}!"
-                : $"Four gates finished in {_raceElapsed:0.0}s. Any pace is a winning pace!",
+                ? $"Four gates in {result.RaceSeconds:0.0}s — optional speed bonus +{result.BonusCoins}!"
+                : $"Four gates finished in {result.RaceSeconds:0.0}s. Any pace is a winning pace!",
             "M06" => "2 BLUE parcels to RED HOUSE + 1 ORANGE parcel to WORKSHOP — every address correct!",
             "M07" => "4 ropes + 2 seats = 6 pieces. Both swings are fixed and ready to ride!",
             "M08" => $"Bench 6 + flowers 4 + lamp 9 = 19, leaving 1 of the 20 job coins. Beautiful green!",
             "M09" => result.BonusCoins > 0
-                ? $"Four gates in {_raceElapsed:0.0}s — a gold-lap bonus +{result.BonusCoins}!"
-                : $"Four gates finished in {_raceElapsed:0.0}s. Any pace is a winning pace — the gold flag is yours!",
+                ? $"Four gates in {result.RaceSeconds:0.0}s — a gold-lap bonus +{result.BonusCoins}!"
+                : $"Four gates finished in {result.RaceSeconds:0.0}s. Any pace is a winning pace — the gold flag is yours!",
             "M10" => "Table 8 + 2 chairs 10 + plant 3 = 21. Your home is ready to enjoy!",
             _ => result.Message,
         };
@@ -1758,7 +1834,7 @@ public partial class Main : Node3D
             }
             else
             {
-                _hud.ShowPauseMenu(ResumeGame, SaveNow, OpenSettings, ConfirmNewGame, ReturnToTitle, QuitGame);
+                _hud.ShowPauseMenu(ResumeGame, SaveNow, OpenSettingsFromPause, ConfirmNewGame, ReturnToTitle, QuitGame);
             }
             GetViewport().SetInputAsHandled();
             return;
@@ -1803,6 +1879,9 @@ public partial class Main : Node3D
 
     private void ResumeGame() => _hud.CloseModal();
 
+    private void ShowPauseMenu() =>
+        _hud.ShowPauseMenu(ResumeGame, SaveNow, OpenSettingsFromPause, ConfirmNewGame, ReturnToTitle, QuitGame);
+
     private void SaveNow()
     {
         SaveGame(true);
@@ -1810,7 +1889,7 @@ public partial class Main : Node3D
             _hud.SetModalTitle("Paused — Saved");
     }
 
-    private void OpenSettings() => OpenSettings(null);
+    private void OpenSettingsFromPause() => OpenSettings(ShowPauseMenu);
 
     private void OpenSettings(Action onClosed)
     {
@@ -1891,10 +1970,13 @@ public partial class Main : Node3D
             _driving = false;
             _van.SetDriven(false);
             _player.Visible = true;
-            _player.SetControlEnabled(true);
         }
         _van.ResetToParking();
-        _raceElapsed = 0f;
+        _raceTimer = new RaceTimer();
+        _raceCheckTimer = 0f;
+        _raceHudTimer = 0f;
+        _raceWrongHintCooldown = 0f;
+        _vehicleSwitchCooldown = 0f;
         _practiceRaceActive = false;
         _practiceCheckpoint = 0;
         _practiceElapsed = 0f;
@@ -1903,6 +1985,10 @@ public partial class Main : Node3D
         _rig.SetIndoor(false);
         _data = new GameData();
         _missions = new MissionService(_data, _catalog);
+        _newerSavePresent = false;
+        _titleNotice = "";
+        _saveNotice = "";
+        _recoveredJobNote = "";
 
         if (_world.BridgeBarrier != null) _world.BridgeBarrier.Visible = true;
         if (_world.CelebrationDecor != null) _world.CelebrationDecor.Visible = false;
@@ -1910,8 +1996,11 @@ public partial class Main : Node3D
 
         CreateBuilderSystems();
         foreach (var pickup in _pickups)
-            if (GodotObject.IsInstanceValid(pickup))
-                pickup.QueueFree();
+        {
+            if (!GodotObject.IsInstanceValid(pickup)) continue;
+            RemoveChild(pickup);
+            pickup.QueueFree();
+        }
         _pickups.Clear();
         SpawnPickups();
         _player.Teleport(_world.PlayerSpawn, -Mathf.Pi / 2f);
@@ -1920,8 +2009,10 @@ public partial class Main : Node3D
         ApplySettings();
         ApplyCosmetics();
         RefreshMissionState();
-        _saveAvailable = true;
+        _hasSaveFile = true;
+        _canContinue = true;
         SaveGame(false);
+        SyncControlMode();
     }
 
     private void ReturnToTitle()
@@ -1949,6 +2040,7 @@ public partial class Main : Node3D
         if (GetTree().Paused) return;
 
         _raceWrongHintCooldown = Mathf.Max(0f, _raceWrongHintCooldown - (float)delta);
+        _vehicleSwitchCooldown = Mathf.Max(0f, _vehicleSwitchCooldown - (float)delta);
         TickRace((float)delta);
         TickPracticeRace((float)delta);
 
@@ -1956,7 +2048,7 @@ public partial class Main : Node3D
         if (_autosaveTimer <= 0f)
         {
             _autosaveTimer = 20f;
-            if (!_hud.ModalOpen)
+            if (!_hud.ModalOpen && !_newerSavePresent)
                 SaveGame(false);
         }
 
@@ -2129,7 +2221,7 @@ public partial class Main : Node3D
 
     private async Task CaptureManualScreenshot()
     {
-        GD.Print($"PLAYER_POS {_player.GlobalPosition} ACTIVE={_started} PAUSED={GetTree().Paused} CONTROL={_player.ControlEnabled} VEL={_player.Velocity} TARGET={_player.NearestInteractable?.Name} DRIVING={_driving} VAN_POS={_van.GlobalPosition} VAN_YAW={_van.Rotation.Y:0.00} VAN_SPEED={_van.Speed:0.0}");
+        GD.Print($"PLAYER_POS {_player.GlobalPosition} ACTIVE={_started} PAUSED={GetTree().Paused} CONTROL={_player.ControlEnabled} VEL={_player.Velocity} TARGET={_player.NearestInteractable?.Name} DRIVING={_driving} VAN_POS={_van.GlobalPosition} VAN_YAW={_van.Rotation.Y:0.00} VAN_SPEED={_van.Speed:0.0} NODES={GetTree().GetNodeCount()} MODE={_controlMode}");
         string dir = Path.Combine(Directory.GetCurrentDirectory(), "evidence");
         Directory.CreateDirectory(dir);
         await Wait(0.15f);

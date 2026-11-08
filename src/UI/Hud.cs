@@ -42,7 +42,16 @@ public partial class Hud : CanvasLayer
     private VBoxContainer _modalBody;
     private Label _modalTitle;
     private bool _modalShadeStopsInput = true;
+    private bool _modalStateReported;
     private Control _buildRoot;
+    private readonly List<(TextureRect Icon, Label Text, string IconName, string TextValue)> _missionRows = new();
+    private string _lastMissionIconName = "";
+    private string _lastCoinText = "";
+    private string _lastPromptText;
+    private string _lastPromptKey;
+    private string _lastDestText;
+    private string _lastDestIconName;
+    private int _lastDestArrow = -1;
 
     public override void _Ready()
     {
@@ -155,35 +164,71 @@ public partial class Hud : CanvasLayer
         }
     }
 
-    public void SetCoins(int coins) => _coinLabel.Text = coins.ToString();
+    public void SetCoins(int coins)
+    {
+        string text = coins.ToString();
+        if (text == _lastCoinText) return;
+        _lastCoinText = text;
+        _coinLabel.Text = text;
+    }
 
     public void SetNoMission()
     {
+        _lastMissionIconName = "star";
         _missionIcon.Texture = Geo.IconTexture("star");
         _missionHeader.Text = "READY FOR A JOB";
         _missionTitle.Text = "Choose a job";
         _missionInstruction.Text = "Visit the yellow JOBS board near the town hall.";
         UiKit.ClearChildren(_missionProgress);
+        _missionRows.Clear();
         UiKit.Label(_missionProgress, "You always keep your progress.", 17, Palette.Success);
     }
 
     public void SetMission(string title, string instruction, string categoryIcon,
         IEnumerable<(string Icon, string Text)> progress)
     {
-        _missionIcon.Texture = Geo.IconTexture(categoryIcon);
+        if (_lastMissionIconName != categoryIcon)
+        {
+            _lastMissionIconName = categoryIcon;
+            _missionIcon.Texture = Geo.IconTexture(categoryIcon);
+        }
         _missionHeader.Text = "CURRENT JOB";
         _missionTitle.Text = title;
         _missionInstruction.Text = instruction;
-        UiKit.ClearChildren(_missionProgress);
+
+        var rows = new List<(string Icon, string Text)>();
         if (progress != null)
+            rows.AddRange(progress);
+
+        if (rows.Count == _missionRows.Count)
         {
-            foreach (var (icon, text) in progress)
+            for (int i = 0; i < rows.Count; i++)
             {
-                var row = UiKit.HBox(_missionProgress, 6);
-                UiKit.Icon(row, icon, 24);
-                var label = UiKit.Label(row, text, 18, Palette.Navy, HorizontalAlignment.Left, false);
-                label.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+                var (icon, text) = rows[i];
+                var row = _missionRows[i];
+                if (row.IconName != icon)
+                {
+                    row.Icon.Texture = Geo.IconTexture(icon);
+                    _missionRows[i] = (row.Icon, row.Text, icon, row.TextValue);
+                }
+                if (row.TextValue != text)
+                {
+                    row.Text.Text = text;
+                    _missionRows[i] = (row.Icon, row.Text, row.IconName, text);
+                }
             }
+            return;
+        }
+
+        UiKit.ClearChildren(_missionProgress);
+        _missionRows.Clear();
+        foreach (var (icon, text) in rows)
+        {
+            var row = UiKit.HBox(_missionProgress, 6);
+            var texture = UiKit.Icon(row, icon, 24);
+            var label = UiKit.Label(row, text, 18, Palette.Navy, HorizontalAlignment.Left, false);
+            label.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+            _missionRows.Add((texture, label, icon, text));
         }
     }
 
@@ -191,10 +236,16 @@ public partial class Hud : CanvasLayer
     {
         if (string.IsNullOrWhiteSpace(action))
         {
+            if (!_promptPanel.Visible && _lastPromptText == null) return;
+            _lastPromptText = null;
+            _lastPromptKey = null;
             _promptPanel.Visible = false;
             return;
         }
+        if (_promptPanel.Visible && _lastPromptText == action && _lastPromptKey == key) return;
         _promptPanel.Visible = true;
+        _lastPromptKey = key;
+        _lastPromptText = action;
         _promptKey.Text = key;
         _promptText.Text = action;
     }
@@ -203,15 +254,27 @@ public partial class Hud : CanvasLayer
     {
         if (string.IsNullOrWhiteSpace(label))
         {
+            if (!_destPanel.Visible) return;
             _destPanel.Visible = false;
+            _lastDestText = null;
+            _lastDestIconName = null;
+            _lastDestArrow = -1;
             return;
         }
+        string text = distance >= 0.5f ? $"{label}   {Mathf.RoundToInt(distance)} m" : label;
+        if (_destPanel.Visible && text == _lastDestText && arrowIndex == _lastDestArrow &&
+            iconName == _lastDestIconName)
+            return;
+
         _destPanel.Visible = true;
         string[] arrows = { "▲", "↗", "→", "↘", "▼", "↙", "←", "↖" };
         _destArrow.Text = arrows[Mathf.Clamp(arrowIndex, 0, 7)];
-        _destLabel.Text = distance >= 0.5f ? $"{label}   {Mathf.RoundToInt(distance)} m" : label;
-        if (!string.IsNullOrWhiteSpace(iconName))
+        _destLabel.Text = text;
+        _lastDestText = text;
+        _lastDestArrow = arrowIndex;
+        if (!string.IsNullOrWhiteSpace(iconName) && iconName != _lastDestIconName)
         {
+            _lastDestIconName = iconName;
             var texture = Geo.IconTexture(iconName);
             _destIcon.Texture = texture;
             _destIcon.Visible = texture != null;
@@ -288,7 +351,7 @@ public partial class Hud : CanvasLayer
         _modalBody.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
 
         _modalClosedAction = onClosed;
-        ModalStateChanged?.Invoke(true);
+        PublishModalState();
         Callable.From(FocusFirstModalButton).CallDeferred();
         return _modalBody;
     }
@@ -322,8 +385,21 @@ public partial class Hud : CanvasLayer
         if (notify)
         {
             action?.Invoke();
-            ModalStateChanged?.Invoke(false);
+            PublishModalState();
         }
+    }
+
+    /// <summary>
+    /// Reports modal state only when the actual open/closed state changes. A
+    /// close callback that immediately opens another modal (title → settings or
+    /// pause → settings) therefore cannot emit a stale "unpause" event.
+    /// </summary>
+    private void PublishModalState()
+    {
+        bool open = _modalLayer != null;
+        if (open == _modalStateReported) return;
+        _modalStateReported = open;
+        ModalStateChanged?.Invoke(open);
     }
 
     public void SetModalTitle(string title)
@@ -366,35 +442,42 @@ public partial class Hud : CanvasLayer
         {
             CloseModal(false);
             onConfirm?.Invoke();
-            ModalStateChanged?.Invoke(false);
+            PublishModalState();
         };
     }
 
-    public void ShowTitleScreen(bool hasSave, Action onContinue, Action onNewGame, Action onSettings, Action onQuit)
+    public void ShowTitleScreen(bool hasSave, bool canContinue, Action onContinue, Action onNewGame,
+        Action onSettings, Action onQuit, string notice = null)
     {
-        var body = OpenModal("", new Vector2(720, 650), Palette.Lavender, false, null, false);
-        var logo = UiKit.Label(body, "PATCHWORK\nISLAND", 52, Palette.Lavender, HorizontalAlignment.Center);
-        logo.AddThemeConstantOverride("line_spacing", -8);
-        var sub = UiKit.Label(body, "A happy little village adventure", 22, Palette.Navy, HorizontalAlignment.Center);
+        var body = OpenModal("", new Vector2(720, 682), Palette.Lavender, false, null, false);
+        var logo = UiKit.Label(body, "PATCHWORK\nISLAND", 48, Palette.Lavender, HorizontalAlignment.Center);
+        logo.AddThemeConstantOverride("line_spacing", -10);
+        var sub = UiKit.Label(body, "A happy little village adventure", 21, Palette.Navy, HorizontalAlignment.Center);
         var controls = UiKit.Label(body,
             "WASD / arrows to walk   •   Space to jump   •   E to interact\nMouse wheel to zoom   •   Right-drag to look around   •   Esc to pause",
-            17, new Color("42526B"), HorizontalAlignment.Center);
-        controls.CustomMinimumSize = new Vector2(600, 48);
-        UiKit.Spacer(body, 0, 6);
-        if (hasSave)
+            16, new Color("42526B"), HorizontalAlignment.Center);
+        controls.CustomMinimumSize = new Vector2(600, 44);
+        if (!string.IsNullOrWhiteSpace(notice))
         {
-            var continueButton = UiKit.Button(body, "Continue adventure", 24, new Vector2(0, 54), Palette.Cream, Palette.Blue);
+            var noticePanel = UiKit.Panel(body, new Color("FFF3C9"), Palette.Orange, 12, 3);
+            var noticeLabel = UiKit.Label(noticePanel, notice, 15, Palette.Navy, HorizontalAlignment.Center);
+            noticeLabel.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        }
+        UiKit.Spacer(body, 0, 2);
+        if (canContinue)
+        {
+            var continueButton = UiKit.Button(body, "Continue adventure", 23, new Vector2(0, 50), Palette.Cream, Palette.Blue);
             continueButton.Pressed += () => onContinue?.Invoke();
         }
-        var newButton = UiKit.Button(body, hasSave ? "Start a new game" : "Start adventure", 24,
-            new Vector2(0, 54), new Color("FFF3C9"), Palette.Orange);
+        var newButton = UiKit.Button(body, hasSave ? "Start a new game" : "Start adventure", 23,
+            new Vector2(0, 50), new Color("FFF3C9"), Palette.Orange);
         newButton.Pressed += () => onNewGame?.Invoke();
         if (onSettings != null)
         {
-            var settings = UiKit.Button(body, "Settings", 20, new Vector2(0, 46), Palette.Cream, Palette.Stone);
+            var settings = UiKit.Button(body, "Settings", 19, new Vector2(0, 42), Palette.Cream, Palette.Stone);
             settings.Pressed += () => onSettings?.Invoke();
         }
-        var quit = UiKit.Button(body, "Quit", 19, new Vector2(0, 42), Palette.Cream, Palette.Stone);
+        var quit = UiKit.Button(body, "Quit", 18, new Vector2(0, 38), Palette.Cream, Palette.Stone);
         quit.Pressed += () => onQuit?.Invoke();
     }
 

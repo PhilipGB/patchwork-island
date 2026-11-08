@@ -97,6 +97,8 @@ public sealed class MissionCompletionResult
     public int CoinsAwarded;
     public int BonusCoins;
     public bool AllComplete;
+    /// <summary>Elapsed race time captured for the completion panel, when relevant.</summary>
+    public float RaceSeconds;
 
     public int TotalCoins => CoinsAwarded + BonusCoins;
 }

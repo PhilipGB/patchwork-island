@@ -478,6 +478,129 @@ visual and the sound toggles are persisted), and text scaling is fixed rather
 than adjustable. The full ten-mission clean-save walkthrough is the P8 release
 gate.
 
+## P7.1 — Stability and architecture hardening — PASS
+
+Branch `p7.1-stability-hardening`, starting from `df2e470`.
+
+Confirmed review findings before changing code:
+
+- `SaveService.Load` accepted syntactically valid JSON with `"ParkPlacements":[null]`; restoration would dereference a null placement.
+- A save with `SchemaVersion:99` was moved aside as `save.json.corrupt-*`.
+- `StartAdventure()` unconditionally enabled the player, so continuing a saved driving
+  session left the hidden player processing movement and interaction.
+- Restoring an active M05/M09 job did not initialise the race clock from `elapsedMs`.
+- Modal close events could fire after a new modal opened, producing a stale unpause.
+- Mission loading silently substituted a one-mission catalogue.
+- `WorldMarker.ShowAt`, `Hud.SetMission` and `Geo.IconTexture` rebuilt resources/controls
+  on frequently refreshed paths.
+
+Implemented:
+
+- **Save validation** (`SaveValidation`): schema, nested null records, unknown mission
+  and counter references, negative/impossible counters, unknown/duplicate placement
+  slots and item types, impossible park/furniture ownership, unknown bridge/swing
+  sockets, missing physical state for completed world jobs, non-finite and
+  out-of-island positions, and driving without both snapshots. Optional historical
+  fields still receive defaults, and a minimal `SchemaVersion:0` save loads safely.
+- **Explicit load outcomes** (`SaveLoadStatus`): Loaded, Missing, Corrupt,
+  UnsupportedNewer, RecoveredBackup, Unrecoverable. Newer saves are never renamed or
+  quarantined; the original is left untouched and the title explains why. Explicitly
+  starting a new game first writes a `save.json.newer-vN-<timestamp>` preservation copy.
+- **Backup safety**: main and backup writes both use flush-then-atomic-move. A valid
+  previous save becomes the backup; a corrupt or newer primary is preserved separately
+  and never replaces a good backup. Failed temporary writes clean up and leave the
+  previous save byte-for-byte intact.
+- **One control model** (`ControlMode`): Title → Modal → Building → Driving → Walking
+  precedence. `SyncControlMode()` is the single place that enables the player or van,
+  captures/show mouse input, and pauses the world. Exiting the van now has a short
+  cooldown so the same E press cannot instantly re-enter it.
+- **Race restore** (`RaceTimer`): M05/M09 timers are restored from `elapsedMs` on load
+  and mission start, stored while driving, reset only at gate 1, and use the restored
+  time for optional bonuses. Paused time is not counted.
+- **Modal lifecycle**: `Hud` reports only real open/closed transitions; opening a new
+  modal cannot be undone by a stale close event. Pause → Settings returns to Pause;
+  Title → Settings returns to Title. Confirmation cancellation returns to the correct
+  screen.
+- **Mission integrity**: startup now fails explicitly if `data/missions.json` is
+  missing, malformed, has fewer/more than ten missions, a bad prerequisite graph or an
+  unreachable job. The one-mission fallback was removed. A test compares runtime
+  content against `MISSIONS.json` field-for-field so the two files cannot drift.
+- **Restore reconciliation**: an active job whose physical objective was already
+  satisfied is completed exactly once on load, preventing a crash-window softlock.
+- **Performance**: icon textures, marker materials, marker parameter updates, mission
+  HUD rows, coin text, prompt text, destination text and cap materials are cached or
+  diffed instead of rebuilt on every refresh. F12 logging now records node count and
+  control mode.
+- **CI**: `.github/workflows/build-and-test.yml` pins Godot 4.7.2 .NET, builds, runs the
+  pure tests, imports headlessly and boots the main scene headlessly.
+
+Automated tests:
+
+```text
+$ dotnet tests/bin/Debug/net8.0/PatchworkIsland.Tests.dll
+...
+PASS  structurally invalid nested records are rejected
+PASS  unknown and conflicting placements are rejected
+PASS  invalid mission references and counters are rejected
+PASS  a corrupt main save never replaces a good backup
+PASS  saving over a corrupt main keeps the good backup
+PASS  a failed write leaves the previous save intact
+PASS  save/reload cannot duplicate a mission reward
+PASS  control ownership has one deterministic mode
+PASS  race elapsed time survives save and reload
+PASS  mission catalogue is complete and matches the content source
+PASS  missing mission content fails integrity validation
+PASS  invalid numeric data is refused before writing
+PASS  explicit overwrite preserves a newer save
+PASS  missing main save recovers the backup
+PASS  unrecoverable corruption is reported, not loaded
+PASS  completed world jobs require their physical state
+RESULT: 44 passed, 0 failed
+```
+
+Build/headless:
+
+```text
+$ dotnet build PatchworkIsland.sln -> 0 errors, 0 warnings
+$ godot --headless --path . --editor --quit -> exit 0
+$ godot --headless --path . --quit-after 120 -> exit 0
+```
+
+Content-failure check: temporarily renamed `data/missions.json`; headless startup
+printed `FATAL: Patchwork Island could not load its mission content:
+res://data/missions.json is missing or empty.` and exited **1**. The file was then
+restored byte-for-byte.
+
+Real-input GUI checks (Xvfb :99, Openbox, llvmpipe, xdotool):
+
+- Pause → Settings → Close returned to Pause and remained paused; Title → Settings →
+  Close returned to Title. New Game confirmation Cancel returned to Title.
+- Driving save: entered the van under `--scenario-m05`, drove to z=-4.76, paused,
+  **Save now**, quit, relaunched and chose Continue. The van resumed driving, the
+  player stayed hidden (`CONTROL=False`, position unchanged), W moved only the van,
+  and E exited to walking (`DRIVING=False`, `CONTROL=True`); W then moved only the
+  player. Evidence `p71_09`–`p71_11`.
+- Race save: after gate 1 the HUD showed `Time 0:21`; Save/quit/Continue restored
+  gate 1 and showed `Time 0:41` from `elapsedMs=39472` rather than 0:00. Evidence
+  `p71_14`–`p71_16`.
+- Build mode: E at the bridge set `CONTROL=False` with the build bar; Esc returned
+  `CONTROL=True`. Evidence `p71_18`.
+- Newer save: `SchemaVersion:99` left the file untouched, showed an incompatibility
+  notice with no Continue button, and an explicitly confirmed new game preserved
+  `save.json.newer-v99-*` before writing a fresh v1 save. Evidence `p71_19`–`p71_22`.
+- Corrupt structured save: `ParkPlacements:[null]` was quarantined and the valid
+  backup loaded with the player-facing recovery message. Evidence `p71_25`.
+- Two consecutive New Game resets both reported `NODES=2044`, so no scene-tree growth
+  was observed after rebuilding all four builder systems.
+- Renderer: Mesa 26.0.8 llvmpipe (software), OpenGL 4.5 compatibility, 1280×720.
+  Observed 11–13 FPS. This is a software-rendering environment, not GPU-representative;
+  no severe stutter or logic hitch was observed, but performance on real graphics
+  hardware is **NOT TESTED** here.
+
+Remaining P7.1 limitations: audio assets are still not bundled; text scaling is
+fixed; practice-race progress is deliberately not persisted (it is reward-free and
+restarts on reload).
+
 ## P8
 
 TODO. See IMPLEMENTATION_PLAN.md.

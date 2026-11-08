@@ -1,8 +1,8 @@
 # Patchwork Island — run and test guide
 
-> Status: P7 complete. All ten missions, practice racing, the all-jobs
-> celebration, save/load, settings and onboarding are playable. Final release
-> verification and packaging are the remaining milestone.
+> Status: P7.1 complete. All ten missions, practice racing, the all-jobs
+> celebration, save/load, settings, onboarding and stability hardening are in
+> place. Final acceptance and packaging are the remaining milestone.
 
 ## Prerequisites
 
@@ -120,11 +120,14 @@ Godot writes `user://save.json` and keeps `user://save.json.bak`:
 - Linux: `~/.local/share/godot/app_userdata/Patchwork Island/save.json`
 - Windows: `%APPDATA%\Godot\app_userdata\Patchwork Island\save.json`
 
-Writes are atomic (temporary file, flush, move). An unreadable save is renamed
-`save.json.corrupt-<timestamp>` and the backup is loaded if possible. Settings,
-player/van positions, missions, bridge/swing parts, park/furniture placements,
-wallet, inventory and the celebration flag are all stored. Autosave runs every
-20 seconds while playing and after mission start/completion.
+Writes are atomic (temporary file, flush, move). An unreadable or structurally
+invalid save is renamed `save.json.corrupt-<timestamp>` and the backup is loaded
+if possible. A save from a newer game version is **never** renamed or
+overwritten automatically: the title screen explains the incompatibility, and an
+explicitly confirmed New Game keeps a `save.json.newer-vN-<timestamp>` copy
+first. Settings, player/van positions, missions, bridge/swing parts, park/furniture
+placements, wallet, inventory and the celebration flag are all stored. Autosave
+runs every 20 seconds while playing and after mission start/completion.
 
 ## Accessibility / settings
 
