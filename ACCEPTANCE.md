@@ -42,7 +42,7 @@ was merged first (PR #9). Full evidence is recorded in `PROGRESS.md` and
 - [x] M01: exactly 3 apples, deliver to RED HOUSE, +10 and completed state.
   **PASS** — `p8_05`, `p8_07`; wallet 10.
 - [x] M02: 5 wood + 3 stone at workshop; total/count feedback; +12. **PASS** —
-  `p8_09`, `p8_13`, `p8_16`; wallet 22.
+  `p8_13`, `p8_16`; wallet 22.
 - [x] M03: after M02, place 3 supports and 4 planks; incomplete bridge blocks
   crossing and completed bridge permits crossing; +20. **PASS** — `p8_21`–
   `p8_23`; later crossed the river by driving to x=68.
