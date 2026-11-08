@@ -601,6 +601,115 @@ Remaining P7.1 limitations: audio assets are still not bundled; text scaling is
 fixed; practice-race progress is deliberately not persisted (it is reward-free and
 restarts on reload).
 
-## P8
+## P8 — Final acceptance, packaging and handoff — PASS
 
-TODO. See IMPLEMENTATION_PLAN.md.
+Branch `p8-final-acceptance`, starting from merged P7.1 `ca55059`.
+
+Clean-save walkthrough:
+
+- Deleted all existing save, backup, corrupt and newer-version files and launched
+  the game. The title showed **Start adventure** (no Continue), confirming a
+  genuine fresh state. Used the normal New Game flow, not a developer scenario.
+- Completed all ten jobs sequentially with real keyboard/mouse input:
+  - M01: walked to the shop crate, collected exactly 3 apples, delivered to RED
+    HOUSE. +10, red cap unlocked.
+  - M02: collected 5 wood at the grove and 3 stones at the stone patch, handed
+    all 8 to WORKSHOP. +12.
+  - M03: opened the bridge worksite, clicked 3 support sockets and 4 plank
+    sockets; the last plank created the deck collider. +20. Drove across the
+    bridge later at x=68.
+  - M04: bought 2 bread @3 and 1 milk @4 with the dedicated 12-coin purse;
+    the panel showed Total 10 / 12 and Change 2. Delivered to TOWN HALL. +12.
+  - M05: drove four ordered gates. The finish panel showed 365.7 s, no optional
+    bonus, and completed normally. +15.
+  - M06: collected 2 blue + 1 orange parcels, delivered both blue parcels to
+    RED HOUSE and the orange parcel to WORKSHOP. +15.
+  - M07: clicked 4 rope and 2 seat sockets across both swings; both frames
+    visibly assembled. +18.
+  - M08: placed bench 6 + flowerbed 4 + lamp 9 on the village green; the panel
+    showed 19 spent, 1 job coin left. +20.
+  - M09: replayed the four gates; finish panel showed 132.6 s, no optional
+    bonus, and completed normally. +15.
+  - M10: bought table 8 + 2 chairs 10 + plant 3 (21 coins from the wallet),
+    placed all four pieces in the house, and completed. +20.
+- Final wallet **136** = 157 total mission rewards − 21 furniture spend.
+- Closing the M10 success panel showed **VILLAGE FIXED!** exactly once; bunting
+  and celebration decor were visible in the world.
+- Free roam remained available. Opened the job board: all ten cards showed
+  **DONE**, no Start buttons, and the reward-free **Drive practice** panel was
+  present. Completed a practice lap in 1:52; wallet stayed at 136.
+- Save/quit/relaunch: the final save contained all ten completions, 136 coins,
+  `CelebrationSeen=true`, 7 bridge pieces, 6 swing pieces, 3 park placements and
+  4 furniture placements. Continue restored the world; the celebration did not
+  replay. Drove across the restored bridge collider to the meadow and re-entered
+  the house to see restored furniture.
+
+Error/recovery handling exercised:
+
+- Jumped and fell into the river; recovery teleported the player to the west
+  bank and showed “Splash! Back to dry land.”
+- Used R to reset the van after becoming stuck, and observed automatic recovery
+  after a river crash.
+- Clicked empty/wrong build locations during bridge and swing assembly; no
+  pieces were consumed and the build bar stayed consistent.
+- Paused/resumed throughout; saved from the pause menu before quitting.
+- Partial-builder and corrupt/newer save handling were separately verified in
+  P7/P7.1 (partial M03/M08/M10 reloads, backup recovery, newer-save preservation).
+
+Automated/build verification at the P8 head:
+
+```text
+$ dotnet build PatchworkIsland.sln -> 0 warnings, 0 errors
+$ dotnet tests/bin/Debug/net8.0/PatchworkIsland.Tests.dll
+RESULT: 44 passed, 0 failed
+$ godot --headless --path . --editor --quit -> exit 0
+$ godot --headless --path . --quit-after 120 -> exit 0
+```
+
+Accessibility / graphics checks:
+
+- Real-input play at 1280×720; title, HUD, job board, shop, build bars and
+  prompts are readable with large targets.
+- 1920×1080 run of the exported Linux build; title and job board scale and remain
+  readable (`evidence/p8_104_1080p_title.png`, `p8_105_1080p_jobs.png`).
+- WASD and arrow keys both move; Space jump raised the player from Y=-0.04 to
+  Y=1.08; right-drag orbit changed the camera view.
+- H hint displayed the current job/board hint with the marker active.
+- Child usability: **NOT TESTED** (no child participants available).
+
+Performance:
+
+- Renderer: Mesa 26.0.8 llvmpipe, OpenGL 4.5 compatibility, 1280×720.
+- Observed 11–13 FPS in this software-rendering environment. GPU performance
+  is **NOT TESTED**. Scene node count remained ~2015–2044 across New Game
+  resets, mission completion and reload; no growth from builder resets was seen.
+- No large resource-loading spike or severe logic stutter was observed.
+
+Export and packaging:
+
+- Installed matching Godot 4.7.2 .NET export templates.
+- Windows x64 export succeeded:
+  `dist/windows/PatchworkIsland.exe` (PE32+ x86-64, self-contained .NET 8
+  runtime pack, embedded PCK, `data/missions.json` and assemblies present).
+- Linux x86_64 export succeeded:
+  `dist/linux/PatchworkIsland.x86_64`.
+- Linux exported build was launched under Xvfb, showed the title and Continue
+  button, loaded the mission catalogue and final save, and opened the job board
+  with all ten DONE (`evidence/p8_102`, `p8_103`). It also booted headless with
+  exit 0.
+- Windows startup is **NOT TESTED**: no Windows machine and no Wine in this
+  environment. The export succeeded and was inspected; that is not the same as a
+  Windows launch.
+- Distributable zips and SHA-256 checksums were produced under `dist/`.
+
+Documentation updated: `README.md`, `README_RUN.md`, `ACCEPTANCE.md`,
+`PROGRESS.md`, `IMPLEMENTATION_PLAN.md` unchanged (scope completed),
+`export_presets.cfg` committed and `.gitignore` updated.
+
+Known limitations:
+
+- No bundled audio; settings toggles persist for a future audio pass.
+- Text scaling is fixed; layout scales to 1080p.
+- Windows startup not tested; GPU performance not measured; child playtesting
+  not possible.
+- Practice-race progress intentionally resets on reload (reward-free).
