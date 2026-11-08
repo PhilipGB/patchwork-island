@@ -1,33 +1,222 @@
-# Patchwork Island — first playable coding-agent handoff
+# Patchwork Island — First Playable v1.0
 
-**Outcome:** a complete, genuinely playable offline 3D PC game slice for ages approximately 5–10, not a mock-up or framework demo.
+A happy little 3D village adventure for players aged roughly 5–10. A storm has
+scattered the village's supplies. Deliver parcels, repair the bridge, drive the
+post van, rebuild the playground, decorate the village green and furnish your
+own home. Every completed job visibly changes the island.
 
-## Start here
+This repository contains the complete Godot 4.7.2 .NET / C# source, automated
+tests, real-input GUI evidence and release build instructions.
 
-1. Extract this directory into an empty Git repository (or its project root).
-2. Open `STARTING_PROMPT.md` and paste its contents into your coding agent. Use that same prompt with Claude Code, Codex or OpenCode.
-3. Let the agent implement and verify the Godot project. It must work through the phases in `IMPLEMENTATION_PLAN.md`, not stop after planning.
-4. Open the finished Godot `project.godot` using **Godot 4.7.2 .NET** and run the main scene.
+## Current status
 
-## Handoff materials
+**First playable — complete.** All ten missions, the optional bonus race, free
+practice racing, the all-jobs celebration, save/load, settings, onboarding,
+stability hardening and final release verification are implemented.
 
-- `STARTING_PROMPT.md` — copy-ready instructions for a coding agent.
-- `AGENTS.md` and `CLAUDE.md` — persistent agent instructions for common coding harnesses.
-- `GAME_SPEC.md` — product design, gameplay rules, controls, world, educational principles and limits.
-- `IMPLEMENTATION_PLAN.md` — ordered engineering milestones, verification requirements and cut rules.
-- `MISSIONS.json` — reference content for ten real, playable objectives.
-- `ART_DIRECTION.md` — concrete visual design and 3D/UI asset specifications.
-- `ACCEPTANCE.md` — observable definition of done and test walkthrough.
-- `planning/map.svg` — spatial planning map (schematic, not literal game screenshot).
-- `assets/icons/*.svg` — original reusable UI icon artwork (game-production assets).
-- `reference/*.png` — **concept references**, not production textures. AI-generated concept pictures can contain inconsistent text/details. Where they differ, the written specifications govern.
+- Windows x64 and Linux x86_64 standalone exports were produced.
+- The Linux export was launched and played in this environment.
+- The Windows export was produced and inspected, but **Windows startup was not
+  tested** because no Windows runtime or Wine is available here. See
+  [Windows export verification](#windows-export-verification).
 
-## Technical baseline
+## Download / install
 
-- Engine: Godot **4.7.2 stable, .NET build**, with its matching export templates.
-- Language: C#; target `net8.0` where supported. Use the Godot .NET project SDK version that matches the installed editor, and avoid unnecessary packages.
-- Platforms: Linux for development and Windows x64 for primary distributable. A Linux build is also desirable. **No web export:** Godot 4 C# web export is unsupported.
-- Rendering: Compatibility renderer, low-poly mesh primitives, simple lighting, 1280x720 base viewport with scaling.
-- Fully offline at runtime. Do not call remote APIs, require an account, or load assets at runtime from the internet.
+Prebuilt artifacts are under `dist/` after an export:
 
-**Important:** the two reference PNGs are inspiration only. They are not substitute game assets, and the agent must not paste the concept board onto a 3D environment or use textual artefacts from the images.
+```text
+dist/windows/PatchworkIsland.exe        Windows x64, single executable
+dist/linux/PatchworkIsland.x86_64       Linux x86_64, single executable
+dist/PatchworkIsland-1.0.0-Windows-x86_64.zip
+dist/PatchworkIsland-1.0.0-Linux-x86_64.zip
+dist/SHA256SUMS
+```
+
+The exported builds are self-contained: players do **not** need Godot or a .NET
+installation. They are fully offline. Save data is stored per user (see below).
+The Windows build is unsigned, so Windows SmartScreen may ask for confirmation.
+
+### Windows export verification
+
+`Godot_v4.7.2-stable_mono_export_templates` produced a valid PE32+ x86-64
+executable. The embedded pack contains `data/missions.json` and the .NET
+assemblies, and the executable references the self-contained
+`Microsoft.NETCore.App.Runtime.win-x64` runtime pack. It was **not launched**
+because this machine has no Windows runtime and no Wine. Distinguish this from
+the Linux export, which was launched successfully.
+
+## Run from source
+
+Prerequisites:
+
+- Linux (development) or Windows 10/11 x64 (player build)
+- **Godot 4.7.2 stable .NET edition** (not the standard build)
+- **.NET SDK 8.0** (the project targets `net8.0`)
+- For export: matching Godot 4.7.2 .NET export templates
+
+```bash
+godot --path . --editor        # import once / open editor
+godot --path .                 # play
+```
+
+Or open `project.godot` in Godot 4.7.2 .NET and press F5.
+
+## Controls
+
+| Input | Action |
+|---|---|
+| WASD / arrow keys | Walk (camera-relative) |
+| Space | Jump |
+| E | Interact with the nearest highlighted object |
+| Mouse wheel | Zoom camera |
+| Right-drag | Orbit camera |
+| J | Open the job journal / board |
+| H | Show the current job hint |
+| Esc / P | Pause / close menu |
+| E near the van | Get in |
+| W/S while driving | Accelerate / brake and reverse |
+| A/D while driving | Steer; pivot when stopped |
+| E while driving slowly | Get out |
+| R while driving | Reset the van to its parking spot |
+| Left click in build mode | Place a selected piece on a glowing socket/pad |
+| R in build mode | Show the rotation hint (bridge/swing/park/furniture snap automatically) |
+| F12 | Developer screenshot and state log |
+
+## How to play
+
+1. Start a new adventure, then walk to the yellow **JOBS** board near the town
+   hall (or press **J** anywhere).
+2. Choose an available job. Locked jobs show the prerequisite they need.
+3. Follow the gold objective marker and the top-centre compass arrow.
+4. Press **E** at highlighted people, crates, worksites and counters.
+5. Job-specific budgets (M04 groceries and M08 park) are separate from your
+   permanent coin wallet. Wrong placements never consume task pieces.
+6. After all ten jobs, the village celebration plays once and free roam,
+   practice racing, the playground and your furnished home remain available.
+
+The ten jobs are:
+
+| Job | Task | Reward |
+|---|---|---|
+| M01 The Red House Delivery | 3 apples to the RED HOUSE | 10 |
+| M02 Workshop Supplies | 5 wood + 3 stone to the WORKSHOP | 12 |
+| M03 Build the Bridge | 3 supports + 4 planks, then cross | 20 |
+| M04 Market Basket | 2 bread @3 + 1 milk @4 from a 12-coin purse | 12 |
+| M05 Village Road Rally | Drive four ordered gates; any pace | 15 (+5 optional) |
+| M06 Two-Stop Post | 2 blue parcels to RED HOUSE, 1 orange to WORKSHOP | 15 |
+| M07 Fix the Swings | 4 ropes + 2 seats | 18 |
+| M08 Park Planner | Bench 6 + flowerbed 4 + lamp 9 from a 20-coin purse | 20 |
+| M09 Race the Clock (Bonus) | Replay the course; any pace | 15 (+5 optional) |
+| M10 Home Sweet Home | Table 8 + 2 chairs 10 + plant 3 | 20 |
+
+## Build and test
+
+```bash
+dotnet build PatchworkIsland.sln
+dotnet run --project tests/PatchworkIsland.Tests.csproj
+godot --headless --path . --editor --quit
+godot --headless --path . --quit-after 120
+```
+
+The dependency-free runner currently has **44 tests** covering mission
+prerequisites and unlocks, exactly-once rewards, duplicate pickups, mission
+switching, hints, bridge/swing socket rules, grocery and park budgets, house
+costs and free starter fallback, ordered checkpoints, optional race bonuses,
+the full ten-job graph, JSON round-trips, save validation, corrupt/backup
+recovery, newer-save preservation, atomic-write failure, race timer restoration,
+control-mode precedence, mission-catalogue integrity and content drift between
+`MISSIONS.json` and `data/missions.json`.
+
+A GitHub Actions workflow (`.github/workflows/build-and-test.yml`) pins Godot
+4.7.2 .NET, builds the project, runs the tests, imports the project and boots
+the main scene headlessly.
+
+## Export
+
+Install the matching Godot 4.7.2 .NET export templates into
+`~/.local/share/godot/export_templates/4.7.2.stable.mono/`.
+
+```bash
+godot --headless --path . --export-release "Windows Desktop" dist/windows/PatchworkIsland.exe
+godot --headless --path . --export-release "Linux" dist/linux/PatchworkIsland.x86_64
+```
+
+`export_presets.cfg` is committed. The presets use x86_64 templates, embed the
+PCK and .NET build outputs, include `data/*.json`, and exclude `reference/`,
+`evidence/`, `planning/` and `tests/`.
+
+## Save data
+
+Godot writes `user://save.json` with a `user://save.json.bak` backup:
+
+- Linux: `~/.local/share/godot/app_userdata/Patchwork Island/save.json`
+- Windows: `%APPDATA%\Godot\app_userdata\Patchwork Island\save.json`
+
+Writes are atomic (temporary file, flush, move). A structurally invalid or
+unreadable main save is renamed `save.json.corrupt-<timestamp>` and the backup
+is loaded if possible. A save from a newer game version is **never** renamed or
+overwritten automatically: the title screen explains the incompatibility, and
+an explicitly confirmed New Game preserves a
+`save.json.newer-vN-<timestamp>` copy first. Settings, player/van positions,
+missions, bridge/swing parts, park/furniture placements, wallet, inventory and
+the celebration flag are stored. Autosave runs every 20 seconds while playing
+and after mission start/completion.
+
+## Accessibility / settings
+
+Music, sound-effects and reduced-motion toggles are persisted. Reduced motion
+stops marker bobbing and spinning. The UI is readable at 1280×720 and scales to
+1920×1080. There is currently no bundled audio, so all feedback is visual and
+the game is fully playable with sound off.
+
+## Known limitations
+
+- **No audio assets are bundled.** Music/SFX toggles persist for a future audio
+  pass; visual feedback is complete.
+- **Text scaling is fixed.** The layout scales, but there is no text-size
+  setting.
+- **Windows startup not tested** in this environment (export succeeded).
+- **Performance is measured only on software rendering** (Mesa llvmpipe,
+  1280×720, observed 11–13 FPS). GPU performance was not measurable here.
+- **Child usability testing was not possible.** No children participated; the
+  age-appropriate design is based on specification and adult real-input checks.
+- Practice-race progress is deliberately not persisted; it is reward-free and
+  restarts on reload.
+
+## Verification summary
+
+- `dotnet build PatchworkIsland.sln`: 0 errors, 0 warnings.
+- Automated tests: **44 passed, 0 failed**.
+- Headless editor import and main-scene boot: exit 0.
+- Missing mission content: explicit FATAL and exit 1.
+- Full fresh-save walkthrough: M01–M10 completed with real keyboard/mouse input,
+  final wallet 136 (157 rewards − 21 furniture), celebration once, practice
+  race completed with no extra reward, save/quit/relaunch preserved the world.
+- Linux export: launched and played; mission catalogue loaded from the embedded
+  pack; final save loaded.
+- Windows x64 export: produced and inspected; startup **NOT TESTED**.
+
+Detailed evidence and commands are in `PROGRESS.md`, `ACCEPTANCE.md` and
+`evidence/p8_*.png`.
+
+## Repository map
+
+```text
+scenes/Main.tscn          main scene
+src/Main.cs               composition root, control/save coordination
+src/Core/                 pure rules, mission/save/race/control logic
+src/Build/                bridge, swings, park and furniture builders
+src/Player/               player and camera
+src/Vehicle/              delivery van
+src/World/                procedural village and interactables
+src/UI/                   HUD, job board, shop, grocery and furniture UI
+data/missions.json        authoritative runtime mission content
+tests/                    dependency-free .NET test runner
+evidence/                 genuine real-input screenshots
+dist/                     release artifacts (not committed)
+```
+
+Historical handoff and design materials remain available:
+`STARTING_PROMPT.md`, `AGENTS.md`, `CLAUDE.md`, `GAME_SPEC.md`,
+`IMPLEMENTATION_PLAN.md`, `ART_DIRECTION.md`, `MISSIONS.json`, `planning/` and
+`reference/`.

@@ -52,6 +52,10 @@ Agent should implement **P0 through P8** in order, updating `PROGRESS.md` with c
 
 ## P8 — Final verification, package and handoff
 
+**Status: complete in v1.0.0. See `PROGRESS.md` and `ACCEPTANCE.md` for the
+executed commands, pass/fail matrix, artifacts and remaining environment
+limitations.**
+
 **Build:** automated tests for mission state machine, prerequisites, pricing, inventory, building snap, and save serialization. Headless Godot smoke tests and final dotnet build. Real GUI walkthrough if display available. Add README_RUN.md with prerequisites, commands, data paths, gameplay instructions, troubleshooting. Package a Windows x64 build **if appropriate export tools are installed** and verify startup if possible. Genuine screenshots in `evidence/` if rendering available; document unavailable capabilities otherwise. Commit final work and make status clear.
 
 **Gate:** `ACCEPTANCE.md` pass/fail matrix backed by commands and game observation; all 10 missions playable from a fresh start; no critical crashes; new/continue work; final folder contains source, no mystery external dependencies. Report exactly which tests were executed and what remains unverified.

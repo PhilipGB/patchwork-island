@@ -7,7 +7,6 @@ obj/
 .vs/
 .idea/
 .vscode/
-export_presets.cfg
 dist/
 *.tmp
 *.log

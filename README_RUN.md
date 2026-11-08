@@ -1,8 +1,9 @@
 # Patchwork Island — run and test guide
 
-> Status: P7.1 complete. All ten missions, practice racing, the all-jobs
-> celebration, save/load, settings, onboarding and stability hardening are in
-> place. Final acceptance and packaging are the remaining milestone.
+> Status: P8 release complete. All ten missions, practice racing, the all-jobs
+> celebration, save/load, settings, onboarding, stability hardening and release
+> packaging are in place. See `ACCEPTANCE.md` and `PROGRESS.md` for the final
+> pass/fail matrix and evidence.
 
 ## Prerequisites
 
@@ -57,10 +58,14 @@ godot --headless --path . --quit-after 120
 dotnet run --project tests/PatchworkIsland.Tests.csproj
 ```
 
-The runner currently covers mission catalog, prerequisites, unlocks, duplicate
-pickups, exactly-once rewards, mission switching, hints, bridge/swing snapping,
-grocery and park budgets, furniture costs/starter fallback, ordered checkpoints,
-optional race-bonus boundaries, the full ten-job graph and JSON round-trips.
+The runner currently has **44 tests** and covers mission catalog, prerequisites,
+unlocks, duplicate pickups, exactly-once rewards, mission switching, hints,
+bridge/swing snapping, grocery and park budgets, furniture costs/starter
+fallback, ordered checkpoints, optional race-bonus boundaries, the full ten-job
+graph, JSON round-trips, structural save validation, corrupt/backup recovery,
+newer-save preservation, atomic-write failure, race-time restoration,
+control-mode precedence, mission-catalogue integrity and
+`MISSIONS.json`/`data/missions.json` drift.
 
 If a concurrently running Godot instance makes `dotnet run` wait on the project
 DLL, build once and execute the test assembly directly:
@@ -92,8 +97,43 @@ the house; the playground and village green persist in the world; the house
 interior has a furniture catalogue stand. After M09 the job board offers a
 reward-free practice race. Finishing all ten shows the village celebration and
 leaves free roam available. Progress autosaves, can be saved from the pause
-menu, and is restored by **Continue adventure**. Final release verification and
-packaging arrive in P8.
+menu, and is restored by **Continue adventure**.
+
+The P8 fresh-save walkthrough completed all ten jobs with real keyboard/mouse
+input, finishing with 136 coins (157 rewards minus 21 furniture), the
+celebration shown once, a reward-free practice lap, and a save/relaunch that
+preserved the bridge collider, furniture, coins and completed job board.
+
+## Release packaging
+
+Export templates for Godot 4.7.2 .NET must be installed under
+`~/.local/share/godot/export_templates/4.7.2.stable.mono/`.
+
+```bash
+godot --headless --path . --export-release "Windows Desktop" dist/windows/PatchworkIsland.exe
+godot --headless --path . --export-release "Linux" dist/linux/PatchworkIsland.x86_64
+```
+
+Both exports are single-file, self-contained builds (no Godot or .NET install
+required on the player machine). `export_presets.cfg` is committed. The Linux
+export was launched and played. The Windows x64 export was produced and
+inspected but **startup was not tested** because this environment has no Windows
+runtime or Wine. See `dist/SHA256SUMS` and `dist/README.txt`.
+
+## Final verification
+
+```text
+dotnet build PatchworkIsland.sln                         -> 0 warnings, 0 errors
+dotnet run --project tests/PatchworkIsland.Tests.csproj -> 44 passed, 0 failed
+godot --headless --path . --editor --quit                -> exit 0
+godot --headless --path . --quit-after 120               -> exit 0
+Linux exported binary --headless --quit-after 120        -> exit 0
+Linux exported binary (Xvfb)                             -> title, Continue and job board verified
+```
+
+Performance on this machine was measured only with the Mesa llvmpipe software
+renderer at 1280×720: 11–13 FPS. GPU performance and child usability testing
+were not available. Audio is not bundled; all feedback is visual.
 
 ## Developer QA scenarios
 
