@@ -437,6 +437,14 @@ public partial class Hud : CanvasLayer
 
     public string ModalTitleText => _modalTitle?.Text ?? "";
 
+    public string ModalStatusText => _modalStatus?.Text ?? "";
+
+    public bool ModalStatusVisible => _modalStatusHost?.Visible == true && _modalStatus != null;
+
+    public string ToastText => _toastLabel?.Text ?? "";
+
+    public bool ToastVisible => _toastPanel?.Visible == true;
+
     public void AddModalActionRow(VBoxContainer body, params (string Text, Action Action, Color? Color)[] actions)
     {
         var row = UiKit.HBox(body, 10);

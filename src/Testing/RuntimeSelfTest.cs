@@ -1,4 +1,8 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Godot;
 
@@ -8,14 +12,20 @@ namespace PatchworkIsland;
 /// Godot runtime verification for pause/processing and modal state. Run with:
 ///   godot --headless --path . -- --selftest
 ///   godot --headless --path . -- --selftest-resume
-/// It uses isolated user://selftest-save.json data and exits non-zero on failure.
+///   godot --headless --path . -- --selftest-recovery
+/// It uses isolated user://selftest*.json data and exits non-zero on failure.
 /// </summary>
 public partial class RuntimeSelfTest : Node
 {
     public Main Main { get; set; }
 
-    private int _passed;
-    private int _failed;
+    // Static because the recovery phase deliberately reloads the real scene.
+    internal static int RecoveryPhase { get; set; }
+
+    private static int _passed;
+    private static int _failed;
+    private static Vector3 _savedPlayerPosition;
+    private static byte[] _newerOriginalBytes;
 
     public override void _Ready()
     {
@@ -25,11 +35,14 @@ public partial class RuntimeSelfTest : Node
 
     private async Task Run()
     {
+        bool reloading = false;
         try
         {
             await Wait(0.7f);
             if (HasArg("--selftest-resume"))
                 await ResumeChecks();
+            else if (HasArg("--selftest-recovery"))
+                reloading = await RecoveryChecks();
             else
                 await FreshSessionChecks();
         }
@@ -38,6 +51,7 @@ public partial class RuntimeSelfTest : Node
             Fail("unexpected runtime-test exception: " + ex);
         }
 
+        if (reloading) return;
         GD.Print($"RUNTIME RESULT: {_passed} passed, {_failed} failed");
         GetTree().Quit(_failed == 0 ? 0 : 1);
     }
@@ -214,6 +228,445 @@ public partial class RuntimeSelfTest : Node
         await Wait(0.3f);
         Expect(Main.RtMode == "Walking" && Main.RtPlayerControlled && Main.RtPlayerVisible,
             "restored session exits the van");
+    }
+
+    // ------------------------------------------------- recovery integration
+    // These phases reload the real scene so they exercise the same startup,
+    // builder, pickup, snapshot and save path as a player relaunch.
+
+    private async Task<bool> RecoveryChecks()
+    {
+        switch (RecoveryPhase)
+        {
+            case 0: return await RecoverySeedSave();
+            case 1: return await RecoveryFailedNewGame();
+            case 2: return await RecoveryDiscardedChanges();
+            case 3: return await RecoverySuccessfulNewGame();
+            case 4: return await RecoveryNoSave();
+            case 5: return await RecoveryBackup();
+            case 6: return await RecoveryAfterBackup();
+            case 7: return await RecoveryNewerSave();
+            case 8: return await RecoveryRelaunch();
+            default:
+                Fail("unknown recovery phase " + RecoveryPhase);
+                return false;
+        }
+    }
+
+    private async Task<bool> RecoverySeedSave()
+    {
+        SaveService.ClearTestWriteFailure();
+        string path = Main.RtSavePath;
+        SaveService.Save(BuildNineMissionSave(), path, Main.RtCatalog);
+        Expect(File.Exists(path), "nine-mission seed save written");
+        RecoveryPhase = 1;
+        Main.RtReloadScene();
+        return true;
+    }
+
+    private async Task<bool> RecoveryFailedNewGame()
+    {
+        string path = Main.RtSavePath;
+        byte[] seed = File.ReadAllBytes(path);
+        Expect(Main.RtCanContinue && Main.RtHasSaveFile, "seed save offers Continue");
+        Expect(Main.RtMemoryMatchesPersisted, "loaded seed matches memory");
+
+        Main.RtRequestNewGameFromTitle();
+        await Wait(0.2f);
+        Expect(Main.RtModalOpen && Main.RtModalTitle == "Start a new game?",
+            "new game confirmation opens from title");
+        Main.RtCloseModal();
+        await Wait(0.25f);
+        Expect(!Main.RtStarted && Main.RtMode == "Title", "cancelled confirmation returns to title");
+        CheckBytes(path, seed, "cancelled confirmation leaves the save untouched");
+
+        SaveService.SetTestWriteFailure(full =>
+            string.Equals(full, Path.GetFullPath(path), StringComparison.Ordinal)
+                ? new IOException("injected save failure")
+                : null);
+        var result = Main.RtStartNewGameFromTitleConfirmed();
+        await Wait(0.3f);
+        Expect(!result.Success, "failed New Game reports failure");
+        Expect(Main.RtStarted && Main.RtCoins == 0 && Main.RtCompletedCount == 0,
+            "failed New Game runs the new in-memory session");
+        Expect(!Main.RtMemoryMatchesPersisted, "failed New Game is not marked persisted");
+        CheckBytes(path, seed, "failed New Game preserves the previous save");
+
+        Main.RtReturnToTitle();
+        await Wait(0.2f);
+        Expect(Main.RtModalOpen && Main.RtModalTitle == "Return to title without saving?",
+            "failed return-to-title asks before discarding");
+        Main.RtReturnAnyway();
+        await Wait(0.25f);
+        Expect(!Main.RtStarted && Main.RtMode == "Title", "return anyway shows the title");
+        Expect(Main.RtCanContinue && !Main.RtMemoryMatchesPersisted,
+            "Continue is still offered for the persisted save, not discarded memory");
+        Expect(Main.RtTitleNotice.Contains("last successfully saved"),
+            "title explains that Continue reloads the persisted village");
+        CheckBytes(path, seed, "discarding the new session leaves the save untouched");
+
+        SaveService.ClearTestWriteFailure();
+        RecoveryPhase = 2;
+        Main.RtContinue();
+        bool reloadRequested = Main.RtContinueReloadPending;
+        Expect(reloadRequested, "Continue requested a persisted-session reload");
+        return reloadRequested;
+    }
+
+    private async Task<bool> RecoveryDiscardedChanges()
+    {
+        string path = Main.RtSavePath;
+        Expect(Main.RtStarted && Main.RtCoins == 130 && Main.RtCompletedCount == 9,
+            "Continue restored the persisted nine-mission village");
+        Expect(Main.RtMemoryMatchesPersisted, "reloaded village matches memory");
+        Expect(Main.RtBridgeBuilt && Main.RtSwingPieceCount == 6 && Main.RtParkPlacementCount == 3,
+            "Continue rebuilt bridge, swings and park");
+        Expect(Main.RtPlayerPosition.DistanceTo(new Vector3(-38.8f, -0.04f, 21.4f)) < 0.1f,
+            "Continue restored the saved player position");
+        Expect(Main.RtActiveMission == "M10", "Continue restored the active mission");
+        Expect(Main.RtCanContinue, "loaded save remains continuable");
+
+        // Settings failures must be visible in the settings modal and must not
+        // consume the automatic-failure throttle used by autosave.
+        Main.RtPause();
+        await Wait(0.2f);
+        Main.RtOpenSettingsFromPause();
+        await Wait(0.2f);
+        Expect(Main.RtModalOpen && Main.RtModalTitle == "Settings", "settings modal opens from pause");
+        SaveService.SetTestWriteFailure(full =>
+            string.Equals(full, Path.GetFullPath(path), StringComparison.Ordinal)
+                ? new IOException("injected settings failure")
+                : null);
+        Main.RtToggleMusic();
+        await Wait(0.15f);
+        Expect(Main.RtModalStatusVisible && Main.RtModalStatus.Contains("could not be saved"),
+            "settings failure is shown inside the modal");
+        Expect(!Main.RtMusicEnabled, "settings change takes effect in memory before persistence");
+        Expect(Main.RtModalTitle == "Settings", "settings failure keeps the modal open");
+        SaveService.ClearTestWriteFailure();
+        Main.RtToggleMusic();
+        await Wait(0.15f);
+        Expect(Main.RtModalStatusVisible && Main.RtModalStatus.Contains("saved"),
+            "settings retry replaces the failure message");
+        Expect(Main.RtMusicEnabled, "settings retry applies the persisted value");
+        Main.RtCloseModal();
+        await Wait(0.25f);
+        Expect(Main.RtModalOpen && Main.RtModalTitle == "Paused" && Main.RtPaused,
+            "settings returns to pause after success");
+        Main.RtResume();
+        await Wait(0.2f);
+
+        SaveService.SetTestWriteFailure(full =>
+            string.Equals(full, Path.GetFullPath(path), StringComparison.Ordinal)
+                ? new IOException("injected autosave failure")
+                : null);
+        Expect(!Main.RtForceAutosave(), "autosave failure is reported");
+        await Wait(0.1f);
+        Expect(Main.RtToastVisible && Main.RtToastText.Contains("Autosave failed"),
+            "first autosave warning survives a settings failure");
+        SaveService.ClearTestWriteFailure();
+        Expect(Main.RtForceAutosave(), "autosave succeeds after recovery");
+
+        // Scenario B: a discarded gameplay change must not be continued.
+        byte[] persisted = File.ReadAllBytes(path);
+        _savedPlayerPosition = Main.RtPlayerPosition;
+        Input.ActionPress("move_forward");
+        await Wait(0.55f);
+        Input.ActionRelease("move_forward");
+        await Wait(0.2f);
+        Expect(_savedPlayerPosition.DistanceTo(Main.RtPlayerPosition) > 0.05f,
+            "unsaved gameplay movement changed the live session");
+        SaveService.SetTestWriteFailure(full =>
+            string.Equals(full, Path.GetFullPath(path), StringComparison.Ordinal)
+                ? new IOException("injected return failure")
+                : null);
+        Main.RtReturnToTitle();
+        await Wait(0.2f);
+        Expect(Main.RtModalOpen && Main.RtModalTitle == "Return to title without saving?",
+            "failed return offers discard");
+        Main.RtReturnAnyway();
+        await Wait(0.25f);
+        Expect(!Main.RtStarted && Main.RtCanContinue && !Main.RtMemoryMatchesPersisted,
+            "discarded movement leaves Continue pointing at the persisted save");
+        CheckBytes(path, persisted, "failed return leaves the disk save unchanged");
+        SaveService.ClearTestWriteFailure();
+        RecoveryPhase = 3;
+        Main.RtContinue();
+        return true;
+    }
+
+    private async Task<bool> RecoverySuccessfulNewGame()
+    {
+        string path = Main.RtSavePath;
+        Expect(Main.RtStarted && Main.RtCoins == 130 && Main.RtCompletedCount == 9,
+            "Continue after discard restores persisted progress");
+        Expect(_savedPlayerPosition.DistanceTo(Main.RtPlayerPosition) < 0.1f,
+            "Continue after discard restores the persisted player position");
+        Expect(Main.RtActiveMission == "M10", "Continue after discard restores the active mission");
+
+        // Scenario C: a successful New Game becomes the persisted session.
+        Main.RtReturnToTitle();
+        await Wait(0.25f);
+        Expect(!Main.RtStarted && Main.RtCanContinue && Main.RtMemoryMatchesPersisted,
+            "successful return keeps the current session continuable");
+        var result = Main.RtStartNewGameFromTitleConfirmed();
+        await Wait(0.35f);
+        Expect(result.Success, "successful New Game persists");
+        Expect(Main.RtStarted && Main.RtCoins == 0 && Main.RtCompletedCount == 0,
+            "successful New Game starts at zero progress");
+        Expect(Main.RtMemoryMatchesPersisted, "successful New Game is marked persisted");
+        var disk = SaveService.Load(path, Main.RtCatalog);
+        Expect(disk.Success && disk.Data.Coins == 0 && disk.Data.CompletedMissions.Count == 0,
+            "successful New Game is on disk");
+
+        Main.RtReturnToTitle();
+        await Wait(0.25f);
+        Expect(Main.RtCanContinue && Main.RtMemoryMatchesPersisted,
+            "title continues the successful new session");
+        Main.RtContinue();
+        await Wait(0.35f);
+        Expect(Main.RtStarted && Main.RtCoins == 0 && Main.RtCompletedCount == 0,
+            "Continue restores the successful new session, not the previous village");
+
+        // Scenario D starts from no save at all.
+        File.Delete(path);
+        if (File.Exists(SaveService.BackupPath(path))) File.Delete(SaveService.BackupPath(path));
+        RecoveryPhase = 4;
+        Main.RtReloadScene();
+        return true;
+    }
+
+    private async Task<bool> RecoveryNoSave()
+    {
+        string path = Main.RtSavePath;
+        Expect(!Main.RtStarted && !Main.RtHasSaveFile && !Main.RtCanContinue,
+            "missing save shows no false Continue");
+        Expect(!File.Exists(path), "no save is present for the first-ever attempt");
+        SaveService.SetTestWriteFailure(full =>
+            string.Equals(full, Path.GetFullPath(path), StringComparison.Ordinal)
+                ? new IOException("injected first-save failure")
+                : null);
+        var result = Main.RtStartNewGameFromTitleConfirmed();
+        await Wait(0.3f);
+        Expect(!result.Success, "failed first-ever New Game reports failure");
+        Expect(Main.RtStarted && Main.RtCoins == 0, "failed first-ever New Game still runs");
+        Expect(!Main.RtHasSaveFile && !Main.RtCanContinue && !Main.RtMemoryMatchesPersisted,
+            "failed first-ever save creates no false Continue state");
+        Expect(!File.Exists(path), "failed first-ever save writes no file");
+
+        Main.RtReturnToTitle();
+        await Wait(0.2f);
+        Expect(Main.RtModalOpen && Main.RtModalTitle == "Return to title without saving?",
+            "failed first-ever return asks before discarding");
+        Main.RtReturnAnyway();
+        await Wait(0.25f);
+        Expect(!Main.RtStarted && !Main.RtCanContinue && !Main.RtHasSaveFile,
+            "failed first-ever session has no Continue after discard");
+        SaveService.ClearTestWriteFailure();
+
+        Main.RtRequestNewGameFromTitle();
+        await Wait(0.3f);
+        Expect(Main.RtStarted && Main.RtCoins == 0 && Main.RtCompletedCount == 0,
+            "Start adventure resets a discarded session when no save exists");
+        Expect(File.Exists(path), "Start adventure writes the fresh no-save session");
+
+        // Scenario E: create a valid backup-only recovery seed.
+        File.Delete(path);
+        if (File.Exists(SaveService.BackupPath(path))) File.Delete(SaveService.BackupPath(path));
+        SaveService.Save(BuildNineMissionSave(), path, Main.RtCatalog);
+        File.Copy(path, SaveService.BackupPath(path), true);
+        File.Delete(path);
+        Expect(!File.Exists(path) && File.Exists(SaveService.BackupPath(path)),
+            "backup-only recovery seed prepared");
+        RecoveryPhase = 5;
+        Main.RtReloadScene();
+        return true;
+    }
+
+    private async Task<bool> RecoveryBackup()
+    {
+        string path = Main.RtSavePath;
+        string backup = SaveService.BackupPath(path);
+        byte[] backupBytes = File.ReadAllBytes(backup);
+        Expect(!Main.RtStarted && Main.RtCanContinue && Main.RtHasSaveFile,
+            "backup recovery offers Continue");
+        Expect(Main.RtMemoryMatchesPersisted, "recovered backup matches memory");
+
+        SaveService.SetTestWriteFailure(full =>
+            string.Equals(full, Path.GetFullPath(path), StringComparison.Ordinal)
+                ? new IOException("injected backup replacement failure")
+                : null);
+        var result = Main.RtStartNewGameFromTitleConfirmed();
+        await Wait(0.3f);
+        Expect(!result.Success && Main.RtStarted, "failed New Game after recovery is reported");
+        Expect(Main.RtCoins == 0 && Main.RtCompletedCount == 0, "failed recovery reset is in memory");
+        Expect(!File.Exists(path), "failed write does not create a main save");
+        CheckBytes(backup, backupBytes, "failed write leaves the recovered backup untouched");
+        Main.RtReturnToTitle();
+        await Wait(0.2f);
+        Expect(Main.RtModalTitle == "Return to title without saving?", "recovered backup discard is confirmed");
+        Main.RtReturnAnyway();
+        await Wait(0.25f);
+        Expect(Main.RtCanContinue && !Main.RtMemoryMatchesPersisted,
+            "recovered backup remains continuable after discard");
+        SaveService.ClearTestWriteFailure();
+        RecoveryPhase = 6;
+        Main.RtContinue();
+        return true;
+    }
+
+    private async Task<bool> RecoveryAfterBackup()
+    {
+        string path = Main.RtSavePath;
+        Expect(Main.RtStarted && Main.RtCoins == 130 && Main.RtCompletedCount == 9,
+            "Continue after recovered backup restores the backup village");
+        Expect(Main.RtMemoryMatchesPersisted, "recovered Continue matches memory");
+
+        // Scenario: an unsupported newer save must remain protected until the
+        // player explicitly confirms New Game.
+        File.WriteAllText(path, "{\"SchemaVersion\":99,\"Coins\":5}");
+        _newerOriginalBytes = File.ReadAllBytes(path);
+        RecoveryPhase = 7;
+        Main.RtReloadScene();
+        return true;
+    }
+
+    private async Task<bool> RecoveryNewerSave()
+    {
+        string path = Main.RtSavePath;
+        string directory = Path.GetDirectoryName(path);
+        string newerPattern = Path.GetFileName(path) + ".newer-v99-*";
+        Expect(!Main.RtStarted && !Main.RtCanContinue, "unsupported newer save has no Continue");
+        Expect(Main.RtNewerSavePresent && !Main.RtNewerReplacementAuthorized,
+            "newer save is protected before confirmation");
+        Expect(Main.RtTitleNotice.Contains("newer"), "title explains the newer save");
+        CheckBytes(path, _newerOriginalBytes, "newer save is untouched on load");
+
+        Main.RtRequestNewGameFromTitle();
+        await Wait(0.2f);
+        Expect(Main.RtModalOpen && Main.RtModalTitle == "Start a new game?",
+            "newer-save replacement confirmation opens");
+        Main.RtCloseModal();
+        await Wait(0.25f);
+        Expect(!Main.RtStarted && !Main.RtNewerReplacementAuthorized,
+            "cancelled confirmation grants no replacement permission");
+        CheckBytes(path, _newerOriginalBytes, "cancelled confirmation leaves newer save untouched");
+
+        SaveService.SetTestWriteFailure(full =>
+            string.Equals(full, Path.GetFullPath(path), StringComparison.Ordinal)
+                ? new IOException("injected newer replacement failure")
+                : null);
+        var failed = Main.RtStartNewGameFromTitleConfirmed();
+        await Wait(0.3f);
+        Expect(!failed.Success, "failed newer-save replacement is reported");
+        Expect(Main.RtStarted && Main.RtNewerSavePresent && Main.RtNewerReplacementAuthorized,
+            "failed replacement keeps the confirmed permission for Save Now");
+        Expect(Main.RtCoins == 0 && Main.RtCompletedCount == 0, "newer replacement session is in memory");
+        CheckBytes(path, _newerOriginalBytes, "failed replacement leaves newer save untouched");
+        Expect(Directory.GetFiles(directory, newerPattern).Length == 0,
+            "failed replacement creates no misleading preserved copy");
+
+        Main.RtReturnToTitle();
+        await Wait(0.2f);
+        Expect(Main.RtModalTitle == "Return to title without saving?", "newer replacement discard is confirmed");
+        Main.RtReturnAnyway();
+        await Wait(0.25f);
+        Expect(!Main.RtCanContinue && Main.RtNewerSavePresent && !Main.RtNewerReplacementAuthorized,
+            "discard clears replacement permission and keeps newer protection");
+        CheckBytes(path, _newerOriginalBytes, "discard leaves newer save untouched");
+
+        var failedAgain = Main.RtStartNewGameFromTitleConfirmed();
+        await Wait(0.3f);
+        Expect(!failedAgain.Success && Main.RtNewerReplacementAuthorized,
+            "second confirmed replacement regains retry permission");
+        SaveService.ClearTestWriteFailure();
+        Expect(Main.RtSaveNow(), "Save Now retries and replaces the newer save");
+        await Wait(0.2f);
+        Expect(!Main.RtNewerSavePresent && !Main.RtNewerReplacementAuthorized,
+            "successful replacement clears newer protection and permission");
+        Expect(Main.RtMemoryMatchesPersisted && Main.RtCoins == 0 && Main.RtCompletedCount == 0,
+            "replacement save records the new session");
+        var loaded = SaveService.Load(path, Main.RtCatalog);
+        Expect(loaded.Success && loaded.Data.SchemaVersion == SaveService.CurrentVersion,
+            "replacement file is a current-schema save");
+        string[] preserved = Directory.GetFiles(directory, newerPattern);
+        Expect(preserved.Length == 1, "exactly one preserved newer-version copy exists");
+        if (preserved.Length == 1)
+            CheckBytes(preserved[0], _newerOriginalBytes, "preserved copy matches the original newer save");
+
+        Main.RtReturnToTitle();
+        await Wait(0.25f);
+        Expect(Main.RtCanContinue && Main.RtMemoryMatchesPersisted,
+            "successful replacement session is continuable");
+        Main.RtContinue();
+        await Wait(0.35f);
+        Expect(Main.RtStarted && Main.RtCoins == 0 && Main.RtCompletedCount == 0,
+            "Continue loads the successful replacement session");
+
+        RecoveryPhase = 8;
+        Main.RtReloadScene();
+        return true;
+    }
+
+    private async Task<bool> RecoveryRelaunch()
+    {
+        Expect(!Main.RtStarted && Main.RtCanContinue && Main.RtMemoryMatchesPersisted,
+            "replacement session survives a relaunch");
+        Expect(!Main.RtNewerSavePresent, "relaunched replacement is a normal save");
+        Main.RtContinue();
+        await Wait(0.35f);
+        Expect(Main.RtStarted && Main.RtCoins == 0 && Main.RtCompletedCount == 0,
+            "Continue after relaunch restores the replacement new game");
+        return false;
+    }
+
+    private static GameData BuildNineMissionSave()
+    {
+        var data = new GameData { Coins = 130, ActiveMission = "M10" };
+        data.CompletedMissions.AddRange(new[] { "M01", "M02", "M03", "M04", "M05", "M06", "M07", "M08", "M09" });
+        data.TutorialsSeen.AddRange(new[] { "walk", "drive", "build" });
+        data.UnlockedCosmetics.Add("red_cap");
+        data.BridgePieces.AddRange(BuildRules.BridgeSockets);
+        data.SwingPieces.AddRange(BuildRules.SwingSockets);
+        data.ParkPlacements.Add(new PlacedItem("bench", "park0"));
+        data.ParkPlacements.Add(new PlacedItem("flowerbed", "park1"));
+        data.ParkPlacements.Add(new PlacedItem("lamp", "park2"));
+        data.MissionProgress["M01"] = new Dictionary<string, int> { ["delivered"] = 1 };
+        data.MissionProgress["M02"] = new Dictionary<string, int> { ["delivered"] = 1 };
+        data.MissionProgress["M04"] = new Dictionary<string, int>
+        {
+            ["bread"] = 2, ["milk"] = 1, ["delivered"] = 1,
+        };
+        data.MissionProgress["M05"] = new Dictionary<string, int>
+        {
+            ["checkpoint"] = 4, ["started"] = 1, ["elapsedMs"] = 30_000,
+        };
+        data.MissionProgress["M06"] = new Dictionary<string, int> { ["blueDelivered"] = 2, ["orangeDelivered"] = 1 };
+        data.MissionProgress["M09"] = new Dictionary<string, int>
+        {
+            ["checkpoint"] = 4, ["started"] = 1, ["elapsedMs"] = 30_000,
+        };
+        data.Player = new PlayerSnapshot
+        {
+            X = -38.8f, Y = -0.04f, Z = 21.4f, RotationY = 3.14f, Valid = true,
+        };
+        data.Van = new VehicleSnapshot
+        {
+            X = -30f, Y = -0.05f, Z = 14.5f, RotationY = 0f, Valid = true,
+        };
+        return data;
+    }
+
+    private void CheckBytes(string path, byte[] expected, string name)
+    {
+        try
+        {
+            Expect(File.Exists(path) && File.ReadAllBytes(path).SequenceEqual(expected), name);
+        }
+        catch (Exception ex)
+        {
+            Fail(name + ": " + ex.Message);
+        }
     }
 
     private async Task Wait(float seconds)

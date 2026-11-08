@@ -403,6 +403,15 @@ public sealed class MissionService
                 return Fail("That job does not have a speed bonus.");
             if (bonusCoins > MissionRules.MaxOptionalRaceBonus)
                 return Fail("The speed bonus is larger than the course allows.");
+
+            // Verify the bonus against the persisted race clock rather than
+            // trusting the caller. The stored milliseconds were rounded up, so
+            // this preserves the exact 90 s / 75 s boundary without shortening
+            // an elapsed time across save/reload.
+            double elapsedSeconds = Data.GetMissionCounter(mission.Id, "elapsedMs") / 1000.0;
+            int earned = MissionRules.OptionalRaceBonus(mission.Id, elapsedSeconds);
+            if (bonusCoins > earned)
+                return Fail("That speed bonus was not earned on this race.");
         }
 
         if (!MissionRules.IsObjectiveComplete(Data, mission.Id))
