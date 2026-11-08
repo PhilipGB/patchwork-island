@@ -1,4 +1,4 @@
-# Patchwork Island — First Playable v1.0.1
+# Patchwork Island — First Playable v1.0.2
 
 A happy little 3D village adventure for players aged roughly 5–10. A storm has
 scattered the village's supplies. Deliver parcels, repair the bridge, drive the
@@ -10,13 +10,16 @@ tests, real-input GUI evidence and release build instructions.
 
 ## Current status
 
-**First playable — complete, with the v1.0.1 reliability update.** All ten
+**First playable — complete, with the v1.0.2 reliability update.** All ten
 missions, the optional bonus race, free practice racing, the all-jobs
 celebration, save/load, settings, onboarding, stability hardening and final
-release verification are implemented. v1.0.1 fixes save invalidation after
-furniture rearrangement and long races, makes every save failure visible,
-protects New Game persistence flags, verifies Godot pause behaviour at runtime,
-and returns modal cancellations to the correct screen.
+release verification are implemented. v1.0.1 fixed save invalidation after
+furniture rearrangement and long races, truthful save feedback, New Game
+persistence flags and modal cancellation. v1.0.2 makes Continue reload the last
+persisted village after an unsaved session is discarded, allows retry of an
+authorised newer-save replacement, shows settings failures inside their modal,
+rejects duplicate mission JSON properties, and verifies race bonuses against
+the persisted clock.
 
 - Windows x64 and Linux x86_64 standalone exports were produced.
 - The Linux export was launched and played in this environment.
@@ -31,8 +34,10 @@ Prebuilt artifacts are under `dist/` after an export:
 ```text
 dist/windows/PatchworkIsland.exe        Windows x64, single executable
 dist/linux/PatchworkIsland.x86_64       Linux x86_64, single executable
-dist/PatchworkIsland-1.0.1-Windows-x86_64.zip
-dist/PatchworkIsland-1.0.1-Linux-x86_64.zip
+dist/PatchworkIsland-1.0.2-Windows-x86_64.zip
+dist/PatchworkIsland-1.0.2-Linux-x86_64.zip
+dist/PatchworkIsland-1.0.2-Windows-x86_64.zip
+dist/PatchworkIsland-1.0.2-Linux-x86_64.zip
 dist/SHA256SUMS
 ```
 
@@ -122,28 +127,34 @@ godot --headless --path . --editor --quit
 godot --headless --path . --quit-after 120
 ```
 
-The dependency-free runner currently has **61 tests** covering mission
+The dependency-free runner currently has **67 tests** covering mission
 prerequisites and unlocks, exactly-once rewards, duplicate pickups, mission
 switching, hints, bridge/swing socket rules, grocery and park budgets, house
-costs and free starter fallback, ordered checkpoints, optional race bonuses,
-the full ten-job graph, JSON round-trips, save validation, corrupt/backup
-recovery, newer-save preservation, cross-platform write failure/retry, race
-timer restoration and saturation, post-completion furniture rearrangement,
-save-feedback throttling, New Game persistence flags, control-mode precedence,
-mission-catalogue integrity and a complete-field comparison between
-`MISSIONS.json` and `data/missions.json`.
+costs and free starter fallback, ordered checkpoints, optional race bonuses
+verified against the persisted clock, the full ten-job graph, JSON round-trips,
+save validation, corrupt/backup recovery, newer-save preservation, deterministic
+cross-platform write failure/retry, race timer restoration and saturation,
+post-completion furniture rearrangement, save-feedback throttling, settings
+feedback isolation, persisted/discarded session state, newer-replacement
+authorisation, control-mode precedence, mission-catalogue integrity and a
+complete-field comparison between `MISSIONS.json` and `data/missions.json`,
+including duplicate-property rejection.
 
-Godot runtime integration checks (52 assertions across two phases) execute the
-real scene headlessly:
+Godot runtime integration checks (150 assertions across three phases) execute
+the real scene headlessly:
 
 ```bash
 godot --headless --path . -- --selftest
 godot --headless --path . -- --selftest-resume
+godot --headless --path . -- --selftest-recovery
 ```
 
 They cover title and modal pause, player/van physics stopping, race timers
 stopping, settings/New Game modal returns, mission-completion pause, New Game
-reset, autosave/manual save, and a driving save/continue cycle.
+reset, autosave/manual save, and driving save/continue. The recovery phase
+injects deterministic write failures and reloads the real scene to verify
+failed New Game recovery, discarded unsaved changes, backup recovery, settings
+failure feedback, a newer-save replacement retry, and exact on-disk bytes.
 
 A GitHub Actions workflow (`.github/workflows/build-and-test.yml`) pins Godot
 4.7.2 .NET, builds the project, runs the pure and runtime tests, imports and
@@ -184,9 +195,14 @@ and after mission start/completion.
 
 Save failures are explicit: manual saves show success or an inline failure in
 the pause menu, autosave failures produce one throttled warning until a later
-save succeeds, and return-to-title/quit failures offer a keep-playing or
-quit-without-saving choice. A failed New Game never marks the new session as
-the persisted save; Continue keeps loading the last valid file.
+save succeeds, and settings failures appear inside the settings modal while
+retaining a separate throttle. Return-to-title/quit failures offer a
+keep-playing or quit-without-saving choice. A failed New Game never marks the
+new session as the persisted save. After an unsaved session is discarded,
+Continue reloads the scene from the last persisted file rather than resuming
+the discarded memory. An explicitly confirmed New Game may replace a newer
+save; that permission is session-scoped and survives a failed first write so
+Save Now can retry.
 
 After M10 is complete, furniture may be picked up and rearranged freely.
 Completion still requires the pieces to be physically placed, but a completed
@@ -218,8 +234,8 @@ the game is fully playable with sound off.
 ## Verification summary
 
 - `dotnet build PatchworkIsland.sln`: 0 errors, 0 warnings.
-- Automated tests: **61 passed, 0 failed**.
-- Godot runtime self-tests: **42 + 10 assertions passed, 0 failed**.
+- Automated tests: **67 passed, 0 failed**.
+- Godot runtime self-tests: **42 + 10 + 98 assertions passed, 0 failed**.
 - Headless editor import and main-scene boot: exit 0.
 - Missing mission content: explicit FATAL and exit 1.
 - Full fresh-save walkthrough (v1.0.0): M01–M10 completed with real
@@ -233,11 +249,28 @@ the game is fully playable with sound off.
 - v1.0.1 failure UI: write-denied manual saves showed **Save failed**, left the
   previous file intact, and a retry succeeded. A failed New Game did not claim
   persistence, and quitting without saving preserved the old save.
+- v1.0.2 recovery scenarios: a failed New Game followed by Return to title →
+  Return anyway → Continue reloaded the nine-mission/130-coin village; a
+  discarded movement change reloaded the persisted player position; a schema-99
+  newer save survived a failed replacement and was then replaced successfully
+  by Save Now with an exact preserved copy.
+- v1.0.2 settings: a failed settings write was shown inside the modal, the
+  following autosave failure still produced its first warning, and a successful
+  retry replaced the error message.
 - Linux v1.0.1 export: launched and played; mission catalogue and final save
-  loaded; the packaged binary also passed 42 + 10 runtime assertions headlessly.
+  loaded; the packaged binary also passed its runtime assertions headlessly.
+- v1.0.2 exports: Linux `62,221,666` bytes and Windows `72,595,458` bytes
+  (ZIPs), with version `1.0.2`. The Linux build launched under Xvfb, loaded the
+  existing nine-job/130-coin save and the job board, and passed **42 + 10 + 98**
+  runtime assertions from the packaged executable. The Windows executable is
+  PE32+ x86-64 with version `1.0.2.0`, embedded mission content, assemblies and
+  the self-contained .NET 8 runtime.
 - F12 is inactive in the normal export (screenshot count unchanged).
-- Windows x64 export: produced and inspected with version `1.0.1.0`; startup
-  **NOT TESTED**.
+- Windows startup: **NOT TESTED** (no Windows runtime or Wine).
+- SHA-256 checksums are recorded in `dist/SHA256SUMS`; the Linux ZIP is
+  `2650ae5dd4b8ecedab766265cd23512084e5e3d3b81fcfe3cfdc7b3e6f45df9e` and the
+  Windows ZIP is
+  `bb4eb027ef80327ede43ce0931f3cbce94cfc60bfb6eec22de9416b12ebcc846`.
 
 Detailed evidence and commands are in `PROGRESS.md`, `ACCEPTANCE.md`,
 `evidence/p8_*.png` and `evidence/p81_*.png`.
