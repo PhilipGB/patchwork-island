@@ -802,7 +802,7 @@ Implemented root-cause fixes:
   Capture and file failures are caught and logged; no unobserved task exception
   path remains.
 - **Tests/CI:** replaced the platform-skipped write failure with a real
-  cross-platform `.tmp`-directory collision and retry. CI now runs 60 pure tests,
+  cross-platform `.tmp`-directory collision and retry. CI now runs 61 pure tests,
   both Godot runtime phases, imports/boots, exports a real Linux release,
   verifies embedded `data/missions.json` and `PatchworkIsland.dll`, and boots the
   exported binary. A `windows-latest` job runs the pure suite on Windows.
@@ -818,7 +818,7 @@ $ dotnet build PatchworkIsland.sln
 Build succeeded. 0 Warning(s), 0 Error(s)
 
 $ dotnet run --project tests/PatchworkIsland.Tests.csproj
-RESULT: 60 passed, 0 failed
+RESULT: 61 passed, 0 failed
 
 $ godot --headless --path . --editor --quit     -> exit 0
 $ godot --headless --path . --quit-after 120    -> exit 0

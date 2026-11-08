@@ -61,7 +61,7 @@ godot --headless --path . --quit-after 120
 dotnet run --project tests/PatchworkIsland.Tests.csproj
 ```
 
-The runner currently has **60 tests** and covers mission catalog, prerequisites,
+The runner currently has **61 tests** and covers mission catalog, prerequisites,
 unlocks, duplicate pickups, exactly-once rewards, mission switching, hints,
 bridge/swing snapping (including rejected unknown part types), grocery and park
 budgets, furniture costs/starter fallback/purchase caps, ordered checkpoints,
@@ -160,7 +160,7 @@ runtime or Wine. See `dist/SHA256SUMS` and `dist/README.txt`.
 
 ```text
 dotnet build PatchworkIsland.sln                         -> 0 warnings, 0 errors
-dotnet run --project tests/PatchworkIsland.Tests.csproj -> 60 passed, 0 failed
+dotnet run --project tests/PatchworkIsland.Tests.csproj -> 61 passed, 0 failed
 godot --headless --path . --editor --quit                -> exit 0
 godot --headless --path . --quit-after 120               -> exit 0
 godot --headless --path . -- --selftest                  -> 42 passed, 0 failed

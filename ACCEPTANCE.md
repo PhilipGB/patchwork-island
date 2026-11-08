@@ -217,7 +217,7 @@ test assembly. No item was marked PASS from code inspection alone.
   schema-1 save and the long-race seed). Newer saves remain untouched, corrupt
   saves recover from backup, and no new required save fields were added.
 - [x] Build, pure tests, Godot import/boot and runtime tests pass. **PASS** —
-  `dotnet build`: 0 warnings/0 errors; tests **60 passed, 0 failed**; editor and
+  `dotnet build`: 0 warnings/0 errors; tests **61 passed, 0 failed**; editor and
   boot exit 0; runtime **42 + 10 passed, 0 failed**. CI adds a Linux export and
   exported-binary boot plus a Windows pure-test job.
 - [x] Exported Linux build launches after the fixes. **PASS** — v1.0.1 export

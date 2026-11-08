@@ -122,7 +122,7 @@ godot --headless --path . --editor --quit
 godot --headless --path . --quit-after 120
 ```
 
-The dependency-free runner currently has **60 tests** covering mission
+The dependency-free runner currently has **61 tests** covering mission
 prerequisites and unlocks, exactly-once rewards, duplicate pickups, mission
 switching, hints, bridge/swing socket rules, grocery and park budgets, house
 costs and free starter fallback, ordered checkpoints, optional race bonuses,
@@ -218,7 +218,7 @@ the game is fully playable with sound off.
 ## Verification summary
 
 - `dotnet build PatchworkIsland.sln`: 0 errors, 0 warnings.
-- Automated tests: **60 passed, 0 failed**.
+- Automated tests: **61 passed, 0 failed**.
 - Godot runtime self-tests: **42 + 10 assertions passed, 0 failed**.
 - Headless editor import and main-scene boot: exit 0.
 - Missing mission content: explicit FATAL and exit 1.

@@ -1074,6 +1074,22 @@ internal static class Program
             }
         });
 
+        Run("switching away from a race preserves its elapsed time", () =>
+        {
+            var s = CompleteM04(CompleteBridge(Fresh(catalog)));
+            Check(s.StartMission("M05").Success, "start M05");
+            s.Data.SetMissionCounter("M05", "checkpoint", 1);
+            s.Data.SetMissionCounter("M05", "elapsedMs", 20_000);
+            Check(s.StartMission("M06").Success, "switch to M06");
+            Check(s.StartMission("M05").Success, "switch back to M05");
+            var timer = RaceTimer.Restore(s.Data, "M05");
+            Equal(20.0, timer.ElapsedSeconds, "elapsed time survives mission switching");
+            Equal(5, timer.OptionalBonus("M05"), "legitimate bonus still available");
+            s.Data.SetMissionCounter("M05", "elapsedMs", 120_000);
+            Equal(0, RaceTimer.Restore(s.Data, "M05").OptionalBonus("M05"),
+                "long elapsed time cannot earn the bonus");
+        });
+
         Run("race timer saturates instead of overflowing and round-trips", () =>
         {
             var timer = new RaceTimer();
