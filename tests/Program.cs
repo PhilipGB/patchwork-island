@@ -849,6 +849,51 @@ internal static class Program
             Check(metadataError.Contains("world"), "error names the metadata field");
         });
 
+        Run("mission consistency rejects duplicate object properties", () =>
+        {
+            string referenceJson = File.ReadAllText(Path.Combine(root, "MISSIONS.json"))
+                .Replace("\r\n", "\n");
+            string runtimeJson = json.Replace("\r\n", "\n");
+            Check(MissionContentConsistency.Compare(referenceJson, runtimeJson, out string identicalError),
+                "identical JSON compares equal: " + identicalError);
+            Check(MissionContentConsistency.Compare(
+                    "{\"first\":1,\"nested\":{\"b\":2,\"a\":1}}",
+                    "{\"nested\":{\"a\":1,\"b\":2},\"first\":1}", out string reorderedError),
+                "object property order is irrelevant: " + reorderedError);
+            Check(!MissionContentConsistency.Compare("{\"items\":[1,2]}", "{\"items\":[2,1]}",
+                    out string arrayOrderError), "array order remains significant");
+            Check(arrayOrderError.Contains("items[0]"), "array order error names the index");
+
+            string duplicateTop = referenceJson.Replace(
+                "{\n  \"schemaVersion\"",
+                "{\n  \"schemaVersion\": 1,\n  \"schemaVersion\"");
+            Check(!MissionContentConsistency.Compare(duplicateTop, runtimeJson, out string topError),
+                "duplicate top-level property rejected");
+            Check(topError.Contains("schemaVersion") && topError.Contains("duplicate"),
+                "top-level error names the duplicate property: " + topError);
+
+            string duplicateNested = referenceJson.Replace(
+                "\"mechanics\": {\n        \"item\": \"apple\"",
+                "\"mechanics\": {\n        \"item\": \"apple\",\n        \"item\": \"apple\"");
+            Check(!MissionContentConsistency.Compare(duplicateNested, runtimeJson, out string nestedError),
+                "duplicate nested property rejected");
+            Check(nestedError.Contains("mechanics") && nestedError.Contains("item"),
+                "nested error names the path: " + nestedError);
+
+            string duplicateArrayElement = referenceJson.Replace(
+                "{\n      \"id\": \"M01\"",
+                "{\n      \"id\": \"M01\",\n      \"id\": \"M01\"");
+            Check(duplicateArrayElement != referenceJson, "array-element mutation changed the JSON");
+            Check(!MissionContentConsistency.Compare(duplicateArrayElement, runtimeJson, out string arrayError),
+                "duplicate property in an array element rejected");
+            Check(arrayError.Contains("duplicate") && arrayError.Contains("missions[0]"),
+                "array-element error names the path: " + arrayError);
+
+            Check(!MissionContentConsistency.Compare("{ broken", runtimeJson, out string invalidError),
+                "invalid JSON rejected");
+            Check(invalidError.Contains("not valid JSON"), "invalid JSON explains the problem");
+        });
+
         Run("missing mission content fails integrity validation", () =>
         {
             var incomplete = new MissionCatalog(catalog.Missions.Where(m => m.Id != "M10"));
@@ -1147,6 +1192,34 @@ internal static class Program
             Equal(before + 20, s.Data.Coins, "base reward plus valid bonus");
         });
 
+        Run("race bonuses are verified against the persisted race clock", () =>
+        {
+            foreach (string raceId in new[] { "M05", "M09" })
+            {
+                var s = raceId == "M05"
+                    ? CompleteBridge(Fresh(catalog))
+                    : CompleteM05(CompleteBridge(Fresh(catalog)));
+                Check(s.StartMission(raceId).Success, raceId + " starts");
+                s.AdvanceCheckpoint(1);
+                s.AdvanceCheckpoint(2);
+                s.AdvanceCheckpoint(3);
+                s.AdvanceCheckpoint(4);
+
+                int before = s.Data.Coins;
+                s.Data.SetMissionCounter(raceId, "elapsedMs", 120_000);
+                var slow = s.CompleteActive(5);
+                Check(!slow.Success, raceId + " rejects a bonus on a slow race");
+                Equal(before, s.Data.Coins, raceId + " slow race wallet unchanged");
+                Check(s.Data.ActiveMission == raceId, raceId + " remains active after rejected bonus");
+
+                int boundary = raceId == "M05" ? 90_000 : 75_000;
+                s.Data.SetMissionCounter(raceId, "elapsedMs", boundary);
+                var exact = s.CompleteActive(5);
+                Check(exact.Success, raceId + " accepts the boundary bonus");
+                Equal(5, exact.BonusCoins, raceId + " boundary bonus value");
+            }
+        });
+
         Run("swing placement rejects unknown part types", () =>
         {
             Check(!BuildRules.ValidateSwingPlacement("banana", "s1_rope_l", Array.Empty<string>(), out string message),
@@ -1199,6 +1272,25 @@ internal static class Program
             Check(!success.Show, "automatic success is quiet");
             var afterRecovery = policy.Record(SaveReason.Autosave, SaveResult.Recoverable("disk full"));
             Check(afterRecovery.Show, "a new failure after recovery is shown again");
+        });
+
+        Run("settings failures are visible without suppressing autosave warnings", () =>
+        {
+            var policy = new SaveFeedbackPolicy();
+            var first = policy.Record(SaveReason.Settings, SaveResult.Recoverable("disk full"));
+            Check(first.Show && first.IsError, "first settings failure is visible");
+            Check(first.Text.Contains("session"), "settings message separates memory from disk");
+            var repeated = policy.Record(SaveReason.Settings, SaveResult.Recoverable("disk full"));
+            Check(!repeated.Show, "repeated settings failure is throttled");
+            var autosave = policy.Record(SaveReason.Autosave, SaveResult.Recoverable("disk full"));
+            Check(autosave.Show && autosave.Text.Contains("Autosave failed"),
+                "settings failure does not suppress the first autosave warning");
+            var anotherAuto = policy.Record(SaveReason.Autosave, SaveResult.Recoverable("disk full"));
+            Check(!anotherAuto.Show, "autosave failure is still throttled");
+            var recovered = policy.Record(SaveReason.Settings, SaveResult.Ok());
+            Check(!recovered.Show, "successful settings save is quiet");
+            var afterRecovery = policy.Record(SaveReason.Settings, SaveResult.Recoverable("disk full"));
+            Check(afterRecovery.Show, "settings warning returns after a successful save");
         });
 
         Run("mission-completion save failure is always reported", () =>
@@ -1256,6 +1348,81 @@ internal static class Program
             Check(state.CanContinue, "recovered save is continuable");
             state.RecordNewGameSave(SaveResult.Recoverable("disk full"), "new game not saved");
             Check(state.HasSaveFile && state.CanContinue, "recovered save remains available");
+            Check(!state.MemoryMatchesPersisted, "failed new game is not the persisted session");
+        });
+
+        Run("discarding an unsaved session cannot continue it", () =>
+        {
+            var state = new SessionSaveState();
+            state.ApplyLoad(new SaveLoadResult { Status = SaveLoadStatus.Loaded, Data = new GameData() });
+            Check(state.MemoryMatchesPersisted, "loaded save matches memory");
+            state.RecordSaveFailure();
+            Check(!state.MemoryMatchesPersisted, "failed write marks memory unsaved");
+            Check(state.CanContinue, "the old persisted save remains available");
+            state.DiscardUnsavedSession();
+            Check(!state.MemoryMatchesPersisted && state.CanContinue,
+                "discarded memory remains distinct from the persisted save");
+            state.RecordSaveSuccess();
+            Check(state.MemoryMatchesPersisted, "a successful save re-establishes the match");
+        });
+
+        Run("newer replacement permission is session-scoped and retryable", () =>
+        {
+            var state = new SessionSaveState();
+            state.ApplyLoad(new SaveLoadResult
+            {
+                Status = SaveLoadStatus.UnsupportedNewer,
+                Message = "Save version 99 is newer.",
+            });
+            Check(state.NewerSavePresent && !state.CanContinue, "newer save protected");
+            Check(!state.NewerReplacementAuthorized, "no permission before explicit confirmation");
+            state.AuthorizeNewerReplacement();
+            Check(state.NewerReplacementAuthorized, "explicit new game authorises replacement");
+            state.RecordNewGameSave(SaveResult.Recoverable("disk full"), "new game not saved");
+            Check(state.NewerSavePresent && state.NewerReplacementAuthorized,
+                "failed replacement keeps permission for Save Now retries");
+            Check(!state.MemoryMatchesPersisted, "failed replacement is not claimed as persisted");
+            state.DiscardUnsavedSession();
+            Check(!state.NewerReplacementAuthorized, "discard clears replacement permission");
+            Check(state.NewerSavePresent, "discard does not pretend the newer save disappeared");
+            state.ApplyLoad(new SaveLoadResult
+            {
+                Status = SaveLoadStatus.UnsupportedNewer,
+                Message = "A different newer save.",
+            });
+            Check(!state.NewerReplacementAuthorized, "loading another newer save clears permission");
+            state.AuthorizeNewerReplacement();
+            state.RecordSaveSuccess();
+            Check(!state.NewerSavePresent && !state.NewerReplacementAuthorized,
+                "successful replacement clears protection and permission");
+        });
+
+        Run("forced save failures do not change the on-disk save", () =>
+        {
+            string dir = TempDirectory("patchwork-save-injected-failure");
+            string path = Path.Combine(dir, SaveService.DefaultFileName);
+            try
+            {
+                SaveService.Save(new GameData { Coins = 21 }, path, catalog);
+                byte[] before = File.ReadAllBytes(path);
+                SaveService.SetTestWriteFailure(full =>
+                    string.Equals(full, Path.GetFullPath(path), StringComparison.Ordinal)
+                        ? new IOException("injected disk failure")
+                        : null);
+                var failed = SaveService.TrySave(new GameData { Coins = 99 }, path, catalog);
+                Check(!failed.Success, "injected write fails");
+                Equal(SaveOutcome.RecoverableFailure, failed.Outcome, "injected failure is a recoverable I/O error");
+                Check(before.SequenceEqual(File.ReadAllBytes(path)), "injected failure leaves exact bytes intact");
+                SaveService.ClearTestWriteFailure();
+                var retry = SaveService.TrySave(new GameData { Coins = 99 }, path, catalog);
+                Check(retry.Success, "retry after clearing the failure succeeds");
+                Equal(99, SaveService.Load(path, catalog).Data.Coins, "retry persisted the new state");
+            }
+            finally
+            {
+                SaveService.ClearTestWriteFailure();
+                Directory.Delete(dir, true);
+            }
         });
 
         Console.WriteLine();

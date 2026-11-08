@@ -34,6 +34,24 @@ public static class SaveService
     public const int CurrentVersion = 1;
     public const string DefaultFileName = "save.json";
 
+    // Narrow test seam for deterministic write failures. It is process-local,
+    // path-specific and never set by normal gameplay. Tests must clear it after
+    // use so production writes are unaffected.
+    private static Func<string, Exception> _testWriteFailure;
+
+    internal static void SetTestWriteFailure(Func<string, Exception> failure) =>
+        _testWriteFailure = failure;
+
+    internal static void ClearTestWriteFailure() => _testWriteFailure = null;
+
+    private static void InjectTestWriteFailure(string path)
+    {
+        var failure = _testWriteFailure;
+        if (failure == null) return;
+        var exception = failure(Path.GetFullPath(path));
+        if (exception != null) throw exception;
+    }
+
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         WriteIndented = true,
@@ -54,6 +72,8 @@ public static class SaveService
         var validation = SaveValidation.Validate(data, catalog);
         if (!validation.IsValid)
             throw new InvalidDataException("Refusing to write an invalid save: " + validation.Message);
+
+        InjectTestWriteFailure(path);
 
         string directory = Path.GetDirectoryName(path);
         if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);

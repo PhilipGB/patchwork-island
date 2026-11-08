@@ -57,10 +57,22 @@ public static class MissionContentConsistency
             case JsonValueKind.Object:
                 var referenceProperties = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
                 foreach (var property in reference.EnumerateObject())
-                    referenceProperties[property.Name] = property.Value;
+                {
+                    if (!referenceProperties.TryAdd(property.Name, property.Value))
+                    {
+                        error = $"{path}: duplicate property '{property.Name}' in reference content.";
+                        return false;
+                    }
+                }
                 var runtimeProperties = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
                 foreach (var property in runtime.EnumerateObject())
-                    runtimeProperties[property.Name] = property.Value;
+                {
+                    if (!runtimeProperties.TryAdd(property.Name, property.Value))
+                    {
+                        error = $"{path}: duplicate property '{property.Name}' in runtime content.";
+                        return false;
+                    }
+                }
 
                 foreach (var pair in referenceProperties)
                 {

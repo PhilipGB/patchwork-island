@@ -69,6 +69,7 @@ public partial class Main : Node3D
     private bool _loadedFromSave;
     private string _saveNotice = "";
     private float _autosaveTimer;
+    private static bool _continueAfterReload;
 
     public override void _Ready()
     {
@@ -84,7 +85,9 @@ public partial class Main : Node3D
             return;
         }
         if (HasUserArg("--selftest"))
-            DeleteSelfTestSaves();
+            DeleteSelfTestSaves("selftest-save.json");
+        else if (IsRecoveryTest && RuntimeSelfTest.RecoveryPhase == 0)
+            DeleteSelfTestSaves("selftest-recovery-save.json");
         LoadSavedGameIfAvailable();
         ApplyDeveloperScenario();
 
@@ -208,15 +211,21 @@ public partial class Main : Node3D
             var test = new RuntimeSelfTest { Name = "RuntimeSelfTest", Main = this };
             AddChild(test);
         }
+        if (_continueAfterReload)
+        {
+            _continueAfterReload = false;
+            ContinueAdventure();
+        }
     }
 
-    private static void DeleteSelfTestSaves()
+    private static void DeleteSelfTestSaves(string fileName)
     {
         string directory = ProjectSettings.GlobalizePath("user://");
+        if (!Directory.Exists(directory)) return;
         foreach (string pattern in new[]
                  {
-                     "selftest-save.json", "selftest-save.json.bak",
-                     "selftest-save.json.corrupt-*", "selftest-save.json.newer-*",
+                     fileName, fileName + ".bak",
+                     fileName + ".corrupt-*", fileName + ".newer-*",
                  })
         {
             foreach (string path in Directory.GetFiles(directory, pattern))
@@ -289,9 +298,14 @@ public partial class Main : Node3D
         Callable.From(quit.GrabFocus).CallDeferred();
     }
 
-    private static bool IsSelfTest => HasUserArg("--selftest") || HasUserArg("--selftest-resume");
+    private static bool IsRecoveryTest => HasUserArg("--selftest-recovery");
+
+    private static bool IsSelfTest =>
+        HasUserArg("--selftest") || HasUserArg("--selftest-resume") || IsRecoveryTest;
 
     private static bool IsSelfTestResume => HasUserArg("--selftest-resume");
+
+    private static bool LoadSelfTestSave => IsSelfTestResume || IsRecoveryTest;
 
     /// <summary>
     /// F12, screenshot tours and scenario helpers are development tools. They
@@ -303,7 +317,11 @@ public partial class Main : Node3D
         OS.HasFeature("editor") || HasUserArg("--dev") || IsDeveloperRun();
 
     private static string SavePath => ProjectSettings.GlobalizePath(
-        IsSelfTest ? "user://selftest-save.json" : "user://" + SaveService.DefaultFileName);
+        IsRecoveryTest
+            ? "user://selftest-recovery-save.json"
+            : IsSelfTest
+                ? "user://selftest-save.json"
+                : "user://" + SaveService.DefaultFileName);
 
     private static bool IsDeveloperRun() =>
         IsSelfTest || OS.GetCmdlineUserArgs().Any(arg =>
@@ -311,7 +329,7 @@ public partial class Main : Node3D
 
     private void LoadSavedGameIfAvailable()
     {
-        if (IsDeveloperRun() && !IsSelfTestResume) return;
+        if (IsDeveloperRun() && !LoadSelfTestSave) return;
         var loaded = SaveService.Load(SavePath, _catalog);
         _session.ApplyLoad(loaded);
         switch (loaded.Status)
@@ -420,11 +438,11 @@ public partial class Main : Node3D
         _data.Driving = _driving;
     }
 
-    private SaveResult SaveGame(SaveReason reason, bool allowNewerReplacement = false)
+    private SaveResult SaveGame(SaveReason reason)
     {
         if (_world == null || _player == null || _van == null)
             return SaveResult.Invalid("The game world is not ready yet.");
-        if (_session.NewerSavePresent && !allowNewerReplacement)
+        if (_session.NewerSavePresent && !_session.NewerReplacementAuthorized)
             return SaveResult.Invalid("A newer save is present; it was not overwritten.");
 
         SaveResult result;
@@ -434,6 +452,8 @@ public partial class Main : Node3D
             result = SaveService.TrySave(_data, SavePath, _catalog);
             if (result.Success)
                 _session.RecordSaveSuccess();
+            else
+                _session.RecordSaveFailure();
         }
         catch (Exception ex)
         {
@@ -441,6 +461,7 @@ public partial class Main : Node3D
             // a save bug can never crash gameplay. Keep it visible and logged.
             GD.PrintErr($"Save failed (unexpected): {ex}");
             result = SaveResult.Invalid("An unexpected save error occurred. " + ex.Message, ex);
+            _session.RecordSaveFailure();
         }
 
         if (!result.Success && result.Error != null)
@@ -1049,6 +1070,28 @@ public partial class Main : Node3D
 
     private void ContinueAdventure()
     {
+        if (!_session.CanContinue)
+        {
+            ShowTitle();
+            return;
+        }
+
+        // Continue always represents the last successfully persisted save. If
+        // the current memory session was discarded or never persisted (for
+        // example a failed New Game), reload the scene so every builder,
+        // pickup, placement and snapshot is rebuilt from that save.
+        if (!_session.MemoryMatchesPersisted)
+        {
+            _continueAfterReload = true;
+            Error error = GetTree().ReloadCurrentScene();
+            if (error != Error.Ok)
+            {
+                _continueAfterReload = false;
+                _hud.ShowBigToast("The saved village could not be reloaded. Please try again.", 6f, Palette.Red);
+            }
+            return;
+        }
+
         if (string.IsNullOrEmpty(_saveNotice))
             _saveNotice = "Welcome back to Patchwork Island.";
         StartAdventure();
@@ -1058,7 +1101,10 @@ public partial class Main : Node3D
     {
         if (!_session.HasSaveFile)
         {
-            StartAdventure();
+            // There is no persisted session to replace, but a discarded
+            // in-memory session must not leak through the title's New Game
+            // button either. Start a genuinely fresh world.
+            BeginNewGameFromTitle();
             return;
         }
         _hud.Confirm("Start a new game?",
@@ -1066,16 +1112,19 @@ public partial class Main : Node3D
                 ? "This will replace the newer save with a fresh adventure. A preserved copy of the newer save will be kept first."
                 : "This will replace the saved village with a fresh adventure. Your current save will be overwritten.",
             "Start a new game",
-            () =>
-            {
-                var result = ResetSession();
-                StartAdventure();
-                if (!result.Success)
-                    _hud.ShowBigToast(
-                        "The new game is running, but it could not be saved yet. Use Save now from the pause menu to try again.",
-                        7f, Palette.Red);
-            },
+            () => BeginNewGameFromTitle(),
             "Cancel", ShowTitle);
+    }
+
+    private SaveResult BeginNewGameFromTitle()
+    {
+        var result = ResetSession();
+        StartAdventure();
+        if (!result.Success)
+            _hud.ShowBigToast(
+                "The new game is running, but it could not be saved yet. Use Save now from the pause menu to try again.",
+                7f, Palette.Red);
+        return result;
     }
 
     private void ShowTitle()
@@ -1977,24 +2026,41 @@ public partial class Main : Node3D
         AddSettingsToggle(body, "Music", _data.Settings.MusicEnabled, value =>
         {
             _data.Settings.MusicEnabled = value;
-            SaveGame(SaveReason.Settings);
+            SaveSettings();
         });
         AddSettingsToggle(body, "Sound effects", _data.Settings.SfxEnabled, value =>
         {
             _data.Settings.SfxEnabled = value;
-            SaveGame(SaveReason.Settings);
+            SaveSettings();
         });
         AddSettingsToggle(body, "Reduced motion", _data.Settings.ReducedMotion, value =>
         {
             _data.Settings.ReducedMotion = value;
             ApplySettings();
-            SaveGame(SaveReason.Settings);
+            SaveSettings();
         });
         UiKit.Label(body,
             "The game always gives visual feedback, so it is fully playable with sound off. " +
             "Large text and 720p-friendly layout are always on.",
             18, new Color("5C6B7A"));
         UiKit.Label(body, "Settings are saved with your village.", 17, new Color("5C6B7A"));
+    }
+
+    private SaveResult SaveSettings()
+    {
+        var result = SaveGame(SaveReason.Settings);
+        if (!_hud.ModalOpen) return result;
+        if (result.Success)
+        {
+            _hud.SetModalStatus("Setting applied and saved.", false);
+        }
+        else
+        {
+            _hud.SetModalStatus(
+                "Setting applied for this session, but it could not be saved: " + result.Message,
+                true);
+        }
+        return result;
     }
 
     private static void AddSettingsToggle(VBoxContainer body, string label, bool initial, Action<bool> changed)
@@ -2092,7 +2158,11 @@ public partial class Main : Node3D
         ApplySettings();
         ApplyCosmetics();
         RefreshMissionState();
-        var result = SaveGame(SaveReason.NewGame, allowNewerReplacement: true);
+        // Confirming New Game is explicit permission to replace an unsupported
+        // newer save. The permission survives a failed initial write so Save Now
+        // can retry after the I/O problem is resolved.
+        _session.AuthorizeNewerReplacement();
+        var result = SaveGame(SaveReason.NewGame);
         _session.RecordNewGameSave(result,
             "A new game is running, but it could not be saved. The previous save on disk is still available " +
             "from Continue; use Save now to retry the new game.");
@@ -2108,17 +2178,33 @@ public partial class Main : Node3D
             _hud.Confirm("Return to title without saving?",
                 "Progress could not be saved. You can keep playing and try Save now again, or return to the title anyway.",
                 "Return anyway",
-                () =>
-                {
-                    _practiceRaceActive = false;
-                    _session.SetTitleNotice(
-                        "Your most recent progress could not be saved. Continue loads the last successfully saved village.");
-                    ShowTitle();
-                },
+                DiscardUnsavedSessionAndShowTitle,
                 "Keep playing", ShowPauseMenu);
             return;
         }
         _practiceRaceActive = false;
+        ShowTitle();
+    }
+
+    private void DiscardUnsavedSessionAndShowTitle()
+    {
+        _practiceRaceActive = false;
+        _session.DiscardUnsavedSession();
+        if (_session.NewerSavePresent)
+        {
+            _session.SetTitleNotice(
+                "Your most recent progress could not be saved. The newer save on disk remains protected.");
+        }
+        else if (_session.CanContinue)
+        {
+            _session.SetTitleNotice(
+                "Your most recent progress could not be saved. Continue loads the last successfully saved village.");
+        }
+        else
+        {
+            _session.SetTitleNotice(
+                "Your most recent progress could not be saved. There is no earlier save to continue.");
+        }
         ShowTitle();
     }
 
@@ -2165,7 +2251,8 @@ public partial class Main : Node3D
         if (_autosaveTimer <= 0f)
         {
             _autosaveTimer = 20f;
-            if (!_hud.ModalOpen && !_session.NewerSavePresent)
+            if (!_hud.ModalOpen &&
+                (!_session.NewerSavePresent || _session.NewerReplacementAuthorized))
                 SaveGame(SaveReason.Autosave);
         }
 
@@ -2247,7 +2334,19 @@ public partial class Main : Node3D
     internal string RtMode => _controlMode.ToString();
     internal bool RtModalOpen => _hud.ModalOpen;
     internal string RtModalTitle => _hud.ModalTitleText;
+    internal string RtModalStatus => _hud.ModalStatusText;
+    internal bool RtModalStatusVisible => _hud.ModalStatusVisible;
+    internal string RtToastText => _hud.ToastText;
+    internal bool RtToastVisible => _hud.ToastVisible;
     internal bool RtCanContinue => _session.CanContinue;
+    internal bool RtHasSaveFile => _session.HasSaveFile;
+    internal bool RtMemoryMatchesPersisted => _session.MemoryMatchesPersisted;
+    internal bool RtContinueReloadPending => _continueAfterReload;
+    internal bool RtNewerSavePresent => _session.NewerSavePresent;
+    internal bool RtNewerReplacementAuthorized => _session.NewerReplacementAuthorized;
+    internal string RtTitleNotice => _session.TitleNotice;
+    internal string RtSavePath => SavePath;
+    internal MissionCatalog RtCatalog => _catalog;
     internal bool RtPlayerControlled => _player.ControlEnabled;
     internal bool RtVanControlled => _van.InputEnabled;
     internal bool RtPlayerVisible => _player.Visible;
@@ -2257,6 +2356,9 @@ public partial class Main : Node3D
     internal ProcessModeEnum RtVanProcessMode => _van.ProcessMode;
     internal ProcessModeEnum RtWorldProcessMode => _world.ProcessMode;
     internal double RtRaceElapsed => _raceTimer.ElapsedSeconds;
+    internal bool RtBridgeBuilt => _bridgeBuilder?.IsBuilt == true;
+    internal int RtParkPlacementCount => _data.ParkPlacements.Count;
+    internal int RtSwingPieceCount => _data.SwingPieces.Count;
 
     internal void RtStart() => StartAdventure();
     internal void RtContinue() => ContinueAdventure();
@@ -2265,6 +2367,11 @@ public partial class Main : Node3D
     internal void RtOpenSettingsFromPause() => OpenSettingsFromPause();
     internal void RtOpenSettingsFromTitle() => OpenSettingsFromTitle();
     internal void RtConfirmNewGame() => ConfirmNewGame();
+    internal void RtRequestNewGameFromTitle() => StartNewGameFromTitle();
+    internal SaveResult RtStartNewGameFromTitleConfirmed() => BeginNewGameFromTitle();
+    internal void RtReturnToTitle() => ReturnToTitle();
+    internal void RtReturnAnyway() => DiscardUnsavedSessionAndShowTitle();
+    internal Error RtReloadScene() => GetTree().ReloadCurrentScene();
     internal void RtCloseModal() => _hud.CloseModal();
     internal bool RtSaveNow() => SaveGame(SaveReason.Manual).Success;
     internal bool RtForceAutosave() => SaveGame(SaveReason.Autosave).Success;
@@ -2272,6 +2379,13 @@ public partial class Main : Node3D
     internal int RtCoins => _data.Coins;
     internal int RtCompletedCount => _data.CompletedMissions.Count;
     internal string RtActiveMission => _data.ActiveMission;
+    internal bool RtMusicEnabled => _data.Settings.MusicEnabled;
+
+    internal void RtToggleMusic()
+    {
+        _data.Settings.MusicEnabled = !_data.Settings.MusicEnabled;
+        SaveSettings();
+    }
 
     internal void RtSetPlayerAirborne()
     {
