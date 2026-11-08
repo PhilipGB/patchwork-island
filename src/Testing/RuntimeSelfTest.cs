@@ -25,6 +25,7 @@ public partial class RuntimeSelfTest : Node
     private static int _passed;
     private static int _failed;
     private static Vector3 _savedPlayerPosition;
+    private static byte[] _seedBytes;
     private static byte[] _newerOriginalBytes;
 
     public override void _Ready()
@@ -268,6 +269,7 @@ public partial class RuntimeSelfTest : Node
     {
         string path = Main.RtSavePath;
         byte[] seed = File.ReadAllBytes(path);
+        _seedBytes = seed;
         Expect(Main.RtCanContinue && Main.RtHasSaveFile, "seed save offers Continue");
         Expect(Main.RtMemoryMatchesPersisted, "loaded seed matches memory");
 
@@ -325,6 +327,7 @@ public partial class RuntimeSelfTest : Node
             "Continue restored the saved player position");
         Expect(Main.RtActiveMission == "M10", "Continue restored the active mission");
         Expect(Main.RtCanContinue, "loaded save remains continuable");
+        CheckBytes(path, _seedBytes, "Continue reload does not overwrite the persisted save");
 
         // Settings failures must be visible in the settings modal and must not
         // consume the automatic-failure throttle used by autosave.
