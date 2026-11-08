@@ -713,3 +713,151 @@ Known limitations:
 - Windows startup not tested; GPU performance not measured; child playtesting
   not possible.
 - Practice-race progress intentionally resets on reload (reward-free).
+
+## P8.1 — Reliability hardening (v1.0.1) — PASS
+
+Branch `p8.1-reliability-hardening`, baseline `6855f1b35d9c3dbea60eb4bec9bce3509725e916`
+(`v1.0.0`, PR #10). Baseline checks reproduced 0 warnings/0 errors and 44/44
+tests before changes.
+
+Confirmed findings before fixing:
+
+- `SaveValidation.MissionObjectiveMatches` required a completed M10 to still
+  have all furniture physically placed. `FurnitureBuilder` allows pickup and
+  rearrangement after completion, so this legitimate state made every save
+  fail. Reproduced with a completed M10 and one chair picked up; the old code
+  threw `Refusing to write an invalid save: Mission 'M10' is marked complete but
+  its world state is missing.`
+- M05/M09 `elapsedMs` was capped at 3,600,000. A 66-minute race produced
+  `Impossible progress counter 'M05.elapsedMs' = 3960000`, and the counter
+  remained after completion. Reproduced fail-first.
+- `Main.SaveNow` ignored the save result while `Hud` unconditionally changed the
+  pause title to "Paused — Saved"; autosaves were silent.
+- `ResetSession` set `_hasSaveFile/_canContinue` before checking the write.
+- `Main` inherited `ProcessMode.Always` to gameplay nodes, so `_Process` and
+  `_PhysicsProcess` kept running under pause even when gameplay input was off.
+- Pause → New Game → Cancel closed the confirmation without reopening pause,
+  unexpectedly resuming gameplay.
+- `ValidateSwingPlacement` accepted unknown part types; `FurnitureRules.Buy`
+  trusted the UI cap; `CompleteActive` accepted arbitrary bonus values.
+- The mission JSON test compared only selected fields and ignored mechanics,
+  category, site, goal, learning, world effect and top-level metadata.
+- F12 and capture helpers were always active in release runs and wrote to the
+  current working directory; `SaveGame(false)` failures were invisible.
+
+Fail-first evidence (temporary restoration of the old validator before the fix):
+
+```text
+FAIL  M10 rearrangement remains saveable after completion:
+      Refusing to write an invalid save: Mission 'M10' is marked complete but its world state is missing.
+FAIL  later mission progress survives an unplaced post-completion chair:
+      Refusing to write an invalid save: Mission 'M10' is marked complete but its world state is missing.
+FAIL  long race times remain saveable and do not poison later saves:
+      Refusing to write an invalid save: Impossible progress counter 'M05.elapsedMs' = 3600001.
+RESULT: 50 passed, 3 failed
+```
+
+Implemented root-cause fixes:
+
+- **M10 persistence:** completed-world validation now requires the owned table,
+  two chairs and plant (`FurnitureRules.OwnsRequiredSet`) instead of requiring
+  every piece to be placed. Placement slots, uniqueness and placed<=owned are
+  still validated. `MissionRules.HasHouseFurniture` still gates actual mission
+  completion. M03/M07/M08 retain strict physical-world validation.
+- **Race persistence:** `RaceTimer` uses a double clock, saturates at
+  `RaceTimer.MaxStoredMilliseconds` (`int.MaxValue` ms), rounds elapsed time up
+  when storing so reload cannot shorten it, and validates against the same
+  ceiling. Negative/overflow values clamp safely. Optional bonuses remain 5 at
+  the 90 s / 75 s boundaries and 0 after them.
+- **Save feedback:** added `SaveResult` (`Success`, `RecoverableFailure`,
+  `InvalidState`), `SaveFeedbackPolicy`, and `SaveService.TrySave`. Manual saves
+  always show success/failure inline in the pause modal; automatic failures show
+  one throttled warning until a successful save; mission-completion, new-game,
+  return-to-title and quit failures are always explicit. Return/quit offer a
+  safe choice on failure. Window-close failures are logged because the platform
+  is already closing.
+- **New Game consistency:** `SessionSaveState` tracks the last persisted save
+  independently of memory. Failed initial/replacement writes leave the previous
+  Continue state and file intact and add a title notice. Newer-schema protection
+  is preserved; a successful explicit replacement clears the notice.
+- **Pause/runtime:** world, player, camera, van, marker, builders and pickups are
+  explicitly `Pausable`; `Main` and `Hud` remain `Always`. Added
+  `RuntimeSelfTest` with real Godot execution for title/modal pause, player and
+  van physics, race clock, settings, New Game cancel/confirm, mission-completion
+  pause, autosave/manual save and driving save/continue.
+- **Modal cancellation:** `ConfirmNewGame` passes `ShowPauseMenu` as the cancel
+  callback, so Pause → New Game → Cancel returns to the pause modal without a
+  stale unpause. Title cancellation still returns to title.
+- **Domain guards:** swing sockets require `rope`/`seat`; furniture purchase
+  stops at the required quantity; `CompleteActive` rejects negative bonuses,
+  bonuses on non-race jobs and bonuses above 5. Legitimate rewards and
+  exactly-once completion are unchanged.
+- **Content integrity:** added `MissionContentConsistency`, a recursive
+  complete-JSON comparison including every object, array and metadata field.
+  `MissionDefinition.Mechanics` now parses the authored object. Mechanics are
+  documented as reference data; `MissionRules` remains the runtime authority.
+- **Developer tooling:** F12/capture/scenario helpers require the editor,
+  `--dev`, `--capture`, `--scenario-*` or `--selftest*`. Screenshots write to
+  `user://screenshots` or `user://dev-captures`, not the working directory.
+  Capture and file failures are caught and logged; no unobserved task exception
+  path remains.
+- **Tests/CI:** replaced the platform-skipped write failure with a real
+  cross-platform `.tmp`-directory collision and retry. CI now runs 61 pure tests,
+  both Godot runtime phases, imports/boots, exports a real Linux release,
+  verifies embedded `data/missions.json` and `PatchworkIsland.dll`, and boots the
+  exported binary. A `windows-latest` job runs the pure suite on Windows.
+
+Architecture: small extractions only — `SaveResult.cs` (result/policy/session
+state) and `MissionContentConsistency.cs`; no framework or mission-engine
+rewrite. Existing Core/Build/Player/Vehicle/World/UI/Main boundaries remain.
+
+Automated verification:
+
+```text
+$ dotnet build PatchworkIsland.sln
+Build succeeded. 0 Warning(s), 0 Error(s)
+
+$ dotnet run --project tests/PatchworkIsland.Tests.csproj
+RESULT: 61 passed, 0 failed
+
+$ godot --headless --path . --editor --quit     -> exit 0
+$ godot --headless --path . --quit-after 120    -> exit 0
+$ godot --headless --path . -- --selftest       -> 42 passed, 0 failed, exit 0
+$ godot --headless --path . -- --selftest-resume -> 10 passed, 0 failed, exit 0
+```
+
+New pure regressions include: M10 pickup/save/reload, later mission with a chair
+unplaced, M10 completion still requiring placements, long M05/M09 boundaries,
+race saturation/round-trip, exact bonus boundaries, invalid bonus rejection,
+unknown swing parts, furniture purchase caps, save-feedback truth/throttling,
+New Game persisted-state flags, cross-platform write failure/retry, and
+complete mission-file comparison with negative mutations.
+
+Real-input GUI evidence (Xvfb 1280×720, `--dev`):
+
+- **Scenario A (M10):** loaded a valid all-complete save; entered the house,
+  opened furniture mode, picked up a chair, saved manually, quit and relaunched.
+  Continue restored the chair as owned-but-unplaced; it was placed on pad
+  `house4`, saved and verified in JSON. Evidence `p81_00`–`p81_08`.
+- **Scenario B (long race):** loaded a controlled save with M05 active,
+  `checkpoint=4`, `elapsedMs=3,960,000` (66 minutes), no M05/M06 completion.
+  Continue completed M05 on load (+15), then M06 was played normally with real
+  movement/pickups (+15). Manual save succeeded with the long counter still
+  present; quit/relaunch restored both completions, `elapsedMs=3960000` and 130
+  coins. The 66-minute value was injected for a deterministic boundary test; no
+  real-time 66-minute session is claimed. Evidence `p81_10`–`p81_20`.
+- **Save failure/retry:** with the save directory read-only, **Save now** showed
+  **Save failed** and the exact access error, previous file unchanged; restoring
+  permissions and retrying showed **Paused — Saved**. Evidence `p81_21`,
+  `p81_22`, `p81_27`.
+- **New Game failure:** with writes denied, confirmed New Game reset memory to
+  0 coins but kept the 9-job/130-coin file on disk and reported the failure.
+  Quit then offered **Quit without saving?**; choosing it preserved the old file,
+  and relaunch/Continue restored that old save. Evidence `p81_23`–`p81_26`.
+
+Save compatibility: schema remains version 1 and no new required fields were
+added. A synthetic v1.0.0-shaped all-complete save loaded in the real GUI; the
+long-race seed also loaded and saved. Newer-save preservation, corrupt-save
+backup recovery and exactly-once rewards remain covered by the retained tests.
+
+Exports and release verification are recorded in the final v1.0.1 section below.

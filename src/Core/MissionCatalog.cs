@@ -15,12 +15,17 @@ public sealed class MissionDefinition
     public string Short { get; set; } = "";
     public List<string> Prerequisites { get; set; } = new();
     public int RewardCoins { get; set; }
+
+    // The fields below are authored design documentation. Gameplay rules live
+    // in MissionRules/MissionService; keep them out of runtime balance logic.
     public string Category { get; set; } = "";
     public string Site { get; set; } = "";
     public string Goal { get; set; } = "";
     public List<string> Hints { get; set; } = new();
     public List<string> Learning { get; set; } = new();
     public string WorldEffect { get; set; } = "";
+    /// <summary>Authored mechanic description, retained so full-file comparisons see it.</summary>
+    public JsonElement Mechanics { get; set; }
 }
 
 public sealed class MissionContent

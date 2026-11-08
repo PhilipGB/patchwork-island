@@ -2,7 +2,7 @@ name: build-and-test
 
 on:
   push:
-    branches: [main, "p7.1-*", "p8-*"]
+    branches: [main, "p7.1-*", "p8-*", "p8.1-*"]
   pull_request:
 
 jobs:
@@ -43,3 +43,55 @@ jobs:
 
       - name: Boot main scene headlessly
         run: timeout 120 godot --headless --path . --quit-after 120
+
+      - name: Godot runtime pause/modal tests
+        run: |
+          timeout 120 godot --headless --path . -- --selftest
+          timeout 90 godot --headless --path . -- --selftest-resume
+
+      - name: Cache Godot export templates
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/godot/export_templates/4.7.2.stable.mono
+          key: godot-4.7.2-mono-export-templates-v1
+
+      - name: Install matching export templates
+        run: |
+          TEMPLATE_DIR="$HOME/.local/share/godot/export_templates/4.7.2.stable.mono"
+          if [ ! -f "$TEMPLATE_DIR/version.txt" ]; then
+            curl --fail --location --retry 5 --retry-all-errors \
+              --output /tmp/godot_templates.tpz \
+              https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_mono_export_templates.tpz
+            mkdir -p "$TEMPLATE_DIR"
+            unzip -o -j /tmp/godot_templates.tpz \
+              'templates/version.txt' 'templates/linux_release.x86_64' \
+              -d "$TEMPLATE_DIR"
+          fi
+          cat "$TEMPLATE_DIR/version.txt"
+
+      - name: Export and boot the actual Linux release
+        run: |
+          mkdir -p /tmp/patchwork-export
+          timeout 300 godot --headless --path . --export-release "Linux" /tmp/patchwork-export/PatchworkIsland.x86_64
+          test -x /tmp/patchwork-export/PatchworkIsland.x86_64
+          file /tmp/patchwork-export/PatchworkIsland.x86_64
+          strings -n 5 /tmp/patchwork-export/PatchworkIsland.x86_64 | grep -q 'data/missions.json'
+          strings -n 5 /tmp/patchwork-export/PatchworkIsland.x86_64 | grep -q 'PatchworkIsland.dll'
+          timeout 120 /tmp/patchwork-export/PatchworkIsland.x86_64 --headless --quit-after 120
+
+  windows-tests:
+    runs-on: windows-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Build game
+        run: dotnet build PatchworkIsland.sln
+
+      - name: Run pure logic tests
+        run: dotnet run --project tests/PatchworkIsland.Tests.csproj
