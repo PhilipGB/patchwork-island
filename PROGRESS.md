@@ -861,3 +861,66 @@ long-race seed also loaded and saved. Newer-save preservation, corrupt-save
 backup recovery and exactly-once rewards remain covered by the retained tests.
 
 Exports and release verification are recorded in the final v1.0.1 section below.
+
+## v1.0.1 release verification — PASS
+
+- PR **#11** (`P8.1 — Reliability hardening and v1.0.1`) merged as
+  **`cb60a80`**. The release-evidence documentation commit is merged separately
+  before tagging; no code changes are made after the verified merge.
+- Project version and Windows file/product metadata: **1.0.1** / **1.0.1.0**.
+- Final checks at the merged commit:
+
+```text
+$ dotnet build PatchworkIsland.sln
+Build succeeded. 0 Warning(s), 0 Error(s)
+$ dotnet run --project tests/PatchworkIsland.Tests.csproj
+RESULT: 61 passed, 0 failed
+$ godot --headless --path . --editor --quit            -> exit 0
+$ godot --headless --path . --quit-after 120           -> exit 0
+$ godot --headless --path . -- --selftest              -> 42 passed, 0 failed
+$ godot --headless --path . -- --selftest-resume       -> 10 passed, 0 failed
+$ ./dist/linux/PatchworkIsland.x86_64 --headless --quit-after 120 -> exit 0
+$ ./dist/linux/PatchworkIsland.x86_64 --headless -- --selftest     -> 42 passed, 0 failed
+$ ./dist/linux/PatchworkIsland.x86_64 --headless -- --selftest-resume -> 10 passed, 0 failed
+```
+
+Exports (from merged `cb60a80`, matching Godot 4.7.2 .NET templates):
+
+```text
+dist/windows/PatchworkIsland.exe                 190,007,768 bytes  PE32+ x86-64
+dist/linux/PatchworkIsland.x86_64                154,182,328 bytes  ELF x86-64
+dist/PatchworkIsland-1.0.1-Windows-x86_64.zip     72,586,136 bytes
+dist/PatchworkIsland-1.0.1-Linux-x86_64.zip       62,193,946 bytes
+```
+
+Both executables contain `data/missions.json`, `MISSIONS.json`,
+`PatchworkIsland.dll`, the self-contained .NET 8 runtime pack and version
+`1.0.1`. SHA-256:
+
+```text
+c0a3a547764f67edb5d7c7b978b478f502e9dd1057b5b2e4e2cdac39daa1e13f  windows/PatchworkIsland.exe
+d68ad966c3f0fd0161467ba0cdff08f7d46d3b98f1353883bdf915360dd7fe17  linux/PatchworkIsland.x86_64
+aa78df480ef5690a01973623a25405dc5147e33144561c05cc93ecf66354d4f5  PatchworkIsland-1.0.1-Windows-x86_64.zip
+37802585dd177a26b2dd82d273bb1e4d5e90e2ed88dabca2ec602f353a59ec1c  PatchworkIsland-1.0.1-Linux-x86_64.zip
+```
+
+`sha256sum -c SHA256SUMS` passed for all four files.
+
+- Linux exported build launched under Xvfb/Mesa llvmpipe: title with Continue,
+  existing 9-job save, 130 coins and the job board loaded
+  (`evidence/p81_30_v101_export_title.png`,
+  `evidence/p81_31_v101_export_jobs.png`). The packaged binary also passed the
+  two runtime phases headlessly, proving the selftest/assets survive export.
+- F12 in the normal exported build produced no screenshot (23 files before and
+  after), confirming the developer gate. Developer screenshots are available
+  only with an explicit development argument.
+- Windows x64 export: **PASS**. PE32+ x86-64, self-contained .NET runtime pack,
+  embedded mission content and `PatchworkIsland.dll` present; version resource
+  `1.0.1.0`. **Windows startup: NOT TESTED** — no Windows runtime or Wine is
+  available. Static inspection is not runtime verification.
+- Distributables: `dist/PatchworkIsland-1.0.1-Windows-x86_64.zip`,
+  `dist/PatchworkIsland-1.0.1-Linux-x86_64.zip`, `dist/SHA256SUMS`,
+  `dist/README.txt`.
+- Remaining limitations unchanged: no bundled audio, fixed text scaling,
+  Windows startup unverified, GPU performance and child usability untested.
+  The practice race remains reward-free and intentionally unsaved.
