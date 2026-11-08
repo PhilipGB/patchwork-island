@@ -343,16 +343,10 @@ public partial class RuntimeSelfTest : Node
             "settings failure is shown inside the modal");
         Expect(!Main.RtMusicEnabled, "settings change takes effect in memory before persistence");
         Expect(Main.RtModalTitle == "Settings", "settings failure keeps the modal open");
-        SaveService.ClearTestWriteFailure();
-        Main.RtToggleMusic();
-        await Wait(0.15f);
-        Expect(Main.RtModalStatusVisible && Main.RtModalStatus.Contains("saved"),
-            "settings retry replaces the failure message");
-        Expect(Main.RtMusicEnabled, "settings retry applies the persisted value");
         Main.RtCloseModal();
         await Wait(0.25f);
         Expect(Main.RtModalOpen && Main.RtModalTitle == "Paused" && Main.RtPaused,
-            "settings returns to pause after success");
+            "settings returns to pause after failure");
         Main.RtResume();
         await Wait(0.2f);
 
@@ -366,6 +360,22 @@ public partial class RuntimeSelfTest : Node
             "first autosave warning survives a settings failure");
         SaveService.ClearTestWriteFailure();
         Expect(Main.RtForceAutosave(), "autosave succeeds after recovery");
+
+        Main.RtPause();
+        await Wait(0.2f);
+        Main.RtOpenSettingsFromPause();
+        await Wait(0.2f);
+        Main.RtToggleMusic();
+        await Wait(0.15f);
+        Expect(Main.RtModalStatusVisible && Main.RtModalStatus.Contains("saved"),
+            "settings retry replaces the failure message");
+        Expect(Main.RtMusicEnabled, "settings retry applies the persisted value");
+        Main.RtCloseModal();
+        await Wait(0.25f);
+        Expect(Main.RtModalOpen && Main.RtModalTitle == "Paused" && Main.RtPaused,
+            "settings returns to pause after success");
+        Main.RtResume();
+        await Wait(0.2f);
 
         // Scenario B: a discarded gameplay change must not be continued.
         byte[] persisted = File.ReadAllBytes(path);
