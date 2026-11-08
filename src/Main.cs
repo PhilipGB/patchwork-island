@@ -2190,8 +2190,21 @@ public partial class Main : Node3D
     {
         _practiceRaceActive = false;
         _session.DiscardUnsavedSession();
-        _session.SetTitleNotice(
-            "Your most recent progress could not be saved. Continue loads the last successfully saved village.");
+        if (_session.NewerSavePresent)
+        {
+            _session.SetTitleNotice(
+                "Your most recent progress could not be saved. The newer save on disk remains protected.");
+        }
+        else if (_session.CanContinue)
+        {
+            _session.SetTitleNotice(
+                "Your most recent progress could not be saved. Continue loads the last successfully saved village.");
+        }
+        else
+        {
+            _session.SetTitleNotice(
+                "Your most recent progress could not be saved. There is no earlier save to continue.");
+        }
         ShowTitle();
     }
 

@@ -462,6 +462,8 @@ public partial class RuntimeSelfTest : Node
         await Wait(0.25f);
         Expect(!Main.RtStarted && !Main.RtCanContinue && !Main.RtHasSaveFile,
             "failed first-ever session has no Continue after discard");
+        Expect(!Main.RtTitleNotice.Contains("Continue loads"),
+            "no-save discard does not promise a Continue that does not exist");
         SaveService.ClearTestWriteFailure();
 
         Main.RtRequestNewGameFromTitle();
@@ -573,6 +575,8 @@ public partial class RuntimeSelfTest : Node
         await Wait(0.25f);
         Expect(!Main.RtCanContinue && Main.RtNewerSavePresent && !Main.RtNewerReplacementAuthorized,
             "discard clears replacement permission and keeps newer protection");
+        Expect(Main.RtTitleNotice.Contains("newer") && Main.RtTitleNotice.Contains("protected"),
+            "newer-save discard notice explains the protected file");
         CheckBytes(path, _newerOriginalBytes, "discard leaves newer save untouched");
 
         var failedAgain = Main.RtStartNewGameFromTitleConfirmed();
