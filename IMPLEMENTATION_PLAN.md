@@ -57,8 +57,12 @@ post-completion furniture and long-race save invalidation, truthful save
 feedback, New Game persistence state, runtime-verified Godot pause behaviour,
 pause-confirmation cancellation, domain guards, complete mission-content
 comparison, developer-tool gating, runtime integration tests and release smoke
-verification. See `PROGRESS.md` and `ACCEPTANCE.md` for the executed commands,
-pass/fail matrix, artifacts and remaining environment limitations.**
+verification. P8.2 (v1.0.2) corrects persisted-session restoration for Continue,
+session-scoped newer-save replacement retries, settings-modal save feedback,
+duplicate mission-JSON detection, domain-verified race bonuses and adds
+deterministic Godot failure-recovery integration coverage. See `PROGRESS.md`
+and `ACCEPTANCE.md` for the executed commands, pass/fail matrix, artifacts and
+remaining environment limitations.**
 
 **Build:** automated tests for mission state machine, prerequisites, pricing, inventory, building snap, and save serialization. Headless Godot smoke tests and final dotnet build. Real GUI walkthrough if display available. Add README_RUN.md with prerequisites, commands, data paths, gameplay instructions, troubleshooting. Package a Windows x64 build **if appropriate export tools are installed** and verify startup if possible. Genuine screenshots in `evidence/` if rendering available; document unavailable capabilities otherwise. Commit final work and make status clear.
 

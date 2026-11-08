@@ -7,7 +7,8 @@ Screenshot reference boards are not in-game evidence.
 
 Release baseline: `main` after the P8 final-release PR. P7.1 stability hardening
 was merged first (PR #9). P8.1 reliability hardening is recorded below and in
-`PROGRESS.md`; evidence is under `evidence/p8_*.png` and `evidence/p81_*.png`.
+`PROGRESS.md`; P8.2 session recovery follows it. Evidence is under
+`evidence/p8_*.png`, `evidence/p81_*.png` and `evidence/p82_*.png`.
 
 ## A. Boot / controls / visual
 
@@ -231,6 +232,96 @@ test assembly. No item was marked PASS from code inspection alone.
 No P8 regression was found: all ten missions, bridge/swing/park restoration,
 furniture movement, free roam, reward-free practice, celebration-once and
 exactly-once rewards remain covered by the retained P8 evidence and tests.
+
+## P8.2 — Session recovery hardening (v1.0.2)
+
+All items below were exercised with the real Godot scene, the dependency-free
+test assembly, or both. Failure injection is a process-local internal seam and
+is not active in normal gameplay.
+
+- [x] Continue restores the persisted session after a failed New Game. **PASS**
+  — runtime recovery phase: seed nine-mission/130-coin save → failed New Game →
+  Return to title → Return anyway → Continue. The scene reloaded and restored
+  130 coins, nine completions, the active M10 job, bridge, six swing pieces,
+  three park placements and the saved player position. The save bytes were
+  unchanged after reload. Fail-first: the old Continue path produced
+  `FAIL Continue requested a persisted-session reload`.
+- [x] Unsaved gameplay changes are discarded at the title. **PASS** — moved the
+  player, forced the return save to fail, chose Return anyway, and Continued.
+  The persisted position and wallet were restored, not the unsaved movement.
+- [x] A successful New Game becomes the new persisted session. **PASS** — New
+  Game succeeded after a persisted nine-mission village, wrote a 0-coin save,
+  and Continue loaded the new village while `MemoryMatchesPersisted` was true.
+- [x] A failed first-ever save creates no false Continue. **PASS** — no-save
+  title → forced first-write failure → Return anyway; no Continue was offered,
+  no file was created, and the notice did not promise a nonexistent Continue.
+  `Start adventure` then created a genuinely fresh saved session.
+- [x] Recovered backup still continues the recovered state. **PASS** — a valid
+  backup-only save was recovered, a failed New Game left the backup untouched,
+  and Continue restored the recovered nine-mission village.
+- [x] Authorised newer-save replacement is retryable. **PASS** — schema-99 save
+  → cancellation left permissions clear and bytes unchanged → confirmed New
+  Game failed → permission survived → Return anyway cleared it → second
+  confirmed New Game failed → Save Now after clearing the simulated I/O error
+  replaced the save with schema 1. Exactly one `newer-v99` preserved copy
+  existed and matched the original bytes. Fail-first: removing explicit
+  authorisation produced 12 runtime failures, including
+  `failed replacement keeps the confirmed permission for Save Now`.
+- [x] Unauthorised newer saves remain protected. **PASS** — stepped
+  `NewerSavePresent`/`NewerReplacementAuthorized` assertions cover load,
+  cancellation, failure, discard, success and relaunch. No caller override
+  remains in `SaveGame`.
+- [x] Settings failures are visible inside the settings modal. **PASS** — real
+  runtime phase opened Pause → Settings, injected a write failure, toggled
+  Music, and observed the inline “could not be saved” message while the modal
+  stayed open. The toggle took effect in memory.
+- [x] Settings failures do not suppress the next autosave warning. **PASS** —
+  immediately after the settings failure, an injected autosave failure showed
+  “Autosave failed” in the HUD. Pure policy tests also assert separate
+  throttles.
+- [x] Successful settings retry clears the failure message. **PASS** — reopened
+  Settings after recovery, toggled successfully, observed “Setting applied and
+  saved.”, and returned to Pause correctly.
+- [x] Duplicate mission JSON properties are rejected at any depth. **PASS** —
+  `MissionContentConsistency` uses `TryAdd` and reports the JSON path/property.
+  Tests cover duplicate top-level keys, nested mechanics keys and array-element
+  objects, plus order-independent objects, order-sensitive arrays, invalid
+  JSON and the authored files. Fail-first with the old dictionary assignment:
+  `FAIL duplicate top-level property rejected`.
+- [x] Optional race bonuses are verified by the domain. **PASS** — M05/M09
+  reject +5 when persisted elapsed time is 120 s, while exact 90 s / 75 s
+  boundaries succeed. The millisecond round-up contract and long-race
+  saturation are unchanged. Fail-first: `FAIL M05 rejects a bonus on a slow
+  race`.
+- [x] Deterministic write failure injection works without permissions. **PASS**
+  — pure test injects an `IOException` for a specific path, verifies the exact
+  previous bytes remain, clears the hook and verifies a successful retry.
+- [x] Godot integration coverage executes the real recovery transitions.
+  **PASS** — `--selftest-recovery` uses a separate `user://` save, reloads the
+  real scene eight times, and passes **98 assertions**. Existing pause/resume
+  phases remain **42 + 10**. No assertion counts an unexecuted test.
+- [x] Build, imports, runtime and CI remain green. **PASS** — build 0 warnings/
+  0 errors; pure **67 passed, 0 failed**; editor/boot exit 0; runtime
+  **42 + 10 + 98 passed, 0 failed**; GitHub Actions Linux build/runtime/export/
+  exported-boot and Windows pure tests pass.
+- [x] Save compatibility is preserved. **PASS** — schema remains version 1 with
+  no new required fields. Newer-save protection, corrupt/backup recovery,
+  exactly-once rewards, M10 unplaced furniture and long race counters remain
+  covered by the retained tests.
+- [x] Linux release export launches and passes smoke tests. **PASS** — v1.0.2
+  export (version `1.0.2`) was launched under Xvfb, loaded the existing
+  nine-job/130-coin save and job board (`p82_00`, `p82_01`), passed
+  `42 + 10 + 98` runtime assertions from the packaged executable, and F12 wrote
+  no screenshot. **Windows export: PASS** — PE32+ x86-64, version `1.0.2.0`,
+  mission content, assemblies and self-contained .NET 8 runtime present.
+  **Windows startup: NOT TESTED** (no Windows runtime or Wine). SHA-256
+  checksums verified for both executables and both ZIPs.
+
+No P8.1 regression was found: the pause/modal, M10 rearrangement, long-race,
+save-feedback and domain-guard coverage remains in place. A full fresh-save
+ten-mission walkthrough was **not** repeated in P8.2; the retained v1.0.0/P8
+walkthrough remains the gameplay baseline, supplemented by the targeted
+real-input and runtime regressions above.
 
 ## Release severity
 

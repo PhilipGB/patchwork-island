@@ -1,12 +1,13 @@
 # Patchwork Island — run and test guide
 
-> Status: P8.1 (v1.0.1) reliability release complete. All ten missions,
+> Status: P8.2 (v1.0.2) session-recovery release complete. All ten missions,
 > practice racing, the all-jobs celebration, save/load, settings, onboarding,
-> stability hardening and release packaging are in place. P8.1 fixes
-> post-completion furniture and long-race save invalidation, makes every save
-> failure visible, protects New Game persistence flags, verifies pause
-> behaviour at runtime and fixes pause-confirmation cancellation. See
-> `ACCEPTANCE.md` and `PROGRESS.md` for the final pass/fail matrix and evidence.
+> stability hardening and release packaging are in place. P8.2 makes Continue
+> reload the persisted village after a discarded or failed session, allows
+> authorised newer-save replacement retries, reports settings failures inside
+> their modal, rejects duplicate mission JSON properties and verifies race
+> bonuses against the persisted clock. See `ACCEPTANCE.md` and `PROGRESS.md` for
+> the final pass/fail matrix and evidence.
 
 ## Prerequisites
 
@@ -61,30 +62,39 @@ godot --headless --path . --quit-after 120
 dotnet run --project tests/PatchworkIsland.Tests.csproj
 ```
 
-The runner currently has **61 tests** and covers mission catalog, prerequisites,
+The runner currently has **67 tests** and covers mission catalog, prerequisites,
 unlocks, duplicate pickups, exactly-once rewards, mission switching, hints,
 bridge/swing snapping (including rejected unknown part types), grocery and park
 budgets, furniture costs/starter fallback/purchase caps, ordered checkpoints,
-optional race-bonus boundaries and invalid bonus rejection, the full ten-job
-graph, JSON round-trips, structural save validation, corrupt/backup recovery,
-newer-save preservation, a real cross-platform failed-write/retry, race-time
-restoration and saturation, post-completion furniture rearrangement, save
-feedback throttling, New Game persistence flags, control-mode precedence,
-mission-catalogue integrity and a complete-field comparison of
-`MISSIONS.json`/`data/missions.json`.
+optional race-bonus boundaries, persisted-clock bonus verification and invalid
+bonus rejection, the full ten-job graph, JSON round-trips, structural save
+validation, corrupt/backup recovery, newer-save preservation, deterministic
+in-process failed-write/retry, race-time restoration and saturation,
+post-completion furniture rearrangement, save-feedback throttling, settings
+feedback isolation, persisted/discarded session state, newer-replacement
+permission, control-mode precedence, mission-catalogue integrity and a
+complete-field comparison of `MISSIONS.json`/`data/missions.json` that rejects
+duplicate properties at any depth.
 
 ## Godot runtime integration tests
 
 ```bash
 godot --headless --path . -- --selftest
 godot --headless --path . -- --selftest-resume
+godot --headless --path . -- --selftest-recovery
 ```
 
-These use an isolated `user://selftest-save.json` and run 52 assertions across
-two processes: title/modal pause, pausable player/van/world processing, stopped
-physics and race timers, Pause→Settings→Pause, Title→Settings→Title, New Game
-confirmation cancellation, mission-completion pause, New Game reset, manual and
-automatic saves, and save/relaunch while driving.
+These use isolated `user://selftest-save.json` and
+`user://selftest-recovery-save.json` files and run **150 assertions across
+three phases**. The first two cover title/modal pause, pausable player/van/world
+processing, stopped physics and race timers, Pause→Settings→Pause,
+Title→Settings→Title, New Game confirmation cancellation, mission-completion
+pause, New Game reset, manual/automatic saves, and save/relaunch while driving.
+The recovery phase injects deterministic write failures and reloads the real
+scene to verify failed New Game recovery, discarded movement, backup recovery,
+the no-save case, settings failure feedback, autosave warning independence,
+newer-save replacement retries, preserved newest-version copies and unchanged
+on-disk bytes.
 
 If a concurrently running Godot instance makes `dotnet run` wait on the project
 DLL, build once and execute the test assembly directly:
@@ -140,6 +150,19 @@ The P8.1 regression scenarios, with real input, verified:
 - A failed New Game kept the old on-disk save and did not advertise the new
   session as persisted. Quit-without-saving then restored the old save.
 
+The P8.2 Godot recovery phase adds deterministic failure and reload coverage:
+
+- Failed New Game → Return to title → Return anyway → Continue restored the
+  nine-mission/130-coin save and its active M10 job from disk.
+- A discarded movement change did not survive Continue; the persisted player
+  position and wallet were restored.
+- A schema-99 newer save survived cancellation and failed replacement writes;
+  after explicit New Game confirmation and an I/O recovery, Save Now replaced
+  it and preserved an exact `newer-v99` copy.
+- A settings write failure was displayed inside the settings modal, and the
+  next autosave failure still produced its first warning. A successful settings
+  retry replaced the error state.
+
 ## Release packaging
 
 Export templates for Godot 4.7.2 .NET must be installed under
@@ -160,13 +183,18 @@ runtime or Wine. See `dist/SHA256SUMS` and `dist/README.txt`.
 
 ```text
 dotnet build PatchworkIsland.sln                         -> 0 warnings, 0 errors
-dotnet run --project tests/PatchworkIsland.Tests.csproj -> 61 passed, 0 failed
+dotnet run --project tests/PatchworkIsland.Tests.csproj -> 67 passed, 0 failed
 godot --headless --path . --editor --quit                -> exit 0
 godot --headless --path . --quit-after 120               -> exit 0
 godot --headless --path . -- --selftest                  -> 42 passed, 0 failed
 godot --headless --path . -- --selftest-resume           -> 10 passed, 0 failed
+godot --headless --path . -- --selftest-recovery         -> 98 passed, 0 failed
 Linux exported binary --headless --quit-after 120        -> exit 0
-Linux exported binary (Xvfb)                             -> title, Continue and job board verified
+Linux exported binary (headless)                         -> 42 + 10 + 98 passed, 0 failed
+Linux exported binary (Xvfb)                             -> title, Continue, 130 coins and job board verified
+Linux exported F12 gate                                  -> no screenshot written
+Windows export                                           -> PASS, version 1.0.2.0
+Windows startup                                          -> NOT TESTED
 ```
 
 Performance on this machine was measured only with the Mesa llvmpipe software
@@ -208,9 +236,14 @@ placements, wallet, inventory and the celebration flag are all stored. Autosave
 runs every 20 seconds while playing and after mission start/completion.
 
 Manual save success/failure is shown inside the pause modal. Automatic failures
-produce one visible warning until a later save succeeds. Return-to-title and
-quit failures offer a safe choice instead of implying success. A failed New
-Game leaves the previous persisted save and Continue state untouched.
+produce one visible warning until a later save succeeds. Settings failures are
+shown inside the settings modal with their own throttle, so they cannot hide a
+later autosave warning. Return-to-title and quit failures offer a safe choice
+instead of implying success. A failed New Game leaves the previous persisted
+save and Continue state untouched. If the unsaved session is then discarded,
+Continue reloads the scene from the last successfully saved file. An explicitly
+confirmed New Game may replace a newer save; that permission is session-scoped
+and survives a failed write for a Save Now retry.
 
 Completed M10 saves validate the owned furniture set rather than requiring all
 pieces to be placed, so rearrangement is always saveable. Completion itself

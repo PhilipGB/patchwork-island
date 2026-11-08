@@ -924,3 +924,149 @@ aa78df480ef5690a01973623a25405dc5147e33144561c05cc93ecf66354d4f5  PatchworkIslan
 - Remaining limitations unchanged: no bundled audio, fixed text scaling,
   Windows startup unverified, GPU performance and child usability untested.
   The practice race remains reward-free and intentionally unsaved.
+
+## P8.2 — Session recovery hardening (v1.0.2) — PASS
+
+Branch `p8.2-session-recovery`, baseline `e2aa46fb8a974c8f49dc88a73b2fc89538d8b8e3`
+(`v1.0.1`, PRs #11/#12). Baseline reproduced: 0 warnings/0 errors, 61/61 pure
+tests, 42 + 10 runtime assertions, editor import and headless boot exit 0.
+
+Confirmed defects before fixing:
+
+- `ContinueAdventure()` always called `StartAdventure()` on the current `_data`.
+  After a failed New Game and Return to title → Return anyway, the title still
+  offered Continue for the old file, but Continue resumed the fresh in-memory
+  session. The startup notice promised the persisted village.
+- `ResetSession()` could only pass `allowNewerReplacement: true` on its first
+  save. A failed initial replacement left `NewerSavePresent` true while every
+  later manual/automatic save was refused.
+- Settings saves shared the automatic-failure throttle. A settings failure
+  could be hidden behind its modal and suppress the next autosave warning.
+- `MissionContentConsistency` assigned object properties into a dictionary,
+  silently collapsing duplicate JSON keys.
+- `CompleteActive(5)` accepted a race bonus without checking the persisted
+  `elapsedMs`; a slow race could be awarded +5 by a direct caller.
+- The discard notice always said Continue loads the saved village, even when no
+  save existed or a newer save was protected and Continue was unavailable.
+
+Fail-first evidence (temporary restoration of the old behaviour, then restored):
+
+```text
+FAIL  Continue requested a persisted-session reload
+RUNTIME RESULT: 15 passed, 1 failed
+
+FAIL  failed replacement keeps the confirmed permission for Save Now
+FAIL  second confirmed replacement regains retry permission
+FAIL  Save Now retries and replaces the newer save
+... 12 failures ...
+RUNTIME RESULT: 75 passed, 12 failed
+
+FAIL  mission consistency rejects duplicate object properties: duplicate top-level property rejected
+RESULT: 66 passed, 1 failed
+
+FAIL  race bonuses are verified against the persisted race clock: M05 rejects a bonus on a slow race
+RESULT: 66 passed, 1 failed
+
+FAIL  settings failures are visible without suppressing autosave warnings: settings message separates memory from disk
+RESULT: 66 passed, 1 failed
+```
+
+Implemented:
+
+- `SessionSaveState` now tracks `MemoryMatchesPersisted` independently from
+  `CanContinue`/`HasSaveFile`, plus session-scoped
+  `NewerReplacementAuthorized`. Failed writes mark memory unsaved; discarding
+  clears memory/authorisation; success clears newer protection and permission.
+- `ContinueAdventure()` reloads the complete Godot scene when the current memory
+  is not the persisted session. This rebuilds builders, pickups, world effects,
+  player/van snapshots, driving state and camera from disk rather than swapping
+  a `GameData` reference under stale scene objects.
+- New Game confirmation authorises newer-save replacement for that session.
+  The permission survives a failed write so Save Now and autosave may retry;
+  cancellation never grants it, and discard/load/success clear it.
+- Settings use a separate failure throttle and inline modal status. A failed
+  toggle applies in memory but reports that it was not persisted; success
+  replaces the message. Autosave keeps its own first-failure warning.
+- `MissionContentConsistency` rejects duplicate object keys at every depth with
+  JSON path/property diagnostics.
+- `CompleteActive` verifies optional bonuses against persisted race
+  milliseconds, preserving 90 s M05 / 75 s M09 boundaries and round-up.
+- Added a path-specific process-local `SaveService` failure seam for tests. It
+  is internal, never enabled by normal gameplay, and leaves bytes untouched.
+- Discard notices now distinguish a valid old save, a protected newer save and
+  no save at all. A no-save Start adventure resets rather than reusing discarded
+  memory.
+
+Automated verification at merged code commit `211c928`:
+
+```text
+$ dotnet build PatchworkIsland.sln                         -> 0 warnings, 0 errors
+$ dotnet run --project tests/PatchworkIsland.Tests.csproj  -> 67 passed, 0 failed
+$ godot --headless --path . --editor --quit                -> exit 0
+$ godot --headless --path . --quit-after 120               -> exit 0
+$ godot --headless --path . -- --selftest                  -> 42 passed, 0 failed
+$ godot --headless --path . -- --selftest-resume           -> 10 passed, 0 failed
+$ godot --headless --path . -- --selftest-recovery         -> 98 passed, 0 failed
+```
+
+GitHub Actions run `42500008863` passed the Linux build/pure/runtime/export/
+exported-boot job and the Windows pure-test job (67 tests).
+
+The recovery integration phase uses `user://selftest-recovery-save.json`,
+injects deterministic I/O failures, reloads the real scene eight times, and
+covers: failed New Game → Continue, discarded movement → Continue, successful
+New Game → Continue, no-save first failure, recovered backup, settings failure
+and autosave warning independence, newer-save cancellation/failure/discard/
+retry/preserved-copy/relaunch, and exact on-disk byte preservation.
+
+Full ten-mission walkthrough was not repeated in P8.2; the retained v1.0.0/P8
+walkthrough remains the gameplay baseline plus targeted real-input and runtime
+regressions. No P8.1 regression was found.
+
+## v1.0.2 release verification — PASS
+
+- P8.2 code PR **#13** merged as **`211c928`**. Final checks at that commit:
+  0 warnings/0 errors, 67 pure tests, editor/boot exit 0, runtime
+  **42 + 10 + 98**.
+- Project version `1.0.2`; Windows file/product version `1.0.2.0`.
+- Exports built from the release tree with Godot 4.7.2 .NET templates:
+
+```text
+dist/windows/PatchworkIsland.exe                  190,050,088 bytes  PE32+ x86-64
+dist/linux/PatchworkIsland.x86_64                 154,224,648 bytes  ELF x86-64
+dist/PatchworkIsland-1.0.2-Windows-x86_64.zip       72,595,458 bytes
+dist/PatchworkIsland-1.0.2-Linux-x86_64.zip         62,221,666 bytes
+```
+
+Both executables contain `data/missions.json`, `MISSIONS.json`,
+`PatchworkIsland.dll`, the self-contained .NET 8 runtime pack and version
+`1.0.2`. SHA-256:
+
+```text
+044e3e61320f4012a85096d3d4431e649fea9dda70f7416908253fc5a5014c8d  windows/PatchworkIsland.exe
+4a95377b5bf88bc20bdedd35c1307286470b53279a9166ab281bb5423a5dcac5  linux/PatchworkIsland.x86_64
+bb4eb027ef80327ede43ce0931f3cbce94cfc60bfb6eec22de9416b12ebcc846  PatchworkIsland-1.0.2-Windows-x86_64.zip
+2650ae5dd4b8ecedab766265cd23512084e5e3d3b81fcfe3cfdc7b3e6f45df9e  PatchworkIsland-1.0.2-Linux-x86_64.zip
+```
+
+`sha256sum -c SHA256SUMS` passed for all four files.
+
+- Linux exported binary:
+  - `--headless --quit-after 120` exit 0.
+  - `--selftest` 42 passed, 0 failed.
+  - `--selftest-resume` 10 passed, 0 failed.
+  - `--selftest-recovery` 98 passed, 0 failed.
+  - Launched under Xvfb/Mesa llvmpipe: title with Continue, existing
+    nine-job/130-coin save and full DONE job board
+    (`evidence/p82_00_v102_export_title.png`,
+    `evidence/p82_01_v102_export_jobs.png`).
+  - F12 in the normal export produced no screenshot (23 files before/after).
+- Windows x64 export: **PASS**; PE32+ x86-64, embedded mission content,
+  assemblies and self-contained .NET 8 runtime, version `1.0.2.0`.
+  **Windows startup: NOT TESTED** — no Windows runtime or Wine.
+- Distributables: `dist/PatchworkIsland-1.0.2-Windows-x86_64.zip`,
+  `dist/PatchworkIsland-1.0.2-Linux-x86_64.zip`, `dist/SHA256SUMS`,
+  `dist/README.txt`.
+- Remaining limitations unchanged: no bundled audio, fixed text scaling,
+  Windows startup unverified, GPU performance and child usability untested.
+  Practice racing remains reward-free and intentionally unsaved.
