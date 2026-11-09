@@ -54,7 +54,7 @@ public partial class RuntimeSelfTest : Node
 
         if (reloading) return;
         Main.RtStopAudio();
-        await Wait(0.2f);
+        await Wait(0.6f);
         GD.Print($"RUNTIME RESULT: {_passed} passed, {_failed} failed");
         GetTree().Quit(_failed == 0 ? 0 : 1);
     }

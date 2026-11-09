@@ -56,28 +56,14 @@ public partial class AudioManager : Node
 
     public override void _ExitTree()
     {
-        StopAll();
-        _cache.Clear();
         if (Instance == this) Instance = null;
     }
 
     public void StopAll()
     {
-        if (_musicPlayer != null)
-        {
-            _musicPlayer.Stop();
-            _musicPlayer.Stream = null;
-        }
-        foreach (var voice in _sfxVoices)
-        {
-            voice.Stop();
-            voice.Stream = null;
-        }
-        foreach (var voice in _spatialVoices)
-        {
-            voice.Stop();
-            voice.Stream = null;
-        }
+        _musicPlayer?.Stop();
+        foreach (var voice in _sfxVoices) voice.Stop();
+        foreach (var voice in _spatialVoices) voice.Stop();
     }
 
     public static void EnsureBuses()
@@ -374,9 +360,9 @@ public partial class AudioManager : Node
             }
             else if (stream is AudioStreamWav wav)
             {
+                // Import settings already define the engine loop points. Only
+                // force the mode here so a non-looping import cannot play once.
                 wav.LoopMode = AudioStreamWav.LoopModeEnum.Forward;
-                wav.LoopBegin = 0;
-                wav.LoopEnd = Math.Max(1, wav.Data.Length / 2);
             }
         }
         return stream;

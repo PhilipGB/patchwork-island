@@ -72,16 +72,8 @@ public partial class VanController : CharacterBody3D
 
     public void StopEngineAudio()
     {
-        if (_engineIdle != null)
-        {
-            _engineIdle.Stop();
-            _engineIdle.Stream = null;
-        }
-        if (_engineDrive != null)
-        {
-            _engineDrive.Stop();
-            _engineDrive.Stream = null;
-        }
+        _engineIdle?.Stop();
+        _engineDrive?.Stop();
     }
 
     private void BuildVisual()
