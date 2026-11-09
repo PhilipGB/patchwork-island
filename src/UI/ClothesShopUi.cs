@@ -158,11 +158,14 @@ public sealed class ClothesShopUi
 
         if (!outcome.Success)
         {
+            AudioManager.PlayUi("ui_error");
             ShowStatus(outcome.Message, true);
             Refresh();
             return;
         }
 
+        AudioManager.PlayWorld(owned ? "outfit_equip" : "shop_buy");
+        if (!owned) AudioManager.PlayWorld("coin_spend", -7f);
         var save = _onChanged?.Invoke();
         Refresh();
         PreviewOutfit(outfit.Id);
@@ -187,10 +190,12 @@ public sealed class ClothesShopUi
         var outcome = CharacterCustomisation.SetPreset(_data, preset);
         if (!outcome.Success)
         {
+            AudioManager.PlayUi("ui_error");
             ShowStatus(outcome.Message, true);
             return;
         }
 
+        AudioManager.PlayWorld("outfit_equip");
         var save = _onChanged?.Invoke();
         Refresh();
         PreviewOutfit(_data.EquippedOutfit);

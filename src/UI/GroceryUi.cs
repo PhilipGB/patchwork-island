@@ -102,10 +102,12 @@ public partial class GroceryUi : Node
         var outcome = add ? _missions.AddGrocery(key) : _missions.RemoveGrocery(key);
         if (!outcome.Success)
         {
+            AudioManager.PlayUi("ui_error");
             _statusLabel.Text = outcome.Message;
             _statusLabel.AddThemeColorOverride("font_color", Palette.Red);
             return;
         }
+        AudioManager.PlayWorld(add ? "coin_spend" : "ui_cancel", -7f);
         Refresh();
         _onChanged?.Invoke();
     }

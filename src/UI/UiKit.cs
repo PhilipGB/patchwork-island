@@ -74,6 +74,8 @@ public static class UiKit
         button.AddThemeStyleboxOverride("pressed", Style(border ?? Palette.Blue, border ?? Palette.Blue, 14, 3, 18, 8));
         button.AddThemeStyleboxOverride("focus", Style(new Color("FFF3C9"), Palette.Yellow, 14, 5, 18, 8));
         button.AddThemeStyleboxOverride("disabled", Style(new Color("E4E0D8"), new Color("B9B3A8"), 14, 3, 18, 8));
+        button.Pressed += () => AudioManager.PlayUi("ui_confirm");
+        button.MouseEntered += () => AudioManager.PlayUi("ui_hover");
         parent?.AddChild(button);
         return button;
     }

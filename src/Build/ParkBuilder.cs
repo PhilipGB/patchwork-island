@@ -141,6 +141,7 @@ public partial class ParkBuilder : Node3D, IBuildMode
         RefreshBar();
         _onProgress?.Invoke();
         _hud.ShowToast(outcome.Message, 2.4f, Palette.Success);
+        AudioManager.PlayWorld("build_place");
 
         if (ParkRules.IsComplete(_data))
             CompleteBuild();

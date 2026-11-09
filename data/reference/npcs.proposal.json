@@ -1,0 +1,226 @@
+{
+  "format": "patchwork-npc-proposal",
+  "note": "Suggested roles/appearance and tentative X/Z patrol points. Agent must validate walkable navigation and collider clearance before use; not production-ready routes.",
+  "maxSimultaneousActive": 6,
+  "characters": [
+    {
+      "id": "milo",
+      "name": "Milo",
+      "role": "Post worker",
+      "intro": "Hello! Can you read the name on this card?",
+      "homeLandmark": "PostCounter",
+      "portrait": "ui/npc_portraits/milo.png",
+      "mainColour": "#cf674c",
+      "hairColour": "#664b39",
+      "accentColour": "#82c2e8",
+      "hair": "short",
+      "walkSpeed": 1.5,
+      "missionIds": [
+        "M12",
+        "M16"
+      ],
+      "proposedPatrolXZ": [
+        [
+          -9,
+          8
+        ],
+        [
+          -13,
+          7
+        ],
+        [
+          -18,
+          6
+        ],
+        [
+          -13,
+          7
+        ]
+      ],
+      "greetingCue": "npc_greet_01"
+    },
+    {
+      "id": "ada",
+      "name": "Ada",
+      "role": "Baker",
+      "intro": "Can you help count today’s orders?",
+      "homeLandmark": "ShopCenter",
+      "portrait": "ui/npc_portraits/ada.png",
+      "mainColour": "#d9a454",
+      "hairColour": "#744c2f",
+      "accentColour": "#e9a4c3",
+      "hair": "long",
+      "walkSpeed": 1.1,
+      "missionIds": [
+        "M11",
+        "M12",
+        "M16",
+        "M17"
+      ],
+      "proposedPatrolXZ": [
+        [
+          9,
+          4
+        ],
+        [
+          7,
+          3
+        ],
+        [
+          5,
+          4
+        ],
+        [
+          9,
+          4
+        ]
+      ],
+      "greetingCue": "npc_greet_02"
+    },
+    {
+      "id": "pip",
+      "name": "Pip",
+      "role": "Mechanic and friendly rally rival",
+      "intro": "My vehicle needs a little help!",
+      "homeLandmark": "WorkshopDoor",
+      "portrait": "ui/npc_portraits/pip.png",
+      "mainColour": "#a25a46",
+      "hairColour": "#2e383d",
+      "accentColour": "#f6bd5c",
+      "hair": "short",
+      "walkSpeed": 1.2,
+      "missionIds": [
+        "M16",
+        "M18",
+        "M19"
+      ],
+      "proposedPatrolXZ": [
+        [
+          25,
+          -9
+        ],
+        [
+          28,
+          -7
+        ],
+        [
+          31,
+          -9
+        ],
+        [
+          25,
+          -9
+        ]
+      ],
+      "greetingCue": "npc_greet_01"
+    },
+    {
+      "id": "fern",
+      "name": "Fern",
+      "role": "Gardener",
+      "intro": "Look, red, blue, red, blue!",
+      "homeLandmark": "VillageGreenSign",
+      "portrait": "ui/npc_portraits/fern.png",
+      "mainColour": "#8bb06f",
+      "hairColour": "#634a33",
+      "accentColour": "#ac9ddc",
+      "hair": "long",
+      "walkSpeed": 1.0,
+      "missionIds": [
+        "M11",
+        "M15"
+      ],
+      "proposedPatrolXZ": [
+        [
+          13,
+          10
+        ],
+        [
+          16,
+          11
+        ],
+        [
+          18,
+          11
+        ],
+        [
+          13,
+          10
+        ]
+      ],
+      "greetingCue": "npc_greet_02"
+    },
+    {
+      "id": "ollie",
+      "name": "Ollie",
+      "role": "Librarian",
+      "intro": "Please help put these books back.",
+      "homeLandmark": "TownHallDoor",
+      "portrait": "ui/npc_portraits/ollie.png",
+      "mainColour": "#648abd",
+      "hairColour": "#5b463a",
+      "accentColour": "#e2b064",
+      "hair": "short",
+      "walkSpeed": 1.0,
+      "missionIds": [
+        "M11",
+        "M13"
+      ],
+      "proposedPatrolXZ": [
+        [
+          -12,
+          8
+        ],
+        [
+          -9,
+          9
+        ],
+        [
+          -11,
+          11
+        ],
+        [
+          -12,
+          8
+        ]
+      ],
+      "greetingCue": "npc_greet_01"
+    },
+    {
+      "id": "ivy",
+      "name": "Ivy",
+      "role": "Festival organiser",
+      "intro": "Can you help with the festival plan?",
+      "homeLandmark": "ParkCenter",
+      "portrait": "ui/npc_portraits/ivy.png",
+      "mainColour": "#a76b9a",
+      "hairColour": "#443f49",
+      "accentColour": "#95cfae",
+      "hair": "long",
+      "walkSpeed": 1.15,
+      "missionIds": [
+        "M16",
+        "M20"
+      ],
+      "proposedPatrolXZ": [
+        [
+          16,
+          12
+        ],
+        [
+          18,
+          14
+        ],
+        [
+          19,
+          16
+        ],
+        [
+          16,
+          12
+        ]
+      ],
+      "greetingCue": "npc_greet_02"
+    }
+  ]
+}

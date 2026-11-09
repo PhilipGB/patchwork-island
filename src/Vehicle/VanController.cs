@@ -28,6 +28,8 @@ public partial class VanController : CharacterBody3D
     private float _steerInput;
     private float _bodyBob;
     private bool _resetting;
+    private AudioStreamPlayer3D _engineIdle;
+    private AudioStreamPlayer3D _engineDrive;
 
     public void Initialize(Vector3 parkingPosition, float parkingYaw, Hud hud)
     {
@@ -51,6 +53,11 @@ public partial class VanController : CharacterBody3D
         BuildVisual();
         SetDriven(false);
 
+        _engineIdle = AudioManager.CreateVehicleLoop(this, "engine_idle_loop", 6f, 34f, -20f);
+        _engineDrive = AudioManager.CreateVehicleLoop(this, "engine_drive_loop", 6f, 34f, -40f);
+        if (_engineIdle != null) _engineIdle.Position = new Vector3(0, 0.55f, 0.9f);
+        if (_engineDrive != null) _engineDrive.Position = new Vector3(0, 0.55f, 0.9f);
+
         _entry = Interactable.Create(this, new Vector3(0, 0.1f, 0),
             "E: Drive the van", () => EnterRequested?.Invoke(),
             () => !Driven, true, 4.2f, "VanEntry");
@@ -58,6 +65,16 @@ public partial class VanController : CharacterBody3D
     }
 
     public event Action EnterRequested;
+
+    public bool HasEngineAudio => _engineIdle != null && _engineDrive != null;
+    public bool EngineIdlePlaying => _engineIdle?.Playing == true;
+    public bool EngineDrivePlaying => _engineDrive?.Playing == true;
+
+    public void StopEngineAudio()
+    {
+        _engineIdle?.Stop();
+        _engineDrive?.Stop();
+    }
 
     private void BuildVisual()
     {
@@ -138,7 +155,16 @@ public partial class VanController : CharacterBody3D
         Driven = driven;
         if (_driverFigure != null) _driverFigure.Visible = driven;
         if (_entry != null) _entry.Visible = !driven;
-        if (!driven) Speed = 0;
+        if (!driven)
+        {
+            Speed = 0;
+            _engineIdle?.Stop();
+            _engineDrive?.Stop();
+        }
+        else
+        {
+            if (_engineIdle != null && !_engineIdle.Playing) _engineIdle.Play();
+        }
     }
 
     public void SetInputEnabled(bool enabled)
@@ -238,8 +264,33 @@ public partial class VanController : CharacterBody3D
         _wheelAngle -= Speed * dt / 0.43f;
         foreach (var pivot in _wheelPivots)
             pivot.Rotation = new Vector3(_wheelAngle, 0, 0);
+        UpdateEngineAudio();
         _bodyBob = Mathf.Sin(Time.GetTicksMsec() / 130f) * Mathf.Clamp(Mathf.Abs(Speed) / MaxForwardSpeed, 0f, 1f) * 0.015f;
         _visual.Position = new Vector3(0, _bodyBob, 0);
         _visual.Rotation = new Vector3(0, 0, -_steerInput * Mathf.Clamp(Mathf.Abs(Speed) / MaxForwardSpeed, 0f, 1f) * 0.035f);
+    }
+
+    private void UpdateEngineAudio()
+    {
+        float ratio = Mathf.Clamp(Mathf.Abs(Speed) / MaxForwardSpeed, 0f, 1f);
+        if (_engineIdle != null)
+        {
+            if (!_engineIdle.Playing) _engineIdle.Play();
+            _engineIdle.VolumeDb = Mathf.Lerp(-24f, -17f, ratio);
+            _engineIdle.PitchScale = 0.92f + ratio * 0.18f;
+        }
+        if (_engineDrive != null)
+        {
+            if (ratio > 0.035f)
+            {
+                if (!_engineDrive.Playing) _engineDrive.Play();
+                _engineDrive.VolumeDb = Mathf.Lerp(-30f, -11f, ratio);
+                _engineDrive.PitchScale = 0.78f + ratio * 0.85f;
+            }
+            else
+            {
+                _engineDrive.VolumeDb = -40f;
+            }
+        }
     }
 }

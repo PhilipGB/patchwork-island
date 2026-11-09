@@ -23,5 +23,7 @@
     <Compile Include="../src/Core/SaveResult.cs" Link="Core/SaveResult.cs" />
     <Compile Include="../src/Core/ControlMode.cs" Link="Core/ControlMode.cs" />
     <Compile Include="../src/Core/RaceTimer.cs" Link="Core/RaceTimer.cs" />
+    <Compile Include="../src/Core/RallyCourse.cs" Link="Core/RallyCourse.cs" />
+    <Compile Include="../src/Audio/AudioCueCatalog.cs" Link="Audio/AudioCueCatalog.cs" />
   </ItemGroup>
 </Project>
