@@ -1684,7 +1684,9 @@ No `v1.2.0` tag was created.
 - CI at that exact head: run
   [42702983510](https://github.com/PhilipGB/patchwork-island/actions/runs/42702983510)
   — `build-test` **pass** (5m12s), `windows-tests` **pass** (49s).
-- This status-only record commit repeats the same CI suite; the PR merge head is
-  the last green commit on the branch.
+- Final PR head: `21a0978cade7c79f4f94a53b8f5c3187e70de785`. CI rerun:
+  [42703922861](https://github.com/PhilipGB/patchwork-island/actions/runs/42703922861)
+  — `build-test` **pass** (5m38s), `windows-tests` **pass** (52s).
+- P15 merged to `main` as `cd54d7a` (PR #21, merge commit).
 - Tag/publish decision: **not tagged**. The two publication blockers above
   remain untested, so v1.2.0 is not published as fully verified.
