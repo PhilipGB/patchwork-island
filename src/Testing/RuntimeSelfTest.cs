@@ -44,6 +44,8 @@ public partial class RuntimeSelfTest : Node
                 await ResumeChecks();
             else if (HasArg("--selftest-recovery"))
                 reloading = await RecoveryChecks();
+            else if (HasArg("--selftest-living"))
+                await LivingChecks();
             else
                 await FreshSessionChecks();
         }
@@ -213,6 +215,72 @@ public partial class RuntimeSelfTest : Node
         await Wait(0.1f);
         Expect(!Main.RtSfxBusMuted && !Main.RtUiBusMuted && !Main.RtVehiclesBusMuted && Main.RtSfxEnabled,
             "sound toggle restores SFX, UI and vehicle buses");
+
+        // Named villagers: presence, readable labels, real E conversation and
+        // pause safety.
+        Expect(Main.RtNpcCount == 6, "six named villagers are present");
+        Expect(Main.RtNpcNames == "Milo, Ada, Pip, Fern, Ollie, Ivy", "villager names are readable");
+        foreach (string id in new[] { "milo", "ada", "pip", "fern", "ollie", "ivy" })
+        {
+            Expect(Main.RtNpcPresent(id), $"villager '{id}' present");
+            Expect(!string.IsNullOrWhiteSpace(Main.RtNpcNameLabel(id)), $"villager '{id}' has a name label");
+            Expect(Main.RtNpcProcessMode(id) == ProcessModeEnum.Pausable,
+                $"villager '{id}' is pausable");
+        }
+
+        await Wait(1.1f);
+        bool anyWalked = new[] { "milo", "ada", "pip", "fern", "ollie", "ivy" }
+            .Any(id => Main.RtNpcMoving(id));
+        Expect(anyWalked, "at least one villager walks its verified patrol");
+
+        Main.RtTeleportPlayerNearNpc("ada");
+        await Wait(0.35f);
+        Expect(Main.RtNearestInteractableName == "NpcTalk_ada", "Ada has the nearest E interaction");
+        Input.ActionPress("interact");
+        Input.ActionRelease("interact");
+        await Wait(0.35f);
+        Expect(Main.RtModalOpen && Main.RtModalTitle == "Ada", "E opens Ada's conversation");
+        Expect(Main.RtNpcTalking("ada"), "Ada stops and talks while the dialogue is open");
+        Main.RtCloseModal();
+        await Wait(0.3f);
+        Expect(!Main.RtNpcTalking("ada"), "closing the dialogue resumes Ada's patrol");
+
+        // Two road-bound drivers, no physical blocking and a real yield sensor.
+        Expect(Main.RtTrafficCount == 2, "two active NPC-driven vehicles");
+        Expect(Main.RtTrafficIds.Contains("town_scooter") && Main.RtTrafficIds.Contains("delivery_car"),
+            "both free-roam traffic routes are active");
+        Expect(Main.RtTrafficHasEngineAudio("town_scooter"), "NPC vehicle engine audio exists");
+        await Wait(1.0f);
+        foreach (string id in new[] { "town_scooter", "delivery_car" })
+        {
+            Expect(Main.RtTrafficOnRoad(id), $"traffic '{id}' starts on the road");
+            Expect(Main.RtTrafficSpeed(id) > 0.05f, $"traffic '{id}' is moving");
+        }
+
+        Main.RtTeleportPlayerAheadOfTraffic("town_scooter", 4.0f);
+        await Wait(2.2f);
+        Expect(Main.RtTrafficYielding("town_scooter"), "scooter yields to the player");
+        Expect(Main.RtTrafficSpeed("town_scooter") < 0.8f, "scooter slows to a safe stop");
+        Main.RtResetPlayerToSpawn();
+        await Wait(2.0f);
+        Expect(Main.RtTrafficSpeed("town_scooter") > 0.2f, "scooter resumes after the player moves");
+
+        var npcBefore = new Dictionary<string, Vector3>();
+        foreach (string id in new[] { "milo", "ada", "pip", "fern", "ollie", "ivy" })
+            npcBefore[id] = Main.RtNpcPosition(id);
+        var trafficBefore = new Dictionary<string, Vector3>();
+        foreach (string id in new[] { "town_scooter", "delivery_car" })
+            trafficBefore[id] = Main.RtTrafficPosition(id);
+        Main.RtPause();
+        await Wait(0.7f);
+        foreach (var pair in npcBefore)
+            Expect(pair.Value.DistanceTo(Main.RtNpcPosition(pair.Key)) < 0.01f,
+                $"villager '{pair.Key}' pauses with the world");
+        foreach (var pair in trafficBefore)
+            Expect(pair.Value.DistanceTo(Main.RtTrafficPosition(pair.Key)) < 0.01f,
+                $"traffic '{pair.Key}' pauses with the world");
+        Main.RtResume();
+        await Wait(0.3f);
 
         // Walking pause; physics must stop even with a living player.
         Main.RtPause();
@@ -473,6 +541,92 @@ public partial class RuntimeSelfTest : Node
     // ------------------------------------------------- recovery integration
     // These phases reload the real scene so they exercise the same startup,
     // builder, pickup, snapshot and save path as a player relaunch.
+
+    // ------------------------------------------------- living-village stability
+    // Runs the authored NPC and traffic simulation for a sustained period with
+    // real physics. It proves routes stay on the road, no vehicle teleports,
+    // critical stations stay clear and the drivers resume after yielding.
+    private async Task LivingChecks()
+    {
+        Expect(!Main.RtStarted, "living test starts on the title screen");
+        var started = Main.RtStartNewGameFromTitleConfirmed(CharacterCustomisation.Boy);
+        await Wait(0.8f);
+        Expect(started.Success && Main.RtStarted, "living test starts a fresh village");
+        Expect(Main.RtNpcCount == 6, "living test sees six villagers");
+        Expect(Main.RtTrafficCount == 2, "living test sees two drivers");
+
+        string[] npcIds = { "milo", "ada", "pip", "fern", "ollie", "ivy" };
+        string[] trafficIds = { "town_scooter", "delivery_car" };
+        foreach (string id in npcIds)
+        {
+            Vector3 position = Main.RtNpcPosition(id);
+            Expect(Finite(position), $"villager '{id}' has a finite position");
+            Expect(WorldAnchors.DistanceToNearestStation(position.X, position.Z) >= 3.3f,
+                $"villager '{id}' does not block a mission station");
+        }
+        foreach (string id in trafficIds)
+        {
+            Expect(Main.RtTrafficOnRoad(id), $"traffic '{id}' starts on the road");
+            Expect(Main.RtTrafficHasEngineAudio(id), $"traffic '{id}' has bounded engine audio");
+        }
+
+        var lastPositions = new Dictionary<string, Vector3>();
+        var startDistances = new Dictionary<string, float>();
+        foreach (string id in trafficIds)
+        {
+            lastPositions[id] = Main.RtTrafficPosition(id);
+            startDistances[id] = Main.RtTrafficDistance(id);
+        }
+
+        for (int second = 1; second <= 24; second++)
+        {
+            await Wait(1f);
+            foreach (string id in trafficIds)
+            {
+                Vector3 position = Main.RtTrafficPosition(id);
+                Expect(Finite(position), $"traffic '{id}' position is finite at {second}s");
+                Expect(Main.RtTrafficOnRoad(id), $"traffic '{id}' stays on the road at {second}s");
+                float gap = position.DistanceTo(lastPositions[id]);
+                Expect(gap < 5.5f, $"traffic '{id}' does not teleport (gap {gap:0.0}m at {second}s)");
+                Expect(WorldAnchors.DistanceToNearestStation(position.X, position.Z) >= 1.7f,
+                    $"traffic '{id}' keeps clear of critical stations at {second}s");
+                lastPositions[id] = position;
+            }
+        }
+
+        foreach (string id in trafficIds)
+        {
+            float travelled = Main.RtTrafficDistance(id) - startDistances[id];
+            Expect(travelled > 45f, $"traffic '{id}' completes a sustained route ({travelled:0.0}m)");
+        }
+        Main.RtResetPlayerToSpawn();
+        await Wait(0.5f);
+
+        foreach (string id in trafficIds)
+        {
+            Main.RtTeleportPlayerAheadOfTraffic(id, 4f);
+            await Wait(2.4f);
+            Expect(Main.RtTrafficYielding(id), $"traffic '{id}' yields to the player");
+            Expect(Main.RtTrafficSpeed(id) < 0.9f, $"traffic '{id}' stops safely for the player");
+            Main.RtResetPlayerToSpawn();
+            await Wait(1.4f);
+            Expect(Main.RtTrafficSpeed(id) > 0.15f, $"traffic '{id}' resumes after yielding");
+        }
+
+        foreach (string id in npcIds)
+        {
+            Vector3 position = Main.RtNpcPosition(id);
+            Expect(Finite(position), $"villager '{id}' still has a finite position");
+            Expect(WorldAnchors.DistanceToNearestStation(position.X, position.Z) >= 3.3f,
+                $"villager '{id}' still keeps clear of mission stations");
+            Expect(Main.RtNpcProcessMode(id) == ProcessModeEnum.Pausable,
+                $"villager '{id}' remains pausable");
+        }
+    }
+
+    private static bool Finite(Vector3 value) =>
+        !float.IsNaN(value.X) && !float.IsNaN(value.Y) && !float.IsNaN(value.Z) &&
+        !float.IsInfinity(value.X) && !float.IsInfinity(value.Y) && !float.IsInfinity(value.Z);
 
     private async Task<bool> RecoveryChecks()
     {
