@@ -1,4 +1,4 @@
-# Patchwork Island — v1.1.0 character update
+# Patchwork Island — v1.2.0 Living Village Update
 
 A happy little 3D village adventure for players aged roughly 5–10. A storm has
 scattered the village's supplies. Deliver parcels, repair the bridge, drive the
@@ -10,44 +10,36 @@ tests, real-input GUI evidence and release build instructions.
 
 ## Current status
 
-**First playable — complete, now at v1.1.0.** All ten missions, the optional
-bonus race, free practice racing, the all-jobs celebration, save/load, settings,
-onboarding, stability hardening and character personalisation are implemented.
-The v1.0.1 reliability update fixed save invalidation after
-furniture rearrangement and long races, truthful save feedback, New Game
-persistence flags and modal cancellation. v1.0.2 makes Continue reload the last
-persisted village after an unsaved session is discarded, allows retry of an
-authorised newer-save replacement, shows settings failures inside their modal,
-rejects duplicate mission JSON properties, and verifies race bonuses against
-the persisted clock.
+**Complete v1.2.0 Living Village Update.** The original ten jobs, optional race,
+free practice racing, first celebration, character customisation and save
+recovery remain. v1.2 adds six named villagers, two safe NPC drivers, original
+music/SFX with persisted settings, a larger continuous rally circuit, and ten
+new jobs M11–M20 ending in a separate village-festival finale.
 
-**v1.1.0 (P9) character personalisation** adds a Boy/Girl choice when starting
-a new game, four purchasable outfits plus the free Everyday starting outfit, a
-clothes shop in town, coin spending, an in-shop changing room, and save/load for
-the chosen preset, owned outfits and worn outfit. Save schema **2** introduces
-those fields; schema 1 saves migrate with all progression intact and default to
-Boy + the Everyday outfit. Unsupported newer schemas are never loaded or
-overwritten automatically. See [Save data](#save-data). v1.1.0 Windows x64 and
-Linux x86_64 exports were produced from this source; the Linux export passed all
-three runtime phases headlessly.
-
-- v1.1.0 Linux export: launched headlessly, exit 0, and passed **103 + 19 + 101**
-  runtime assertions from the packaged executable.
-- v1.1.0 Windows export: PE32+ x86-64, file/product version `1.1.0.0`.
-  **Windows startup was not tested** because no Windows runtime or Wine is
-  available here. See [Windows export verification](#windows-export-verification).
+- Save schema **3** adds `FestivalSeen`; `CelebrationSeen` keeps its original
+  M10 meaning. Schema 1/2 saves migrate with coins, outfits, world state and
+  progression intact; a completed v1.1.0 village unlocks M11 immediately.
+- Packaged Linux x64 export booted headlessly and passed all runtime phases.
+- Windows x64 export is PE32+ with file/product version `1.2.0.0`.
+  **Windows startup was not tested** (no Windows runtime or Wine).
+- Real AMD Radeon 890M: 720p mean **16.69 ms** / p95 17.35 ms; 1080p mean
+  **16.67 ms** / p95 17.28 ms over 600 frames each. No v1.1.0 real-GPU probe
+  exists, so a baseline comparison is **NOT TESTED**.
+- Packaged audio reached the real PipeWire sink monitor (nonzero PCM capture).
+  **Human listening was not possible** in this environment; see
+  [docs/RELEASE_NOTES_v1.2.0.md](docs/RELEASE_NOTES_v1.2.0.md).
 
 ## Download / install
 
-Prebuilt v1.1.0 artifacts are under `dist/`:
+Prebuilt v1.2.0 artifacts are under `dist/`:
 
 ```text
-dist/windows/PatchworkIsland.exe        Windows x64, single executable (v1.1.0)
-dist/linux/PatchworkIsland.x86_64       Linux x86_64, single executable (v1.1.0)
-dist/PatchworkIsland-1.1.0-Windows-x86_64.zip
-dist/PatchworkIsland-1.1.0-Linux-x86_64.zip
-dist/PatchworkIsland-1.0.2-Windows-x86_64.zip   previous release archive
-dist/PatchworkIsland-1.0.2-Linux-x86_64.zip     previous release archive
+dist/windows/PatchworkIsland.exe        Windows x64, single executable (v1.2.0)
+dist/linux/PatchworkIsland.x86_64       Linux x86_64, single executable (v1.2.0)
+dist/PatchworkIsland-1.2.0-Windows-x86_64.zip
+dist/PatchworkIsland-1.2.0-Linux-x86_64.zip
+dist/PatchworkIsland-1.1.0-Windows-x86_64.zip   previous release archive
+dist/PatchworkIsland-1.1.0-Linux-x86_64.zip     previous release archive
 dist/SHA256SUMS
 ```
 
@@ -58,7 +50,7 @@ The Windows build is unsigned, so Windows SmartScreen may ask for confirmation.
 ### Windows export verification
 
 `Godot_v4.7.2-stable_mono_export_templates` produced a valid PE32+ x86-64
-executable with file/product version `1.1.0.0`. The embedded pack contains
+executable with file/product version `1.2.0.0`. The embedded pack contains
 `data/missions.json`, the P9 customisation code and the .NET assemblies, and
 the executable references the self-contained
 `Microsoft.NETCore.App.Runtime.win-x64` runtime pack. It was **not launched**
@@ -218,14 +210,18 @@ Writes are atomic (temporary file, flush, move). A structurally invalid or
 unreadable main save is renamed `save.json.corrupt-<timestamp>` and the backup
 is loaded if possible.
 
-Save schema versions are separate from game release versions. v1.1.0 writes
-schema **2** and loads supported older schemas:
+Save schema versions are separate from game release versions. v1.2.0 writes
+schema **3** and loads supported older schemas:
 
-- **Schema 1** (v1.0.x) saves migrate in memory to schema 2. Every progression
-  field is preserved; missing character fields default to **Boy + Everyday + no
-  purchases**. The file is rewritten as schema 2 by the next save, and the
-  original schema 1 copy is kept as the `.bak` backup.
-- **Schema 3 or newer** is unsupported and is **never** loaded, downgraded,
+- **Schema 1** (v1.0.x) saves migrate in memory through schema 2 to schema 3.
+  Every progression field is preserved; missing character fields default to
+  **Boy + Everyday + no purchases**.
+- **Schema 2** (v1.1.0) saves keep coins, outfits, cosmetics, bridge/park/
+  furniture state, player/van snapshots and the original M10 `CelebrationSeen`.
+  The new `FestivalSeen` marker defaults to false, M11 unlocks immediately, and
+  the original ten-job celebration does not repeat. The original file is kept
+  as the `.bak` backup and is rewritten at schema 3 by the next save.
+- **Schema 4 or newer** is unsupported and is **never** loaded, downgraded,
   discarded or overwritten automatically. The title screen explains the
   incompatibility. An ordinary autosave refuses to touch the file. Only an
   explicitly confirmed New Game may replace it, and a

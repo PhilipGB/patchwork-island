@@ -439,3 +439,86 @@ alongside the walkthrough: empty/wrong build clicks did not consume pieces,
 water recovery returned the player to land, the van reset/recovered after
 getting stuck, pause/resume worked, partial saves were verified in P7.1, and the
 final save was reloaded with the completed world intact.
+
+## v1.2.0 — Living Village Update (P15 release gate)
+
+This section records the v1.2.0 release verification. It does not replace the
+earlier P9 acceptance; it adds the second chapter, audio, villagers, traffic,
+rally expansion, packaged builds and the remaining blockers.
+
+### Feature acceptance
+
+- [x] All twenty authored missions are implemented and completable. **PASS** —
+  pure full-walkthrough test completes M01–M20 in one clean service state and
+  round-trips the save. Real-UI phases cover M11–M15 (`--selftest-chapter`) and
+  M16–M20 (`--selftest-finale`), including exactly-once rewards and the second
+  finale.
+- [x] A completed v1.1.0 save keeps its village and unlocks M11 immediately.
+  **PASS** — `--selftest-release` loads a schema 2 ten-complete save with 137
+  coins, girl + Berry outfit, red cap, bridge/park/furniture state and the
+  original celebration already seen; Continue opens the job board, M11 starts,
+  the original celebration does not repeat and the save rewrites at schema 3.
+  Pure migration tests also preserve settings, player/van snapshots and
+  possessions.
+- [x] M05/M09 four-gate IDs, ordering, counters and 90 s / 75 s optional bonuses
+  remain compatible. **PASS** — pure boundary tests and real-physics rally phase
+  (`M05 18.97 s`, `M09 18.98 s`, both +5). M19 adds six gates and a 155 s medal
+  without changing M05/M09.
+- [x] Six named NPC villagers exist with readable labels, portraits, patrols
+  and dialogue. **PASS** — living phase and P11 captures.
+- [x] Two safe NPC drivers stay on authored roads, yield and do not block
+  stations. **PASS** — 24-second living phase, 238 assertions.
+- [x] Music/SFX are bundled and settings persist. **PASS (structural and
+  physical output)** — all loops/effects decode, buses exist, Music/SFX/UI/
+  Vehicles routing is verified, and a 20-second capture of the real PipeWire
+  sink monitor during the packaged Linux build contained nonzero PCM
+  (peak 19777, RMS 944.8). **Human listening was not possible**; that subjective
+  check remains a publication blocker, not a code failure.
+- [x] World visual cleanup and larger continuous rally track. **PASS** — P12
+  captures/tests, collision road mesh, gate readability, icon scaling and P14
+  visual fixes V09–V12.
+- [x] Real-GPU visual and performance check. **PASS** — AMD Radeon 890M (Mesa
+  26.0.8, OpenGL 4.6): 1280×720 mean 16.69 ms / p95 17.35 ms; 1920×1080 mean
+  16.67 ms / p95 17.28 ms over 600 frames. Real-Radeon P14 captures are in
+  `evidence/p15_radeon_*.png`. No v1.1.0 real-GPU probe exists, so a baseline
+  comparison is **NOT TESTED**.
+- [x] GUI readability and collision QA. **PASS** for automated/real-render
+  evidence; child playtesting and a subjective accessibility review remain
+  **NOT TESTED**.
+- [x] Save schema 3 and migration documented. **PASS** — schema 1→2→3; current
+  schema 3; schema 4+ refused untouched.
+- [x] Full CI and packaged Linux execution. **PASS** — pure **106**, runtime
+  161 + 21 + 101 + 238 + 10 + 217 + 140 + 12 + 22; packaged Linux passed the
+  same phases with exit 0 and zero leaked unsafe references.
+- [x] Windows compilation/export. **PASS (compile/export only)** — PE32+ x86-64,
+  file/product version `1.2.0.0`. **Windows startup is NOT TESTED** (no Windows
+  runtime or Wine).
+- [x] Version metadata and release docs. **PASS** — project version `1.2.0`,
+  export metadata `1.2.0.0`, updated README/README_RUN/release notes.
+- [x] Licensed-source audit. **PASS** — supplied audio/PNG assets are original
+  handoff-generated work; GLB bodies were inspected and intentionally not used
+  for animated bodies; provenance remains in `docs/ASSET_USAGE.md`.
+- [x] SHA-256 archives. **PASS (local artifacts)** — Linux and Windows v1.2.0
+  ZIPs and `dist/SHA256SUMS` generated from the exported binaries.
+
+### Release severity
+
+**BLOCKER (publication):** subjective human listening of the packaged audio was
+not possible in this environment, and Windows startup was not tested. Both must
+be completed before tagging/publishing v1.2.0 as fully verified.
+
+**SHOULD FIX:** none known in code or saves.
+
+**OPTIONAL:** child playtesting, accessibility review, a v1.1.0 real-GPU
+baseline probe.
+
+**Tag/publish status:** not tagged. The exact-head commit, package hashes and
+verification logs are recorded in `PROGRESS.md` and
+`evidence/p15_verification.txt`; publication waits on the two blockers above.
+
+### Manual walkthrough status
+
+The complete M01–M20 domain walkthrough is automated and green. The real-UI
+phases collectively cover M11–M20; the original M01–M10 real-input walkthrough
+from P2/P9 remains the prior evidence. One continuous human M01–M20 sitting is
+**NOT TESTED** in this environment.

@@ -908,6 +908,97 @@ internal static class Program
             }
         });
 
+        Run("all twenty jobs complete in one clean-save walkthrough", () =>
+        {
+            var s = CompleteM20(CompleteM19(CompleteM18(CompleteM17(CompleteM16(
+                CompleteFirstHalf(Fresh(catalog)))))));
+            foreach (string id in FinaleRules.MissionIds)
+                Check(s.Data.IsCompleted(id), $"{id} completed in the full walkthrough");
+            Equal(20, s.Data.CompletedMissions.Distinct().Count(),
+                "twenty distinct mission completions");
+            Check(s.Data.Coins > 0, "full walkthrough earned coins");
+            Equal("", s.Data.ActiveMission, "no job left active");
+            Check(MissionRules.OriginalChapterComplete(s.Data),
+                "original chapter remains complete");
+            Check(FinaleRules.M20Complete(s.Data), "festival world state complete");
+
+            string dir = TempDirectory("full-release-save");
+            try
+            {
+                string path = Path.Combine(dir, "save.json");
+                s.Data.FestivalSeen = true;
+                s.Data.CelebrationSeen = true;
+                SaveService.Save(s.Data, path, catalog);
+                var loaded = SaveService.Load(path, catalog);
+                Check(loaded.Success, loaded.Message);
+                Equal(20, loaded.Data.CompletedMissions.Count,
+                    "full release save round-trips twenty completions");
+                Check(loaded.Data.FestivalSeen && loaded.Data.CelebrationSeen,
+                    "both finale markers round-trip");
+                Equal(s.Data.Coins, loaded.Data.Coins,
+                    "full release wallet round-trips");
+            }
+            finally
+            {
+                Directory.Delete(dir, true);
+            }
+        });
+
+        Run("v1.1 ten-complete save keeps possessions and opens M11", () =>
+        {
+            var old = BuildOriginalTenSave();
+            old.SchemaVersion = 2;
+            old.CharacterPreset = CharacterCustomisation.Girl;
+            old.OwnedOutfits.Add("berry");
+            old.EquippedOutfit = "berry";
+            old.UnlockedCosmetics.Add("red_cap");
+            old.TutorialsSeen.AddRange(new[] { "walk", "drive", "build" });
+            old.Settings.MusicEnabled = false;
+            old.Settings.ReducedMotion = true;
+            old.Player = new PlayerSnapshot
+            {
+                X = -38.8f, Y = -0.04f, Z = 21.4f, RotationY = 3.14f, Valid = true,
+            };
+            old.Van = new VehicleSnapshot
+            {
+                X = -30f, Y = -0.05f, Z = 14.5f, RotationY = 0f, Valid = true,
+            };
+            var node = JsonSerializer.SerializeToNode(old,
+                new JsonSerializerOptions { WriteIndented = true })!;
+            node.AsObject().Remove("FestivalSeen");
+
+            string dir = TempDirectory("v110-migration");
+            try
+            {
+                string path = Path.Combine(dir, SaveService.DefaultFileName);
+                File.WriteAllText(path, node.ToJsonString());
+                var loaded = SaveService.Load(path, catalog);
+                Check(loaded.Success, loaded.Message);
+                Equal(SaveService.CurrentVersion, loaded.Data.SchemaVersion,
+                    "v1.1 save migrates to schema 3");
+                Equal(CharacterCustomisation.Girl, loaded.Data.CharacterPreset,
+                    "girl preset preserved");
+                Equal("berry", loaded.Data.EquippedOutfit, "worn outfit preserved");
+                Check(loaded.Data.OwnedOutfits.Contains("berry"), "outfit ownership preserved");
+                Check(loaded.Data.UnlockedCosmetics.Contains("red_cap"), "cosmetic preserved");
+                Check(!loaded.Data.Settings.MusicEnabled && loaded.Data.Settings.ReducedMotion,
+                    "settings preserved");
+                Equal(130, loaded.Data.Coins, "wallet preserved");
+                Equal(10, loaded.Data.CompletedMissions.Count, "ten completions preserved");
+                Check(loaded.Data.CelebrationSeen, "original celebration preserved");
+                Check(!loaded.Data.FestivalSeen, "new festival marker starts unseen");
+                Equal(-38.8f, loaded.Data.Player.X, "player position preserved");
+                Equal(-30f, loaded.Data.Van.X, "van position preserved");
+                var service = new MissionService(loaded.Data, catalog);
+                Equal(MissionStatus.Available, service.GetStatus("M11"),
+                    "M11 unlocks immediately on a v1.1 save");
+            }
+            finally
+            {
+                Directory.Delete(dir, true);
+            }
+        });
+
         Run("chapter-two partial progress survives save and reload", () =>
         {
             var s = CompleteOriginalTen(Fresh(catalog));
