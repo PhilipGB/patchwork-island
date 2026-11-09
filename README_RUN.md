@@ -1,14 +1,13 @@
 # Patchwork Island — run and test guide
 
-> Status: v1.1.0 — P9 character update. All ten missions,
-> practice racing, the all-jobs celebration, save/load, settings, onboarding,
-> stability hardening and release packaging remain in place. P9 adds a
-> Boy/Girl starting choice, a town clothes shop, four purchasable outfits, an
-> in-shop changing room and persisted character/outfit ownership. Save schema 2
-> migrates schema 1 progress and refuses unsupported newer schemas. P8.2's
-> session recovery, newer-save protection, inline settings failures, duplicate
-> mission-property rejection and persisted-clock race bonuses are retained. See
-> `ACCEPTANCE.md` and `PROGRESS.md` for the pass/fail matrix and evidence.
+> Status: v1.2.0 — Living Village Update. The original ten missions,
+> practice racing, first celebration, character customisation, save/load and
+> recovery remain. v1.2 adds six named villagers, two safe NPC drivers, original
+> music/SFX with persisted settings, a larger continuous rally circuit, and
+> M11–M20 ending in a separate village-festival finale. Save schema 3 migrates
+> schema 1/2 progress and refuses unsupported newer schemas. See `ACCEPTANCE.md`,
+> `PROGRESS.md` and `docs/RELEASE_NOTES_v1.2.0.md` for the pass/fail matrix,
+> evidence and remaining verification gaps.
 
 ## Prerequisites
 
@@ -193,34 +192,39 @@ runtime or Wine. See `dist/SHA256SUMS` and `dist/README.txt`.
 
 ```text
 dotnet build PatchworkIsland.sln                         -> 0 warnings, 0 errors
-dotnet run --project tests/PatchworkIsland.Tests.csproj -> 78 passed, 0 failed
+dotnet run --project tests/PatchworkIsland.Tests.csproj -> 106 passed, 0 failed
 godot --headless --path . --editor --quit                -> exit 0
 godot --headless --path . --quit-after 120               -> exit 0
-godot --headless --path . -- --selftest                  -> 103 passed, 0 failed
-godot --headless --path . -- --selftest-resume           -> 19 passed, 0 failed
+godot --headless --path . -- --selftest                  -> 161 passed, 0 failed
+godot --headless --path . -- --selftest-resume           -> 21 passed, 0 failed
 godot --headless --path . -- --selftest-recovery         -> 101 passed, 0 failed
-xvfb-run godot --path . -- --dev --capture               -> P9 visual evidence written
+godot --headless --path . -- --selftest-living           -> 238 passed, 0 failed
+godot --headless --path . -- --selftest-rally            -> 10 passed, 0 failed
+godot --headless --path . -- --selftest-chapter          -> 217 passed, 0 failed
+godot --headless --path . -- --selftest-finale           -> 140 passed, 0 failed
+godot --headless --path . -- --selftest-traversal        -> 12 passed, 0 failed
+godot --headless --path . -- --selftest-release          -> 22 passed, 0 failed
 godot --headless --path . --export-release "Linux" ...    -> exit 0
 godot --headless --path . --export-release "Windows..."   -> exit 0
 dist/linux/PatchworkIsland.x86_64 --headless --quit-after 120 -> exit 0
-dist/linux/PatchworkIsland.x86_64 (three runtime phases)  -> 103 + 19 + 101 passed, 0 failed
+dist/linux/PatchworkIsland.x86_64 (all runtime phases)    -> 0 failed
 ```
 
-The P9 runtime phase presses the actual Boy, Girl and character-Cancel buttons,
-opens the real clothes shop, previews an unaffordable outfit, presses the actual
-Buy/Wear buttons, checks wallet and ownership rules, recovers from a failed
-clothes save, and verifies that both chosen appearances survive Continue. The
-pure tests cover schema 1→2 migration and untouched schema 3/99 files. The
-recovery phase restores a saved girl/outfit seed after a real scene reload.
+The new phases cover M11–M15, M16–M20, six-gate rally, real bridge/road
+traversal, and a schema 2 v1.1.0 save loaded through the real title/Continue path
+with 137 coins, girl + Berry outfit, the original celebration already seen, M11
+available and no repeated M10 celebration. The packaged Linux executable passed
+the same phases, every process exit code 0 with zero leaked unsafe references.
 
-The v1.1.0 Linux export was produced and passed all three runtime phases from
-the packaged executable. The v1.1.0 Windows executable is PE32+ x86-64 with
-file/product version `1.1.0.0`; Windows startup remains untested. The previous
-v1.0.2 release verification remains recorded in `ACCEPTANCE.md`.
+The v1.2.0 Linux export is an ELF x86-64 executable. The Windows executable is
+PE32+ x86-64 with file/product version `1.2.0.0`; **Windows startup was not
+tested** because no Windows runtime or Wine is available. The previous v1.0.2
+and v1.1.0 verification remains recorded in `ACCEPTANCE.md`.
 
-Performance on this machine was measured only with the Mesa llvmpipe software
-renderer at 1280×720: 11–13 FPS. GPU performance and child usability testing
-were not available. Audio is not bundled; all feedback is visual.
+Real AMD Radeon 890M measurements: 720p mean 16.69 ms / p95 17.35 ms and 1080p
+mean 16.67 ms / p95 17.28 ms over 600 frames each. Packaged audio reached the
+real PipeWire sink monitor with nonzero PCM; **human listening was not possible**
+in this environment. Child usability testing remains a manual follow-up.
 
 ## Developer QA scenarios
 
@@ -251,19 +255,20 @@ Writes are atomic (temporary file, flush, move). An unreadable or structurally
 invalid save is renamed `save.json.corrupt-<timestamp>` and the backup is loaded
 if possible.
 
-Save schema versions are separate from game release versions. v1.1.0 writes
-schema **2**. A schema 1 save migrates with all progression intact and missing
-character fields default to **Boy + Everyday** with no purchased outfits; the
-next save rewrites it as schema 2 and keeps the original as `.bak`. A schema 3
-or newer save is **never** loaded, downgraded, discarded or overwritten
-automatically. The title screen explains the incompatibility, and an ordinary
-autosave refuses to touch it. Only an explicitly confirmed New Game may replace
-it, and a `save.json.newer-vN-<timestamp>` copy is kept first. Future releases
-must continue loading supported older schemas while refusing newer ones.
+Save schema versions are separate from game release versions. v1.2.0 writes
+schema **3**. Schema 1 migrates through schema 2; missing character fields
+default to **Boy + Everyday**. Schema 2 (v1.1.0) keeps coins, outfits,
+cosmetics, bridge/park/furniture state, player/van snapshots and
+`CelebrationSeen`; the new `FestivalSeen` starts false and M11 unlocks
+immediately. The next save rewrites at schema 3 and keeps the original as
+`.bak`. A schema 4 or newer save is **never** loaded, downgraded, discarded or
+overwritten automatically. The title screen explains the incompatibility, and
+an ordinary autosave refuses to touch it. Only an explicitly confirmed New Game
+may replace it, and a `save.json.newer-vN-<timestamp>` copy is kept first.
 
 Settings, player/van positions, missions, bridge/swing parts, park/furniture
 placements, wallet, inventory, character preset, owned outfits, equipped outfit
-and the celebration flag are all stored. Autosave runs every 20 seconds while
+the original celebration flag and the separate festival flag are all stored. Autosave runs every 20 seconds while
 playing and after mission start/completion.
 
 Manual save success/failure is shown inside the pause modal. Automatic failures

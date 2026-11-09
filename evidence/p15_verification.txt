@@ -1,0 +1,78 @@
+Patchwork Island v1.2.0 — release verification
+================================================
+Date: 2026-11-09
+Source head: recorded in PROGRESS.md (P15 exact-head commit)
+Godot: 4.7.2.stable.mono.official.ed1daf0bf
+.NET SDK: 10.0.114 (target net8.0)
+
+Renderer / GPU
+--------------
+OpenGL API 4.6 (Core Profile) Mesa 26.0.8-1ubuntu0.3
+Using Device: AMD - AMD Radeon 890M Graphics
+(radeonsi, strix1, ACO, DRM 3.64, 7.2.15-ogc1.1.fc45.x86_64)
+
+Real-GPU performance (600 frames each)
+---------------------------------------
+1280x720 : mean 16.69 ms, p95 17.35 ms, max 40.35 ms
+1920x1080: mean 16.67 ms, p95 17.28 ms, max 40.50 ms
+Scene: 2950 nodes, 3399 draw calls, 66619 primitives
+No v1.1.0 real-GPU probe exists; baseline comparison NOT TESTED.
+
+Audio
+-----
+Packaged Linux build, real PipeWire/PulseAudio sink:
+device: alsa_output.pci-0000_c4_00.6.analog-stereo.monitor
+Capture: parecord, 20.14 s, 48 kHz, 16-bit stereo
+Peak 19777, RMS 944.8, nonzero per-second PCM from 2 s onward.
+A 6-second excerpt is evidence/p15_packaged_audio_monitor_6s.wav.
+Human listening/subjective audition: NOT TESTED (no listener in environment).
+
+Automated gates (source, sequential)
+------------------------------------
+dotnet build                                       0 warnings, 0 errors
+pure tests                                         106 passed, 0 failed
+--selftest                                         161 passed, 0 failed
+--selftest-resume                                   21 passed, 0 failed
+--selftest-recovery                                101 passed, 0 failed
+--selftest-living                                  238 passed, 0 failed
+--selftest-rally                                    10 passed, 0 failed
+  M05 18.97 s +5 medal, M09 18.98 s +5 medal
+--selftest-chapter                                 217 passed, 0 failed
+--selftest-finale                                  140 passed, 0 failed
+  M19 22.38 s +5 medal
+--selftest-traversal                                12 passed, 0 failed
+--selftest-release                                  22 passed, 0 failed
+editor import                                      exit 0
+headless boot                                      exit 0
+Every runtime process exited 0 with zero leaked unsafe references.
+
+Packaged Linux build
+--------------------
+ELF 64-bit LSB executable, x86-64, dynamically linked, stripped
+--headless --quit-after 120                         exit 0
+--selftest                                         161 passed, 0 failed
+--selftest-rally                                    10 passed, 0 failed
+--selftest-finale                                  140 passed, 0 failed
+--selftest-traversal                                12 passed, 0 failed
+--selftest-release                                  22 passed, 0 failed
+Every packaged phase exited 0 with zero leaked unsafe references.
+
+Windows build
+-------------
+PE32+ executable, MS Windows 5.02 (GUI), x86-64, stripped
+file/product version 1.2.0.0
+Export succeeded. Windows startup NOT TESTED (no Windows runtime/Wine).
+
+Hashes (dist/)
+--------------
+76611594db25a62d8964afcaf7579d630a241a3bf2999f38023b32d5756a05d0  linux/PatchworkIsland.x86_64
+28da892a43dbbf0dd443916c89ee0a6e51e0f40e9e8224745c25b365a96112f2  windows/PatchworkIsland.exe
+93682196484c97bd57ba846d3ab67e126bba29af8f12fc0e459956895d3814dd  PatchworkIsland-1.2.0-Linux-x86_64.zip
+005730ff679e19e9339ec84fc7e3a1c71fc9049bca9074ae4740e2bd7706f6a8  PatchworkIsland-1.2.0-Windows-x86_64.zip
+
+Publication blockers
+--------------------
+1. Subjective human audio listening could not be performed; real-device output
+   was captured objectively.
+2. Windows startup was not tested.
+No v1.2.0 tag was created.

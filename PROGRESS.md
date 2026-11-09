@@ -1591,3 +1591,89 @@ save/reload, and a separate `FestivalSeen` rule.
   created by camera collision, build clicks, safe-exit checks and rally coverage
   are now disposed with `using`; the runtime phases exit 0 with zero leaked
   unsafe references instead of aborting during Mono shutdown.
+
+## P15 — v1.2.0 release verification
+
+**Branch:** `p15-v1.2-release` | **Base:** main `570e667` (P14, PR #20)
+
+### Delivered
+
+- Version metadata advanced to project `1.2.0` and Windows file/product
+  `1.2.0.0` with description `Patchwork Island - Living Village Update`.
+  `handoffs/*` is now excluded from both export presets.
+- New `--selftest-release` runtime phase: writes a schema 2 / v1.1.0
+  ten-complete save, reloads through the real scene, Continues at the title,
+  and verifies 137 coins, girl + Berry outfit, red cap, bridge/park/furniture
+  state, `CelebrationSeen=true`, `FestivalSeen=false`, M10 complete, M11
+  available and M12 still locked. It then opens the real job board, starts M11,
+  confirms stock grant, writes schema 3, and re-reads wallet/active mission.
+  Wired into Linux CI.
+- Pure tests now cover a complete clean-save M01–M20 walkthrough and a schema 2
+  ten-complete migration that preserves possessions, settings and snapshots and
+  unlocks M11.
+- v1.2.0 Linux and Windows exports built from this source, packaged with a
+  player `README.txt`, and zipped. Hashes recorded in `dist/SHA256SUMS` and
+  `evidence/p15_verification.txt`.
+- Release docs updated: README, README_RUN, ACCEPTANCE v1.2 gate,
+  `docs/RELEASE_NOTES_v1.2.0.md`, `docs/SAVE_COMPATIBILITY.md`,
+  `docs/VISUAL_QA.md` P14 final captures.
+
+### Verification (source, exact P15 tree)
+
+```text
+dotnet build PatchworkIsland.sln                         -> 0 warnings, 0 errors
+dotnet run --project tests/PatchworkIsland.Tests.csproj  -> 106 passed, 0 failed
+godot --headless --path . -- --selftest                  -> 161 passed, 0 failed
+godot --headless --path . -- --selftest-resume           -> 21 passed, 0 failed
+godot --headless --path . -- --selftest-recovery         -> 101 passed, 0 failed
+godot --headless --path . -- --selftest-living           -> 238 passed, 0 failed
+godot --headless --path . -- --selftest-rally            -> 10 passed, 0 failed
+godot --headless --path . -- --selftest-chapter          -> 217 passed, 0 failed
+godot --headless --path . -- --selftest-finale           -> 140 passed, 0 failed
+godot --headless --path . -- --selftest-traversal        -> 12 passed, 0 failed
+godot --headless --path . -- --selftest-release          -> 22 passed, 0 failed
+godot --headless --path . --editor --quit                -> exit 0
+godot --headless --path . --quit-after 120               -> exit 0
+```
+
+Rally timings on the final source pass: **M05 18.98 s**, **M09 18.99 s**,
+**M19 22.31 s**, each with the optional +5 medal. Every runtime process exited 0
+with zero leaked unsafe references.
+
+### Real GPU and audio (this machine)
+
+- Renderer: OpenGL 4.6, Mesa 26.0.8, **AMD Radeon 890M Graphics**
+  (radeonsi, strix1, ACO, DRM 3.64).
+- 1280×720: mean 16.69 ms, p95 17.35 ms, max 40.35 ms.
+- 1920×1080: mean 16.67 ms, p95 17.28 ms, max 40.50 ms.
+- 600 frames per resolution; 2950 nodes, 3399 draw calls, 66619 primitives.
+- No v1.1.0 real-GPU probe exists, so a baseline comparison is **NOT TESTED**.
+- Real Radeon P14 captures: `evidence/p15_radeon_00..14_*.png`.
+- Audio: packaged Linux ran against PipeWire/PulseAudio
+  (`alsa_output.pci-0000_c4_00.6.analog-stereo.monitor`). A 20.14 s
+  `parecord` capture had peak 19777 / RMS 944.8 with nonzero PCM from 2 s on;
+  6 s excerpt at `evidence/p15_packaged_audio_monitor_6s.wav`.
+- **Human listening was not possible in this environment.** Subjective audio
+  audition remains **NOT TESTED**.
+
+### Packaged builds
+
+- Linux: ELF 64-bit x86-64. Headless boot exit 0; packaged `--selftest` 161,
+  rally 10, finale 140, traversal 12, release 22; all exit 0, zero leaked refs.
+  Packaged rally times M05 18.97 s / M09 18.98 s; M19 22.38 s.
+- Windows: PE32+ GUI x86-64, file/product `1.2.0.0`. Export succeeded.
+  **Windows startup is NOT TESTED** (no Windows runtime or Wine).
+- SHA-256 (`dist/`):
+  - `linux/PatchworkIsland.x86_64` `76611594db25a62d8964afcaf7579d630a241a3bf2999f38023b32d5756a05d0`
+  - `windows/PatchworkIsland.exe` `28da892a43dbbf0dd443916c89ee0a6e51e0f40e9e8224745c25b365a96112f2`
+  - `PatchworkIsland-1.2.0-Linux-x86_64.zip` `93682196484c97bd57ba846d3ab67e126bba29af8f12fc0e459956895d3814dd`
+  - `PatchworkIsland-1.2.0-Windows-x86_64.zip` `005730ff679e19e9339ec84fc7e3a1c71fc9049bca9074ae4740e2bd7706f6a8`
+- Local `dist/` remains gitignored; archives are not committed.
+
+### Publication blockers
+
+1. Subjective human listening of the packaged audio has not been performed.
+2. Windows startup has not been tested.
+
+No `v1.2.0` tag was created. Exact-head commit hash, CI run and merge status
+are appended after the P15 PR is green.

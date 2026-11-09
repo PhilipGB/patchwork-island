@@ -108,7 +108,8 @@ public partial class Main : Node3D
             return;
         }
         if (HasUserArg("--selftest") || IsFinaleTest || IsTraversalTest ||
-            (IsChapterTest && RuntimeSelfTest.ChapterPhase == 0))
+            (IsChapterTest && RuntimeSelfTest.ChapterPhase == 0) ||
+            (IsReleaseTest && RuntimeSelfTest.ReleasePhase == 0))
             DeleteSelfTestSaves("selftest-save.json");
         else if (IsRecoveryTest && RuntimeSelfTest.RecoveryPhase == 0)
             DeleteSelfTestSaves("selftest-recovery-save.json");
@@ -375,16 +376,19 @@ public partial class Main : Node3D
     private static bool IsChapterTest => HasUserArg("--selftest-chapter");
     private static bool IsFinaleTest => HasUserArg("--selftest-finale");
     private static bool IsTraversalTest => HasUserArg("--selftest-traversal");
+    private static bool IsReleaseTest => HasUserArg("--selftest-release");
 
     private static bool IsSelfTest =>
         HasUserArg("--selftest") || HasUserArg("--selftest-resume") || IsRecoveryTest ||
-        IsLivingTest || IsRallyTest || IsChapterTest || IsFinaleTest || IsTraversalTest;
+        IsLivingTest || IsRallyTest || IsChapterTest || IsFinaleTest || IsTraversalTest ||
+        IsReleaseTest;
 
     private static bool IsSelfTestResume => HasUserArg("--selftest-resume");
 
     private static bool LoadSelfTestSave =>
         IsSelfTestResume || IsRecoveryTest ||
-        (IsChapterTest && RuntimeSelfTest.ChapterPhase > 0);
+        (IsChapterTest && RuntimeSelfTest.ChapterPhase > 0) ||
+        (IsReleaseTest && RuntimeSelfTest.ReleasePhase > 0);
 
     /// <summary>
     /// F12, screenshot tours and scenario helpers are development tools. They

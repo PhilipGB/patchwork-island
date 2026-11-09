@@ -23,6 +23,7 @@ public partial class RuntimeSelfTest : Node
     // real scene. The chapter phase proves a mid-mission save survives relaunch.
     internal static int RecoveryPhase { get; set; }
     internal static int ChapterPhase { get; set; }
+    internal static int ReleasePhase { get; set; }
 
     private static int _passed;
     private static int _failed;
@@ -56,6 +57,8 @@ public partial class RuntimeSelfTest : Node
                 await FinaleChecks();
             else if (HasArg("--selftest-traversal"))
                 await TraversalChecks();
+            else if (HasArg("--selftest-release"))
+                reloading = await ReleaseChecks();
             else
                 await FreshSessionChecks();
         }
@@ -950,6 +953,97 @@ public partial class RuntimeSelfTest : Node
                completed.Data.IsCompleted("M14") && completed.Data.IsCompleted("M15"),
             "all five implemented chapter-two jobs are persisted");
         return false;
+    }
+
+    // --------------------------------------------- v1.1 -> v1.2 release migration
+    private async Task<bool> ReleaseChecks()
+    {
+        if (ReleasePhase == 0)
+        {
+            var old = BuildV110ReleaseSave();
+            var node = JsonSerializer.SerializeToNode(old,
+                new JsonSerializerOptions { WriteIndented = true })!;
+            node.AsObject().Remove("FestivalSeen");
+            File.WriteAllText(Main.RtSavePath, node.ToJsonString());
+            ReleasePhase = 1;
+            Main.RtReloadScene();
+            return true;
+        }
+
+        Expect(!Main.RtStarted, "release test starts at the title after the v1.1 save load");
+        Expect(Main.RtCanContinue, "v1.1 save offers Continue");
+        Main.RtContinue();
+        await Wait(0.6f);
+        Expect(Main.RtStarted, "v1.1 save continues");
+        Expect(Main.RtCoins == 137, "v1.1 coins preserved");
+        Expect(Main.RtCharacterPreset == CharacterCustomisation.Girl, "v1.1 girl preset preserved");
+        Expect(Main.RtEquippedOutfit == "berry" && Main.RtOwnsOutfit("berry"),
+            "v1.1 outfit preserved");
+        Expect(Main.RtCelebrationSeen && !Main.RtFestivalSeen,
+            "original celebration is preserved and the new finale starts unseen");
+        Expect(Main.RtBridgeBuilt, "v1.1 bridge world state restored");
+        Expect(Main.RtMissionCompleted("M10"), "M10 remains complete");
+        Expect(Main.RtMissionStatus("M11") == MissionStatus.Available,
+            "M11 unlocks immediately on the v1.1 save");
+        Expect(Main.RtMissionStatus("M12") == MissionStatus.Locked,
+            "M12 still waits for M11");
+        Expect(Main.RtModalTitle != "VILLAGE FIXED!",
+            "original ten-job celebration does not repeat");
+
+        Main.RtTeleportNearJobBoard();
+        await Wait(0.3f);
+        Expect(Main.RtNearestInteractableName == "JobBoardStation",
+            "migrated save reaches the job board");
+        await PressInteract();
+        Expect(Main.RtModalTitle == "Patchwork Jobs", "migrated save opens the job board");
+        Expect(Main.RtPressModalButton("Start_M11"), "M11 Start is offered on the migrated save");
+        await Wait(0.4f);
+        Expect(Main.RtActiveMission == "M11", "M11 starts from the migrated save");
+        Expect(Main.RtMissionCounter("M11", "stock_granted") == 1,
+            "M11 stock is granted on the migrated save");
+        Expect(Main.RtSaveNow(), "migrated save writes at schema 3");
+        var migrated = SaveService.Load(Main.RtSavePath, Main.RtCatalog);
+        Expect(migrated.Success, migrated.Message);
+        Expect(migrated.Success && migrated.Data.SchemaVersion == SaveService.CurrentVersion,
+            "migrated save is schema 3");
+        Expect(migrated.Success && migrated.Data.Coins == 137,
+            "migrated save keeps the wallet");
+        Expect(migrated.Success && migrated.Data.ActiveMission == "M11",
+            "migrated save keeps active M11");
+        return false;
+    }
+
+    private static GameData BuildV110ReleaseSave()
+    {
+        var data = new GameData
+        {
+            SchemaVersion = 2,
+            Coins = 137,
+            CelebrationSeen = true,
+            CharacterPreset = CharacterCustomisation.Girl,
+            EquippedOutfit = "berry",
+        };
+        foreach (string id in MissionRules.OriginalMissionIds)
+            data.CompletedMissions.Add(id);
+        data.OwnedOutfits.Add("berry");
+        data.UnlockedCosmetics.Add("red_cap");
+        data.TutorialsSeen.AddRange(new[] { "walk", "drive", "build" });
+        data.BridgePieces.AddRange(BuildRules.BridgeSockets);
+        data.SwingPieces.AddRange(BuildRules.SwingSockets);
+        data.ParkPlacements.Add(new PlacedItem("bench", "park0"));
+        data.ParkPlacements.Add(new PlacedItem("flowerbed", "park1"));
+        data.ParkPlacements.Add(new PlacedItem("lamp", "park2"));
+        foreach (var pair in FurnitureRules.Required)
+            data.FurnitureOwned[pair.Key] = pair.Value;
+        data.Player = new PlayerSnapshot
+        {
+            X = -38.8f, Y = -0.04f, Z = 21.4f, RotationY = 3.14f, Valid = true,
+        };
+        data.Van = new VehicleSnapshot
+        {
+            X = -30f, Y = -0.05f, Z = 14.5f, RotationY = 0f, Valid = true,
+        };
+        return data;
     }
 
     // ------------------------------------------- bridge and rally-road traversal
