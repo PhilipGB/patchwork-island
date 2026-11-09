@@ -1224,3 +1224,16 @@ without losing the mirror. The modal still scrolls if the window is shorter.
   boot, runtime phases, Linux export/boot) and **windows-tests PASS**.
 - Source/package version: **1.1.0** (`project.godot`, `export_presets.cfg` and
   the Windows file/product version all report 1.1.0).
+
+### Review follow-up delivery
+
+- Commit `e602f14` on `p9-character-customisation`: schema 2 migration,
+  schema 3/99 refusal, always-enabled outfit previews, real Boy/Girl/Cancel
+  runtime tests and stale clothes-save error clearing.
+- Final verification: **78** pure tests, **103 + 19 + 101** runtime assertions,
+  v1.1.0 Linux export boot and packaged runtime phases, and a v1.1.0 Windows
+  executable reporting file/product version `1.1.0.0`.
+- GitHub Actions on the updated PR: **build-test PASS** and
+  **windows-tests PASS**.
+- Review corrections are recorded in `ACCEPTANCE.md` and
+  `evidence/p9_verification.txt`.
