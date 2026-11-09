@@ -98,6 +98,14 @@ public partial class BridgeBuilder : Node3D, IBuildMode
         _placedVisuals[socket.SocketId] = root;
     }
 
+    /// <summary>Test/restore seam: rebuild placed visuals and the deck collider
+    /// from the saved bridge pieces without replaying the build UI.</summary>
+    public void RefreshFromData()
+    {
+        RestorePlaced();
+        RefreshSocketAvailability();
+    }
+
     private void RestorePlaced()
     {
         foreach (string id in _data.BridgePieces)

@@ -34,6 +34,7 @@ public static class SaveValidation
         "stone_0", "stone_1", "stone_2",
         "blue_parcel_0", "blue_parcel_1", "orange_parcel_0",
         "book_sun", "book_moon", "book_tree", "book_star",
+        "part_tyre_0", "part_tyre_1", "part_lamp_0", "part_battery_0",
     };
 
     private static readonly Dictionary<string, int> InventoryMaximums = new(StringComparer.Ordinal)
@@ -78,6 +79,35 @@ public static class SaveValidation
         {
             ["pad0"] = 2, ["pad1"] = 2, ["pad2"] = 2,
             ["pad3"] = 2, ["pad4"] = 2, ["pad5"] = 2,
+        },
+        ["M16"] = new()
+        {
+            ["loaded"] = 1,
+            ["carrying_ada"] = 1, ["carrying_pip"] = 1, ["carrying_ivy"] = 1,
+            ["delivered_ada"] = 1, ["delivered_pip"] = 1, ["delivered_ivy"] = 1,
+        },
+        ["M17"] = new()
+        {
+            ["bread"] = 6, ["milk"] = 5, ["apple"] = 10, ["finalised"] = 1,
+        },
+        ["M18"] = new()
+        {
+            ["inspected"] = 1,
+            ["has_tyre"] = 2, ["has_lamp"] = 1, ["has_battery"] = 1,
+            ["tyres_fitted"] = 2, ["lamp_fitted"] = 1, ["battery_fitted"] = 1,
+        },
+        ["M19"] = new()
+        {
+            ["checkpoint"] = FinaleRules.RallyGateCount, ["started"] = 1,
+            ["elapsedMs"] = RaceTimer.MaxStoredMilliseconds,
+        },
+        ["M20"] = new()
+        {
+            ["stock_granted"] = 1, ["invite_stock"] = 3, ["table_stock"] = 2,
+            ["lantern_stock"] = 3,
+            ["invited_ada"] = 1, ["invited_pip"] = 1, ["invited_ivy"] = 1,
+            ["table_0"] = 1, ["table_1"] = 1,
+            ["lantern_0"] = 1, ["lantern_1"] = 1, ["lantern_2"] = 1,
         },
     };
 
@@ -335,6 +365,11 @@ public static class SaveValidation
             "M13" => ChapterTwoRules.M13Complete(data),
             "M14" => ChapterTwoRules.M14Complete(data),
             "M15" => ChapterTwoRules.M15Complete(data),
+            "M16" => FinaleRules.M16Complete(data),
+            "M17" => FinaleRules.M17Complete(data),
+            "M18" => FinaleRules.M18Complete(data),
+            "M19" => FinaleRules.M19Complete(data),
+            "M20" => FinaleRules.M20Complete(data),
             _ => true,
         };
     }

@@ -71,6 +71,20 @@ public partial class WorldBuilder : Node3D
     public Vector3 BakeryStall { get; } = new(15.2f, 0f, 5.2f);
     public Vector3 LibraryShelf { get; } = new(-20.8f, 0f, 8.2f);
 
+    // ---- P14 finale anchors and visuals ----
+    public Vector3 RepairCarPosition { get; } = new(35.2f, 0f, -7.8f);
+    public List<Vector3> RepairPartSpawnPoints { get; } = new();
+    public List<Vector3> FestivalTablePads { get; } = new();
+    public List<Vector3> FestivalLanternPads { get; } = new();
+    public List<Node3D> FestivalTableVisuals { get; } = new();
+    public List<Node3D> FestivalLanternVisuals { get; } = new();
+    public Node3D DeliveryBoard { get; private set; }
+    public Node3D MarketStock { get; private set; }
+    public Node3D PipCarBroken { get; private set; }
+    public Node3D PipCarFixed { get; private set; }
+    public Node3D RallyPodium { get; private set; }
+    public Node3D FestivalDecor { get; private set; }
+
     private readonly RandomNumberGenerator _rng = new();
     private readonly List<(Vector2 Center, Vector2 HalfExtents)> _keepClear = new();
 
@@ -92,6 +106,7 @@ public partial class WorldBuilder : Node3D
         BuildWorkSites();
         BuildParkPlot();
         BuildChapterTwoSites();
+        BuildFinaleSites();
         BuildBridgeWorksite();
         BuildRaceMeadow();
         BuildFoliage();
@@ -787,6 +802,170 @@ public partial class WorldBuilder : Node3D
         BookSpawnPoints.Add(("star", new Vector3(13.6f, 0.15f, 13.1f)));
     }
 
+    private void BuildFinaleSites()
+    {
+        // M16: delivery route board appears after the three parcels arrive.
+        DeliveryBoard = new Node3D
+        {
+            Name = "DeliveryBoard",
+            Position = new Vector3(-2.5f, 0f, 4.2f),
+            Visible = false,
+        };
+        AddChild(DeliveryBoard);
+        Geo.Box(DeliveryBoard, new Vector3(0, 1.1f, 0), new Vector3(0.16f, 2.2f, 0.16f), Palette.WoodDark);
+        Geo.SignBoard(DeliveryBoard, new Vector3(0, 2.2f, 0), 180f, "DELIVERY ROUTE",
+            Palette.Orange, 4.8f, 0.8f, "delivery", 34);
+        Geo.Label(DeliveryBoard, new Vector3(0, 1.45f, 0.1f), "ADA  ·  PIP  ·  IVY", 34,
+            Palette.Navy, false, 0.005f);
+        AddKeepClear(new Vector3(-2.5f, 0f, 5f), new Vector2(5f, 3f));
+
+        // M17: market stock fills in after the job purse is correctly spent.
+        MarketStock = new Node3D
+        {
+            Name = "MarketStock",
+            Position = new Vector3(-2.0f, 0f, 4.8f),
+            Visible = false,
+        };
+        AddChild(MarketStock);
+        for (int i = 0; i < 3; i++)
+        {
+            float x = -0.9f + i * 0.9f;
+            Geo.Box(MarketStock, new Vector3(x, 0.35f, 0), new Vector3(0.75f, 0.7f, 0.7f),
+                i == 0 ? Palette.Wood : i == 1 ? Palette.Cream : Palette.Orange);
+            Geo.Sphere(MarketStock, new Vector3(x, 0.82f, 0.05f), 0.18f,
+                i == 0 ? Palette.Red : i == 1 ? Palette.Yellow : Palette.Grass, 6, 3);
+        }
+        Geo.SignBoard(MarketStock, new Vector3(0, 1.8f, 0), 180f, "FRESH STOCK",
+            Palette.Orange, 3.2f, 0.55f, "basket", 24);
+        AddKeepClear(new Vector3(-2.0f, 0f, 4.8f), new Vector2(2.5f, 2f));
+
+        // M18: Pip's car sits beside the workshop until it is repaired.
+        PipCarBroken = new Node3D { Name = "PipCarBroken", Position = RepairCarPosition };
+        AddChild(PipCarBroken);
+        BuildPipCar(PipCarBroken, true);
+        PipCarFixed = new Node3D { Name = "PipCarFixed", Position = RepairCarPosition, Visible = false };
+        AddChild(PipCarFixed);
+        BuildPipCar(PipCarFixed, false);
+        AddKeepClear(RepairCarPosition, new Vector2(4f, 4f));
+
+        // Four visible parts in the workshop tool area, east of the building.
+        Vector3[] parts =
+        {
+            new(37.4f, 0.15f, -9.0f), new(37.4f, 0.15f, -12.0f),
+            new(37.4f, 0.15f, -15.0f), new(37.4f, 0.15f, -18.0f),
+        };
+        foreach (var part in parts)
+            RepairPartSpawnPoints.Add(part);
+        Geo.SignBoard(this, new Vector3(37.6f, 2.2f, -20.0f), 180f, "WORKSHOP TOOLS",
+            Palette.Orange, 4.0f, 0.7f, "mechanic", 30);
+        AddKeepClear(new Vector3(37.4f, 0f, -13.5f), new Vector2(3f, 6f));
+
+        // M19: podium and trophy appear after the six-gate grand rally.
+        RallyPodium = new Node3D
+        {
+            Name = "RallyPodium",
+            Position = new Vector3(60.5f, 0f, -13.5f),
+            Visible = false,
+        };
+        AddChild(RallyPodium);
+        Geo.Box(RallyPodium, new Vector3(0, 0.35f, 0), new Vector3(3.4f, 0.7f, 2.2f), Palette.Stone);
+        Geo.Box(RallyPodium, new Vector3(0, 0.72f, 0), new Vector3(3.6f, 0.12f, 2.4f), Palette.Cream);
+        Geo.Box(RallyPodium, new Vector3(0, 1.1f, 0), new Vector3(1.0f, 0.8f, 0.8f), Palette.Yellow);
+        Geo.Cylinder(RallyPodium, new Vector3(0, 1.8f, 0), 0.22f, 0.28f, 0.5f, Color.FromHtml("F4C542"), 12);
+        Geo.Sphere(RallyPodium, new Vector3(0, 2.25f, 0), 0.32f, Color.FromHtml("F4C542"), 8, 4);
+        Geo.Label(RallyPodium, new Vector3(0, 2.9f, 0), "GRAND RALLY", 42, Palette.Navy, true, 0.005f);
+        AddKeepClear(new Vector3(60.5f, 0f, -13.5f), new Vector2(3f, 3f));
+
+        // M20: two table pads, three lantern pads and the festival bunting.
+        Vector3[] tables = { new(12.0f, 0.09f, 22.4f), new(18.0f, 0.09f, 22.4f) };
+        for (int i = 0; i < tables.Length; i++)
+        {
+            FestivalTablePads.Add(tables[i]);
+            Geo.Box(this, tables[i] + new Vector3(0, -0.02f, 0), new Vector3(2.4f, 0.05f, 1.7f),
+                Color.FromHtml("D6CFA5"), null, false, "FestivalTablePad");
+            var visual = new Node3D
+            {
+                Name = $"FestivalTable_{i}",
+                Position = tables[i],
+                Visible = false,
+            };
+            AddChild(visual);
+            Geo.Box(visual, new Vector3(0, 0.78f, 0), new Vector3(2.0f, 0.12f, 1.2f), Palette.Wood);
+            Geo.Box(visual, new Vector3(0, 0.86f, 0), new Vector3(2.1f, 0.06f, 1.3f),
+                i == 0 ? Palette.Cream : Palette.Yellow);
+            for (int leg = 0; leg < 4; leg++)
+                Geo.Box(visual, new Vector3((leg % 2 == 0 ? -0.82f : 0.82f), 0.4f,
+                    leg < 2 ? -0.45f : 0.45f), new Vector3(0.12f, 0.8f, 0.12f), Palette.WoodDark);
+            Geo.Box(visual, new Vector3(0, 1.02f, 0), new Vector3(0.5f, 0.18f, 0.35f), Palette.Pink);
+            FestivalTableVisuals.Add(visual);
+        }
+
+        Vector3[] lanterns =
+        {
+            new(9.0f, 0.09f, 22.4f), new(21.0f, 0.09f, 22.4f),
+            new(15.0f, 0.09f, 24.2f),
+        };
+        for (int i = 0; i < lanterns.Length; i++)
+        {
+            FestivalLanternPads.Add(lanterns[i]);
+            var visual = new Node3D
+            {
+                Name = $"FestivalLantern_{i}",
+                Position = lanterns[i],
+                Visible = false,
+            };
+            AddChild(visual);
+            Geo.Cylinder(visual, new Vector3(0, 1.15f, 0), 0.06f, 0.08f, 2.3f, Palette.WoodDark, 6);
+            var glow = Geo.Sphere(visual, new Vector3(0, 2.35f, 0), 0.3f, Palette.Yellow, 8, 4);
+            glow.MaterialOverride = Geo.Mat(Palette.Yellow, true);
+            Geo.Box(visual, new Vector3(0, 2.35f, 0), new Vector3(0.22f, 0.36f, 0.22f),
+                Palette.Orange, null, true);
+            FestivalLanternVisuals.Add(visual);
+        }
+
+        FestivalDecor = new Node3D { Name = "FestivalDecor", Visible = false };
+        AddChild(FestivalDecor);
+        for (int i = 0; i < 8; i++)
+        {
+            float x = 9.0f + i * 1.7f;
+            Geo.Box(FestivalDecor, new Vector3(x, 2.2f, 21.2f), new Vector3(0.9f, 0.5f, 0.06f),
+                i % 3 == 0 ? Palette.Pink : i % 3 == 1 ? Palette.Yellow : Palette.Blue,
+                null, true);
+        }
+        Geo.Box(FestivalDecor, new Vector3(15f, 0.06f, 21.4f), new Vector3(13f, 0.04f, 0.3f),
+            Palette.Lavender);
+
+        AddKeepClear(new Vector3(15f, 0f, 16f), new Vector2(9f, 7f));
+    }
+
+    private void BuildPipCar(Node3D root, bool broken)
+    {
+        Color main = broken ? Color.FromHtml("8A8F99") : Color.FromHtml("E98A75");
+        Color dark = broken ? Color.FromHtml("5A606B") : Color.FromHtml("BE6656");
+        Color tyre = Color.FromHtml("343A46");
+        Geo.Box(root, new Vector3(0, 0.48f, 0), new Vector3(1.55f, 0.42f, 2.55f), main);
+        Geo.Box(root, new Vector3(0, 0.88f, 0.12f), new Vector3(1.26f, 0.42f, 1.25f), main);
+        Geo.Box(root, new Vector3(0, 0.94f, -0.55f), new Vector3(1.16f, 0.34f, 0.06f), Color.FromHtml("9BD8F2"));
+        Geo.Box(root, new Vector3(0, 1.16f, 1.12f), new Vector3(1.8f, 0.1f, 0.5f), dark);
+        if (!broken)
+        {
+            Geo.Box(root, new Vector3(0, 0.62f, -1.31f), new Vector3(1.5f, 0.18f, 0.1f), dark);
+            Geo.Box(root, new Vector3(0, 0.72f, -1.37f), new Vector3(1.2f, 0.24f, 0.04f), Palette.Yellow);
+            Geo.Box(root, new Vector3(0, 0.56f, 1.3f), new Vector3(0.5f, 0.22f, 0.06f), Palette.Red);
+        }
+        int wheels = broken ? 2 : 4;
+        for (int i = 0; i < wheels; i++)
+        {
+            float x = i % 2 == 0 ? -0.78f : 0.78f;
+            float z = i < 2 ? -0.8f : 0.8f;
+            Geo.Cylinder(root, new Vector3(x, 0.33f, z), 0.31f, 0.31f, 0.22f, tyre, 12,
+                new Vector3(0, 0, 90));
+        }
+        Geo.Label(root, new Vector3(0, 1.75f, 0),
+            broken ? "PIP'S CAR — BROKEN" : "PIP'S CAR — READY", 30,
+            broken ? Palette.Red : Palette.Success, true, 0.005f);
+    }
+
     private void BuildBridgeWorksite()
     {
         Geo.SignBoard(this, new Vector3(35.2f, 2.2f, 5.2f), 180f, "BRIDGE WORKS", Palette.Red, 4.6f, 0.85f, "hammer", 38);
@@ -968,7 +1147,7 @@ public partial class WorldBuilder : Node3D
         Tree(new Vector3(36, 0, -24), 1.2f);
         Tree(new Vector3(-8, 0, -14), 0.8f);
         Tree(new Vector3(12, 0, -12), 1.0f);
-        Tree(new Vector3(31, 0, -9), 0.8f);
+        Tree(new Vector3(33, 0, -28), 0.8f);
         Tree(new Vector3(-50, 0, -38), 1.1f);
         Tree(new Vector3(-33, 0, -43), 1.2f);
         Tree(new Vector3(-25, 0, -36), 0.9f);

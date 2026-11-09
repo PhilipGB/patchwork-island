@@ -1510,3 +1510,80 @@ Restored source -> 97 passed, 0 failed
   coin wallet is never a job-supply budget.
 - The chapter-two runtime phase was added to CI as `--selftest-chapter` with a
   240-second timeout.
+
+## P14 — Chapter two, part two: M16–M20 and festival (v1.2.0)
+
+**Branch:** `p14-next-chapter-finale`
+
+### Delivered
+
+- M16 **The Delivery Round:** three parcels loaded at the post counter, a parked-van
+  proximity check, wrong-recipient refusal with no parcel loss, once-only 20-coin
+  reward and a persistent delivery-route board.
+- M17 **Market Day Maths:** a separate 20-coin job purse, 2 bread + 1 milk + 2 apples,
+  total 14 / change 6, reversible add/remove, no personal-wallet spend, once-only
+  22-coin reward and persistent market stock.
+- M18 **Mechanic's Toolbox:** four visible parts, inspect → two tyres → lamp →
+  battery ordering, wrong-stage hints with no part loss, once-only 24-coin reward,
+  and a persistent broken-to-repaired Pip car.
+- M19 **The Grand Rally:** six ordered gates on the continuous circuit, friendly
+  Pip rival, save/reload race clock, no mandatory time limit, optional 155-second
+  medal (+5), once-only 25-coin base reward and a persistent podium/trophy.
+  M05 (90 s) and M09 (75 s) four-gate rules remain unchanged.
+- M20 **Village Festival:** three invitations → two tables → three lanterns,
+  repeatable/undoable decoration placement, unlimited stage-safe job stock,
+  once-only 30-coin reward, festival decorations, festival music when enabled and
+  a separate `FestivalSeen` finale. The modal never reopens after Continue.
+- Job board now marks M16–M20 implemented and shows “All 20 jobs complete — free
+  roam unlocked!” when M20 is complete.
+- Playtest follow-up for the reported stuck spots: added sloped collision skirts
+  around the rally shoulders and a ramp at the bridge-to-connector seam. The new
+  `--selftest-traversal` phase drives the van across the bridge at speed and in a
+  slow pulsing approach, then walks/jumps from rest at the number-1 arches of both
+  race layouts.
+
+### Verification
+
+```text
+dotnet build PatchworkIsland.sln                         -> 0 warnings, 0 errors
+dotnet run --project tests/PatchworkIsland.Tests.csproj  -> 104 passed, 0 failed
+godot --headless --path . -- --selftest                  -> 161 passed, 0 failed
+godot --headless --path . -- --selftest-resume           -> 21 passed, 0 failed
+godot --headless --path . -- --selftest-recovery         -> 101 passed, 0 failed
+godot --headless --path . -- --selftest-living           -> 238 passed, 0 failed
+godot --headless --path . -- --selftest-rally            -> 10 passed, 0 failed
+godot --headless --path . -- --selftest-chapter          -> 217 passed, 0 failed
+godot --headless --path . -- --selftest-finale           -> 140 passed, 0 failed
+godot --headless --path . -- --selftest-traversal        -> 12 passed, 0 failed
+godot --headless --path . --editor --quit                -> PASS
+godot --headless --path . --quit-after 120               -> PASS
+```
+
+Rally timings: **M05 18.98 s**, **M09 18.98 s**, **M19 22.31 s**, each with the
+existing +5 optional medal. The P14 finale phase reaches M19 through real UI and
+physics, confirms the six-gate count, completes all 20 jobs at exactly 226 coins
+(100 prepared + 20 + 22 + 24 + 30 + 30), re-reads the save, and confirms the
+festival does not reopen after Continue. Pure coverage includes M16 wrong-recipient
+no-loss, M17 zero-wallet/over-budget/refund paths, M18 wrong-stage no-loss,
+M19 six-gate order and 155 s boundary, M20 stage ordering/undo, partial and full
+save/reload, and a separate `FestivalSeen` rule.
+
+### Visual evidence
+
+- 720p and true 1080p captures: `evidence/p14_720_*.png` and
+  `evidence/p14_1080_*.png` (delivery dialogue, post counter/board, market
+  checkout and stock, broken/repaired Pip car, six-gate rally, festival setup
+  and decor, all-20 job board, second festival finale, bridge approach, gate 1).
+- Capture command: `godot --path . -- --capture-p14` (add `--capture-1080` for
+  the 1920×1080 set).
+- Real GPU and audible playback remain **NOT TESTED** (hardware unavailable).
+
+### Notes
+
+- The reported bridge/road and gate-1 catch had no discrete collider at the arch:
+  the only nearby static body is the camera-only blocker on layer 16. The fix
+  therefore targets the road/shoulder collision edges and adds explicit traversal
+  regression coverage. If a playtest still reproduces the catch, the next useful
+  evidence is the exact world position and approach direction.
+- M20 keeps the original M10 `CelebrationSeen` untouched and uses only
+  `FestivalSeen` for the second finale.

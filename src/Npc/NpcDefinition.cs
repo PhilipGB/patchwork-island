@@ -60,10 +60,10 @@ public static class NpcCatalog
             MissionIds = new[] { "M12", "M16" },
             PatrolPoints = new[]
             {
-                new NpcPoint(-10.4f, 6.6f),
-                new NpcPoint(-8.6f, 7.0f),
-                new NpcPoint(-6.8f, 6.2f),
-                new NpcPoint(-8.2f, 5.2f),
+                new NpcPoint(-11.0f, 4.0f),
+                new NpcPoint(-9.4f, 3.8f),
+                new NpcPoint(-7.8f, 4.4f),
+                new NpcPoint(-9.4f, 5.2f),
             },
         },
         new()

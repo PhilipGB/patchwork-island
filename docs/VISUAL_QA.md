@@ -22,6 +22,12 @@ xvfb-run -a -s "-screen 0 1280x720x24" \
 xvfb-run -a -s "-screen 0 1920x1080x24" \
   godot --path . --resolution 1920x1080 -- --capture-p13 --capture-1080
 
+# finale content, 720p and true 1080p
+xvfb-run -a -s "-screen 0 1280x720x24" \
+  godot --path . --resolution 1280x720 -- --capture-p14
+xvfb-run -a -s "-screen 0 1920x1080x24" \
+  godot --path . --resolution 1920x1080 -- --capture-p14 --capture-1080
+
 # software-renderer frame probe
 xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --resolution 1280x720 -- --dev --perf-probe
 xvfb-run -a -s "-screen 0 1920x1080x24" godot --path . --resolution 1920x1080 -- --dev --perf-probe --perf-1080
@@ -39,6 +45,10 @@ xvfb-run -a -s "-screen 0 1920x1080x24" godot --path . --resolution 1920x1080 --
 | V06 | Large blank sign backs floated over roads | Look back along main road | Sign boards had text only on the front face | Every authored sign now has a correctly rotated back-face label | first P12 pass observed during capture, not committed | `evidence/p12_720_08_town_traffic.png`, `evidence/p12_1080_08_town_traffic.png` |
 | V07 | New chapter-two mission icons floated as 3–4 m blobs over villagers, books and signs | Inspect bakery/library/world marker at 720p | `Sprite3D.PixelSize` assumed the original 48 px SVG set; the supplied mission PNGs are 128 px | `Geo.SignBoard`, `Geo.IconSprite` and `WorldMarker.ShowAt` normalise world icon size by texture width | first P13 capture pass observed during capture, not committed | `evidence/p13_720_01_bakery_stall.png`, `evidence/p13_720_02_library_shelf.png`, `evidence/p13_1080_01_bakery_stall.png` |
 | V08 | Generic library icon covered the large MOON/SUN book cover word | Walk to the MOON book pickup | Book pickups rendered both a 3D cover word and a generic library icon at the same height | Books keep their readable cover word and skip the redundant generic pickup icon | first P13 capture pass observed during capture, not committed | `evidence/p13_720_05_book_pickup.png`, `evidence/p13_1080_05_book_pickup.png` |
+| V09 | Van could catch at the bridge/road seam; player could catch at the shoulder edge near gate 1 | Slow bridge crossing; walk from grass to the number 1 arch and jump | Rally shoulder/connector collision was a raised flat edge with no approach slope | Added sloped collision skirts around the rally shoulders and a ramp at the bridge-to-connector seam; traversal harness starts from rest at the lip and tests low-speed van crossing plus jumping at both gate-1 arches | playtest report; pre-fix character-body catch was not captured on video | `evidence/p14_720_13_bridge_approach.png`, `evidence/p14_720_14_gate_one.png`, `evidence/p14_1080_13_bridge_approach.png` |
+| V10 | Delivery board and post station were placed inside the town-hall shell | Complete M16 and look for the delivery board | Board/station offsets used the post counter's +Z side, which is inside the building | Moved the post station and delivery board to the open south-east approach; capture now shows the board from the road | first P14 capture pass observed during capture, not committed | `evidence/p14_720_02_delivery_board.png`, `evidence/p14_1080_02_delivery_board.png` |
+| V11 | Hand-placed tree canopy covered Pip's broken car | Stand at the workshop repair bay | Existing tree at `(31,0,-9)` was not covered by the new keep-clear rectangle | Moved the tree to `(33,0,-28)`; broken/repaired car silhouettes are readable | first P14 capture pass observed during capture, not committed | `evidence/p14_720_06_broken_pip_car.png`, `evidence/p14_720_07_repaired_pip_car.png` |
+| V12 | Market checkout's Pay button sat below the fold at 720p | Open Market Day Maths at 1280×720 | Three two-line item rows plus footer exceeded the modal body | Compacted item rows to one line each and removed the duplicate footer; Pay and Step away are visible | first P14 capture pass observed during capture, not committed | `evidence/p14_720_03_market_maths_ui.png`, `evidence/p14_1080_03_market_maths_ui.png` |
 
 ## Continuous-road and driving verification
 
@@ -83,6 +93,19 @@ book pickups. `evidence/p13_720_12_repaired_signs.png` and
 `evidence/p13_720_13_garden_complete.png` show the persistent completed-world
 visuals. P13 intentionally captures M16–M20 as **COMING SOON**; their world
 content and evidence belong to P14.
+
+## P14 finale captures
+
+`evidence/p14_720_*.png` and `evidence/p14_1080_*.png` show the M16 delivery
+dialogue/post counter/board, M17 checkout and market stock, M18 repair bench
+with broken and repaired Pip car, the six-gate grand rally, M20 invitations,
+tables/lanterns, completed festival decoration, the all-20 job board and the
+second `VILLAGE FESTIVAL!` finale. `p14_*_13_bridge_approach.png` records the
+bridge/connector approach used by the traversal regression, and
+`p14_*_14_gate_one.png` shows the number 1 arch where the playtest reported a
+stuck player. The gate's only nearby static body is the camera-only blocker on
+layer 16; the player capsule uses layers 1 and 3, so the fix targets the road
+shoulder collision rather than the arch visual.
 
 ## Software-renderer measurements (not a desktop-GPU claim)
 

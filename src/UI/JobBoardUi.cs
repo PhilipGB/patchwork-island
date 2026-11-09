@@ -47,6 +47,11 @@ public static class JobBoardUi
             UiKit.Label(summary, $"Current job: {active.Title}", 19, Palette.Blue,
                 HorizontalAlignment.Left, false);
         }
+        else if (data.IsCompleted("M20"))
+        {
+            UiKit.Label(summary, "All 20 jobs complete — free roam unlocked!", 19, Palette.Success,
+                HorizontalAlignment.Left, false);
+        }
         else
         {
             UiKit.Label(summary, "Pick any available job with a Start button.", 19, Palette.Success,

@@ -26,7 +26,7 @@ public partial class Main : Node3D
     private readonly HashSet<string> _implemented = new()
     {
         "M01", "M02", "M03", "M04", "M05", "M06", "M07", "M08", "M09", "M10",
-        "M11", "M12", "M13", "M14", "M15",
+        "M11", "M12", "M13", "M14", "M15", "M16", "M17", "M18", "M19", "M20",
     };
     private readonly List<Pickup> _pickups = new();
     private readonly List<NpcActor> _npcs = new();
@@ -35,6 +35,12 @@ public partial class Main : Node3D
     private NpcActor _talkingNpc;
     private readonly List<Interactable> _signStations = new();
     private readonly List<Interactable> _gardenStations = new();
+    private readonly List<Interactable> _festivalTableStations = new();
+    private readonly List<Interactable> _festivalLanternStations = new();
+    private Interactable _postStation;
+    private Interactable _repairStation;
+    private TrafficCar _rallyRival;
+    private bool _festivalShown;
     private readonly List<Node3D> _signVisuals = new();
     private readonly List<Node3D> _gardenFlowerRoots = new();
     private readonly List<MeshInstance3D> _gardenFlowerHeads = new();
@@ -101,7 +107,8 @@ public partial class Main : Node3D
             ShowFatalContentError(ex.Message);
             return;
         }
-        if (HasUserArg("--selftest") || (IsChapterTest && RuntimeSelfTest.ChapterPhase == 0))
+        if (HasUserArg("--selftest") || IsFinaleTest || IsTraversalTest ||
+            (IsChapterTest && RuntimeSelfTest.ChapterPhase == 0))
             DeleteSelfTestSaves("selftest-save.json");
         else if (IsRecoveryTest && RuntimeSelfTest.RecoveryPhase == 0)
             DeleteSelfTestSaves("selftest-recovery-save.json");
@@ -250,6 +257,14 @@ public partial class Main : Node3D
             _ = CaptureP13();
             return;
         }
+        if (HasUserArg("--capture-p14"))
+        {
+            _started = true;
+            _hud.CloseModal();
+            _player.SetControlEnabled(false);
+            _ = CaptureP14();
+            return;
+        }
         if (HasUserArg("--perf-probe"))
         {
             _started = true;
@@ -358,10 +373,12 @@ public partial class Main : Node3D
     private static bool IsRallyTest => HasUserArg("--selftest-rally");
 
     private static bool IsChapterTest => HasUserArg("--selftest-chapter");
+    private static bool IsFinaleTest => HasUserArg("--selftest-finale");
+    private static bool IsTraversalTest => HasUserArg("--selftest-traversal");
 
     private static bool IsSelfTest =>
         HasUserArg("--selftest") || HasUserArg("--selftest-resume") || IsRecoveryTest ||
-        IsLivingTest || IsRallyTest || IsChapterTest;
+        IsLivingTest || IsRallyTest || IsChapterTest || IsFinaleTest || IsTraversalTest;
 
     private static bool IsSelfTestResume => HasUserArg("--selftest-resume");
 
@@ -433,7 +450,7 @@ public partial class Main : Node3D
             _van.GlobalPosition = new Vector3(_data.Van.X, _data.Van.Y, _data.Van.Z);
             _van.Rotation = new Vector3(0, _data.Van.RotationY, 0);
         }
-        if (_data.ActiveMission is "M05" or "M09")
+        if (_data.ActiveMission is "M05" or "M09" or "M19")
             _raceTimer = RaceTimer.Restore(_data, _data.ActiveMission);
         else
             _raceTimer = new RaceTimer();
@@ -462,7 +479,7 @@ public partial class Main : Node3D
 
         int bonus = 0;
         double raceSeconds = 0;
-        if (missionId is "M05" or "M09")
+        if (missionId is "M05" or "M09" or "M19")
         {
             raceSeconds = _raceTimer.ElapsedSeconds;
             bonus = _raceTimer.OptionalBonus(missionId);
@@ -480,7 +497,8 @@ public partial class Main : Node3D
             _marker.SetReducedMotion(_data.Settings.ReducedMotion);
     }
 
-    private string RoamMusicId => "village";
+    private string RoamMusicId =>
+        _data != null && _data.IsCompleted("M20") ? "festival" : "village";
 
     private void RefreshMusicContext()
     {
@@ -774,6 +792,36 @@ public partial class Main : Node3D
             station.SetPrompt(() => GardenPadPrompt(index));
             _gardenStations.Add(station);
         }
+
+        _postStation = Interactable.Create(this, _world.PostCounter + new Vector3(-2.5f, 0.1f, 0f),
+            "E: Post counter", InteractPostCounter, null, true, 3.2f, "PostCounterStation");
+        _postStation.SetPrompt(PostCounterPrompt);
+
+        _repairStation = Interactable.Create(this,
+            _world.RepairCarPosition + new Vector3(0, 0.1f, 2.4f),
+            "E: Pip's broken car", InteractRepairCar, null, true, 3.4f, "RepairStation");
+        _repairStation.SetPrompt(RepairPrompt);
+
+        for (int i = 0; i < _world.FestivalTablePads.Count; i++)
+        {
+            int index = i;
+            var station = Interactable.Create(this,
+                _world.FestivalTablePads[i] + new Vector3(0, 0.1f, 0.9f),
+                "E: Festival table pad", () => InteractFestivalTable(index), null, true, 3.0f,
+                $"FestivalTableStation_{index}");
+            station.SetPrompt(() => FestivalTablePrompt(index));
+            _festivalTableStations.Add(station);
+        }
+        for (int i = 0; i < _world.FestivalLanternPads.Count; i++)
+        {
+            int index = i;
+            var station = Interactable.Create(this,
+                _world.FestivalLanternPads[i] + new Vector3(0, 0.1f, 0.8f),
+                "E: Festival lantern hook", () => InteractFestivalLantern(index), null, true, 3.0f,
+                $"FestivalLanternStation_{index}");
+            station.SetPrompt(() => FestivalLanternPrompt(index));
+            _festivalLanternStations.Add(station);
+        }
     }
 
     private string SignSocketPrompt(int index)
@@ -794,6 +842,140 @@ public partial class Main : Node3D
         if (_data.IsCompleted("M15"))
             return $"E: Garden pad {index + 1}";
         return "E: Community garden pad";
+    }
+
+    private string PostCounterPrompt()
+    {
+        if (_data.ActiveMission == "M16")
+            return _data.GetMissionCounter("M16", "loaded") > 0
+                ? "E: Post counter — parcels loaded"
+                : "E: Load the three delivery parcels";
+        if (_data.IsCompleted("M16")) return "E: Post counter — delivery route complete";
+        return "E: Post counter";
+    }
+
+    private string RepairPrompt()
+    {
+        if (_data.IsCompleted("M18")) return "E: Pip's car — repaired";
+        if (_data.ActiveMission == "M18") return "E: Repair Pip's car";
+        return "E: Pip's broken car";
+    }
+
+    private string FestivalTablePrompt(int index)
+    {
+        if (_data.IsCompleted("M20")) return $"E: Festival table {index + 1}";
+        if (_data.ActiveMission == "M20")
+            return _data.GetMissionCounter("M20", FinaleRules.TableKey(index)) >= 1
+                ? $"E: Take back table {index + 1}"
+                : $"E: Place table {index + 1}";
+        return $"E: Festival table pad {index + 1}";
+    }
+
+    private string FestivalLanternPrompt(int index)
+    {
+        if (_data.IsCompleted("M20")) return $"E: Festival lantern {index + 1}";
+        if (_data.ActiveMission == "M20")
+            return _data.GetMissionCounter("M20", FinaleRules.LanternKey(index)) >= 1
+                ? $"E: Take down lantern {index + 1}"
+                : $"E: Hang lantern {index + 1}";
+        return $"E: Festival lantern hook {index + 1}";
+    }
+
+    private void InteractPostCounter()
+    {
+        if (_data.IsCompleted("M16"))
+        {
+            _hud.ShowBigToast("The delivery board shows all three parcels arrived.", 2.8f, Palette.Success);
+            return;
+        }
+        if (_data.ActiveMission != "M16")
+        {
+            _hud.ShowHint("Start The Delivery Round at the yellow JOBS board first.");
+            return;
+        }
+        var result = _missions.LoadDeliveryParcels();
+        if (!result.Success)
+        {
+            _hud.ShowHint(result.Message);
+            return;
+        }
+        AudioManager.PlayWorld("parcel_deliver", -6f);
+        _hud.ShowBigToast(result.Message, 4.0f, Palette.Orange);
+        RefreshMissionState();
+    }
+
+    private void InteractRepairCar()
+    {
+        if (_data.IsCompleted("M18"))
+        {
+            _hud.ShowBigToast("Pip's car is repaired and ready for the rally.", 2.6f, Palette.Success);
+            return;
+        }
+        if (_data.ActiveMission != "M18")
+        {
+            _hud.ShowHint("Start Mechanic's Toolbox at the yellow JOBS board first.");
+            return;
+        }
+        RepairUi.Show(_hud, _missions, result => OnMissionCompleted(result), RefreshMissionState);
+    }
+
+    private void InteractFestivalTable(int index)
+    {
+        if (_data.IsCompleted("M20"))
+        {
+            _hud.ShowBigToast("The festival tables are part of the finished celebration.", 2.6f, Palette.Success);
+            return;
+        }
+        if (_data.ActiveMission != "M20")
+        {
+            _hud.ShowHint("Start Village Festival at the yellow JOBS board first.");
+            return;
+        }
+        bool placed = _data.GetMissionCounter("M20", FinaleRules.TableKey(index)) >= 1;
+        var result = placed
+            ? _missions.RemoveFestivalTable(index)
+            : _missions.PlaceFestivalTable(index);
+        if (!result.Success)
+        {
+            AudioManager.PlayUi("ui_error");
+            _hud.ShowHint(result.Message);
+            return;
+        }
+        AudioManager.PlayWorld(placed ? "ui_cancel" : "build_place", -6f);
+        _hud.ShowBigToast(result.Message, 2.4f, Palette.Lavender);
+        RefreshMissionState();
+    }
+
+    private void InteractFestivalLantern(int index)
+    {
+        if (_data.IsCompleted("M20"))
+        {
+            _hud.ShowBigToast("The festival lanterns are part of the finished celebration.", 2.6f, Palette.Success);
+            return;
+        }
+        if (_data.ActiveMission != "M20")
+        {
+            _hud.ShowHint("Start Village Festival at the yellow JOBS board first.");
+            return;
+        }
+        bool hanging = _data.GetMissionCounter("M20", FinaleRules.LanternKey(index)) >= 1;
+        var result = hanging
+            ? _missions.RemoveFestivalLantern(index)
+            : _missions.HangFestivalLantern(index);
+        if (!result.Success)
+        {
+            AudioManager.PlayUi("ui_error");
+            _hud.ShowHint(result.Message);
+            return;
+        }
+        AudioManager.PlayWorld(hanging ? "ui_cancel" : "festival_pop", -5f);
+        if (result.Completion != null)
+        {
+            OnMissionCompleted(result.Completion);
+            return;
+        }
+        _hud.ShowBigToast(result.Message, 2.4f, Palette.Yellow);
+        RefreshMissionState();
     }
 
     private void CreateChapterTwoWorldVisuals()
@@ -854,6 +1036,28 @@ public partial class Main : Node3D
         }
         GardenPadUi.Show(_hud, _missions, index,
             result => OnMissionCompleted(result), RefreshMissionState);
+    }
+
+    private void RefreshFinaleWorld()
+    {
+        if (_world == null) return;
+        if (_world.DeliveryBoard != null)
+            _world.DeliveryBoard.Visible = _data.IsCompleted("M16");
+        if (_world.MarketStock != null)
+            _world.MarketStock.Visible = _data.IsCompleted("M17");
+        bool repaired = _data.IsCompleted("M18");
+        if (_world.PipCarBroken != null) _world.PipCarBroken.Visible = !repaired;
+        if (_world.PipCarFixed != null) _world.PipCarFixed.Visible = repaired;
+        if (_world.RallyPodium != null)
+            _world.RallyPodium.Visible = _data.IsCompleted("M19");
+        for (int i = 0; i < _world.FestivalTableVisuals.Count; i++)
+            _world.FestivalTableVisuals[i].Visible =
+                _data.GetMissionCounter("M20", FinaleRules.TableKey(i)) >= 1;
+        for (int i = 0; i < _world.FestivalLanternVisuals.Count; i++)
+            _world.FestivalLanternVisuals[i].Visible =
+                _data.GetMissionCounter("M20", FinaleRules.LanternKey(i)) >= 1;
+        if (_world.FestivalDecor != null)
+            _world.FestivalDecor.Visible = _data.IsCompleted("M20");
     }
 
     private void RefreshChapterTwoWorld()
@@ -933,6 +1137,8 @@ public partial class Main : Node3D
     private string ShopPrompt()
     {
         if (_data.ActiveMission == "M04") return "E: Shop for Market Basket";
+        if (_data.ActiveMission == "M17") return "E: Market Day Maths checkout";
+        if (_data.IsCompleted("M17")) return "E: Market stall — stocked";
         return "E: Look at the SHOP";
     }
 
@@ -1115,6 +1321,16 @@ public partial class Main : Node3D
             GroceryUi.Show(_hud, _missions, RefreshMissionState);
             return;
         }
+        if (_data.ActiveMission == "M17")
+        {
+            MarketMathsUi.Show(_hud, _missions, result => OnMissionCompleted(result), RefreshMissionState);
+            return;
+        }
+        if (_data.IsCompleted("M17"))
+        {
+            _hud.ShowBigToast("The market stall is stocked for the village festival.", 2.6f, Palette.Success);
+            return;
+        }
         if (_data.ActiveMission == "M01" && _data.GetItem("apple") < 3)
             _hud.ShowBigToast("The three apples are in the crate beside the SHOP.");
         else
@@ -1170,6 +1386,7 @@ public partial class Main : Node3D
         SpawnItemSet("stone", "M02", 3, _world.StoneSpawnPoints, Palette.Stone);
         SpawnParcelPickups();
         SpawnBookPickups();
+        SpawnRepairParts();
     }
 
     private void SpawnParcelPickups()
@@ -1204,6 +1421,47 @@ public partial class Main : Node3D
             pickup.ProcessMode = ProcessModeEnum.Pausable;
             _pickups.Add(pickup);
         }
+    }
+
+    private void SpawnRepairParts()
+    {
+        if (_data.IsCompleted("M18")) return;
+        string[] partTypes = { "tyre", "tyre", "lamp", "battery" };
+        for (int i = 0; i < partTypes.Length && i < _world.RepairPartSpawnPoints.Count; i++)
+        {
+            string part = partTypes[i];
+            string pickupId = part == "tyre" ? $"part_tyre_{i}" : $"part_{part}_0";
+            if (_data.HasCollected(pickupId)) continue;
+            var pickup = Pickup.Create(this, _world.RepairPartSpawnPoints[i], pickupId, part,
+                "M18", 1, TakeRepairPart,
+                () => _data.ActiveMission == "M18"
+                    ? $"E: Pick up the {FinaleRules.PartLabel(part).ToLowerInvariant()}"
+                    : "E: A repair part for Pip's car",
+                () => _data.IsCompleted("M18"));
+            pickup.ProcessMode = ProcessModeEnum.Pausable;
+            _pickups.Add(pickup);
+        }
+    }
+
+    private void TakeRepairPart(Pickup pickup)
+    {
+        if (_data.ActiveMission != "M18")
+        {
+            _hud.ShowHint("Start Mechanic's Toolbox at the yellow JOBS board first.");
+            return;
+        }
+        var result = _missions.CollectRepairPart(pickup.ItemType);
+        if (!result.Success)
+        {
+            _hud.ShowHint(result.Message);
+            return;
+        }
+        pickup.CollectVisual();
+        _pickups.Remove(pickup);
+        AudioManager.PlayWorld("parcel_deliver", -6f);
+        _hud.ShowToast(result.Message, 2.4f, Palette.Orange);
+        RefreshMissionState();
+        _player.ForceRefreshInteraction();
     }
 
     private void TakeBookPickup(Pickup pickup)
@@ -1313,6 +1571,40 @@ public partial class Main : Node3D
             });
         }
 
+        if (_data.ActiveMission == "M16" &&
+            FinaleRules.DeliveryRecipients.Contains(npc.NpcId) &&
+            _data.GetMissionCounter("M16", "loaded") > 0)
+        {
+            foreach (string recipient in FinaleRules.DeliveryRecipients)
+            {
+                if (_data.GetMissionCounter("M16", FinaleRules.CarryingKey(recipient)) <= 0)
+                    continue;
+                string captured = recipient;
+                options.Add(new NpcOption
+                {
+                    Text = $"Deliver {FinaleRules.DeliveryName(recipient)} parcel",
+                    Name = $"Deliver_{recipient}",
+                    Border = Palette.Orange,
+                    Close = false,
+                    Action = () => CloseNpcDialogueThen(() => DeliverParcelFromVan(npc, captured)),
+                });
+            }
+        }
+
+        if (_data.ActiveMission == "M20" &&
+            FinaleRules.FestivalInvitees.Contains(npc.NpcId) &&
+            _data.GetMissionCounter("M20", FinaleRules.InvitedKey(npc.NpcId)) <= 0)
+        {
+            options.Add(new NpcOption
+            {
+                Text = "Give festival invitation",
+                Name = "FestivalInvite",
+                Border = Palette.Lavender,
+                Close = false,
+                Action = () => CloseNpcDialogueThen(() => InviteNeighbour(npc.NpcId)),
+            });
+        }
+
         return options;
     }
 
@@ -1320,6 +1612,48 @@ public partial class Main : Node3D
     {
         if (_hud.ModalOpen) _hud.CloseModal();
         action?.Invoke();
+    }
+
+    private bool VanParkedNear(Vector3 position) =>
+        _van != null && _van.GlobalPosition.DistanceTo(position) <= 10f &&
+        Mathf.Abs(_van.Speed) < 0.8f;
+
+    private void DeliverParcelFromVan(NpcActor npc, string recipientId)
+    {
+        if (!VanParkedNear(npc.GlobalPosition))
+        {
+            _hud.ShowHint("Park the van close to the neighbour and stop, then step out to deliver.");
+            return;
+        }
+        var result = _missions.DeliverParcel(npc.NpcId, recipientId);
+        if (!result.Success)
+        {
+            AudioManager.PlayUi("ui_error");
+            _hud.ShowHint(result.Message);
+            return;
+        }
+        AudioManager.PlayWorld("parcel_deliver", -5f);
+        if (result.Completion != null)
+        {
+            OnMissionCompleted(result.Completion);
+            return;
+        }
+        _hud.ShowBigToast(result.Message, 3f, Palette.Orange);
+        RefreshMissionState();
+    }
+
+    private void InviteNeighbour(string npcId)
+    {
+        var result = _missions.InviteForFestival(npcId);
+        if (!result.Success)
+        {
+            AudioManager.PlayUi("ui_error");
+            _hud.ShowHint(result.Message);
+            return;
+        }
+        AudioManager.PlayWorld("festival_pop", -7f);
+        _hud.ShowBigToast(result.Message, 2.8f, Palette.Yellow);
+        RefreshMissionState();
     }
 
     private void SpawnVillagers()
@@ -1475,6 +1809,8 @@ public partial class Main : Node3D
         _autosaveTimer = 20f;
         if (AllMissionsComplete() && !_data.CelebrationSeen)
             Callable.From(ShowVillageCelebration).CallDeferred();
+        else if (AllTwentyMissionsComplete() && !_data.FestivalSeen)
+            Callable.From(ShowVillageFestival).CallDeferred();
 
         if (!string.IsNullOrEmpty(_recoveredJobNote))
         {
@@ -1645,7 +1981,7 @@ public partial class Main : Node3D
             _hud.ShowHint(result.Message);
             return;
         }
-        if (missionId is "M05" or "M09")
+        if (missionId is "M05" or "M09" or "M19")
             _raceTimer = RaceTimer.Restore(_data, missionId);
         else
             _raceTimer = new RaceTimer();
@@ -1904,10 +2240,13 @@ public partial class Main : Node3D
     private void TickRace(float dt)
     {
         var mission = _missions.ActiveMission;
-        if (!_driving || mission == null || (mission.Id != "M05" && mission.Id != "M09"))
+        if (!_driving || mission == null ||
+            mission.Id is not ("M05" or "M09" or "M19"))
             return;
+        int gateCount = mission.Id == "M19" ? FinaleRules.RallyGateCount : 4;
+        var gates = mission.Id == "M19" ? _world.M19RaceGates : _world.RaceGates;
         int checkpoint = _data.GetMissionCounter(mission.Id, "checkpoint");
-        if (checkpoint > 0 && checkpoint < 4)
+        if (checkpoint > 0 && checkpoint < gateCount)
         {
             _raceTimer.Tick(dt);
             _raceTimer.Store(_data, mission.Id);
@@ -1921,10 +2260,10 @@ public partial class Main : Node3D
         }
 
         _raceCheckTimer -= dt;
-        if (_raceCheckTimer > 0f || checkpoint >= 4) return;
+        if (_raceCheckTimer > 0f || checkpoint >= gateCount) return;
         _raceCheckTimer = 0.15f;
 
-        Vector3 gate = _world.RaceGates[checkpoint].Position;
+        Vector3 gate = gates[checkpoint].Position;
         float distance = new Vector2(_van.GlobalPosition.X - gate.X, _van.GlobalPosition.Z - gate.Z).Length();
         if (distance > 7.0f) return;
 
@@ -1949,7 +2288,7 @@ public partial class Main : Node3D
         _hud.ShowBigToast(advance.Message, 2.4f, Palette.Yellow);
         RefreshMissionState();
 
-        if (checkpoint + 1 >= 4)
+        if (checkpoint + 1 >= gateCount)
         {
             double raceSeconds = _raceTimer.ElapsedSeconds;
             int bonus = _raceTimer.OptionalBonus(mission.Id);
@@ -2058,6 +2397,8 @@ public partial class Main : Node3D
         RefreshPickupVisibility();
         RefreshRaceGateVisibility();
         RefreshChapterTwoWorld();
+        RefreshFinaleWorld();
+        EnsureRallyRival();
         if (_world.GoldCourseFlag != null)
             _world.GoldCourseFlag.Visible = _data.IsCompleted("M09");
         if (_world.CelebrationDecor != null)
@@ -2208,6 +2549,73 @@ public partial class Main : Node3D
                 SetObjective(_world.GardenPads[pad], $"GARDEN PAD {pad + 1}", "garden", Palette.GrassDark);
                 break;
             }
+            case "M16":
+            {
+                if (_data.GetMissionCounter("M16", "loaded") <= 0)
+                {
+                    SetObjective(_world.PostCounter, "POST COUNTER — LOAD", "parcel", Palette.Orange);
+                    break;
+                }
+                var next = NextDeliveryNpc();
+                if (next != null)
+                    SetObjective(next.GlobalPosition, $"{next.Definition.Name.ToUpperInvariant()} — PARCEL",
+                        "delivery", Palette.Orange);
+                else
+                    SetObjective(_world.JobBoard, "JOBS BOARD", "star", Palette.Yellow);
+                break;
+            }
+            case "M17":
+                SetObjective(_world.ShopDoor, "MARKET CHECKOUT", "market_maths", Palette.Blue);
+                break;
+            case "M18":
+                SetObjective(_world.RepairCarPosition, "PIP'S CAR — REPAIR", "mechanic", Palette.Orange);
+                break;
+            case "M19":
+            {
+                int checkpoint = _data.GetMissionCounter("M19", "checkpoint");
+                if (!_driving)
+                    SetObjective(_van.GlobalPosition, checkpoint == 0 ? "YELLOW VAN" : "BACK TO VAN",
+                        "van", Palette.Yellow);
+                else if (checkpoint >= FinaleRules.RallyGateCount)
+                    SetObjective(_world.JobBoard, "JOBS BOARD", "star", Palette.Yellow);
+                else
+                {
+                    var gate = _world.M19RaceGates[checkpoint];
+                    SetObjective(gate.Position, $"GRAND GATE {checkpoint + 1}", "flag",
+                        checkpoint == 0 ? Palette.Yellow : Palette.Lavender);
+                }
+                break;
+            }
+            case "M20":
+            {
+                if (!FinaleRules.InvitesComplete(_data))
+                {
+                    var invite = NextFestivalInvitee();
+                    if (invite != null)
+                    {
+                        SetObjective(invite.GlobalPosition,
+                            $"INVITE {invite.Definition.Name.ToUpperInvariant()}", "festival", Palette.Yellow);
+                        break;
+                    }
+                }
+                if (!FinaleRules.TablesComplete(_data))
+                {
+                    int pad = NextFestivalTablePad();
+                    SetObjective(_world.FestivalTablePads[pad], $"FESTIVAL TABLE {pad + 1}",
+                        "festival", Palette.Lavender);
+                }
+                else if (!FinaleRules.LanternsComplete(_data))
+                {
+                    int hook = NextFestivalLanternPad();
+                    SetObjective(_world.FestivalLanternPads[hook], $"FESTIVAL LANTERN {hook + 1}",
+                        "festival", Palette.Yellow);
+                }
+                else
+                {
+                    SetObjective(_world.JobBoard, "JOBS BOARD", "star", Palette.Yellow);
+                }
+                break;
+            }
             default:
                 SetObjective(_world.JobBoard, "JOBS BOARD", "star", Palette.Yellow);
                 break;
@@ -2337,6 +2745,52 @@ public partial class Main : Node3D
             rows.Add(("star", "RED, BLUE, RED, BLUE, RED, BLUE"));
             rows.Add(("star", "Wrong colours can be changed freely"));
         }
+        else if (missionId == "M16")
+        {
+            int delivered = FinaleRules.DeliveryRecipients.Count(n =>
+                _data.GetMissionCounter("M16", FinaleRules.DeliveredKey(n)) >= 1);
+            rows.Add(("parcel", $"{delivered} / 3 parcels delivered"));
+            rows.Add(("van", _data.GetMissionCounter("M16", "loaded") > 0
+                ? (VanParkedNear(_player.GlobalPosition) ? "Van parked — step out to deliver" : "Drive close, stop, then step out")
+                : "Load parcels at the POST COUNTER"));
+        }
+        else if (missionId == "M17")
+        {
+            rows.Add(("bread", $"{FinaleRules.MarketCount(_data, "bread")} / 2 bread"));
+            rows.Add(("milk", $"{FinaleRules.MarketCount(_data, "milk")} / 1 milk"));
+            rows.Add(("apple", $"{FinaleRules.MarketCount(_data, "apple")} / 2 apples"));
+            rows.Add(("coin", $"Job total {FinaleRules.MarketSpent(_data)} / 20 · change {FinaleRules.MarketChange(_data)}"));
+        }
+        else if (missionId == "M18")
+        {
+            rows.Add(("mechanic", $"Tyres {_data.GetMissionCounter("M18", "tyres_fitted")} / 2"));
+            rows.Add(("star", $"Lamp {(_data.GetMissionCounter("M18", "lamp_fitted") > 0 ? "fitted ✓" : "not fitted")}"));
+            rows.Add(("star", $"Battery {(_data.GetMissionCounter("M18", "battery_fitted") > 0 ? "fitted ✓" : "not fitted")}"));
+            rows.Add(("star", "Inspect, two tyres, lamp, battery last"));
+        }
+        else if (missionId == "M19")
+        {
+            int checkpoint = _data.GetMissionCounter("M19", "checkpoint");
+            rows.Add(("flag", $"Grand gate {checkpoint} / 6"));
+            if (checkpoint > 0 && checkpoint < FinaleRules.RallyGateCount)
+                rows.Add(("star", $"Time {FormatTime(_raceTimer.ElapsedSeconds)} · medal under 2:35"));
+            else if (!_driving)
+                rows.Add(("van", "Get into the yellow van"));
+            rows.Add(("star", "Pip is a friendly rival — finishing is enough"));
+        }
+        else if (missionId == "M20")
+        {
+            int invited = FinaleRules.FestivalInvitees.Count(n =>
+                _data.GetMissionCounter("M20", FinaleRules.InvitedKey(n)) >= 1);
+            int tables = Enumerable.Range(0, FinaleRules.FestivalTableCount)
+                .Count(i => _data.GetMissionCounter("M20", FinaleRules.TableKey(i)) >= 1);
+            int lanterns = Enumerable.Range(0, FinaleRules.FestivalLanternCount)
+                .Count(i => _data.GetMissionCounter("M20", FinaleRules.LanternKey(i)) >= 1);
+            rows.Add(("festival", $"Invitations {invited} / 3"));
+            rows.Add(("star", $"Tables {tables} / 2"));
+            rows.Add(("star", $"Lanterns {lanterns} / 3"));
+            rows.Add(("star", "Invite, then tables, then lanterns"));
+        }
         else
         {
             rows.Add(("star", "Follow the glowing marker"));
@@ -2351,6 +2805,29 @@ public partial class Main : Node3D
             _world.RaceGates4Root.Visible = !secondChapterRally;
         if (_world?.RaceGates6Root != null)
             _world.RaceGates6Root.Visible = secondChapterRally;
+    }
+
+    private void EnsureRallyRival()
+    {
+        bool wanted = _started && _missions?.ActiveMission?.Id == "M19" &&
+                      (_data.GetMissionCounter("M19", "checkpoint") > 0 ||
+                       _van.GlobalPosition.DistanceTo(_world.RaceStart) < 30f);
+        if (wanted && _rallyRival == null)
+        {
+            var route = TrafficCatalog.Find("rally_rival");
+            if (route == null) return;
+            _rallyRival = new TrafficCar { Name = "RallyRival", ProcessMode = ProcessModeEnum.Pausable };
+            _rallyRival.Initialize(route,
+                () => _player?.GlobalPosition ?? Vector3.Zero,
+                () => _van?.GlobalPosition ?? Vector3.Zero,
+                () => _driving);
+            AddChild(_rallyRival);
+        }
+        else if (!wanted && _rallyRival != null)
+        {
+            _rallyRival.QueueFree();
+            _rallyRival = null;
+        }
     }
 
     private NpcActor FindNpc(string id) =>
@@ -2390,6 +2867,38 @@ public partial class Main : Node3D
             string color = ChapterTwoRules.GardenColor(_data.GetMissionCounter("M15", $"pad{i}"));
             if (!ChapterTwoRules.GardenPadMatches(i, color)) return i;
         }
+        return 0;
+    }
+
+    private NpcActor NextDeliveryNpc()
+    {
+        foreach (string npcId in FinaleRules.DeliveryRecipients)
+            if (_data.GetMissionCounter("M16", FinaleRules.DeliveredKey(npcId)) <= 0)
+                return FindNpc(npcId);
+        return null;
+    }
+
+    private NpcActor NextFestivalInvitee()
+    {
+        foreach (string npcId in FinaleRules.FestivalInvitees)
+            if (_data.GetMissionCounter("M20", FinaleRules.InvitedKey(npcId)) <= 0)
+                return FindNpc(npcId);
+        return null;
+    }
+
+    private int NextFestivalTablePad()
+    {
+        for (int i = 0; i < FinaleRules.FestivalTableCount; i++)
+            if (_data.GetMissionCounter("M20", FinaleRules.TableKey(i)) <= 0)
+                return i;
+        return 0;
+    }
+
+    private int NextFestivalLanternPad()
+    {
+        for (int i = 0; i < FinaleRules.FestivalLanternCount; i++)
+            if (_data.GetMissionCounter("M20", FinaleRules.LanternKey(i)) <= 0)
+                return i;
         return 0;
     }
 
@@ -2435,11 +2944,20 @@ public partial class Main : Node3D
             "M13" => "SUN, MOON, TREE and STAR all matched to their shelves. The library is tidy!",
             "M14" => "MARKET, WORKSHOP and GREEN signs repaired with the right arrows!",
             "M15" => "RED, BLUE, RED, BLUE, RED, BLUE — three perfect pairs in the garden!",
+            "M16" => "ADA, PIP and IVY parcels delivered — every name matched!",
+            "M17" => "2 bread + 1 milk + 2 apples = 14. Change from 20 is 6. Paid with job coins, not your wallet.",
+            "M18" => "Two tyres, one lamp and the battery last — Pip's car is ready to drive!",
+            "M19" => result.BonusCoins > 0
+                ? $"Six grand gates in {result.RaceSeconds:0.0}s — an optional medal bonus +{result.BonusCoins}!"
+                : $"Six grand gates finished in {result.RaceSeconds:0.0}s. Finishing is the win — Pip is a friendly rival!",
+            "M20" => "Three invitations, two tables and three lanterns — the village festival is ready!",
             _ => result.Message,
         };
-        Action afterSuccess = result.OriginalChapterComplete && _data.CelebrationSeen == false
-            ? () => Callable.From(ShowVillageCelebration).CallDeferred()
-            : () => { };
+        Action afterSuccess = () => { };
+        if (result.Mission.Id == "M20")
+            afterSuccess = () => Callable.From(ShowVillageFestival).CallDeferred();
+        else if (result.OriginalChapterComplete && _data.CelebrationSeen == false)
+            afterSuccess = () => Callable.From(ShowVillageCelebration).CallDeferred();
         _hud.ShowSuccess(result.Mission.Title, result.TotalCoins, detail, afterSuccess);
         _audio?.PlaySfx("mission_complete");
         _audio?.PlaySfx("coin_collect", -7f);
@@ -2449,7 +2967,7 @@ public partial class Main : Node3D
         if (result.OriginalChapterComplete)
             _world.CelebrationDecor.Visible = true;
         var save = SaveGame(SaveReason.MissionCompleted);
-        if (result.Mission.Id is "M05" or "M09")
+        if (result.Mission.Id is "M05" or "M09" or "M19")
             GD.Print($"RACE_TIME {result.Mission.Id} {result.RaceSeconds:0.00}s bonus={result.BonusCoins}");
         if (!save.Success)
             _hud.SetModalStatus(
@@ -2459,6 +2977,9 @@ public partial class Main : Node3D
 
     private bool AllMissionsComplete() =>
         _catalog != null && MissionRules.OriginalChapterComplete(_data);
+
+    private bool AllTwentyMissionsComplete() =>
+        _catalog != null && _data != null && _data.IsCompleted("M20");
 
     private void ShowVillageCelebration()
     {
@@ -2502,6 +3023,49 @@ public partial class Main : Node3D
         var save = SaveGame(SaveReason.Celebration);
         if (!save.Success)
             _hud.SetModalStatus("The celebration is shown, but it could not be saved yet. Use Save now.", true);
+    }
+
+    private void ShowVillageFestival()
+    {
+        if (_festivalShown || _data.FestivalSeen || !AllTwentyMissionsComplete()) return;
+        _festivalShown = true;
+        _data.FestivalSeen = true;
+        if (_world.FestivalDecor != null) _world.FestivalDecor.Visible = true;
+        _audio?.PlaySfx("festival_pop");
+        RefreshMusicContext();
+
+        var body = _hud.OpenModal("VILLAGE FESTIVAL!", new Vector2(780, 520), Palette.Yellow);
+        var titleRow = UiKit.HBox(body, 12);
+        UiKit.Icon(titleRow, "festival", 56);
+        var title = UiKit.Label(titleRow, "All twenty jobs complete!", 30, Palette.Success,
+            HorizontalAlignment.Left, false);
+        title.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        UiKit.Label(body,
+            "The village festival is glowing! Three neighbours are invited, two tables are set and " +
+            "three lanterns light the green. Pip's car is ready and the grand rally trophy is home.",
+            22, Palette.Navy);
+        UiKit.Label(body,
+            "This is the second chapter finale. The original ten-job celebration remains a separate memory. " +
+            "Free roam, the job board and every finished job stay available.",
+            18, new Color("5C6B7A"));
+
+        var actions = UiKit.HBox(body, 10);
+        var enjoy = UiKit.Button(actions, "Enjoy the festival", 20, new Vector2(0, 54),
+            new Color("DFF6E3"), Palette.Success);
+        enjoy.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        enjoy.Pressed += () => _hud.CloseModal();
+        var jobs = UiKit.Button(actions, "See the job board", 20, new Vector2(0, 54),
+            Palette.Cream, Palette.Blue);
+        jobs.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        jobs.Pressed += () =>
+        {
+            _hud.CloseModal();
+            Callable.From(OpenJobBoard).CallDeferred();
+        };
+
+        var save = SaveGame(SaveReason.Celebration);
+        if (!save.Success)
+            _hud.SetModalStatus("The festival is shown, but it could not be saved yet. Use Save now.", true);
     }
 
     private void SetObjective(Vector3 position, string label, string icon, Color color)
@@ -2742,6 +3306,12 @@ public partial class Main : Node3D
         _practiceCheckpoint = 0;
         _practiceElapsed = 0f;
         _celebrationShown = false;
+        _festivalShown = false;
+        if (_rallyRival != null)
+        {
+            _rallyRival.QueueFree();
+            _rallyRival = null;
+        }
         _lastIndoor = false;
         _rig.SetIndoor(false);
         _data = new GameData();
@@ -3243,6 +3813,148 @@ public partial class Main : Node3D
         _hud.SetCoins(_data.Coins);
     }
 
+    /// <summary>
+    /// Builds the valid world state for a player who has finished M11-M15, so
+    /// the P14 runtime phase can exercise M16-M20 through their real stations
+    /// without replaying the first chapter-two half.
+    /// </summary>
+    internal void RtPrepareFinale()
+    {
+        RtPrepareChapterTwo();
+        foreach (string id in new[] { "M11", "M12", "M13", "M14", "M15" })
+            if (!_data.CompletedMissions.Contains(id)) _data.CompletedMissions.Add(id);
+
+        _data.SetMissionCounter("M11", "stock_granted", 1);
+        foreach (string npc in ChapterTwoRules.CardNpcIds)
+        {
+            _data.SetMissionCounter("M11", $"card_{npc}", 0);
+            _data.SetMissionCounter("M11", $"delivered_{npc}", 1);
+        }
+        foreach (var order in ChapterTwoRules.BakeryOrders)
+            _data.SetMissionCounter("M12", $"order_{order.CustomerId}", 1);
+        foreach (string book in ChapterTwoRules.BookIds)
+        {
+            string pickup = ChapterTwoRules.BookPickupId(book);
+            if (!_data.CollectedPickups.Contains(pickup)) _data.CollectedPickups.Add(pickup);
+            _data.SetMissionCounter("M13", ChapterTwoRules.HasBookKey(book), 0);
+            _data.SetMissionCounter("M13", ChapterTwoRules.ShelfKey(book), 1);
+        }
+        foreach (var socket in ChapterTwoRules.SignSockets)
+            _data.SetMissionCounter("M14", $"sign_{socket.SocketId}", 1);
+        for (int i = 0; i < ChapterTwoRules.GardenPattern.Length; i++)
+            _data.SetMissionCounter("M15", $"pad{i}",
+                ChapterTwoRules.GardenCode(ChapterTwoRules.GardenPattern[i]));
+
+        _data.ActiveMission = "";
+        RefreshMissionState();
+    }
+
+    internal void RtTeleportVanNearNpc(string id)
+    {
+        if (!_npcById.TryGetValue(id, out var npc)) return;
+        _van.GlobalPosition = npc.GlobalPosition + new Vector3(6.5f, 0.15f, 0f);
+        _van.Rotation = Vector3.Zero;
+        _van.Velocity = Vector3.Zero;
+        _player.Teleport(npc.GlobalPosition + new Vector3(1.7f, 0.1f, 0f), Mathf.Pi / 2f);
+        _player.ForceRefreshInteraction();
+    }
+
+    internal void RtBuildBridgeNow()
+    {
+        foreach (string id in BuildRules.BridgeSockets)
+            if (!_data.BridgePieces.Contains(id)) _data.BridgePieces.Add(id);
+        _bridgeBuilder?.RefreshFromData();
+    }
+
+    internal void RtPrepareBridgeCrossing()
+    {
+        RtLeaveVanForTest();
+        RtBuildBridgeNow();
+        _van.GlobalPosition = new Vector3(47.0f, 0.15f, 0f);
+        _van.Rotation = new Vector3(0f, -Mathf.Pi / 2f, 0f);
+        _van.Velocity = Vector3.Zero;
+        _player.Teleport(new Vector3(44.7f, 0.15f, 0f), -Mathf.Pi / 2f);
+        _vehicleSwitchCooldown = 0f;
+        EnterVan();
+        RefreshMissionState();
+    }
+
+    internal void RtPlacePlayerOutsideGrandGate(int index)
+    {
+        if (_world == null || index < 0 || index >= _world.M19RaceGates.Length) return;
+        PlacePlayerOutsideGate(_world.M19RaceGates[index].Position,
+            RallyCourse.SixGateFractions[index], 6.2f);
+    }
+
+    internal Vector3 RtRaceGatePosition(int index) =>
+        _world != null && index >= 0 && index < _world.RaceGates.Length
+            ? _world.RaceGates[index].Position
+            : new Vector3(9999, 9999, 9999);
+
+    internal Vector3 RtGrandGatePosition(int index) =>
+        _world != null && index >= 0 && index < _world.M19RaceGates.Length
+            ? _world.M19RaceGates[index].Position
+            : new Vector3(9999, 9999, 9999);
+
+    internal void RtPlacePlayerOutsideRaceGate(int index)
+    {
+        if (_world == null || index < 0 || index >= _world.RaceGates.Length) return;
+        PlacePlayerOutsideGate(_world.RaceGates[index].Position,
+            RallyCourse.FourGateFractions[index], 6.2f);
+    }
+
+    internal void RtPlacePlayerAtRaceGateLip(int index)
+    {
+        if (_world == null || index < 0 || index >= _world.RaceGates.Length) return;
+        PlacePlayerOutsideGate(_world.RaceGates[index].Position,
+            RallyCourse.FourGateFractions[index], 5.55f);
+    }
+
+    private void PlacePlayerOutsideGate(Vector3 gate, float fraction, float distance)
+    {
+        var tangent = RallyCourse.Tangent(fraction);
+        var left = new Vector3(-tangent.Z, 0f, tangent.X);
+        Vector3 start = gate + left * distance + new Vector3(0f, 0.15f, 0f);
+        float yaw = Mathf.Atan2(-(gate.X - start.X), -(gate.Z - start.Z));
+        _player.Teleport(start, yaw);
+        _player.ForceRefreshInteraction();
+    }
+
+    internal void RtTeleportNearPostCounter()
+    {
+        if (_postStation == null) return;
+        _player.Teleport(_postStation.GlobalPosition + new Vector3(0f, 0.1f, -1.2f), 0f);
+        _player.ForceRefreshInteraction();
+    }
+
+    internal void RtTeleportNearShop()
+    {
+        if (_shopStation == null) return;
+        _player.Teleport(_shopStation.GlobalPosition + new Vector3(0f, 0.1f, 1.2f), 0f);
+        _player.ForceRefreshInteraction();
+    }
+
+    internal void RtTeleportNearRepairCar()
+    {
+        if (_repairStation == null) return;
+        _player.Teleport(_repairStation.GlobalPosition + new Vector3(0f, 0.1f, 1.2f), 0f);
+        _player.ForceRefreshInteraction();
+    }
+
+    internal void RtTeleportNearFestivalTable(int index)
+    {
+        if (_world == null || index < 0 || index >= _world.FestivalTablePads.Count) return;
+        _player.Teleport(_world.FestivalTablePads[index] + new Vector3(0f, 0.15f, 1.2f), 0f);
+        _player.ForceRefreshInteraction();
+    }
+
+    internal void RtTeleportNearFestivalLantern(int index)
+    {
+        if (_world == null || index < 0 || index >= _world.FestivalLanternPads.Count) return;
+        _player.Teleport(_world.FestivalLanternPads[index] + new Vector3(0f, 0.15f, 1.2f), 0f);
+        _player.ForceRefreshInteraction();
+    }
+
     internal bool RtPrepareRace()
     {
         // Build a valid prerequisite state, including the physical bridge so
@@ -3281,7 +3993,7 @@ public partial class Main : Node3D
 
     internal bool RtPrepareRally(string missionId)
     {
-        if (missionId is not ("M05" or "M09")) return false;
+        if (missionId is not ("M05" or "M09" or "M19")) return false;
         foreach (string id in new[] { "M01", "M02", "M03", "M04" })
             if (!_data.CompletedMissions.Contains(id)) _data.CompletedMissions.Add(id);
         foreach (string socket in BuildRules.BridgeSockets)
@@ -3299,6 +4011,7 @@ public partial class Main : Node3D
 
     internal void RtStopRallyAutopilot() => _van?.StopAutopilot();
     internal bool RtMissionCompleted(string id) => _data.IsCompleted(id);
+    internal bool RtAllTwentyComplete => _data.IsCompleted("M20");
     internal MissionStatus RtMissionStatus(string id) => _missions.GetStatus(id);
     internal int RtMissionCounter(string id, string key) => _data.GetMissionCounter(id, key);
     internal bool RtCelebrationSeen => _data.CelebrationSeen;
@@ -3317,6 +4030,16 @@ public partial class Main : Node3D
         index >= 0 && index < _signVisuals.Count && _signVisuals[index].Visible;
     internal bool RtGardenFlowerVisible(int index) =>
         index >= 0 && index < _gardenFlowerRoots.Count && _gardenFlowerRoots[index].Visible;
+    internal bool RtDeliveryBoardVisible => _world?.DeliveryBoard?.Visible == true;
+    internal bool RtMarketStockVisible => _world?.MarketStock?.Visible == true;
+    internal bool RtPipCarFixedVisible => _world?.PipCarFixed?.Visible == true;
+    internal bool RtRallyPodiumVisible => _world?.RallyPodium?.Visible == true;
+    internal bool RtFestivalDecorVisible => _world?.FestivalDecor?.Visible == true;
+    internal bool RtRallyRivalPresent => _rallyRival != null && GodotObject.IsInstanceValid(_rallyRival);
+    internal Vector3 RtRallyRivalPosition =>
+        _rallyRival != null && GodotObject.IsInstanceValid(_rallyRival)
+            ? _rallyRival.GlobalPosition
+            : new Vector3(9999, 9999, 9999);
     internal bool RtRallyAutopilot => _van?.Autopilot == true;
     internal int RtRaceCheckpoint(string id) => _data.GetMissionCounter(id, "checkpoint");
     internal int RtRallySampleCount => _world?.RallySampleCount ?? 0;
@@ -3349,6 +4072,20 @@ public partial class Main : Node3D
     }
 
     internal void RtExitVan() => ExitVan();
+
+    internal void RtLeaveVanForTest()
+    {
+        if (!_driving) return;
+        _van.SetDriven(false);
+        _driving = false;
+        _player.Visible = true;
+        _player.Teleport(_van.GlobalPosition + new Vector3(-2.6f, 0.15f, 0f), _van.Rotation.Y);
+        _player.SetControlEnabled(true);
+        _rig.SetTarget(_player, false, 8.2f, 18f, 1.55f, true);
+        _vehicleSwitchCooldown = 0f;
+        SyncControlMode();
+        RefreshMissionState();
+    }
 
     // ------------------------------------------------------------- dev capture
 
@@ -3544,6 +4281,159 @@ public partial class Main : Node3D
         catch (Exception ex)
         {
             GD.PrintErr($"P13 capture failed: {ex}");
+        }
+        GetTree().Quit();
+    }
+
+    private async Task CaptureP14()
+    {
+        try
+        {
+            await Wait(1.0f);
+            bool highRes = HasUserArg("--capture-1080");
+            if (highRes)
+            {
+                GetWindow().ContentScaleSize = new Vector2I(1920, 1080);
+                GetWindow().Size = new Vector2I(1920, 1080);
+                await Wait(0.6f);
+            }
+            string p = highRes ? "p14_1080" : "p14_720";
+            RtPrepareFinale();
+
+            // M16 dialogue and post counter.
+            _data.ActiveMission = "M16";
+            _data.SetMissionCounter("M16", "loaded", 1);
+            foreach (string npc in FinaleRules.DeliveryRecipients)
+                _data.SetMissionCounter("M16", FinaleRules.CarryingKey(npc), 1);
+            RefreshMissionState();
+            _hud.Visible = true;
+            RtTalkToNpc("ada");
+            await Wait(0.5f);
+            await Snap($"{p}_00_delivery_dialogue.png", DeveloperCaptureDirectory);
+            _hud.CloseModal();
+            await Wait(0.25f);
+
+            _hud.Visible = false;
+            await SnapFreeCamera(new Vector3(-14.5f, 14f, 2f), new Vector3(-14.5f, 1f, 6.5f),
+                $"{p}_01_post_counter.png");
+            _data.CompletedMissions.Add("M16");
+            foreach (string npc in FinaleRules.DeliveryRecipients)
+            {
+                _data.SetMissionCounter("M16", FinaleRules.CarryingKey(npc), 0);
+                _data.SetMissionCounter("M16", FinaleRules.DeliveredKey(npc), 1);
+            }
+            RefreshMissionState();
+            await SnapFreeCamera(new Vector3(-2.5f, 4.5f, -1f), new Vector3(-2.5f, 1f, 4.7f),
+                $"{p}_02_delivery_board.png");
+
+            // M17 checkout and market stock.
+            _data.ActiveMission = "M17";
+            _data.SetMissionCounter("M17", "bread", 2);
+            _data.SetMissionCounter("M17", "milk", 1);
+            _data.SetMissionCounter("M17", "apple", 2);
+            _hud.Visible = true;
+            MarketMathsUi.Show(_hud, _missions, _ => { }, () => { });
+            await Wait(0.5f);
+            await Snap($"{p}_03_market_maths_ui.png", DeveloperCaptureDirectory);
+            _hud.CloseModal();
+            await Wait(0.25f);
+            _data.CompletedMissions.Add("M17");
+            _data.SetMissionCounter("M17", "finalised", 1);
+            _data.ActiveMission = "";
+            RefreshMissionState();
+            _hud.Visible = false;
+            await SnapFreeCamera(new Vector3(3.5f, 4f, 1.5f), new Vector3(-2f, 1f, 4.8f),
+                $"{p}_04_market_stock.png");
+
+            // M18 broken car, repair bench, repaired car.
+            _data.ActiveMission = "M18";
+            _data.SetMissionCounter("M18", "inspected", 1);
+            _data.SetMissionCounter("M18", "has_tyre", 2);
+            _data.SetMissionCounter("M18", "has_lamp", 1);
+            _data.SetMissionCounter("M18", "has_battery", 1);
+            _data.SetMissionCounter("M18", "tyres_fitted", 1);
+            RefreshMissionState();
+            _hud.Visible = true;
+            RepairUi.Show(_hud, _missions, _ => { }, () => { });
+            await Wait(0.5f);
+            await Snap($"{p}_05_repair_ui.png", DeveloperCaptureDirectory);
+            _hud.CloseModal();
+            await Wait(0.25f);
+            _hud.Visible = false;
+            await SnapFreeCamera(new Vector3(32f, 7f, -0.5f), new Vector3(35.2f, 1f, -7.8f),
+                $"{p}_06_broken_pip_car.png");
+            _data.CompletedMissions.Add("M18");
+            _data.SetMissionCounter("M18", "tyres_fitted", 2);
+            _data.SetMissionCounter("M18", "lamp_fitted", 1);
+            _data.SetMissionCounter("M18", "battery_fitted", 1);
+            _data.ActiveMission = "";
+            RefreshMissionState();
+            await SnapFreeCamera(new Vector3(32f, 7f, -0.5f), new Vector3(35.2f, 1f, -7.8f),
+                $"{p}_07_repaired_pip_car.png");
+
+            // M19 six-gate circuit with Pip's rival car.
+            _data.ActiveMission = "M19";
+            RefreshMissionState();
+            _van.GlobalPosition = new Vector3(56f, 0.15f, -6f);
+            _van.Rotation = Vector3.Zero;
+            RefreshMissionState();
+            await Wait(0.4f);
+            _hud.Visible = false;
+            await SnapFreeCamera(new Vector3(74f, 42f, 4f), new Vector3(70f, 0f, 0f),
+                $"{p}_08_grand_rally_six_gates.png");
+            _data.CompletedMissions.Add("M19");
+            _data.SetMissionCounter("M19", "checkpoint", FinaleRules.RallyGateCount);
+            _data.SetMissionCounter("M19", "started", 1);
+            _data.SetMissionCounter("M19", "elapsedMs", 22_300);
+            _data.ActiveMission = "";
+            RefreshMissionState();
+
+            // M20 festival pads and second finale.
+            foreach (string id in new[] { "M16", "M17", "M18" })
+                if (!_data.CompletedMissions.Contains(id)) _data.CompletedMissions.Add(id);
+            _data.ActiveMission = "M20";
+            foreach (string npc in FinaleRules.FestivalInvitees)
+                _data.SetMissionCounter("M20", FinaleRules.InvitedKey(npc), 1);
+            _data.SetMissionCounter("M20", "table_0", 1);
+            _data.SetMissionCounter("M20", "table_1", 1);
+            _data.SetMissionCounter("M20", "lantern_0", 1);
+            _data.SetMissionCounter("M20", "lantern_1", 1);
+            _data.SetMissionCounter("M20", "lantern_2", 1);
+            RefreshMissionState();
+            _hud.Visible = false;
+            await SnapFreeCamera(new Vector3(15f, 9f, 31f), new Vector3(15f, 1f, 22f),
+                $"{p}_09_festival_setup.png");
+
+            _data.CompletedMissions.Add("M20");
+            _data.ActiveMission = "";
+            RefreshMissionState();
+            _hud.Visible = false;
+            await SnapFreeCamera(new Vector3(15f, 9f, 31f), new Vector3(15f, 1f, 22f),
+                $"{p}_10_festival_decor.png");
+
+            _hud.Visible = true;
+            JobBoardUi.Show(_hud, _missions, _implemented, _ => { }, null, true);
+            await Wait(0.5f);
+            await Snap($"{p}_11_job_board_all_complete.png", DeveloperCaptureDirectory);
+            _hud.CloseModal();
+            await Wait(0.25f);
+            _data.FestivalSeen = false;
+            ShowVillageFestival();
+            await Wait(0.5f);
+            await Snap($"{p}_12_village_festival.png", DeveloperCaptureDirectory);
+            _hud.CloseModal();
+            await Wait(0.25f);
+
+            RtBuildBridgeNow();
+            _hud.Visible = false;
+            await SnapFreeCamera(new Vector3(35f, 8f, 12f), new Vector3(45f, 1f, 0f),
+                $"{p}_13_bridge_approach.png");
+            await SnapFreeCamera(new Vector3(63f, 6f, -21f), new Vector3(56.8f, 2f, -27.6f),
+                $"{p}_14_gate_one.png");
+        }
+        catch (Exception ex)
+        {
+            GD.PrintErr($"P14 capture failed: {ex}");
         }
         GetTree().Quit();
     }

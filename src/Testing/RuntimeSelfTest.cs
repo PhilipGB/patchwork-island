@@ -52,6 +52,10 @@ public partial class RuntimeSelfTest : Node
                 await RallyChecks();
             else if (HasArg("--selftest-chapter"))
                 reloading = await ChapterChecks();
+            else if (HasArg("--selftest-finale"))
+                await FinaleChecks();
+            else if (HasArg("--selftest-traversal"))
+                await TraversalChecks();
             else
                 await FreshSessionChecks();
         }
@@ -948,6 +952,323 @@ public partial class RuntimeSelfTest : Node
         return false;
     }
 
+    // ------------------------------------------- bridge and rally-road traversal
+    // Regression for two reported stuck spots: the van at the bridge/road seam
+    // and the player stepping from grass onto the raised-looking rally road.
+    private async Task TraversalChecks()
+    {
+        Expect(!Main.RtStarted, "traversal test starts on the title screen");
+        var started = Main.RtStartNewGameFromTitleConfirmed(CharacterCustomisation.Boy);
+        await Wait(0.8f);
+        Expect(started.Success && Main.RtStarted, "traversal test starts a fresh village");
+
+        Main.RtPrepareBridgeCrossing();
+        await Wait(0.5f);
+        Expect(Main.RtMode == "Driving", "traversal test enters the van");
+        Vector3 vanStart = Main.RtVanPosition;
+        Input.ActionPress("move_forward");
+        await Wait(5.0f);
+        Input.ActionRelease("move_forward");
+        await Wait(0.35f);
+        Vector3 vanEnd = Main.RtVanPosition;
+        Expect(vanEnd.X > 51.5f,
+            $"van crosses the bridge and east road seam (x={vanEnd.X:0.0}, start={vanStart.X:0.0})");
+        Expect(vanEnd.DistanceTo(vanStart) > 4.5f, "van keeps moving across the bridge");
+
+        Main.RtLeaveVanForTest();
+        await Wait(0.35f);
+        Expect(Main.RtMode == "Walking", "traversal test leaves the van");
+
+        // Slow, pulsing approach: this is where a small raised collision lip
+        // would otherwise catch the van at the bridge-to-connector seam.
+        Main.RtPrepareBridgeCrossing();
+        await Wait(0.4f);
+        for (int i = 0; i < 14; i++)
+        {
+            Input.ActionPress("move_forward");
+            await Wait(0.18f);
+            Input.ActionRelease("move_forward");
+            await Wait(0.1f);
+        }
+        await Wait(0.3f);
+        Expect(Main.RtVanPosition.X > 51.5f,
+            $"slow van crosses the bridge/connector seam (x={Main.RtVanPosition.X:0.0})");
+        Main.RtLeaveVanForTest();
+        await Wait(0.35f);
+        foreach (var gateTest in new[]
+                 {
+                     ("four-gate", false), ("grand", true),
+                 })
+        {
+            if (gateTest.Item2) Main.RtPlacePlayerOutsideGrandGate(0);
+            else Main.RtPlacePlayerOutsideRaceGate(0);
+            await Wait(0.4f);
+            Vector3 walkStart = Main.RtPlayerPosition;
+            Input.ActionPress("move_forward");
+            await Wait(2.5f);
+            Input.ActionRelease("move_forward");
+            await Wait(0.3f);
+            Vector3 walkEnd = Main.RtPlayerPosition;
+            float moved = new Vector2(walkEnd.X - walkStart.X, walkEnd.Z - walkStart.Z).Length();
+            Expect(moved > 2.5f,
+                $"player walks from grass onto the rally road near the {gateTest.Item1} gate 1 (moved {moved:0.0}m)");
+            float beforeJump = Main.RtPlayerPosition.Y;
+            Input.ActionPress("jump");
+            await Wait(0.08f);
+            Input.ActionRelease("jump");
+            await Wait(0.25f);
+            Expect(Main.RtPlayerPosition.Y > beforeJump + 0.2f,
+                $"player can jump near the {gateTest.Item1} gate 1");
+        }
+
+        Main.RtPlacePlayerAtRaceGateLip(0);
+        await Wait(1.0f);
+        Vector3 lipStart = Main.RtPlayerPosition;
+        Input.ActionPress("move_forward");
+        await Wait(2.0f);
+        Input.ActionRelease("move_forward");
+        await Wait(0.3f);
+        float lipMoved = new Vector2(Main.RtPlayerPosition.X - lipStart.X,
+            Main.RtPlayerPosition.Z - lipStart.Z).Length();
+        Expect(lipMoved > 1.5f,
+            $"player starts from rest at the road lip and walks onto the shoulder (moved {lipMoved:0.0}m)");
+    }
+
+    // -------------------------------------------------- chapter-two finale
+    // Drives the real M16 delivery round, M17 checkout, M18 repair bench,
+    // M19 six-gate rally and M20 festival through their stations, pickups,
+    // dialogues and buttons.
+    private async Task FinaleChecks()
+    {
+        Expect(!Main.RtStarted, "finale test starts on the title screen");
+        var started = Main.RtStartNewGameFromTitleConfirmed(CharacterCustomisation.Boy);
+        await Wait(0.8f);
+        Expect(started.Success && Main.RtStarted, "finale test starts a fresh village");
+        Main.RtPrepareFinale();
+        await Wait(0.5f);
+        Expect(Main.RtCoins == 100, "finale wallet starts at the prepared 100 coins");
+        Expect(Main.RtMissionStatus("M16") == MissionStatus.Available,
+            "M16 is available after M14 and M15");
+        Expect(Main.RtMissionStatus("M17") == MissionStatus.Locked,
+            "M17 waits for M16");
+
+        // M16: load at the post counter, reject a wrong parcel and deliver all three.
+        Expect(await StartJobFromBoard("M16"), "M16 starts from the job board");
+        Main.RtTeleportNearPostCounter();
+        await Wait(0.3f);
+        Expect(Main.RtNearestInteractableName == "PostCounterStation",
+            "post counter is nearest");
+        await PressInteract();
+        Expect(Main.RtMissionCounter("M16", "loaded") == 1, "three parcels loaded");
+        Expect(Main.RtCoins == 100, "loading parcels spends no wallet coins");
+
+        await OfferParcel("ada", "pip");
+        Expect(Main.RtMissionCounter("M16", "delivered_ada") == 0,
+            "wrong parcel not delivered");
+        Expect(Main.RtMissionCounter("M16", "carrying_pip") == 1,
+            "wrong parcel stays carried");
+        Expect(Main.RtCoins == 100, "wrong parcel spends nothing");
+        await OfferParcel("ada", "ada");
+        Expect(Main.RtMissionCounter("M16", "delivered_ada") == 1, "Ada parcel delivered");
+        await OfferParcel("pip", "pip");
+        Expect(Main.RtMissionCounter("M16", "delivered_pip") == 1, "Pip parcel delivered");
+        await OfferParcel("ivy", "ivy");
+        await Wait(0.45f);
+        Expect(Main.RtMissionCompleted("M16"), "M16 completes through real dialogue");
+        Expect(Main.RtCoins == 120, "M16 reward is 20 coins");
+        Expect(Main.RtDeliveryBoardVisible, "delivery board appears after M16");
+        await CloseCompletion("M16");
+
+        // M17: the 20-coin job purse, exact list, personal wallet untouched.
+        Expect(await StartJobFromBoard("M17"), "M17 starts from the job board");
+        Main.RtTeleportNearShop();
+        await Wait(0.3f);
+        Expect(Main.RtNearestInteractableName == "ShopStation", "market shop is nearest");
+        await PressInteract();
+        Expect(Main.RtModalTitle == "Market Day Maths", "market maths checkout opens");
+        for (int i = 0; i < 2; i++) Expect(Main.RtPressModalButton("MarketAdd_bread"), $"bread {i}");
+        Expect(Main.RtPressModalButton("MarketAdd_milk"), "milk");
+        for (int i = 0; i < 2; i++) Expect(Main.RtPressModalButton("MarketAdd_apple"), $"apple {i}");
+        await Wait(0.3f);
+        Expect(Main.RtCoins == 120, "job purse never spends personal coins");
+        Expect(Main.RtModalLabelText("MarketTotal").Contains("14"), "job total is 14");
+        Expect(Main.RtPressModalButton("MarketFinalise"), "pay with job coins");
+        await Wait(0.45f);
+        Expect(Main.RtMissionCompleted("M17"), "M17 completes through the checkout");
+        Expect(Main.RtCoins == 142, "M17 reward is 22 coins");
+        Expect(Main.RtMarketStockVisible, "market stock appears after M17");
+        await CloseCompletion("M17");
+
+        // M18: four real part pickups and the tyre-lamp-battery repair bench.
+        Expect(await StartJobFromBoard("M18"), "M18 starts from the job board");
+        foreach (string partId in new[] { "part_tyre_0", "part_tyre_1", "part_lamp_0", "part_battery_0" })
+        {
+            Main.RtTeleportNearPickup(partId);
+            await Wait(0.3f);
+            Expect(Main.RtNearestInteractableName == "Pickup_" + partId, $"{partId} is nearest");
+            await PressInteract();
+        }
+        Expect(Main.RtMissionCounter("M18", "has_tyre") == 2, "two tyres collected");
+        Expect(Main.RtMissionCounter("M18", "has_lamp") == 1, "lamp collected");
+        Expect(Main.RtMissionCounter("M18", "has_battery") == 1, "battery collected");
+
+        Main.RtTeleportNearRepairCar();
+        await Wait(0.3f);
+        Expect(Main.RtNearestInteractableName == "RepairStation", "repair bench is nearest");
+        await PressInteract();
+        Expect(Main.RtModalTitle == "Mechanic's Toolbox", "repair bench opens");
+        Expect(Main.RtPressModalButton("InspectCar"), "inspect action works");
+        await Wait(0.2f);
+        Expect(Main.RtPressModalButton("Fit_lamp"), "lamp fit action is available");
+        await Wait(0.25f);
+        Expect(Main.RtModalLabelText("RepairStatus").Contains("tyres"),
+            "lamp before tyres gives a stage hint");
+        Expect(Main.RtMissionCounter("M18", "has_lamp") == 1, "wrong stage keeps the lamp");
+        for (int i = 0; i < 2; i++) Expect(Main.RtPressModalButton("Fit_tyre"), $"fit tyre {i}");
+        Expect(Main.RtPressModalButton("Fit_lamp"), "fit lamp");
+        Expect(Main.RtPressModalButton("Fit_battery"), "fit battery");
+        await Wait(0.45f);
+        Expect(Main.RtMissionCompleted("M18"), "M18 completes through the repair bench");
+        Expect(Main.RtCoins == 166, "M18 reward is 24 coins");
+        Expect(Main.RtPipCarFixedVisible, "Pip's car is visibly repaired");
+        await CloseCompletion("M18");
+
+        // M19: real van autopilot through the six-gate grand rally.
+        Expect(Main.RtPrepareRally("M19"), "M19 autopilot prepared");
+        await Wait(0.5f);
+        Expect(Main.RtRallyRivalPresent, "Pip's rally rival is present");
+        float deadline = 90f;
+        while (!Main.RtMissionCompleted("M19") && deadline > 0f)
+        {
+            deadline -= 0.5f;
+            await Wait(0.5f);
+        }
+        Expect(Main.RtMissionCompleted("M19"), "M19 completes through real driving");
+        Expect(Main.RtRaceCheckpoint("M19") == 6, "M19 reaches all six gates");
+        Main.RtStopRallyAutopilot();
+        await Wait(0.3f);
+        Expect(Main.RtCoins == 196, "M19 reward and medal total 30 coins");
+        Expect(Main.RtModalTitle == "JOB COMPLETE!", "M19: completion modal opens");
+        Main.RtCloseModal();
+        await Wait(0.3f);
+        Expect(!Main.RtPaused, "M19: closing completion unpauses the village");
+        Main.RtLeaveVanForTest();
+        await Wait(0.35f);
+        Expect(Main.RtMode == "Walking" && !Main.RtPaused, "finale leaves the rally van");
+        Expect(Main.RtRallyPodiumVisible, "grand rally podium appears after M19");
+
+        // M20: stage errors, invitations, tables, lanterns and the second finale.
+        Expect(await StartJobFromBoard("M20"), "M20 starts from the job board");
+        Main.RtTeleportNearFestivalTable(0);
+        await Wait(0.3f);
+        Expect(Main.RtNearestInteractableName == "FestivalTableStation_0",
+            "festival table pad is nearest");
+        await PressInteract();
+        Expect(Main.RtMissionCounter("M20", "table_0") == 0,
+            "table before invitations is refused");
+        Main.RtTeleportNearFestivalLantern(0);
+        await Wait(0.3f);
+        Expect(Main.RtNearestInteractableName == "FestivalLanternStation_0",
+            "festival lantern hook is nearest");
+        await PressInteract();
+        Expect(Main.RtMissionCounter("M20", "lantern_0") == 0,
+            "lantern before invitations is refused");
+
+        foreach (string npc in FinaleRules.FestivalInvitees)
+        {
+            await TalkTo(npc, FinaleRules.DeliveryName(npc));
+            Expect(Main.RtPressModalButton("FestivalInvite"), $"invite {npc}");
+            await Wait(0.35f);
+            Expect(Main.RtMissionCounter("M20", FinaleRules.InvitedKey(npc)) == 1,
+                $"{npc} invited");
+        }
+
+        for (int i = 0; i < FinaleRules.FestivalTableCount; i++)
+        {
+            Main.RtTeleportNearFestivalTable(i);
+            await Wait(0.3f);
+            Expect(Main.RtNearestInteractableName == $"FestivalTableStation_{i}",
+                $"table pad {i + 1} is nearest");
+            await PressInteract();
+            Expect(Main.RtMissionCounter("M20", FinaleRules.TableKey(i)) == 1,
+                $"table {i + 1} placed");
+        }
+        // Undo and re-place the first table.
+        Main.RtTeleportNearFestivalTable(0);
+        await Wait(0.3f);
+        await PressInteract();
+        Expect(Main.RtMissionCounter("M20", "table_0") == 0, "table 1 taken back");
+        await PressInteract();
+        Expect(Main.RtMissionCounter("M20", "table_0") == 1, "table 1 placed again");
+
+        for (int i = 0; i < FinaleRules.FestivalLanternCount; i++)
+        {
+            Main.RtTeleportNearFestivalLantern(i);
+            await Wait(0.3f);
+            Expect(Main.RtNearestInteractableName == $"FestivalLanternStation_{i}",
+                $"lantern hook {i + 1} is nearest");
+            await PressInteract();
+            Expect(Main.RtMissionCounter("M20", FinaleRules.LanternKey(i)) == 1,
+                $"lantern {i + 1} hung");
+            if (i == 0)
+            {
+                await PressInteract();
+                Expect(Main.RtMissionCounter("M20", "lantern_0") == 0,
+                    "lantern 1 taken down");
+                await PressInteract();
+                Expect(Main.RtMissionCounter("M20", "lantern_0") == 1,
+                    "lantern 1 hung again");
+            }
+        }
+        await Wait(0.5f);
+        Expect(Main.RtMissionCompleted("M20"), "M20 completes through the festival pads");
+        Expect(Main.RtCoins == 226, "M20 reward is 30 coins");
+        Expect(Main.RtModalTitle == "JOB COMPLETE!", "M20: completion modal opens");
+        Main.RtCloseModal();
+        await Wait(0.6f);
+        Expect(Main.RtModalTitle == "VILLAGE FESTIVAL!", "second finale opens once");
+        Expect(Main.RtFestivalSeen, "FestivalSeen is recorded");
+        Expect(Main.RtFestivalDecorVisible, "festival bunting is visible");
+        Expect(Main.RtAllTwentyComplete, "all twenty jobs complete");
+        Expect(Main.RtMusicId == "festival", "festival music context starts");
+        Main.RtCloseModal();
+        await Wait(0.35f);
+        Expect(Main.RtSaveNow(), "completed festival state saves");
+        var disk = SaveService.Load(Main.RtSavePath, Main.RtCatalog);
+        Expect(disk.Success, disk.Message);
+        Expect(disk.Success && disk.Data.CompletedMissions.Count == 20,
+            "saved finale holds twenty completions");
+        Expect(disk.Success && disk.Data.FestivalSeen && disk.Data.CelebrationSeen,
+            "both finale markers are persisted separately");
+        Expect(disk.Success && disk.Data.Coins == 226, "saved finale wallet is exact");
+        Expect(Main.RtMissionStatus("M20") == MissionStatus.Completed,
+            "M20 remains completed");
+        Expect(Main.RtMissionStatus("M16") == MissionStatus.Completed &&
+               Main.RtMissionStatus("M17") == MissionStatus.Completed &&
+               Main.RtMissionStatus("M18") == MissionStatus.Completed &&
+               Main.RtMissionStatus("M19") == MissionStatus.Completed,
+            "M16-M19 remain completed");
+        Expect(Main.RtCelebrationSeen, "original M10 celebration marker survives");
+
+        Main.RtReturnToTitle();
+        await Wait(0.4f);
+        Main.RtContinue();
+        await Wait(0.6f);
+        Expect(Main.RtStarted, "completed festival save continues");
+        Expect(Main.RtModalTitle != "VILLAGE FESTIVAL!",
+            "second finale does not reopen after Continue");
+    }
+
+    private async Task OfferParcel(string npcId, string recipientId)
+    {
+        Main.RtTeleportVanNearNpc(npcId);
+        await Wait(0.2f);
+        await TalkTo(npcId, FinaleRules.DeliveryName(npcId));
+        Expect(Main.RtPressModalButton("Deliver_" + recipientId),
+            $"deliver {recipientId} at {npcId}");
+        await Wait(0.4f);
+    }
+
     private async Task PressInteract()
     {
         Input.ActionPress("interact");
@@ -962,6 +1283,8 @@ public partial class RuntimeSelfTest : Node
         Expect(Main.RtNearestInteractableName == "NpcTalk_" + id,
             $"{id} is the nearest E interaction");
         await PressInteract();
+        if (Main.RtModalTitle != title)
+            GD.Print($"TALK_FAIL id={id} expected='{title}' actual='{Main.RtModalTitle}' nearest='{Main.RtNearestInteractableName}'");
         Expect(Main.RtModalTitle == title, $"{id}'s real dialogue opens");
     }
 
