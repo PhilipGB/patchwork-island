@@ -19,8 +19,10 @@ public partial class RuntimeSelfTest : Node
 {
     public Main Main { get; set; }
 
-    // Static because the recovery phase deliberately reloads the real scene.
+    // Static because the recovery and chapter phases deliberately reload the
+    // real scene. The chapter phase proves a mid-mission save survives relaunch.
     internal static int RecoveryPhase { get; set; }
+    internal static int ChapterPhase { get; set; }
 
     private static int _passed;
     private static int _failed;
@@ -48,6 +50,8 @@ public partial class RuntimeSelfTest : Node
                 await LivingChecks();
             else if (HasArg("--selftest-rally"))
                 await RallyChecks();
+            else if (HasArg("--selftest-chapter"))
+                reloading = await ChapterChecks();
             else
                 await FreshSessionChecks();
         }
@@ -628,6 +632,361 @@ public partial class RuntimeSelfTest : Node
             Expect(Main.RtNpcProcessMode(id) == ProcessModeEnum.Pausable,
                 $"villager '{id}' remains pausable");
         }
+    }
+
+    // ------------------------------------------------ chapter two integration
+    // Phase 0 starts a fresh village, builds the same valid world state as a
+    // finished v1.1 save, then uses the real job board, NPC dialogues and UI
+    // buttons to deliver one M11 card before saving and relaunching. Phase 1
+    // continues from that save and plays M11-M15 through their real stations,
+    // pickups, dialogues and buttons, proving progress and rewards survive.
+    private async Task<bool> ChapterChecks()
+    {
+        if (ChapterPhase == 0) return await ChapterFreshChecks();
+        return await ChapterResumeChecks();
+    }
+
+    private async Task<bool> ChapterFreshChecks()
+    {
+        Expect(!Main.RtStarted, "chapter test starts on the title screen");
+        var started = Main.RtStartNewGameFromTitleConfirmed(CharacterCustomisation.Boy);
+        await Wait(0.8f);
+        Expect(started.Success && Main.RtStarted, "chapter test starts a fresh village");
+
+        Main.RtPrepareChapterTwo();
+        await Wait(0.4f);
+        Expect(Main.RtCoins == 100, "chapter-two wallet starts at the prepared 100 coins");
+        Expect(Main.RtSignSocketCount == 3, "three authored road-sign sockets exist");
+        Expect(Main.RtGardenPadCount == 6, "six garden pads exist");
+        Expect(Main.RtBakerySlotCount == 3, "three bakery display slots exist");
+        Expect(Main.RtLibrarySlotCount == 4, "four library shelf slots exist");
+        Expect(Main.RtBookPickupCount == 4, "four labelled books exist in the world");
+        Expect(Main.RtMissionStatus("M11") == MissionStatus.Available,
+            "M11 unlocks for a completed original chapter");
+        Expect(Main.RtMissionStatus("M12") == MissionStatus.Locked,
+            "M12 still waits for M11");
+
+        Main.RtTeleportNearJobBoard();
+        await Wait(0.3f);
+        Expect(Main.RtNearestInteractableName == "JobBoardStation",
+            "the job board is the nearest E interaction");
+        await PressInteract();
+        Expect(Main.RtModalTitle == "Patchwork Jobs", "the real job board opens");
+        Expect(Main.RtPressModalButton("ChapterOneTab"), "the Village jobs tab works");
+        await Wait(0.25f);
+        Expect(Main.RtModalTitle == "Patchwork Jobs", "Village jobs remains the job board");
+        Expect(Main.RtPressModalButton("ChapterTwoTab"), "the New adventures tab works");
+        await Wait(0.25f);
+        Expect(Main.RtPressModalButton("Start_M11"), "the real M11 Start button works");
+        await Wait(0.4f);
+        Expect(Main.RtActiveMission == "M11", "M11 is the active job");
+        Expect(Main.RtMissionCounter("M11", "stock_granted") == 1,
+            "M11 grants its own card stock on start");
+        Expect(Main.RtCoins == 100, "M11 card stock does not spend personal coins");
+
+        await TalkTo("ada", "Ada");
+        Expect(Main.RtPressModalButton("GiveCard_ollie"), "a wrong-card choice is available");
+        await Wait(0.4f);
+        Expect(Main.RtMissionCounter("M11", "delivered_ada") == 0,
+            "wrong card is not delivered");
+        Expect(Main.RtMissionCounter("M11", "card_ollie") == 1,
+            "wrong card is not consumed");
+        Expect(Main.RtCoins == 100, "wrong card spends nothing");
+        Expect(!Main.RtModalOpen, "failed card choice returns to the village");
+
+        await TalkTo("ada", "Ada");
+        Expect(Main.RtPressModalButton("GiveCard_ada"), "the matching card choice works");
+        await Wait(0.4f);
+        Expect(Main.RtMissionCounter("M11", "delivered_ada") == 1, "Ada delivery recorded");
+        Expect(Main.RtMissionCounter("M11", "card_ada") == 0, "Ada card consumed");
+        Expect(Main.RtCoins == 100, "successful card still spends nothing");
+        Expect(Main.RtSaveNow(), "partial M11 progress saves");
+
+        var partial = SaveService.Load(Main.RtSavePath, Main.RtCatalog);
+        Expect(partial.Success, partial.Message);
+        Expect(partial.Success && partial.Data.ActiveMission == "M11",
+            "saved partial chapter job is M11");
+        Expect(partial.Success && partial.Data.GetMissionCounter("M11", "delivered_ada") == 1,
+            "saved partial chapter card is on disk");
+        Expect(partial.Success && partial.Data.CompletedMissions.Count == 10,
+            "saved file still holds the ten original completions");
+        Expect(partial.Success && partial.Data.CelebrationSeen && !partial.Data.FestivalSeen,
+            "saved file keeps the original celebration and hides the second finale");
+
+        ChapterPhase = 1;
+        Main.RtReloadScene();
+        return true;
+    }
+
+    private async Task<bool> ChapterResumeChecks()
+    {
+        Expect(!Main.RtStarted, "chapter resume starts on the title screen");
+        Expect(Main.RtCanContinue, "the partial chapter save offers Continue");
+        Main.RtContinue();
+        await Wait(0.5f);
+        Expect(Main.RtStarted && Main.RtMode == "Walking", "Continue resumes the village");
+        Expect(Main.RtActiveMission == "M11", "Continue restores active M11");
+        Expect(Main.RtMissionCounter("M11", "delivered_ada") == 1,
+            "Continue restores Ada's delivered card");
+        Expect(Main.RtMissionCounter("M11", "card_ollie") == 1 &&
+               Main.RtMissionCounter("M11", "card_fern") == 1,
+            "Continue restores the remaining card stock");
+        Expect(Main.RtCelebrationSeen && !Main.RtFestivalSeen,
+            "Continue keeps CelebrationSeen separate from FestivalSeen");
+        Expect(Main.RtCoins == 100, "Continue restores the wallet");
+
+        await TalkTo("ollie", "Ollie");
+        Expect(Main.RtPressModalButton("GiveCard_ollie"), "Ollie's matching card is offered");
+        await Wait(0.4f);
+        Expect(Main.RtMissionCounter("M11", "delivered_ollie") == 1, "Ollie delivery recorded");
+        await TalkTo("fern", "Fern");
+        Expect(Main.RtPressModalButton("GiveCard_fern"), "Fern's matching card is offered");
+        await Wait(0.45f);
+        Expect(Main.RtMissionCompleted("M11"), "M11 completes through the real dialogue");
+        Expect(Main.RtCoins == 112, "M11 reward is 12 coins");
+        await CloseCompletion("M11");
+
+        // M12: wrong bakery count, then all three real orders.
+        Expect(await StartJobFromBoard("M12"), "M12 starts from the job board");
+        await TalkTo("ada", "Ada");
+        Expect(Main.RtPressModalButton("BakeryHelp"), "Ada's bakery option opens the counter");
+        await Wait(0.35f);
+        Expect(Main.RtModalTitle == "Bakery Busy Day", "the real bakery modal opens");
+        Expect(Main.RtPressModalButton("BreadAdd_milo"), "bakery stepper works");
+        Expect(Main.RtPressModalButton("Serve_milo"), "bakery Serve button works");
+        await Wait(0.3f);
+        Expect(Main.RtMissionCounter("M12", "order_milo") == 0,
+            "wrong bakery count is not accepted");
+        Expect(Main.RtModalLabelText("BakeryStatus").Contains("Milo"),
+            "wrong bakery count gives a specific hint");
+        Expect(Main.RtCoins == 112, "wrong bakery count spends nothing");
+        Expect(Main.RtPressModalButton("BreadAdd_milo"), "second milo bread");
+        Expect(Main.RtPressModalButton("CakeAdd_milo"), "milo cake");
+        Expect(Main.RtPressModalButton("Serve_milo"), "Milo served");
+        await Wait(0.3f);
+        Expect(Main.RtMissionCounter("M12", "order_milo") == 1, "Milo order recorded");
+        for (int i = 0; i < 3; i++) Expect(Main.RtPressModalButton("BreadAdd_fern"), $"fern bread {i}");
+        for (int i = 0; i < 2; i++) Expect(Main.RtPressModalButton("CakeAdd_fern"), $"fern cake {i}");
+        Expect(Main.RtPressModalButton("Serve_fern"), "Fern served");
+        await Wait(0.25f);
+        Expect(Main.RtPressModalButton("BreadAdd_ivy"), "ivy bread");
+        for (int i = 0; i < 3; i++) Expect(Main.RtPressModalButton("CakeAdd_ivy"), $"ivy cake {i}");
+        Expect(Main.RtPressModalButton("Serve_ivy"), "Ivy served");
+        await Wait(0.45f);
+        Expect(Main.RtMissionCompleted("M12"), "M12 completes through the real counter");
+        Expect(Main.RtCoins == 126, "M12 reward is 14 coins");
+        Expect(Main.RtBakerySlotVisible(0) && Main.RtBakerySlotVisible(1) && Main.RtBakerySlotVisible(2),
+            "all three bakery display slots fill");
+        await CloseCompletion("M12");
+
+        // M13: collect four real books, make one wrong shelf choice.
+        Expect(await StartJobFromBoard("M13"), "M13 starts from the job board");
+        foreach (string book in ChapterTwoRules.BookIds)
+        {
+            Main.RtTeleportNearPickup("book_" + book);
+            await Wait(0.3f);
+            Expect(Main.RtNearestInteractableName == "Pickup_book_" + book,
+                $"{book} pickup is the nearest E interaction");
+            await PressInteract();
+            Expect(Main.RtMissionCounter("M13", "has_" + book) == 1,
+                $"{book} book collected through its pickup");
+        }
+        Expect(Main.RtBookPickupCount == 0, "all four book pickups are gone");
+
+        await TalkTo("ollie", "Ollie");
+        Expect(Main.RtPressModalButton("LibraryHelp"), "Ollie's shelf option opens the library");
+        await Wait(0.35f);
+        Expect(Main.RtModalTitle == "Lost Library Books", "the real library modal opens");
+        Expect(Main.RtPressModalButton("Book_SUN"), "SUN book selected");
+        Expect(Main.RtPressModalButton("Shelf_MOON"), "wrong shelf selected");
+        await Wait(0.3f);
+        Expect(Main.RtMissionCounter("M13", "has_sun") == 1,
+            "wrong shelf keeps the book in hand");
+        Expect(Main.RtMissionCounter("M13", "shelf_moon") == 0,
+            "wrong shelf stays empty");
+        Expect(Main.RtModalLabelText("LibraryStatus").Contains("does not belong"),
+            "wrong shelf gives a specific hint");
+        Expect(Main.RtCoins == 126, "wrong shelf spends nothing");
+        Expect(Main.RtPressModalButton("Shelf_SUN"), "SUN shelved correctly");
+        await Wait(0.25f);
+        foreach (string book in new[] { "MOON", "TREE", "STAR" })
+        {
+            Expect(Main.RtPressModalButton("Book_" + book), $"{book} selected");
+            Expect(Main.RtPressModalButton("Shelf_" + book), $"{book} shelved");
+            await Wait(0.25f);
+        }
+        await Wait(0.25f);
+        Expect(Main.RtMissionCompleted("M13"), "M13 completes through the real library");
+        Expect(Main.RtCoins == 140, "M13 reward is 14 coins");
+        Expect(Main.RtLibrarySlotVisible(0) && Main.RtLibrarySlotVisible(1) &&
+               Main.RtLibrarySlotVisible(2) && Main.RtLibrarySlotVisible(3),
+            "all four library shelf slots fill");
+        await CloseCompletion("M13");
+
+        // M14: wrong sign and arrow, removable sign, then three correct fits.
+        Expect(await StartJobFromBoard("M14"), "M14 starts from the job board");
+        Main.RtTeleportNearSignSocket(0);
+        await Wait(0.3f);
+        Expect(Main.RtNearestInteractableName == "SignSocketStation_0",
+            "MARKET socket is the nearest E interaction");
+        await PressInteract();
+        Expect(Main.RtModalTitle == "Road Sign: MARKET", "the MARKET socket modal opens");
+        Expect(Main.RtPressModalButton("Sign_WORKSHOP"), "wrong sign selectable");
+        Expect(Main.RtPressModalButton("Direction_WEST"), "WEST arrow selectable");
+        Expect(Main.RtPressModalButton("InstallSign"), "install button works");
+        await Wait(0.3f);
+        Expect(Main.RtMissionCounter("M14", "sign_market") == 0,
+            "wrong sign is not installed");
+        Expect(Main.RtModalLabelText("SignSocketStatus").Contains("does not fit"),
+            "wrong sign gives a specific hint");
+        Expect(Main.RtCoins == 140, "wrong sign spends nothing");
+        Expect(Main.RtPressModalButton("Sign_MARKET"), "MARKET sign selected");
+        Expect(Main.RtPressModalButton("InstallSign"), "MARKET sign installed");
+        await Wait(0.3f);
+        Expect(Main.RtMissionCounter("M14", "sign_market") == 1, "MARKET socket recorded");
+        Expect(Main.RtSignVisualVisible(0), "MARKET repaired sign becomes visible");
+        Expect(Main.RtPressModalButton("RemoveSign"), "repair is reversible");
+        await Wait(0.25f);
+        Expect(Main.RtMissionCounter("M14", "sign_market") == 0, "MARKET socket cleared");
+        Expect(!Main.RtSignVisualVisible(0), "removed sign is hidden");
+        Expect(Main.RtPressModalButton("Sign_MARKET"), "MARKET sign reselected");
+        Expect(Main.RtPressModalButton("Direction_WEST"), "WEST arrow reselected");
+        Expect(Main.RtPressModalButton("InstallSign"), "MARKET sign reinstalled");
+        await Wait(0.25f);
+        Expect(Main.RtPressModalButton("SignStepAway"), "step away closes the socket");
+
+        Main.RtTeleportNearSignSocket(1);
+        await Wait(0.3f);
+        Expect(Main.RtNearestInteractableName == "SignSocketStation_1",
+            "WORKSHOP socket is the nearest E interaction");
+        await PressInteract();
+        Expect(Main.RtModalTitle == "Road Sign: WORKSHOP", "the WORKSHOP socket modal opens");
+        Expect(Main.RtPressModalButton("Sign_WORKSHOP"), "WORKSHOP sign selected");
+        Expect(Main.RtPressModalButton("Direction_NORTH"), "NORTH arrow selected");
+        Expect(Main.RtPressModalButton("InstallSign"), "WORKSHOP sign installed");
+        await Wait(0.3f);
+        Expect(Main.RtMissionCounter("M14", "sign_workshop") == 1, "WORKSHOP socket recorded");
+        Expect(Main.RtPressModalButton("SignStepAway"), "leave the WORKSHOP socket");
+
+        Main.RtTeleportNearSignSocket(2);
+        await Wait(0.3f);
+        Expect(Main.RtNearestInteractableName == "SignSocketStation_2",
+            "GREEN socket is the nearest E interaction");
+        await PressInteract();
+        Expect(Main.RtModalTitle == "Road Sign: GREEN", "the GREEN socket modal opens");
+        Expect(Main.RtPressModalButton("Sign_GREEN"), "GREEN sign selected");
+        Expect(Main.RtPressModalButton("Direction_SOUTH"), "SOUTH arrow selected");
+        Expect(Main.RtPressModalButton("InstallSign"), "GREEN sign installed");
+        await Wait(0.45f);
+        Expect(Main.RtMissionCompleted("M14"), "M14 completes through the real sockets");
+        Expect(Main.RtCoins == 156, "M14 reward is 16 coins");
+        Expect(Main.RtSignVisualVisible(0) && Main.RtSignVisualVisible(1) && Main.RtSignVisualVisible(2),
+            "all three repaired signs are visible");
+        await CloseCompletion("M14");
+
+        // M15: reversible wrong colour, then the six-pad pattern.
+        Expect(await StartJobFromBoard("M15"), "M15 starts from the job board");
+        Expect(Main.RtMissionCounter("M15", "pad0") == 1 &&
+               Main.RtMissionCounter("M15", "pad1") == 2,
+            "M15 starts with the first RED/BLUE example pair");
+        Main.RtTeleportNearGardenPad(0);
+        await Wait(0.3f);
+        Expect(Main.RtNearestInteractableName == "GardenPadStation_0",
+            "garden pad 1 is the nearest E interaction");
+        await PressInteract();
+        Expect(Main.RtModalTitle == "Garden Pad 1", "the garden pad modal opens");
+        Expect(Main.RtPressModalButton("GardenBlue"), "wrong flower selectable");
+        await Wait(0.25f);
+        Expect(Main.RtMissionCounter("M15", "pad0") == 2, "blue flower is visible");
+        Expect(Main.RtModalLabelText("GardenPadStatus").Contains("different colour"),
+            "wrong flower gives a specific hint");
+        Expect(Main.RtCoins == 156, "garden uses job stock, never coins");
+        Expect(Main.RtPressModalButton("GardenRed"), "flower corrected to red");
+        await Wait(0.2f);
+        Expect(Main.RtMissionCounter("M15", "pad0") == 1, "pad 1 corrected");
+        Expect(Main.RtPressModalButton("GardenDone"), "garden modal closes");
+        for (int i = 1; i < ChapterTwoRules.GardenPattern.Length; i++)
+        {
+            Main.RtTeleportNearGardenPad(i);
+            await Wait(0.3f);
+            Expect(Main.RtNearestInteractableName == $"GardenPadStation_{i}",
+                $"garden pad {i + 1} is nearest");
+            await PressInteract();
+            Expect(Main.RtModalTitle == $"Garden Pad {i + 1}",
+                $"garden pad {i + 1} modal opens");
+            string color = ChapterTwoRules.GardenPattern[i];
+            string button = color == "red" ? "GardenRed" : "GardenBlue";
+            Expect(Main.RtPressModalButton(button), $"plant {color} on pad {i + 1}");
+            await Wait(0.25f);
+            if (i < ChapterTwoRules.GardenPattern.Length - 1)
+                Expect(Main.RtPressModalButton("GardenDone"), "garden modal closes");
+        }
+        await Wait(0.4f);
+        Expect(Main.RtMissionCompleted("M15"), "M15 completes through the real garden pads");
+        Expect(Main.RtCoins == 172, "M15 reward is 16 coins");
+        for (int i = 0; i < ChapterTwoRules.GardenPattern.Length; i++)
+            Expect(Main.RtGardenFlowerVisible(i), $"garden flower {i + 1} is visible");
+        await CloseCompletion("M15");
+
+        Expect(Main.RtMissionStatus("M16") == MissionStatus.Available,
+            "M16 unlocks after both M14 and M15");
+        Expect(Main.RtMissionStatus("M17") == MissionStatus.Locked,
+            "M17 still waits for M16");
+        Expect(Main.RtCoins == 172, "M11-M15 paid exactly their authored rewards");
+        Expect(Main.RtSaveNow(), "completed chapter-two state saves");
+        var completed = SaveService.Load(Main.RtSavePath, Main.RtCatalog);
+        Expect(completed.Success, completed.Message);
+        Expect(completed.Success && completed.Data.CompletedMissions.Count == 15,
+            "saved chapter-two state holds fifteen completions");
+        Expect(completed.Success && completed.Data.Coins == 172, "saved wallet is exact");
+        Expect(completed.Success && !completed.Data.FestivalSeen,
+            "second finale stays unseen until M20");
+        Expect(completed.Success && completed.Data.IsCompleted("M11") &&
+               completed.Data.IsCompleted("M12") && completed.Data.IsCompleted("M13") &&
+               completed.Data.IsCompleted("M14") && completed.Data.IsCompleted("M15"),
+            "all five implemented chapter-two jobs are persisted");
+        return false;
+    }
+
+    private async Task PressInteract()
+    {
+        Input.ActionPress("interact");
+        Input.ActionRelease("interact");
+        await Wait(0.35f);
+    }
+
+    private async Task TalkTo(string id, string title)
+    {
+        Main.RtTeleportPlayerNearNpc(id);
+        await Wait(0.35f);
+        Expect(Main.RtNearestInteractableName == "NpcTalk_" + id,
+            $"{id} is the nearest E interaction");
+        await PressInteract();
+        Expect(Main.RtModalTitle == title, $"{id}'s real dialogue opens");
+    }
+
+    private async Task<bool> StartJobFromBoard(string missionId)
+    {
+        Main.RtTeleportNearJobBoard();
+        await Wait(0.3f);
+        Expect(Main.RtNearestInteractableName == "JobBoardStation",
+            $"{missionId}: job board is nearest");
+        await PressInteract();
+        Expect(Main.RtModalTitle == "Patchwork Jobs", $"{missionId}: job board opens");
+        bool pressed = Main.RtPressModalButton("Start_" + missionId);
+        await Wait(0.4f);
+        bool started = pressed && Main.RtActiveMission == missionId;
+        Expect(started, $"{missionId}: Start button starts the job");
+        return started;
+    }
+
+    private async Task CloseCompletion(string missionId)
+    {
+        Expect(Main.RtModalTitle == "JOB COMPLETE!", $"{missionId}: completion modal opens");
+        Main.RtCloseModal();
+        await Wait(0.3f);
+        Expect(!Main.RtPaused && Main.RtMode == "Walking",
+            $"{missionId}: closing completion resumes walking");
     }
 
     private static bool Finite(Vector3 value) =>

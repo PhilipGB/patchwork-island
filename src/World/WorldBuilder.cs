@@ -62,6 +62,14 @@ public partial class WorldBuilder : Node3D
     public List<Vector3> ParcelSpawnPoints { get; } = new();
     public List<Vector3> ParkPads { get; } = new();
     public List<Vector3> HousePads { get; } = new();
+    public List<Vector3> GardenPads { get; } = new();
+    public List<Vector3> SignSocketPositions { get; } = new();
+    public List<Node3D> SignSocketRoots { get; } = new();
+    public List<Node3D> LibraryShelfSlots { get; } = new();
+    public List<Node3D> BakeryDisplaySlots { get; } = new();
+    public List<(string Book, Vector3 Position)> BookSpawnPoints { get; } = new();
+    public Vector3 BakeryStall { get; } = new(15.2f, 0f, 5.2f);
+    public Vector3 LibraryShelf { get; } = new(-20.8f, 0f, 8.2f);
 
     private readonly RandomNumberGenerator _rng = new();
     private readonly List<(Vector2 Center, Vector2 HalfExtents)> _keepClear = new();
@@ -83,6 +91,7 @@ public partial class WorldBuilder : Node3D
         BuildPlayground();
         BuildWorkSites();
         BuildParkPlot();
+        BuildChapterTwoSites();
         BuildBridgeWorksite();
         BuildRaceMeadow();
         BuildFoliage();
@@ -677,6 +686,105 @@ public partial class WorldBuilder : Node3D
         }
         FenceLine(new Vector3(7.5f, 0, 11.2f), new Vector3(7.5f, 0, 20.5f), Palette.White);
         AddKeepClear(ParkCenter, new Vector2(9, 7));
+    }
+
+    private void BuildChapterTwoSites()
+    {
+        // Bakery stall beside Ada, clear of the main road and the shop door.
+        var bakery = new Node3D { Name = "BakeryStall", Position = BakeryStall };
+        AddChild(bakery);
+        Geo.Box(bakery, new Vector3(0, 0.55f, 0), new Vector3(3.2f, 1.1f, 1.8f), Palette.Wood);
+        Geo.Box(bakery, new Vector3(0, 1.12f, 0), new Vector3(3.3f, 0.1f, 1.9f), Palette.Cream);
+        for (int i = 0; i < 5; i++)
+        {
+            float x = -1.5f + i * 0.75f;
+            Geo.Box(bakery, new Vector3(x, 2.05f, 0), new Vector3(0.74f, 0.16f, 2.0f),
+                i % 2 == 0 ? Palette.Orange : Palette.Cream, new Vector3(-12, 0, 0));
+        }
+        Geo.Box(bakery, new Vector3(-1.55f, 1.55f, 0), new Vector3(0.12f, 3.1f, 0.12f), Palette.WoodDark);
+        Geo.Box(bakery, new Vector3(1.55f, 1.55f, 0), new Vector3(0.12f, 3.1f, 0.12f), Palette.WoodDark);
+        Geo.SignBoard(bakery, new Vector3(0, 2.95f, 0), 180f, "BAKERY", Palette.Orange, 3.4f, 0.8f,
+            "bread", 36);
+        // Three display groups are revealed when each bakery order is served.
+        string[] customers = { "milo", "fern", "ivy" };
+        for (int i = 0; i < 3; i++)
+        {
+            var slot = new Node3D { Name = $"BakeryOrder_{customers[i]}", Visible = false,
+                Position = new Vector3(-1.05f + i * 1.05f, 1.2f, 0.3f) };
+            bakery.AddChild(slot);
+            Geo.Box(slot, new Vector3(0, 0.18f, 0), new Vector3(0.6f, 0.3f, 0.45f), Palette.Wood);
+            Geo.Sphere(slot, new Vector3(-0.12f, 0.4f, 0), 0.15f, Color.FromHtml("D9A25A"), 6, 3);
+            Geo.Box(slot, new Vector3(0.16f, 0.38f, 0), new Vector3(0.22f, 0.18f, 0.22f), Palette.Pink);
+            BakeryDisplaySlots.Add(slot);
+        }
+        AddKeepClear(BakeryStall, new Vector2(3f, 3f));
+
+        // Library shelf against the town-hall frontage, with four book slots.
+        var shelf = new Node3D { Name = "LibraryShelf", Position = LibraryShelf };
+        AddChild(shelf);
+        Geo.StaticBox(shelf, "ShelfFrame", new Vector3(0, 1.05f, 0),
+            new Vector3(4.1f, 2.1f, 0.55f), Palette.Wood);
+        for (int row = 0; row < 2; row++)
+            Geo.Box(shelf, new Vector3(0, 0.72f + row * 0.7f, 0.31f),
+                new Vector3(3.8f, 0.1f, 0.12f), Palette.WoodDark);
+        Geo.SignBoard(shelf, new Vector3(0, 2.5f, 0), 180f, "LIBRARY", Palette.Blue, 3.2f, 0.7f,
+            "star", 30);
+        string[] books = { "sun", "moon", "tree", "star" };
+        Color[] bookColors = { Palette.Yellow, Palette.Blue, Palette.Grass, Palette.Pink };
+        for (int i = 0; i < 4; i++)
+        {
+            var slot = new Node3D { Name = $"ShelfBook_{books[i]}", Visible = false,
+                Position = new Vector3(-1.35f + i * 0.9f, 1.0f, 0.34f) };
+            shelf.AddChild(slot);
+            Geo.Box(slot, new Vector3(0, 0.28f, 0), new Vector3(0.3f, 0.56f, 0.12f), bookColors[i]);
+            Geo.Box(slot, new Vector3(0, 0.28f, 0.07f), new Vector3(0.22f, 0.08f, 0.02f), Palette.Cream);
+            LibraryShelfSlots.Add(slot);
+        }
+        AddKeepClear(LibraryShelf, new Vector2(3f, 2f));
+
+        // Three roadside sign sockets, deliberately away from NPC talk ranges.
+        string[] socketNames = { "market", "workshop", "green" };
+        Vector3[] socketPositions =
+        {
+            new(16.2f, 0f, 9.6f),
+            new(22.0f, 0f, -4.2f),
+            new(-2.5f, 0f, 10.5f),
+        };
+        for (int i = 0; i < socketPositions.Length; i++)
+        {
+            var root = new Node3D { Name = $"SignSocket_{socketNames[i]}", Position = socketPositions[i] };
+            AddChild(root);
+            Geo.Box(root, new Vector3(0, 0.9f, 0), new Vector3(0.16f, 1.8f, 0.16f), Palette.WoodDark);
+            Geo.Box(root, new Vector3(0, 1.95f, 0), new Vector3(2.3f, 0.85f, 0.12f), Palette.Cream);
+            Geo.Box(root, new Vector3(0, 1.55f, 0), new Vector3(2.4f, 0.1f, 0.16f), Palette.Lavender);
+            Geo.Label(root, new Vector3(0, 1.95f, 0.1f), "?", 64, Palette.Navy, false, 0.007f);
+            SignSocketPositions.Add(socketPositions[i]);
+            SignSocketRoots.Add(root);
+            AddKeepClear(socketPositions[i], new Vector2(1.7f, 1.4f));
+        }
+
+        // Community garden: six pads, separate from the M08 village green.
+        Geo.Box(this, new Vector3(29f, 0.015f, 22f), new Vector3(12f, 0.03f, 8f),
+            Color.FromHtml("8FCF69"), null, false, "CommunityGarden");
+        Geo.SignBoard(this, new Vector3(29f, 2.3f, 27.2f), 180f, "COMMUNITY GARDEN",
+            Palette.GrassDark, 6.2f, 0.9f, "flowerbed", 34);
+        for (int i = 0; i < 6; i++)
+        {
+            float x = 26f + (i % 3) * 3f;
+            float z = 20.8f + (i / 3) * 2.6f;
+            GardenPads.Add(new Vector3(x, 0.09f, z));
+            Geo.Box(this, new Vector3(x, 0.07f, z), new Vector3(2.2f, 0.05f, 2.2f),
+                Color.FromHtml("C9A66B"), null, false, "GardenPad");
+            Geo.Label(this, new Vector3(x, 0.18f, z + 0.9f), (i + 1).ToString(), 40,
+                Palette.Navy, false, 0.006f);
+        }
+        AddKeepClear(new Vector3(29f, 0, 22f), new Vector2(8f, 6f));
+
+        // Four labelled books in public, reachable village spots.
+        BookSpawnPoints.Add(("sun", new Vector3(9.4f, 0.15f, 3.75f)));
+        BookSpawnPoints.Add(("moon", new Vector3(-4.2f, 0.15f, 7.0f)));
+        BookSpawnPoints.Add(("tree", new Vector3(-30.8f, 0.15f, -8.8f)));
+        BookSpawnPoints.Add(("star", new Vector3(13.6f, 0.15f, 13.1f)));
     }
 
     private void BuildBridgeWorksite()

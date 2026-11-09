@@ -356,6 +356,407 @@
         "You can move furniture after placing it."
       ],
       "worldEffect": "home_furnished_and_village_celebration_if_all_complete"
+    },
+    {
+      "id": "M11",
+      "title": "Meet the Neighbours",
+      "short": "Read names and deliver 3 welcome cards.",
+      "prerequisites": [
+        "M01",
+        "M02",
+        "M03",
+        "M04",
+        "M05",
+        "M06",
+        "M07",
+        "M08",
+        "M09",
+        "M10"
+      ],
+      "rewardCoins": 12,
+      "category": "community",
+      "site": "village",
+      "goal": "Talk to Ada, Ollie and Fern; match each greeting card to its name.",
+      "hints": [
+        "Look for name labels above villagers.",
+        "Say the name before handing over a card.",
+        "Find Ada at the market, Ollie near town hall and Fern at the green."
+      ],
+      "learning": [
+        "read simple names",
+        "match words to people",
+        "count three deliveries"
+      ],
+      "worldEffect": "Three villagers wave and become available for follow-up jobs",
+      "mechanics": {
+        "kind": "npc_greetings",
+        "targets": [
+          "ada",
+          "ollie",
+          "fern"
+        ],
+        "items": [
+          "card_ada",
+          "card_ollie",
+          "card_fern"
+        ],
+        "requiredCorrectMatches": 3,
+        "wrongTargetConsumesItem": false
+      }
+    },
+    {
+      "id": "M12",
+      "title": "Bakery Busy Day",
+      "short": "Help Ada make 3 orders using the right amounts.",
+      "prerequisites": [
+        "M11"
+      ],
+      "rewardCoins": 14,
+      "category": "numeracy",
+      "site": "bakery_stall",
+      "goal": "Read 3 customer orders and count the correct bread and cake items.",
+      "hints": [
+        "Start with the picture cards.",
+        "Count the buns for each customer.",
+        "Check the total before serving."
+      ],
+      "learning": [
+        "read three short order cards",
+        "count up to ten",
+        "add 2+3 and 3+4"
+      ],
+      "worldEffect": "Bakery display fills with food",
+      "mechanics": {
+        "kind": "bakery_orders",
+        "orders": [
+          {
+            "customer": "milo",
+            "bread": 2,
+            "cakes": 1
+          },
+          {
+            "customer": "fern",
+            "bread": 3,
+            "cakes": 2
+          },
+          {
+            "customer": "ivy",
+            "bread": 1,
+            "cakes": 3
+          }
+        ],
+        "jobStockOnly": true,
+        "mistakeCanRetry": true
+      }
+    },
+    {
+      "id": "M13",
+      "title": "Lost Library Books",
+      "short": "Find 4 books and put them on the right shelves.",
+      "prerequisites": [
+        "M11"
+      ],
+      "rewardCoins": 14,
+      "category": "literacy",
+      "site": "town_hall_library",
+      "goal": "Collect labelled books and match each to its shelf.",
+      "hints": [
+        "Search near the village paths.",
+        "Read the big word on each cover.",
+        "Match the cover word to the shelf word."
+      ],
+      "learning": [
+        "read SUN, MOON, TREE and STAR",
+        "match written labels",
+        "categorise objects"
+      ],
+      "worldEffect": "Library shelves fill with books",
+      "mechanics": {
+        "kind": "book_shelving",
+        "books": [
+          "SUN",
+          "MOON",
+          "TREE",
+          "STAR"
+        ],
+        "shelves": [
+          "SUN",
+          "MOON",
+          "TREE",
+          "STAR"
+        ],
+        "wrongShelfConsumesBook": false
+      }
+    },
+    {
+      "id": "M14",
+      "title": "Road Sign Rescue",
+      "short": "Put 3 direction signs in the correct places.",
+      "prerequisites": [
+        "M12"
+      ],
+      "rewardCoins": 16,
+      "category": "spatial",
+      "site": "town_roads",
+      "goal": "Fix signs pointing to MARKET, WORKSHOP and GREEN.",
+      "hints": [
+        "Match each sign to its coloured socket.",
+        "Look at the arrow and the landmark.",
+        "Try the direction again if it is wrong."
+      ],
+      "learning": [
+        "read location labels",
+        "left/right spatial directions",
+        "follow arrows"
+      ],
+      "worldEffect": "Missing road direction signs become visible",
+      "mechanics": {
+        "kind": "sign_placements",
+        "signs": [
+          {
+            "id": "market",
+            "label": "MARKET"
+          },
+          {
+            "id": "workshop",
+            "label": "WORKSHOP"
+          },
+          {
+            "id": "green",
+            "label": "GREEN"
+          }
+        ],
+        "required": 3,
+        "allowUndo": true
+      }
+    },
+    {
+      "id": "M15",
+      "title": "Garden Patterns",
+      "short": "Plant a red-blue pattern across 6 flowerbeds.",
+      "prerequisites": [
+        "M13"
+      ],
+      "rewardCoins": 16,
+      "category": "patterns",
+      "site": "community_garden",
+      "goal": "Complete the repeating flower pattern RED, BLUE, RED, BLUE, RED, BLUE.",
+      "hints": [
+        "Look at the first two flowers.",
+        "Repeat the same two colours.",
+        "Six beds make three pairs."
+      ],
+      "learning": [
+        "alternating colour patterns",
+        "sequencing six positions",
+        "count pairs"
+      ],
+      "worldEffect": "Community garden blooms with six flowerbeds",
+      "mechanics": {
+        "kind": "flower_pattern",
+        "pattern": [
+          "red",
+          "blue",
+          "red",
+          "blue",
+          "red",
+          "blue"
+        ],
+        "allowUndo": true,
+        "seedStockUnlimited": true
+      }
+    },
+    {
+      "id": "M16",
+      "title": "The Delivery Round",
+      "short": "Drive 3 parcels to the right villagers.",
+      "prerequisites": [
+        "M14",
+        "M15"
+      ],
+      "rewardCoins": 20,
+      "category": "navigation",
+      "site": "post_counter",
+      "goal": "Load parcels for Ada, Pip and Ivy and deliver to matching names.",
+      "hints": [
+        "Read the name on each parcel.",
+        "Check the mini-map or road signs.",
+        "Stop near each recipient and press E."
+      ],
+      "learning": [
+        "read destinations",
+        "plan three stops",
+        "count delivered parcels"
+      ],
+      "worldEffect": "Village notice board displays completed delivery route",
+      "mechanics": {
+        "kind": "npc_delivery_route",
+        "vehicle": "player_van",
+        "recipients": [
+          "ada",
+          "pip",
+          "ivy"
+        ],
+        "requiredDelivered": 3,
+        "orderFlexible": true,
+        "wrongRecipientConsumesParcel": false
+      }
+    },
+    {
+      "id": "M17",
+      "title": "Market Day Maths",
+      "short": "Fill 3 shopping lists without exceeding 20 job coins.",
+      "prerequisites": [
+        "M16"
+      ],
+      "rewardCoins": 22,
+      "category": "money",
+      "site": "market",
+      "goal": "Buy 2 bread, 1 milk and 2 apples from a separate job purse.",
+      "hints": [
+        "Bread costs 3. Milk costs 4. Apples cost 2 each.",
+        "Add each price as you shop.",
+        "You have 20 job coins. Spend 14 and keep 6."
+      ],
+      "learning": [
+        "add 6+4+4",
+        "subtract 20-14",
+        "read a shopping list"
+      ],
+      "worldEffect": "Market stalls gain decorative stock",
+      "mechanics": {
+        "kind": "market_budget",
+        "budget": 20,
+        "prices": {
+          "bread": 3,
+          "milk": 4,
+          "apple": 2
+        },
+        "required": {
+          "bread": 2,
+          "milk": 1,
+          "apple": 2
+        },
+        "expectedTotal": 14,
+        "expectedChange": 6,
+        "separateFromPlayerWallet": true,
+        "refundAllowed": true
+      }
+    },
+    {
+      "id": "M18",
+      "title": "Mechanic’s Toolbox",
+      "short": "Fix Pip’s vehicle with 2 tyres, 1 lamp and 1 battery.",
+      "prerequisites": [
+        "M17"
+      ],
+      "rewardCoins": 24,
+      "category": "logic",
+      "site": "workshop",
+      "goal": "Find four repair parts, then fit them in the correct sequence.",
+      "hints": [
+        "Inspect the broken car first.",
+        "Two tyres go on before the lamp.",
+        "Fit the battery last."
+      ],
+      "learning": [
+        "sequence actions",
+        "count 2+1+1",
+        "read tool labels"
+      ],
+      "worldEffect": "Pip’s car becomes driveable after repair",
+      "mechanics": {
+        "kind": "npc_vehicle_repair",
+        "parts": {
+          "tyre": 2,
+          "lamp": 1,
+          "battery": 1
+        },
+        "stages": [
+          "inspect",
+          "fit_tyres",
+          "fit_lamp",
+          "fit_battery"
+        ],
+        "wrongPartConsumesItem": false
+      }
+    },
+    {
+      "id": "M19",
+      "title": "The Grand Rally",
+      "short": "Drive 6 gates on the new long circuit beside Pip.",
+      "prerequisites": [
+        "M18"
+      ],
+      "rewardCoins": 25,
+      "category": "driving",
+      "site": "rally_circuit",
+      "goal": "Drive six numbered gates; finish to win, with an optional time medal.",
+      "hints": [
+        "Follow big signs 1 to 6.",
+        "Wide corners are safer than sharp turns.",
+        "There is no required time limit."
+      ],
+      "learning": [
+        "follow numbers 1–6",
+        "plan a route",
+        "compare elapsed time"
+      ],
+      "worldEffect": "New rally podium and trophy appear",
+      "mechanics": {
+        "kind": "grand_rally",
+        "vehicle": "player_van",
+        "gateCount": 6,
+        "gateOrder": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "rivalNpc": "pip",
+        "requiredTimeLimitSeconds": null,
+        "optionalBonusTimeSeconds": 155,
+        "optionalBonusCoins": 5,
+        "noCollisionBetweenRivals": true
+      }
+    },
+    {
+      "id": "M20",
+      "title": "Village Festival",
+      "short": "Prepare the village festival with decorations and invitations.",
+      "prerequisites": [
+        "M19"
+      ],
+      "rewardCoins": 30,
+      "category": "planning",
+      "site": "village_green",
+      "goal": "Deliver 3 invitations, place 2 tables and hang 3 lanterns.",
+      "hints": [
+        "First invite the neighbours.",
+        "Then put the tables in the marked spots.",
+        "Finally hang all three lanterns."
+      ],
+      "learning": [
+        "follow a multi-stage plan",
+        "count 3+2+3",
+        "read short invitations"
+      ],
+      "worldEffect": "Second chapter festival, lanterns and music unlock",
+      "mechanics": {
+        "kind": "festival_preparation",
+        "invitations": 3,
+        "tables": 2,
+        "lanterns": 3,
+        "stages": [
+          "invite",
+          "tables",
+          "lanterns"
+        ],
+        "separateJobStock": true,
+        "allowUndoDecorations": true
+      }
     }
   ]
 }

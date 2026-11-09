@@ -15,6 +15,7 @@
     <Compile Include="../src/Core/MissionIntegrity.cs" Link="Core/MissionIntegrity.cs" />
     <Compile Include="../src/Core/MissionContentConsistency.cs" Link="Core/MissionContentConsistency.cs" />
     <Compile Include="../src/Core/MissionService.cs" Link="Core/MissionService.cs" />
+    <Compile Include="../src/Core/ChapterTwoRules.cs" Link="Core/ChapterTwoRules.cs" />
     <Compile Include="../src/Core/BudgetRules.cs" Link="Core/BudgetRules.cs" />
     <Compile Include="../src/Core/BuildRules.cs" Link="Core/BuildRules.cs" />
     <Compile Include="../src/Core/BuildFurnishingRules.cs" Link="Core/BuildFurnishingRules.cs" />

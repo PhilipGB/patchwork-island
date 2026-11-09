@@ -1415,3 +1415,98 @@ Software-renderer (Mesa llvmpipe, **not** a desktop GPU claim): 1280×720 mean
 2997 draw calls, 60,647 primitives. The v1.1.0 baseline had no probe, so a
 baseline frame-time comparison is **NOT TESTED**. Real Radeon 890M profiling is
 **NOT TESTED** (hardware unavailable).
+
+## P13 — Chapter two, part one: M11–M15 (v1.2.0)
+
+**Branch:** `p13-next-chapter-1`
+
+### Delivered
+
+- Added M11–M15 to both mission sources and raised the catalogue integrity check
+  from ten to twenty. M16–M20 remain authored and visible as **COMING SOON**;
+  P13 marks only M11–M15 implemented so no player is offered an unfinished job.
+- M11 **Meet the Neighbours:** three job-stock cards, readable villager names,
+  wrong-name refusal with no card loss, three correct deliveries and a once-only
+  12-coin reward.
+- M12 **Bakery Busy Day:** separate bakery stock, three counted orders
+  (2+1, 3+2, 1+3), stepper UI, wrong-count retry with no loss and a once-only
+  14-coin reward. Filled bakery display slots persist in the world.
+- M13 **Lost Library Books:** four unique physical books (`book_sun`,
+  `book_moon`, `book_tree`, `book_star`), cover words, shelf matching, wrong-shelf
+  retry with no book loss and a once-only 14-coin reward. Filled shelf slots
+  persist visually.
+- M14 **Road Sign Rescue:** three authored sockets, sign and arrow matching,
+  removal/retry, permanent repaired sign boards free of traffic collision and a
+  once-only 16-coin reward.
+- M15 **Garden Patterns:** six pads separate from the M08 park pads, unlimited
+  job seed stock, reversible colour correction, exact RED/BLUE pattern and a
+  once-only 16-coin reward. All six flowers persist visually.
+- Chapter-two job-board tabs (`Village jobs 1–10`, `New adventures 11–20`),
+  new mission icons, chapter-two objective markers and progress rows. M12/M13
+  branch from M11; M14 branches from M12; M15 branches from M13; M16 waits for
+  both M14 and M15.
+- Save schema **3** adds `FestivalSeen`. The original M10 `CelebrationSeen`
+  keeps its old meaning and validation. Schema 1 and 2 saves migrate without
+  losing coins, missions, pickups, player/van snapshots, outfits or settings.
+- Fixed two P13 visual defects found by real captures: 128 px mission PNGs
+  dwarfed 48 px SVG icons in world sprites, and the generic library pickup icon
+  covered the large MOON/SUN cover word. See `docs/VISUAL_QA.md` V07/V08.
+
+### Verification
+
+```text
+dotnet build PatchworkIsland.sln                         -> 0 warnings, 0 errors
+dotnet run --project tests/PatchworkIsland.Tests.csproj  -> 97 passed, 0 failed
+godot --headless --path . -- --selftest                  -> 161 passed, 0 failed
+godot --headless --path . -- --selftest-resume           -> 21 passed, 0 failed
+godot --headless --path . -- --selftest-recovery         -> 101 passed, 0 failed
+godot --headless --path . -- --selftest-living           -> 238 passed, 0 failed
+godot --headless --path . -- --selftest-rally            -> 10 passed, 0 failed
+godot --headless --path . -- --selftest-chapter          -> 217 passed, 0 failed
+godot --headless --path . --editor --quit                -> PASS
+godot --headless --path . --quit-after 120               -> PASS
+```
+
+Rally timings remained inside the original bonus boundaries: **M05 18.98 s**
+and **M09 18.97 s**, both with the existing +5 optional bonus. The chapter
+runtime phase starts a fresh village, builds the same valid world state as a
+finished v1.1 save, then uses the real job-board station and buttons, real E
+interactions, NPC dialogue buttons, book pickups, sign sockets and garden pads.
+It deliberately saves after one M11 card and reloads the scene; phase two
+continues from that save, finishes M11–M15, spends no personal coins on job
+stock, and ends at 172 coins after exactly 12+14+14+16+16 reward coins. The
+save file is re-read and checked for fifteen completions, five chapter-two
+completions, correct wallet and `FestivalSeen=false`.
+
+Pure coverage includes wrong card/order/shelf/sign/colour no-loss behavior,
+objective counters, exactly-once rewards, branch unlocks, M12/M13 in either
+order, M16 waiting for both M14 and M15, partial chapter save/reload, schema
+1/2→3 migration, `CelebrationSeen` validation and the separate `FestivalSeen`
+rule.
+
+Fail-first mutation evidence (temporary local edits, immediately restored):
+
+```text
+SignPlacementMatches forced to accept every fit
+  -> FAIL M14 validates sign and arrow...: wrong sign refused (95 passed, 1 failed)
+HandWelcomeCard wrong-name guard disabled
+  -> FAIL M11 grants cards once...: wrong card refused (95 passed, 1 failed)
+Restored source -> 97 passed, 0 failed
+```
+
+### Visual evidence
+
+- 720p and true 1080p captures: `evidence/p13_720_*.png` and
+  `evidence/p13_1080_*.png` (chapter-two overview, bakery, library, sign
+  sockets, community garden, MOON book, job-board tabs, Ada card dialogue,
+  bakery/library/sign/garden UIs, repaired signs, planted garden).
+- Capture command: `godot --path . -- --capture-p13` (add `--capture-1080` for
+  the 1920×1080 set). Captures are real Xvfb/Mesa llvmpipe viewport captures.
+- Real GPU and audible playback remain **NOT TESTED** (hardware unavailable).
+
+### Notes
+
+- M11–M15 use mission progress counters and `book_*` pickups only; the personal
+  coin wallet is never a job-supply budget.
+- The chapter-two runtime phase was added to CI as `--selftest-chapter` with a
+  240-second timeout.

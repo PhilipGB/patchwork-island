@@ -33,6 +33,7 @@ public static class SaveValidation
         "wood_0", "wood_1", "wood_2", "wood_3", "wood_4",
         "stone_0", "stone_1", "stone_2",
         "blue_parcel_0", "blue_parcel_1", "orange_parcel_0",
+        "book_sun", "book_moon", "book_tree", "book_star",
     };
 
     private static readonly Dictionary<string, int> InventoryMaximums = new(StringComparer.Ordinal)
@@ -59,6 +60,24 @@ public static class SaveValidation
         {
             ["checkpoint"] = 4, ["started"] = 1,
             ["elapsedMs"] = RaceTimer.MaxStoredMilliseconds,
+        },
+        ["M11"] = new()
+        {
+            ["stock_granted"] = 1,
+            ["card_ada"] = 1, ["card_ollie"] = 1, ["card_fern"] = 1,
+            ["delivered_ada"] = 1, ["delivered_ollie"] = 1, ["delivered_fern"] = 1,
+        },
+        ["M12"] = new() { ["order_milo"] = 1, ["order_fern"] = 1, ["order_ivy"] = 1 },
+        ["M13"] = new()
+        {
+            ["has_sun"] = 1, ["has_moon"] = 1, ["has_tree"] = 1, ["has_star"] = 1,
+            ["shelf_sun"] = 1, ["shelf_moon"] = 1, ["shelf_tree"] = 1, ["shelf_star"] = 1,
+        },
+        ["M14"] = new() { ["sign_market"] = 1, ["sign_workshop"] = 1, ["sign_green"] = 1 },
+        ["M15"] = new()
+        {
+            ["pad0"] = 2, ["pad1"] = 2, ["pad2"] = 2,
+            ["pad3"] = 2, ["pad4"] = 2, ["pad5"] = 2,
         },
     };
 
@@ -277,9 +296,14 @@ public static class SaveValidation
             }
         }
 
-        if (data.CelebrationSeen && !catalog.Missions.All(m => completed.Contains(m.Id)))
+        if (data.CelebrationSeen && !MissionRules.OriginalChapterComplete(data))
         {
-            error = "The celebration is marked seen before all ten jobs are complete.";
+            error = "The celebration is marked seen before the original ten jobs are complete.";
+            return false;
+        }
+        if (data.FestivalSeen && !data.IsCompleted("M20"))
+        {
+            error = "The festival is marked seen before Village Festival is complete.";
             return false;
         }
 
@@ -306,6 +330,11 @@ public static class SaveValidation
             // valid slots, uniqueness and ownership limits elsewhere. The
             // mission itself still requires physical placements to complete.
             "M10" => FurnitureRules.OwnsRequiredSet(data),
+            "M11" => ChapterTwoRules.M11Complete(data),
+            "M12" => ChapterTwoRules.M12Complete(data),
+            "M13" => ChapterTwoRules.M13Complete(data),
+            "M14" => ChapterTwoRules.M14Complete(data),
+            "M15" => ChapterTwoRules.M15Complete(data),
             _ => true,
         };
     }

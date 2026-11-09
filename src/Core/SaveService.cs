@@ -35,7 +35,7 @@ public static class SaveService
     /// The persistence contract, deliberately separate from the game release
     /// version. Increment this only when the saved data shape changes.
     /// </summary>
-    public const int CurrentVersion = 2;
+    public const int CurrentVersion = 3;
     public const string DefaultFileName = "save.json";
 
     // Narrow test seam for deterministic write failures. It is process-local,
@@ -143,8 +143,9 @@ public static class SaveService
     /// <summary>
     /// Upgrades a supported older save in memory to the current schema. Schema
     /// 1 predates character customisation, so its missing fields are filled by
-    /// Normalise with Boy + Everyday + no purchases. All progression fields are
-    /// left intact. The file is only rewritten as schema 2 by the next save.
+    /// Normalise with Boy + Everyday + no purchases. 2 predates the separate
+    /// v1.2 festival marker, which defaults to false. All progression fields are
+    /// left intact. The file is only rewritten at the current schema by the next save.
     /// </summary>
     public static GameData Migrate(GameData data)
     {
@@ -164,6 +165,13 @@ public static class SaveService
                     // supplied Boy + Everyday + no purchases without touching
                     // any progression field, so only the version changes.
                     data.SchemaVersion = 2;
+                    break;
+
+                case 2:
+                    // Schema 2 predates the independent v1.2 festival marker.
+                    // CelebrationSeen keeps its original M10 meaning.
+                    data.FestivalSeen = false;
+                    data.SchemaVersion = 3;
                     break;
 
                 default:

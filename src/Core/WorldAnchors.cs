@@ -23,6 +23,15 @@ public static class WorldAnchors
             ("bridge site", 36.5f, 4.5f),
             ("player house door", -38f, 17.3f),
             ("furniture station", -40.5f, 20.5f),
+            ("market sign socket", 16.2f, 9.6f),
+            ("workshop sign socket", 22.0f, -4.2f),
+            ("green sign socket", -2.5f, 10.5f),
+            ("garden pad 1", 26f, 20.8f),
+            ("garden pad 2", 29f, 20.8f),
+            ("garden pad 3", 32f, 20.8f),
+            ("garden pad 4", 26f, 23.4f),
+            ("garden pad 5", 29f, 23.4f),
+            ("garden pad 6", 32f, 23.4f),
         };
 
     public static readonly IReadOnlyList<(float X, float Z, float HalfX, float HalfZ)> Buildings =
@@ -34,6 +43,8 @@ public static class WorldAnchors
             (5f, 9f, 6.3f, 4.8f),
             (24f, 7f, 4.8f, 3.8f),
             (25f, -16f, 6.8f, 5.3f),
+            (-20.8f, 8.2f, 2.1f, 0.5f),
+            (15.2f, 5.2f, 1.8f, 1.0f),
         };
 
     public static float DistanceToNearestStation(float x, float z)
