@@ -1675,5 +1675,16 @@ with zero leaked unsafe references.
 1. Subjective human listening of the packaged audio has not been performed.
 2. Windows startup has not been tested.
 
-No `v1.2.0` tag was created. Exact-head commit hash, CI run and merge status
-are appended after the P15 PR is green.
+No `v1.2.0` tag was created.
+
+### Exact-head record
+
+- Feature/release verification commit: `4f78d2388859dbb2556b7db287699418d4c029b3`.
+- PR: #21 (`P15 — v1.2.0 release verification`), based on `570e667`.
+- CI at that exact head: run
+  [42702983510](https://github.com/PhilipGB/patchwork-island/actions/runs/42702983510)
+  — `build-test` **pass** (5m12s), `windows-tests` **pass** (49s).
+- This status-only record commit repeats the same CI suite; the PR merge head is
+  the last green commit on the branch.
+- Tag/publish decision: **not tagged**. The two publication blockers above
+  remain untested, so v1.2.0 is not published as fully verified.
