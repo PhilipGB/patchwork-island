@@ -1302,3 +1302,59 @@ and PulseAudio cannot open a device), so audible speaker verification remains
   original synthetic assets generated for this project.
 - Audio assets are included by the default export filter and will be checked
   again inside the packaged Linux binary during P15.
+
+## P11 — Villagers and safe NPC traffic (v1.2.0)
+
+**Branch:** `p11-living-village`
+
+### Delivered
+
+- Six named villagers (Milo, Ada, Pip, Fern, Ollie, Ivy) with distinct procedural
+  paper-doll bodies, role clothes/hair/accessories, supplied PNG portraits,
+  large billboard name labels, idle/walk animation and verified patrol loops.
+- Generic conversations use the supplied portrait, a short role greeting and a
+  readable "Tell me about the village" fact. The NPC stops while talking and
+  resumes afterwards; dialogue is fully playable with sound off.
+- Two active free-roam NPC drivers: Milo's post scooter on the west main road
+  and Ivy's compact car on the east road. Both use closed authored waypoint
+  loops, capped acceleration/turn speed, no player/van collision (layer 0),
+  forward yield sensing, spatial engine loops and a rate-limited horn.
+- Third `rally_rival` definition is authored for M19 only (no free-roam spawn).
+- Pure route validation proves every waypoint is on the authored road network,
+  every patrol is outside building footprints and every NPC/traffic waypoint
+  keeps clear of critical job stations.
+- New `--selftest-living` phase runs 24 seconds of real physics, then exercises
+  yield/resume for both drivers and re-checks villager/station clearance.
+
+### Verification
+
+```text
+dotnet build PatchworkIsland.sln                         -> 0 warnings, 0 errors
+dotnet run --project tests/PatchworkIsland.Tests.csproj  -> 84 passed, 0 failed
+godot --headless --path . -- --selftest                  -> 158 passed, 0 failed
+godot --headless --path . -- --selftest-resume           -> 21 passed, 0 failed
+godot --headless --path . -- --selftest-recovery         -> 101 passed, 0 failed
+godot --headless --path . -- --selftest-living           -> 238 passed, 0 failed
+```
+
+Runtime coverage proves six villagers exist with readable labels, real E opens
+Ada's conversation and stops her patrol, both traffic routes move, the scooter
+yields/stops/resumes for the player, villagers and traffic pause with the world,
+and a 24-second drive keeps all traffic on the road without teleporting or
+blocking a mission station.
+
+### Visual evidence
+
+Captured at 1280×720 under Xvfb/Mesa llvmpipe:
+`p11_01_ada_market.png`, `p11_02_milo_post.png`, `p11_03_pip_workshop.png`,
+`p11_04_fern_garden.png`, `p11_05_ollie_town_hall.png`,
+`p11_06_ivy_green.png`, `p11_07_town_traffic.png`,
+`p11_08_ada_dialogue.png` in the Godot user `dev-captures` directory.
+
+### Notes
+
+- The supplied GLB villager/vehicle models have world-space vertices in one
+  shared mesh space rather than clean limb pivots, so this milestone uses
+  procedural geometry matching the existing P9 player/van style. The supplied
+  portraits are used in-world and in dialogue; mission icons will be used from
+  P13. This decision is recorded in `docs/ASSET_USAGE.md`.

@@ -47,3 +47,16 @@ The ZIP contains `tools/generate_assets.py`, `tools/generate_models.py`, `tools/
 ### Usage rights
 
 All audio, PNG and GLB assets in this handoff were generated specifically for this project with custom code; no external samples or existing songs are embedded. They may be copied, edited and distributed as part of Patchwork Island without attribution to external providers. `docs/ASSET_USAGE.md` provides provenance. For any externally sourced assets added later, record licence and attribution separately.
+
+
+## v1.2.0 implementation note: 3D starter models
+
+The supplied NPC and vehicle GLBs were imported and inspected. Each named part
+is a separate mesh but its vertices are authored in shared world space with no
+pivot transform, so rotating an arm, leg or wheel about its node would rotate
+the part around the world origin. Rather than shipping a broken animation rig,
+v1.2.0 reproduces the intended low-poly silhouettes procedurally in the same
+flat-shaded style as the P9 player and existing yellow van, with correct limb
+and wheel pivots. The supplied PNG portraits, mission icons and all audio are
+used as runtime assets. This is an intentional consistency decision, not a
+silent omission; replacement provenance remains the original handoff generator.

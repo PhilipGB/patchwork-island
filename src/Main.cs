@@ -25,6 +25,10 @@ public partial class Main : Node3D
     private MissionService _missions;
     private readonly HashSet<string> _implemented = new() { "M01", "M02", "M03", "M04", "M05", "M06", "M07", "M08", "M09", "M10" };
     private readonly List<Pickup> _pickups = new();
+    private readonly List<NpcActor> _npcs = new();
+    private readonly Dictionary<string, NpcActor> _npcById = new(StringComparer.Ordinal);
+    private readonly List<TrafficCar> _trafficCars = new();
+    private NpcActor _talkingNpc;
     private Interactable _jobStation;
     private Interactable _redHouseStation;
     private Interactable _workshopStation;
@@ -134,6 +138,8 @@ public partial class Main : Node3D
         CreateBuilderSystems();
         CreateStations();
         SpawnPickups();
+        SpawnVillagers();
+        SpawnTraffic();
         RestoreSavedState();
         ReconcileRestoredProgress();
         RefreshMissionState();
@@ -208,6 +214,14 @@ public partial class Main : Node3D
             _started = true;
             _player.SetControlEnabled(false);
             _ = CaptureTour();
+            return;
+        }
+        if (HasUserArg("--capture-p11"))
+        {
+            _started = true;
+            _hud.CloseModal();
+            _player.SetControlEnabled(false);
+            _ = CaptureP11();
             return;
         }
         ShowTitle();
@@ -305,8 +319,10 @@ public partial class Main : Node3D
 
     private static bool IsRecoveryTest => HasUserArg("--selftest-recovery");
 
+    private static bool IsLivingTest => HasUserArg("--selftest-living");
+
     private static bool IsSelfTest =>
-        HasUserArg("--selftest") || HasUserArg("--selftest-resume") || IsRecoveryTest;
+        HasUserArg("--selftest") || HasUserArg("--selftest-resume") || IsRecoveryTest || IsLivingTest;
 
     private static bool IsSelfTestResume => HasUserArg("--selftest-resume");
 
@@ -981,8 +997,7 @@ public partial class Main : Node3D
     }
 
     private void SpawnParcelPickups()
-    {
-        string[] types = { "blue_parcel", "blue_parcel", "orange_parcel" };
+    {        string[] types = { "blue_parcel", "blue_parcel", "orange_parcel" };
         for (int i = 0; i < types.Length && i < _world.ParcelSpawnPoints.Count; i++)
         {
             string type = types[i];
@@ -995,6 +1010,69 @@ public partial class Main : Node3D
             pickup.ProcessMode = ProcessModeEnum.Pausable;
             _pickups.Add(pickup);
         }
+    }
+
+    private void SpawnVillagers()
+    {
+        if (!NpcCatalog.Validate(out string error))
+            throw new InvalidDataException("Villager content is invalid: " + error);
+        foreach (var definition in NpcCatalog.All)
+        {
+            var actor = new NpcActor { Name = $"Npc_{definition.Id}" };
+            actor.Initialize(definition);
+            actor.TalkRequested += TalkToNpc;
+            AddChild(actor);
+            _npcs.Add(actor);
+            _npcById[definition.Id] = actor;
+        }
+    }
+
+    private void SpawnTraffic()
+    {
+        if (!TrafficCatalog.Validate(out string error))
+            throw new InvalidDataException("Traffic content is invalid: " + error);
+        foreach (var route in TrafficCatalog.Routes)
+        {
+            if (route.RallyOnly) continue;
+            var car = new TrafficCar { Name = $"Traffic_{route.Id}" };
+            car.Initialize(route,
+                () => _player?.GlobalPosition ?? Vector3.Zero,
+                () => _van?.GlobalPosition ?? Vector3.Zero,
+                () => _driving);
+            AddChild(car);
+            _trafficCars.Add(car);
+        }
+    }
+
+    private void TalkToNpc(NpcActor npc)
+    {
+        if (npc == null || _talkingNpc != null || !_started) return;
+        if (_driving)
+        {
+            _hud.ShowBigToast("Park the van, then step out to chat.", 2.8f, Palette.Orange);
+            return;
+        }
+        _talkingNpc = npc;
+        npc.SetTalking(true);
+        npc.FaceToward(_player.GlobalPosition);
+        AudioManager.Instance?.PlayAt(npc.Definition.GreetingCue,
+            npc.GlobalPosition + Vector3.Up * 1.4f, -10f);
+        var options = new List<NpcOption>
+        {
+            new()
+            {
+                Text = "Tell me about the village",
+                Close = false,
+                Border = Palette.Blue,
+                Action = () => _hud.SetModalStatus(npc.Definition.VillageFact, false),
+            },
+        };
+        NpcDialogueUi.Show(_hud, npc.Definition, npc.Definition.Intro, options, () =>
+        {
+            npc.SetTalking(false);
+            _talkingNpc = null;
+            RefreshMissionState();
+        });
     }
 
     private void SpawnItemSet(string item, string missionId, int required, List<Vector3> positions, Color color)
@@ -2533,6 +2611,74 @@ public partial class Main : Node3D
     internal bool RtVanEngineDrivePlaying => _van?.EngineDrivePlaying == true;
     internal string RtLastSfx => _audio?.LastSfxId ?? "";
     internal int RtSfxPlayCount(string id) => _audio?.PlayCount(id) ?? 0;
+
+    internal int RtNpcCount => _npcs.Count;
+    internal string RtNpcIds => string.Join(",", _npcs.Select(n => n.NpcId));
+    internal string RtNpcNames => string.Join(", ", _npcs.Select(n => n.Definition.Name));
+    internal bool RtNpcPresent(string id) => _npcById.ContainsKey(id);
+    internal Vector3 RtNpcPosition(string id) =>
+        _npcById.TryGetValue(id, out var npc) ? npc.GlobalPosition : new Vector3(9999, 9999, 9999);
+    internal string RtNpcNameLabel(string id) =>
+        _npcById.TryGetValue(id, out var npc) ? npc.NameLabelText : "";
+    internal bool RtNpcTalking(string id) => _npcById.TryGetValue(id, out var npc) && npc.Talking;
+    internal bool RtNpcMoving(string id) => _npcById.TryGetValue(id, out var npc) && npc.IsMoving;
+    internal ProcessModeEnum RtNpcProcessMode(string id) =>
+        _npcById.TryGetValue(id, out var npc) ? npc.ProcessMode : ProcessModeEnum.Inherit;
+
+    internal void RtTeleportPlayerNearNpc(string id)
+    {
+        if (!_npcById.TryGetValue(id, out var npc)) return;
+        Vector3 p = npc.GlobalPosition + new Vector3(1.7f, 0.1f, 0f);
+        _player.Teleport(p, Mathf.Pi / 2f);
+        _player.ForceRefreshInteraction();
+    }
+
+    internal bool RtTalkToNpc(string id)
+    {
+        if (!_npcById.TryGetValue(id, out var npc)) return false;
+        TalkToNpc(npc);
+        return _hud.ModalOpen;
+    }
+
+    internal string RtNearestInteractableName => _player?.NearestInteractable?.Name.ToString() ?? "";
+
+    internal int RtTrafficCount => _trafficCars.Count;
+    internal string RtTrafficIds => string.Join(",", _trafficCars.Select(n => n.RouteId));
+    internal Vector3 RtTrafficPosition(string id) =>
+        _trafficCars.FirstOrDefault(c => c.RouteId == id)?.GlobalPosition ?? new Vector3(9999, 9999, 9999);
+    internal bool RtTrafficOnRoad(string id)
+    {
+        var car = _trafficCars.FirstOrDefault(c => c.RouteId == id);
+        return car != null && RoadNetwork.Contains(car.GlobalPosition.X, car.GlobalPosition.Z);
+    }
+    internal bool RtTrafficYielding(string id) =>
+        _trafficCars.FirstOrDefault(c => c.RouteId == id)?.Yielding == true;
+    internal float RtTrafficSpeed(string id) =>
+        _trafficCars.FirstOrDefault(c => c.RouteId == id)?.PlanarSpeed ?? -1f;
+    internal float RtTrafficDistance(string id) =>
+        _trafficCars.FirstOrDefault(c => c.RouteId == id)?.DistanceTravelled ?? -1f;
+    internal int RtTrafficWaypoint(string id) =>
+        _trafficCars.FirstOrDefault(c => c.RouteId == id)?.CurrentWaypoint ?? -1;
+    internal bool RtTrafficHasEngineAudio(string id) =>
+        _trafficCars.FirstOrDefault(c => c.RouteId == id)?.HasEngineAudio == true;
+
+    internal void RtTeleportPlayerAheadOfTraffic(string id, float distance)
+    {
+        var car = _trafficCars.FirstOrDefault(c => c.RouteId == id);
+        if (car == null) return;
+        Vector3 forward = -car.GlobalTransform.Basis.Z;
+        forward.Y = 0;
+        forward = forward.Normalized();
+        _player.Teleport(car.GlobalPosition + forward * distance + Vector3.Up * 0.1f,
+            car.Rotation.Y + Mathf.Pi);
+        _player.ForceRefreshInteraction();
+    }
+
+    internal void RtResetPlayerToSpawn()
+    {
+        _player.Teleport(_world.PlayerSpawn, -Mathf.Pi / 2f);
+        _player.ForceRefreshInteraction();
+    }
     internal bool RtSfxEnabled => _data.Settings.SfxEnabled;
 
     internal void RtStopAudio()
@@ -2622,6 +2768,49 @@ public partial class Main : Node3D
             GD.PrintErr($"Title capture failed: {ex}");
         }
         GetTree().Quit();
+    }
+
+    private async Task CaptureP11()
+    {
+        try
+        {
+            await Wait(1.2f);
+            await CaptureNpcPose("ada", "p11_01_ada_market.png");
+            await CaptureNpcPose("milo", "p11_02_milo_post.png");
+            await CaptureNpcPose("pip", "p11_03_pip_workshop.png");
+            await CaptureNpcPose("fern", "p11_04_fern_garden.png");
+            await CaptureNpcPose("ollie", "p11_05_ollie_town_hall.png");
+            await CaptureNpcPose("ivy", "p11_06_ivy_green.png");
+
+            _player.Teleport(new Vector3(-15f, 0.1f, 7.5f), Mathf.Pi);
+            _rig.SetView(180f, 20f, 9.5f);
+            await Wait(1.6f);
+            await Snap("p11_07_town_traffic.png", DeveloperCaptureDirectory);
+
+            RtTeleportPlayerNearNpc("ada");
+            await Wait(0.4f);
+            RtTalkToNpc("ada");
+            await Wait(0.6f);
+            await Snap("p11_08_ada_dialogue.png", DeveloperCaptureDirectory);
+        }
+        catch (Exception ex)
+        {
+            GD.PrintErr($"P11 capture failed: {ex}");
+        }
+        GetTree().Quit();
+    }
+
+    private async Task CaptureNpcPose(string npcId, string fileName)
+    {
+        if (!_npcById.TryGetValue(npcId, out var npc)) return;
+        Vector3 npcPosition = npc.GlobalPosition;
+        float offsetZ = npcId is "pip" or "fern" or "ivy" ? 5.0f : -3.8f;
+        Vector3 playerPosition = new(npcPosition.X + 0.4f, 0.1f, npcPosition.Z + offsetZ);
+        float yaw = Mathf.Atan2(-(npcPosition.X - playerPosition.X), -(npcPosition.Z - playerPosition.Z));
+        _player.Teleport(playerPosition, yaw);
+        _rig.SetView(Mathf.RadToDeg(yaw), 16f, 8.0f);
+        await Wait(0.8f);
+        await Snap(fileName, DeveloperCaptureDirectory);
     }
 
     private async Task CaptureTour()

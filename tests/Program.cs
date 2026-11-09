@@ -1770,6 +1770,49 @@ internal static class Program
                 $"gate {gate.Number} is not on the centreline");
     });
 
+    Run("six named villagers have verified patrols", () =>
+    {
+        Check(NpcCatalog.Validate(out string error), error);
+        Equal(6, NpcCatalog.All.Count, "villager count");
+        Equal("Milo, Ada, Pip, Fern, Ollie, Ivy",
+            string.Join(", ", NpcCatalog.All.Select(n => n.Name)), "villager names");
+        foreach (var npc in NpcCatalog.All)
+        {
+            Check(!string.IsNullOrWhiteSpace(npc.Role), $"{npc.Name} role");
+            Check(!string.IsNullOrWhiteSpace(npc.Intro), $"{npc.Name} intro");
+            Check(npc.PatrolPoints.Count >= 4, $"{npc.Name} patrol points");
+            foreach (var point in npc.PatrolPoints)
+            {
+                Check(WorldAnchors.DistanceToNearestStation(point.X, point.Z) >= 3.35f,
+                    $"{npc.Name} patrol competes with a station");
+                Check(!WorldAnchors.InsideBuilding(point.X, point.Z),
+                    $"{npc.Name} patrol is inside a building");
+            }
+        }
+    });
+
+    Run("traffic routes are sparse, road-bound and station safe", () =>
+    {
+        Check(TrafficCatalog.Validate(out string error), error);
+        Equal(3, TrafficCatalog.Routes.Count, "traffic definition count");
+        var freeRoam = TrafficCatalog.Routes.Where(r => !r.RallyOnly).ToList();
+        Equal(2, freeRoam.Count, "active free-roam vehicles");
+        foreach (var route in freeRoam)
+        {
+            Check(route.SpeedMetresPerSecond <= 4.2f, "free-roam speed cap");
+            foreach (var point in route.Points)
+            {
+                Check(RoadNetwork.Contains(point.X, point.Z),
+                    $"{route.Id} leaves the road at {point.X},{point.Z}");
+                Check(WorldAnchors.DistanceToNearestStation(point.X, point.Z) >= 1.8f,
+                    $"{route.Id} passes through a critical station");
+            }
+        }
+        var rival = TrafficCatalog.Find("rally_rival");
+        Check(rival != null && rival.RallyOnly, "rally rival is M19-only");
+        Check(rival.SpeedMetresPerSecond <= 8f, "rival speed cap");
+    });
+
         Console.WriteLine();
         Console.WriteLine($"RESULT: {_passed} passed, {_failed} failed");
         if (_failed == 0) return 0;
