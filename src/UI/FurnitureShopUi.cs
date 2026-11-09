@@ -111,10 +111,13 @@ public partial class FurnitureShopUi : Node
             var outcome = FurnitureRules.Buy(_data, item);
             if (!outcome.Success)
             {
+                AudioManager.PlayUi("ui_error");
                 _statusLabel.Text = outcome.Message;
                 _statusLabel.AddThemeColorOverride("font_color", Palette.Red);
                 return;
             }
+            AudioManager.PlayWorld("shop_buy");
+            AudioManager.PlayWorld("coin_spend", -7f);
             _onChanged?.Invoke();
             Refresh();
         };

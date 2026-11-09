@@ -1,0 +1,95 @@
+{
+  "format": "patchwork-traffic-proposal",
+  "note": "All waypoint coordinates are provisional, must be projected and verified against actual navigable road centre-lines and avoidance zones. Never use unvalidated points unchanged.",
+  "drivers": [
+    {
+      "id": "town_scooter",
+      "driver": "milo",
+      "vehicle": "small_scooter",
+      "colour": "#f6c55b",
+      "speedMetresPerSecond": 3.4,
+      "mode": "road_patrol",
+      "proposedWaypointsXZ": [
+        [
+          -35,
+          -2
+        ],
+        [
+          -22,
+          -2
+        ],
+        [
+          -8,
+          -2
+        ],
+        [
+          8,
+          -2
+        ],
+        [
+          22,
+          -2
+        ],
+        [
+          31,
+          -2
+        ]
+      ],
+      "reverseOnTerminus": true,
+      "requiresSafeTurnaround": true
+    },
+    {
+      "id": "delivery_car",
+      "driver": "ivy",
+      "vehicle": "compact_car",
+      "colour": "#8ac69c",
+      "speedMetresPerSecond": 3.0,
+      "mode": "road_patrol",
+      "proposedWaypointsXZ": [
+        [
+          28,
+          -3
+        ],
+        [
+          14,
+          -3
+        ],
+        [
+          0,
+          -3
+        ],
+        [
+          -15,
+          -3
+        ],
+        [
+          -30,
+          -3
+        ]
+      ],
+      "reverseOnTerminus": true,
+      "requiresSafeTurnaround": true
+    },
+    {
+      "id": "rally_rival",
+      "driver": "pip",
+      "vehicle": "rally_car",
+      "colour": "#e98a75",
+      "speedMetresPerSecond": 6.7,
+      "mode": "spawn_for_M19_only",
+      "pathSource": "rally_course.proposal.json:suggestedControlPointsXZ",
+      "noCollisionWithPlayer": true
+    }
+  ],
+  "safety": {
+    "minPedestrianDistanceMetres": 2.0,
+    "minPlayerVehicleDistanceMetres": 4.0,
+    "yieldForPlayer": true,
+    "avoidJobStations": true,
+    "neverBlockBridge": true,
+    "neverBlockCheckpointGates": true,
+    "noVisiblePopTeleport": true,
+    "pausedByModal": true,
+    "vehicleCap": 3
+  }
+}

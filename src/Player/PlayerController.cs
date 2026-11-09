@@ -43,6 +43,9 @@ public partial class PlayerController : CharacterBody3D
     private float _jumpBuffer;
     private float _coyote;
     private bool _wasOnFloor = true;
+    private float _stepDistance;
+    private int _stepSide;
+    private bool _audioOnFloor = true;
 
     public override void _Ready()
     {
@@ -304,12 +307,14 @@ public partial class PlayerController : CharacterBody3D
             vertical = JumpSpeed;
             _jumpBuffer = 0f;
             _coyote = 0f;
+            AudioManager.PlayWorld("jump", -7f);
         }
 
         Velocity = new Vector3(horizontal.X, vertical, horizontal.Z);
         MoveAndSlide();
 
         float planarSpeed = new Vector2(Velocity.X, Velocity.Z).Length();
+        TickFootsteps(dt, planarSpeed);
         if (planarSpeed > 0.2f)
         {
             float targetYaw = Mathf.Atan2(-Velocity.X, -Velocity.Z);
@@ -338,6 +343,25 @@ public partial class PlayerController : CharacterBody3D
         }
 
         _wasOnFloor = IsOnFloor();
+    }
+
+    private void TickFootsteps(float dt, float planarSpeed)
+    {
+        bool onFloor = IsOnFloor();
+        if (onFloor && !_audioOnFloor)
+            AudioManager.PlayWorld("land", -6f);
+        _audioOnFloor = onFloor;
+        if (!onFloor || planarSpeed < 1.2f)
+            return;
+
+        _stepDistance += planarSpeed * dt;
+        if (_stepDistance < 2.0f)
+            return;
+        _stepDistance = 0f;
+        bool road = SurfaceRules.IsRoad(GlobalPosition);
+        string cue = (road ? "footstep_road_" : "footstep_grass_") + (_stepSide == 0 ? "01" : "02");
+        _stepSide ^= 1;
+        AudioManager.PlayWorld(cue, -13f, (float)GD.RandRange(0.96f, 1.04f));
     }
 
     private void AnimateModel(float dt, float speed, bool onFloor)

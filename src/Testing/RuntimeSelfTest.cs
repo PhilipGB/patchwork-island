@@ -53,6 +53,8 @@ public partial class RuntimeSelfTest : Node
         }
 
         if (reloading) return;
+        Main.RtStopAudio();
+        await Wait(0.2f);
         GD.Print($"RUNTIME RESULT: {_passed} passed, {_failed} failed");
         GetTree().Quit(_failed == 0 ? 0 : 1);
     }
@@ -66,6 +68,12 @@ public partial class RuntimeSelfTest : Node
         Expect(Main.RtPlayerProcessMode == ProcessModeEnum.Pausable, "player is pausable");
         Expect(Main.RtVanProcessMode == ProcessModeEnum.Pausable, "van is pausable");
         Expect(Main.RtWorldProcessMode == ProcessModeEnum.Pausable, "world is pausable");
+        Expect(Main.RtAudioBusesPresent, "audio buses exist");
+        Expect(Main.RtMusicId == "title", "title music context starts");
+        await Wait(0.45f);
+        Expect(Main.RtHasMusicStream && Main.RtMusicPlaying, "title music stream is playing");
+        Expect(Main.RtMusicPosition > 0.05, "title music playback position advances");
+        Expect(!Main.RtMusicBusMuted, "music starts unmuted");
 
         Main.RtOpenSettingsFromTitle();
         await Wait(0.2f);
@@ -100,6 +108,7 @@ public partial class RuntimeSelfTest : Node
             "character chooser opens again after Cancel");
         Expect(Main.RtPressModalButton("Choose_boy"), "the real Play as Boy button works");
         await Wait(0.35f);
+        Expect(Main.RtSfxPlayCount("ui_confirm") > 0, "real button press triggers the UI sound cue");
         Expect(Main.RtStarted && Main.RtCharacterPreset == CharacterCustomisation.Boy,
             "choosing Boy starts the new game and stores the preset");
         Expect(Main.RtPlayerPreset == CharacterCustomisation.Boy && !Main.RtPlayerHasLongHair &&
@@ -188,6 +197,22 @@ public partial class RuntimeSelfTest : Node
         Input.ActionRelease("move_forward");
         await Wait(0.15f);
         Expect(walkStart.DistanceTo(Main.RtPlayerPosition) > 0.05f, "player moves when unpaused");
+        Expect(Main.RtMusicId == "village", "roaming selects village music");
+
+        Main.RtToggleMusic();
+        await Wait(0.1f);
+        Expect(Main.RtMusicBusMuted && !Main.RtMusicEnabled, "music toggle mutes the music bus");
+        Main.RtToggleMusic();
+        await Wait(0.1f);
+        Expect(!Main.RtMusicBusMuted && Main.RtMusicEnabled, "music toggle restores the music bus");
+        Main.RtToggleSfx();
+        await Wait(0.1f);
+        Expect(Main.RtSfxBusMuted && Main.RtUiBusMuted && Main.RtVehiclesBusMuted && !Main.RtSfxEnabled,
+            "sound toggle mutes SFX, UI and vehicle buses");
+        Main.RtToggleSfx();
+        await Wait(0.1f);
+        Expect(!Main.RtSfxBusMuted && !Main.RtUiBusMuted && !Main.RtVehiclesBusMuted && Main.RtSfxEnabled,
+            "sound toggle restores SFX, UI and vehicle buses");
 
         // Walking pause; physics must stop even with a living player.
         Main.RtPause();
@@ -334,6 +359,8 @@ public partial class RuntimeSelfTest : Node
         Expect(Main.RtMode == "Driving" && Main.RtVanControlled && !Main.RtPlayerControlled,
             "entering the van switches control");
         Expect(!Main.RtPlayerVisible, "player is hidden while driving");
+        Expect(Main.RtVanHasEngineAudio && Main.RtVanEngineIdlePlaying,
+            "van engine audio starts with the vehicle");
         Expect(Main.RtPrepareRace(), "race state prepared for timer test");
 
         Main.RtPause();
@@ -367,10 +394,13 @@ public partial class RuntimeSelfTest : Node
         Expect(Main.RtMode == "Walking" && Main.RtPlayerControlled && Main.RtPlayerVisible,
             "player exits the van");
 
-        // Save while driving for the resume phase.
+        // Save while driving for the resume phase. Persist non-default audio
+        // settings so the relaunch proves they are applied from disk.
         Main.RtEnterVan();
         await Wait(0.3f);
         Expect(Main.RtMode == "Driving", "re-entered van for save");
+        Main.RtSetMusicEnabled(false);
+        Main.RtSetSfxEnabled(false);
         Expect(Main.RtSaveNow(), "manual save succeeds while driving");
         await Wait(0.2f);
     }
@@ -380,6 +410,10 @@ public partial class RuntimeSelfTest : Node
         Expect(!Main.RtStarted, "resume phase starts at the title screen");
         Expect(Main.RtPaused && Main.RtMode == "Title", "resume title is paused");
         Expect(Main.RtCanContinue, "driving save offers Continue");
+        Expect(Main.RtMusicBusMuted && !Main.RtMusicEnabled,
+            "saved music preference is applied at relaunch");
+        Expect(Main.RtSfxBusMuted && Main.RtUiBusMuted && Main.RtVehiclesBusMuted && !Main.RtSfxEnabled,
+            "saved sound preference is applied at relaunch");
 
         Main.RtContinue();
         await Wait(0.45f);

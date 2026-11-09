@@ -1,0 +1,252 @@
+{
+  "format": "patchwork-audio-cue-manifest",
+  "assetRoot": "assets",
+  "buses": [
+    "Master",
+    "Music",
+    "SFX",
+    "UI",
+    "Vehicles"
+  ],
+  "controls": {
+    "musicEnabled": "GameData.Settings.MusicEnabled",
+    "sfxEnabled": "GameData.Settings.SfxEnabled",
+    "note": "Music toggle should mute Music bus. SFX toggle should mute SFX, UI and Vehicles buses. Respect user preference on load and scene reload."
+  },
+  "music": [
+    {
+      "id": "title",
+      "file": "audio/music/music_title.ogg",
+      "bus": "Music",
+      "loop": true,
+      "context": "title_screen"
+    },
+    {
+      "id": "village",
+      "file": "audio/music/music_village_day.ogg",
+      "bus": "Music",
+      "loop": true,
+      "context": "free_roam"
+    },
+    {
+      "id": "rally",
+      "file": "audio/music/music_rally.ogg",
+      "bus": "Music",
+      "loop": true,
+      "context": "M05_M09_M19_or_practice_race"
+    },
+    {
+      "id": "festival",
+      "file": "audio/music/music_festival.ogg",
+      "bus": "Music",
+      "loop": true,
+      "context": "M20_completion_and_festival"
+    }
+  ],
+  "sounds": [
+    {
+      "id": "ui_confirm",
+      "file": "audio/sfx/ui_confirm.wav",
+      "bus": "UI",
+      "trigger": "modal_button_confirm",
+      "loop": false
+    },
+    {
+      "id": "ui_cancel",
+      "file": "audio/sfx/ui_cancel.wav",
+      "bus": "UI",
+      "trigger": "cancel_or_close",
+      "loop": false
+    },
+    {
+      "id": "ui_error",
+      "file": "audio/sfx/ui_error.wav",
+      "bus": "UI",
+      "trigger": "invalid_action",
+      "loop": false
+    },
+    {
+      "id": "ui_hover",
+      "file": "audio/sfx/ui_hover.wav",
+      "bus": "UI",
+      "trigger": "limited_focus_change_only_no_spam",
+      "loop": false
+    },
+    {
+      "id": "coin_collect",
+      "file": "audio/sfx/coin_collect.wav",
+      "bus": "SFX",
+      "trigger": "coin_reward",
+      "loop": false
+    },
+    {
+      "id": "coin_spend",
+      "file": "audio/sfx/coin_spend.wav",
+      "bus": "SFX",
+      "trigger": "spending",
+      "loop": false
+    },
+    {
+      "id": "shop_buy",
+      "file": "audio/sfx/shop_buy.wav",
+      "bus": "SFX",
+      "trigger": "clothes_purchase",
+      "loop": false
+    },
+    {
+      "id": "outfit_equip",
+      "file": "audio/sfx/outfit_equip.wav",
+      "bus": "SFX",
+      "trigger": "outfit_wear_or_preset_change",
+      "loop": false
+    },
+    {
+      "id": "mission_complete",
+      "file": "audio/sfx/mission_complete.wav",
+      "bus": "SFX",
+      "trigger": "job_complete_once",
+      "loop": false
+    },
+    {
+      "id": "chapter_unlock",
+      "file": "audio/sfx/chapter_unlock.wav",
+      "bus": "SFX",
+      "trigger": "M10_unlocks_next_chapter",
+      "loop": false
+    },
+    {
+      "id": "race_checkpoint",
+      "file": "audio/sfx/race_checkpoint.wav",
+      "bus": "SFX",
+      "trigger": "gate_crossed_once",
+      "loop": false
+    },
+    {
+      "id": "race_finish",
+      "file": "audio/sfx/race_finish.wav",
+      "bus": "SFX",
+      "trigger": "race_finish",
+      "loop": false
+    },
+    {
+      "id": "npc_greet_01",
+      "file": "audio/sfx/npc_greet_01.wav",
+      "bus": "SFX",
+      "trigger": "NPC_greeting_variant_A",
+      "loop": false
+    },
+    {
+      "id": "npc_greet_02",
+      "file": "audio/sfx/npc_greet_02.wav",
+      "bus": "SFX",
+      "trigger": "NPC_greeting_variant_B",
+      "loop": false
+    },
+    {
+      "id": "book_collect",
+      "file": "audio/sfx/book_collect.wav",
+      "bus": "SFX",
+      "trigger": "M13_book_collect",
+      "loop": false
+    },
+    {
+      "id": "parcel_deliver",
+      "file": "audio/sfx/parcel_deliver.wav",
+      "bus": "SFX",
+      "trigger": "parcel_delivery",
+      "loop": false
+    },
+    {
+      "id": "garden_plant",
+      "file": "audio/sfx/garden_plant.wav",
+      "bus": "SFX",
+      "trigger": "M15_plant",
+      "loop": false
+    },
+    {
+      "id": "build_place",
+      "file": "audio/sfx/build_place.wav",
+      "bus": "SFX",
+      "trigger": "construction_success",
+      "loop": false
+    },
+    {
+      "id": "jump",
+      "file": "audio/sfx/jump.wav",
+      "bus": "SFX",
+      "trigger": "player_jump",
+      "loop": false
+    },
+    {
+      "id": "land",
+      "file": "audio/sfx/land.wav",
+      "bus": "SFX",
+      "trigger": "player_landing",
+      "loop": false
+    },
+    {
+      "id": "footstep_grass_01",
+      "file": "audio/sfx/footstep_grass_01.wav",
+      "bus": "SFX",
+      "trigger": "grass_footstep_random_1",
+      "loop": false
+    },
+    {
+      "id": "footstep_grass_02",
+      "file": "audio/sfx/footstep_grass_02.wav",
+      "bus": "SFX",
+      "trigger": "grass_footstep_random_2",
+      "loop": false
+    },
+    {
+      "id": "footstep_road_01",
+      "file": "audio/sfx/footstep_road_01.wav",
+      "bus": "SFX",
+      "trigger": "road_footstep_random_1",
+      "loop": false
+    },
+    {
+      "id": "footstep_road_02",
+      "file": "audio/sfx/footstep_road_02.wav",
+      "bus": "SFX",
+      "trigger": "road_footstep_random_2",
+      "loop": false
+    },
+    {
+      "id": "npc_horn",
+      "file": "audio/sfx/npc_horn.wav",
+      "bus": "SFX",
+      "trigger": "occasional_NPC_vehicle_horn_rate_limited",
+      "loop": false
+    },
+    {
+      "id": "engine_idle_loop",
+      "file": "audio/sfx/engine_idle_loop.wav",
+      "bus": "Vehicles",
+      "trigger": "van_and_NPC_engine_idle",
+      "loop": true
+    },
+    {
+      "id": "engine_drive_loop",
+      "file": "audio/sfx/engine_drive_loop.wav",
+      "bus": "Vehicles",
+      "trigger": "van_engine_moving_pitch_scaled",
+      "loop": true
+    },
+    {
+      "id": "festival_pop",
+      "file": "audio/sfx/festival_pop.wav",
+      "bus": "SFX",
+      "trigger": "visual_festival_celebration_once",
+      "loop": false
+    }
+  ],
+  "playback": {
+    "randomizeShortSfxPitchCents": 50,
+    "maxSimultaneousUI": 3,
+    "npcSoundDistanceCutoffMetres": 24,
+    "footstepsUseGroundedAndMovement": "PlayerController._PhysicsProcess",
+    "pausePolicy": "modal/UI feedback audible; world/vehicle sounds pause appropriately"
+  },
+  "note": "The delivered synthetic sounds are functional original assets. Audition, level and refine them in-game; preserve appropriate peak headroom."
+}

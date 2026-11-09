@@ -15,6 +15,7 @@ namespace PatchworkIsland;
 public partial class Main : Node3D
 {
     private Hud _hud;
+    private AudioManager _audio;
     private WorldBuilder _world;
     private PlayerController _player;
     private CameraRig _rig;
@@ -76,6 +77,8 @@ public partial class Main : Node3D
     {
         ProcessMode = ProcessModeEnum.Always;
         BuildEnvironment();
+        _audio = new AudioManager { Name = "AudioManager" };
+        AddChild(_audio);
         try
         {
             LoadMissionContent();
@@ -91,6 +94,7 @@ public partial class Main : Node3D
             DeleteSelfTestSaves("selftest-recovery-save.json");
         LoadSavedGameIfAvailable();
         ApplyDeveloperScenario();
+        ApplySettings();
 
         _world = new WorldBuilder { Name = "WorldBuilder", ProcessMode = ProcessModeEnum.Pausable };
         AddChild(_world);
@@ -414,8 +418,25 @@ public partial class Main : Node3D
 
     private void ApplySettings()
     {
+        _audio?.ApplySettings(_data.Settings);
         if (_marker != null)
             _marker.SetReducedMotion(_data.Settings.ReducedMotion);
+    }
+
+    private string RoamMusicId => "village";
+
+    private void RefreshMusicContext()
+    {
+        if (!_started)
+        {
+            _audio?.PlayMusic("title");
+            return;
+        }
+        var mission = _missions?.ActiveMission;
+        if (_practiceRaceActive || mission?.Id is "M05" or "M09" or "M19")
+            _audio?.PlayMusic("rally");
+        else
+            _audio?.PlayMusic(RoamMusicId);
     }
 
     private void CaptureSnapshots()
@@ -1057,6 +1078,7 @@ public partial class Main : Node3D
         SyncControlMode();
         ApplySettings();
         RefreshMissionState();
+        RefreshMusicContext();
         _autosaveTimer = 20f;
         if (AllMissionsComplete() && !_data.CelebrationSeen)
             Callable.From(ShowVillageCelebration).CallDeferred();
@@ -1162,6 +1184,7 @@ public partial class Main : Node3D
     {
         _started = false;
         SyncControlMode();
+        _audio?.PlayMusic("title");
         _hud.ShowTitleScreen(_session.HasSaveFile, _session.CanContinue, ContinueAdventure,
             StartNewGameFromTitle, OpenSettingsFromTitle, QuitGame, _session.TitleNotice);
     }
@@ -1230,6 +1253,7 @@ public partial class Main : Node3D
             _raceTimer = new RaceTimer();
         RefreshMissionState();
         SaveGame(SaveReason.MissionStart);
+        RefreshMusicContext();
         var mission = _missions.ActiveMission;
         string firstHint = mission?.Hints != null && mission.Hints.Count > 0 ? mission.Hints[0] : "Follow the glowing marker.";
         _hud.ShowBigToast($"{result.Message} {firstHint}", 5f, Palette.Yellow);
@@ -1392,6 +1416,7 @@ public partial class Main : Node3D
         _practiceElapsed = 0f;
         _practiceCheckTimer = 0f;
         _practiceHudTimer = 0f;
+        _audio?.PlayMusic("rally");
         _hud.ShowBigToast(
             "Practice race: get into the yellow van and drive through gates 1-2-3-4. No rewards, no time limit.",
             5f, Palette.Yellow);
@@ -1421,6 +1446,7 @@ public partial class Main : Node3D
         if (distance > 7f) return;
 
         _practiceCheckpoint++;
+        _audio?.PlaySfx("race_checkpoint");
         if (_practiceCheckpoint == 1)
         {
             _practiceElapsed = 0f;
@@ -1436,6 +1462,8 @@ public partial class Main : Node3D
             _practiceRaceActive = false;
             _practiceCheckpoint = 0;
             _practiceElapsed = 0f;
+            _audio?.PlaySfx("race_finish");
+            RefreshMusicContext();
             _hud.ShowBigToast(
                 time <= 75f
                     ? $"Practice lap complete in {FormatTime(time)} — a gold-lap pace!"
@@ -1519,6 +1547,7 @@ public partial class Main : Node3D
             _data.SetMissionCounter(mission.Id, "started", 1);
         }
         _raceTimer.Store(_data, mission.Id);
+        _audio?.PlaySfx("race_checkpoint");
         _hud.ShowBigToast(advance.Message, 2.4f, Palette.Yellow);
         RefreshMissionState();
 
@@ -1530,6 +1559,7 @@ public partial class Main : Node3D
             if (result.Success)
             {
                 result.RaceSeconds = raceSeconds;
+                _audio?.PlaySfx("race_finish");
                 OnMissionCompleted(result);
                 _raceTimer = new RaceTimer();
             }
@@ -1871,6 +1901,11 @@ public partial class Main : Node3D
             ? () => Callable.From(ShowVillageCelebration).CallDeferred()
             : () => { };
         _hud.ShowSuccess(result.Mission.Title, result.TotalCoins, detail, afterSuccess);
+        _audio?.PlaySfx("mission_complete");
+        _audio?.PlaySfx("coin_collect", -7f);
+        if (result.Mission.Id == "M10" && MissionRules.OriginalChapterComplete(_data))
+            _audio?.PlaySfx("chapter_unlock");
+        RefreshMusicContext();
         if (result.AllComplete && _catalog.Missions.Count >= 10)
             _world.CelebrationDecor.Visible = true;
         var save = SaveGame(SaveReason.MissionCompleted);
@@ -2058,11 +2093,13 @@ public partial class Main : Node3D
         AddSettingsToggle(body, "Music", _data.Settings.MusicEnabled, value =>
         {
             _data.Settings.MusicEnabled = value;
+            ApplySettings();
             SaveSettings();
         });
         AddSettingsToggle(body, "Sound effects", _data.Settings.SfxEnabled, value =>
         {
             _data.Settings.SfxEnabled = value;
+            ApplySettings();
             SaveSettings();
         });
         AddSettingsToggle(body, "Reduced motion", _data.Settings.ReducedMotion, value =>
@@ -2471,7 +2508,49 @@ public partial class Main : Node3D
     internal void RtToggleMusic()
     {
         _data.Settings.MusicEnabled = !_data.Settings.MusicEnabled;
+        ApplySettings();
         SaveSettings();
+    }
+
+    internal void RtToggleSfx()
+    {
+        _data.Settings.SfxEnabled = !_data.Settings.SfxEnabled;
+        ApplySettings();
+        SaveSettings();
+    }
+
+    internal string RtMusicId => _audio?.CurrentMusicId ?? "";
+    internal bool RtMusicPlaying => _audio?.IsMusicPlaying == true;
+    internal bool RtHasMusicStream => _audio?.HasMusicStream == true;
+    internal double RtMusicPosition => _audio?.MusicPlaybackPosition ?? 0.0;
+    internal bool RtMusicBusMuted => AudioManager.IsBusMuted(AudioCueCatalog.MusicBus);
+    internal bool RtSfxBusMuted => AudioManager.IsBusMuted(AudioCueCatalog.SfxBus);
+    internal bool RtUiBusMuted => AudioManager.IsBusMuted(AudioCueCatalog.UiBus);
+    internal bool RtVehiclesBusMuted => AudioManager.IsBusMuted(AudioCueCatalog.VehiclesBus);
+    internal bool RtAudioBusesPresent => AudioManager.HasRequiredBuses();
+    internal bool RtVanHasEngineAudio => _van?.HasEngineAudio == true;
+    internal bool RtVanEngineIdlePlaying => _van?.EngineIdlePlaying == true;
+    internal bool RtVanEngineDrivePlaying => _van?.EngineDrivePlaying == true;
+    internal string RtLastSfx => _audio?.LastSfxId ?? "";
+    internal int RtSfxPlayCount(string id) => _audio?.PlayCount(id) ?? 0;
+    internal bool RtSfxEnabled => _data.Settings.SfxEnabled;
+
+    internal void RtStopAudio()
+    {
+        _van?.StopEngineAudio();
+        _audio?.StopAll();
+    }
+
+    internal void RtSetMusicEnabled(bool enabled)
+    {
+        _data.Settings.MusicEnabled = enabled;
+        ApplySettings();
+    }
+
+    internal void RtSetSfxEnabled(bool enabled)
+    {
+        _data.Settings.SfxEnabled = enabled;
+        ApplySettings();
     }
 
     internal void RtSetPlayerAirborne()

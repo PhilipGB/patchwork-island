@@ -1,0 +1,149 @@
+{
+  "format": "patchwork-rally-layout-proposal",
+  "units": "Godot metres",
+  "coordinateConvention": "XZ on island; Y must be derived from actual ground height",
+  "notes": [
+    "DESIGN STARTING POINT — not tested against world collision or buildings.",
+    "Smooth closed centreline with Catmull-Rom/Cubic Bezier sampled into coherent road mesh rather than overlapping straight rectangles.",
+    "Keep all visible road + shoulder within east island x 49..96 and z -55..55, or extend terrain intentionally.",
+    "Preserve existing four gate identities/progress for M05 and M09; add six-gate M19 route independently.",
+    "Reposition grandstand, flags and scenery clear of new road."
+  ],
+  "closedLoop": true,
+  "roadWidthMetres": 8.0,
+  "shoulderWidthMetres": 1.5,
+  "laneMarkingStyle": "clear painted centre dashed line, no z-fighting coplanar strips",
+  "suggestedControlPointsXZ": [
+    [
+      56,
+      -6
+    ],
+    [
+      56,
+      -19
+    ],
+    [
+      63,
+      -34
+    ],
+    [
+      79,
+      -40
+    ],
+    [
+      89,
+      -30
+    ],
+    [
+      89,
+      -9
+    ],
+    [
+      86,
+      17
+    ],
+    [
+      78,
+      34
+    ],
+    [
+      65,
+      36
+    ],
+    [
+      56,
+      26
+    ],
+    [
+      55,
+      8
+    ]
+  ],
+  "m05_m09_gateProposals": [
+    {
+      "gate": 1,
+      "xz": [
+        63,
+        -34
+      ]
+    },
+    {
+      "gate": 2,
+      "xz": [
+        89,
+        -30
+      ]
+    },
+    {
+      "gate": 3,
+      "xz": [
+        86,
+        17
+      ]
+    },
+    {
+      "gate": 4,
+      "xz": [
+        65,
+        36
+      ]
+    }
+  ],
+  "m19_gateProposals": [
+    {
+      "gate": 1,
+      "xz": [
+        56,
+        -19
+      ]
+    },
+    {
+      "gate": 2,
+      "xz": [
+        79,
+        -40
+      ]
+    },
+    {
+      "gate": 3,
+      "xz": [
+        89,
+        -9
+      ]
+    },
+    {
+      "gate": 4,
+      "xz": [
+        78,
+        34
+      ]
+    },
+    {
+      "gate": 5,
+      "xz": [
+        56,
+        26
+      ]
+    },
+    {
+      "gate": 6,
+      "xz": [
+        55,
+        8
+      ]
+    }
+  ],
+  "raceRules": {
+    "m05BonusSeconds": 90,
+    "m09BonusSeconds": 75,
+    "m19BonusSecondsProposal": 155,
+    "hardTimeLimit": null
+  },
+  "targetTest": [
+    "no terrain gaps",
+    "no visible Z-fighting at any road join",
+    "van can complete at low speed and correct order",
+    "checkpoint saved mid-race survives reload",
+    "NPC ghost rival never blocks the van"
+  ]
+}

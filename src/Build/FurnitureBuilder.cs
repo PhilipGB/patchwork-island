@@ -158,6 +158,7 @@ public partial class FurnitureBuilder : Node3D, IBuildMode
         RefreshBar();
         _onProgress?.Invoke();
         _hud.ShowToast(outcome.Message, 2.2f, Palette.Success);
+        AudioManager.PlayWorld("build_place");
 
         if (_data.ActiveMission == "M10" && MissionRules.IsObjectiveComplete(_data, "M10"))
             CompleteBuild();

@@ -165,6 +165,7 @@ public partial class SwingBuilder : Node3D, IBuildMode
         RefreshAvailability();
         RefreshBar();
         _hud.ShowToast(result.Message, 2f, Palette.Success);
+        AudioManager.PlayWorld("build_place");
         return true;
     }
 

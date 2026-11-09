@@ -1252,3 +1252,53 @@ without losing the mirror. The modal still scrolls if the window is shorter.
 - Verification after the change: **78** pure tests and **103 + 19 + 101**
   runtime assertions pass; the packaged Linux binary passes all three runtime
   phases. GitHub Actions: **build-test PASS**, **windows-tests PASS**.
+
+## P10 — Original audio and real sound settings (v1.2.0)
+
+**Branch:** `p10-original-audio`
+
+### Delivered
+
+- Imported all four supplied original OGG loops (`title`, `village`, `rally`,
+  `festival`) and all 28 supplied WAV effects into `assets/audio/`. Music import
+  files loop at offset 0; the two engine WAV loops use forward looping.
+- Added `AudioCueCatalog` (pure, tested) and `AudioManager` (Godot). The manager
+  creates `Music`, `SFX`, `UI` and `Vehicles` buses, keeps one music player with
+  fade transitions and uses a bounded 14-voice SFX pool plus six spatial voices.
+- Music contexts now follow title → roam → race/practice → roam and are saved by
+  the existing settings. The Music toggle mutes only `Music`; the Sound toggle
+  mutes `SFX`, `UI` and `Vehicles`. Settings are applied from disk before the
+  title screen and again after Continue/New Game.
+- Real triggers are wired for UI confirm/cancel/error/hover, pickups, shop
+  purchases, clothing/equip, building, mission completion, chapter unlock,
+  race checkpoints/finish, jumps/landings and surface-aware footsteps.
+- The player van has real 3D idle and drive engine loops whose volume/pitch are
+  driven by measured speed, on the `Vehicles` bus.
+
+### Verification
+
+```text
+dotnet build PatchworkIsland.sln                         -> 0 warnings, 0 errors
+dotnet run --project tests/PatchworkIsland.Tests.csproj  -> 82 passed, 0 failed
+godot --headless --path . --editor --quit                -> exit 0, audio imported
+godot --headless --path . -- --selftest                  -> 115 passed, 0 failed
+godot --headless --path . -- --selftest-resume           -> 21 passed, 0 failed
+godot --headless --path . -- --selftest-recovery         -> 101 passed, 0 failed
+godot --headless --path . --quit-after 120               -> exit 0
+xvfb-run godot --path . --quit-after 120                 -> exit 0 (dummy audio)
+```
+
+Runtime coverage now proves title music loads and its playback position
+advances, the four buses exist, Music/SFX toggles mute exactly the intended
+buses, saved mute preferences are applied after a real relaunch, real UI button
+presses emit the UI cue, and the van starts/stops engine audio with the vehicle.
+An audio device is not exposed in this environment (`/dev/snd` exists but ALSA
+and PulseAudio cannot open a device), so audible speaker verification remains
+**NOT TESTED** here; structural load/playback checks are **PASS**.
+
+### Notes
+
+- Supplied audio provenance is recorded in `docs/ASSET_USAGE.md`; all files are
+  original synthetic assets generated for this project.
+- Audio assets are included by the default export filter and will be checked
+  again inside the packaged Linux binary during P15.

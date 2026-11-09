@@ -1715,6 +1715,61 @@ internal static class Program
             }
         });
 
+    Run("audio manifest validates every shipped loop and effect", () =>
+    {
+        string assets = Path.Combine(root, "assets");
+        Check(AudioCueCatalog.ValidateRepository(assets, out string error), error);
+        Equal(4, AudioCueCatalog.Music.Count, "music loop count");
+        Equal(28, AudioCueCatalog.Sounds.Count, "sound effect count");
+    });
+
+    Run("audio buses route music separately from effects and vehicles", () =>
+    {
+        Check(AudioCueCatalog.Buses.Contains(AudioCueCatalog.MusicBus), "music bus");
+        Check(AudioCueCatalog.Buses.Contains(AudioCueCatalog.SfxBus), "sfx bus");
+        Check(AudioCueCatalog.Buses.Contains(AudioCueCatalog.UiBus), "ui bus");
+        Check(AudioCueCatalog.Buses.Contains(AudioCueCatalog.VehiclesBus), "vehicles bus");
+        Check(AudioCueCatalog.FindMusic("title").Bus == AudioCueCatalog.MusicBus, "title music bus");
+        Check(AudioCueCatalog.FindSound("ui_confirm").Bus == AudioCueCatalog.UiBus, "ui cue bus");
+        Check(AudioCueCatalog.FindSound("engine_drive_loop").Bus == AudioCueCatalog.VehiclesBus,
+            "engine cue bus");
+        Check(AudioCueCatalog.FindSound("footstep_road_01").Bus == AudioCueCatalog.SfxBus,
+            "world sfx bus");
+    });
+
+    Run("rally course is one continuous inside-island loop", () =>
+    {
+        var samples = RallyCourse.SampleClosed(20);
+        Check(samples.Count >= 200, "sampled centreline");
+        foreach (var point in samples)
+            Check(RallyCourse.IsInsideIsland(point.X, point.Z),
+                $"rally point outside island: {point.X:0.0},{point.Z:0.0}");
+        float length = RallyCourse.Length();
+        Check(length > 190f && length < 260f, $"rally length {length:0.0}");
+        for (int i = 0; i < samples.Count; i++)
+        {
+            var a = samples[i];
+            var b = samples[(i + 1) % samples.Count];
+            float gap = MathF.Sqrt((a.X - b.X) * (a.X - b.X) + (a.Z - b.Z) * (a.Z - b.Z));
+            Check(gap < 2.2f, $"rally centreline gap {gap:0.00}");
+        }
+    });
+
+    Run("rally gate layouts preserve four-gate races and add six M19 gates", () =>
+    {
+        var four = RallyCourse.FourGates;
+        var six = RallyCourse.SixGates;
+        Equal(4, four.Count, "M05/M09 gate count");
+        Equal(6, six.Count, "M19 gate count");
+        for (int i = 0; i < four.Count; i++)
+            Equal(i + 1, four[i].Number, "four-gate number");
+        for (int i = 0; i < six.Count; i++)
+            Equal(i + 1, six[i].Number, "six-gate number");
+        foreach (var gate in four.Concat(six))
+            Check(RallyCourse.NearestDistance(gate.X, gate.Z) < 0.45f,
+                $"gate {gate.Number} is not on the centreline");
+    });
+
         Console.WriteLine();
         Console.WriteLine($"RESULT: {_passed} passed, {_failed} failed");
         if (_failed == 0) return 0;

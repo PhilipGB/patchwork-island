@@ -481,7 +481,11 @@ public partial class Hud : CanvasLayer
         var row = UiKit.HBox(body, 12);
         var cancel = UiKit.Button(row, cancelText, 21, new Vector2(180, 50), Palette.Cream, Palette.Stone);
         cancel.Name = "ModalCancel";
-        cancel.Pressed += () => CloseModal();
+        cancel.Pressed += () =>
+        {
+            AudioManager.PlayUi("ui_cancel");
+            CloseModal();
+        };
         var yes = UiKit.Button(row, confirmText, 21, new Vector2(240, 50), new Color("FFE0D6"), Palette.Red);
         yes.Name = "ModalConfirm";
         yes.Pressed += () =>

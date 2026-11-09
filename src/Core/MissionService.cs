@@ -57,6 +57,18 @@ public static class MissionRules
     /// <summary>Optional race goal; never required for mission completion.</summary>
     public const int MaxOptionalRaceBonus = 5;
 
+    public static readonly string[] OriginalMissionIds =
+    {
+        "M01", "M02", "M03", "M04", "M05", "M06", "M07", "M08", "M09", "M10",
+    };
+
+    /// <summary>
+    /// The original ten-job chapter is a separate milestone from the v1.2
+    /// continuation. Persisted CelebrationSeen belongs to this milestone only.
+    /// </summary>
+    public static bool OriginalChapterComplete(GameData data) =>
+        OriginalMissionIds.All(id => data.IsCompleted(id));
+
     public static int OptionalRaceBonus(string missionId, double elapsedSeconds)
     {
         return missionId switch

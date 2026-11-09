@@ -181,6 +181,7 @@ public partial class BridgeBuilder : Node3D, IBuildMode
         RefreshBar();
         _onProgressChanged?.Invoke();
         _hud.ShowToast(result.Message, 2.2f, Palette.Success);
+        AudioManager.PlayWorld("build_place");
 
         if (BuildRules.BridgeComplete(_data.BridgePieces))
             CompleteBridge();
