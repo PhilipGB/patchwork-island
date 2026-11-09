@@ -46,6 +46,8 @@ public partial class RuntimeSelfTest : Node
                 reloading = await RecoveryChecks();
             else if (HasArg("--selftest-living"))
                 await LivingChecks();
+            else if (HasArg("--selftest-rally"))
+                await RallyChecks();
             else
                 await FreshSessionChecks();
         }
@@ -111,6 +113,10 @@ public partial class RuntimeSelfTest : Node
         Expect(Main.RtPressModalButton("Choose_boy"), "the real Play as Boy button works");
         await Wait(0.35f);
         Expect(Main.RtSfxPlayCount("ui_confirm") > 0, "real button press triggers the UI sound cue");
+        Expect(Main.RtRallySampleCount >= 300, "rally road has a dense continuous mesh");
+        Expect(Main.RtRallyLength > 190f, "rally circuit is larger than the old meadow loop");
+        int rallyCoverage = Main.RtRallyCollisionCoverage();
+        Expect(rallyCoverage >= 50, $"rally collision covers the loop ({rallyCoverage}/52)");
         Expect(Main.RtStarted && Main.RtCharacterPreset == CharacterCustomisation.Boy,
             "choosing Boy starts the new game and stores the preset");
         Expect(Main.RtPlayerPreset == CharacterCustomisation.Boy && !Main.RtPlayerHasLongHair &&
@@ -627,6 +633,48 @@ public partial class RuntimeSelfTest : Node
     private static bool Finite(Vector3 value) =>
         !float.IsNaN(value.X) && !float.IsNaN(value.Y) && !float.IsNaN(value.Z) &&
         !float.IsInfinity(value.X) && !float.IsInfinity(value.Y) && !float.IsInfinity(value.Z);
+
+    // ---------------------------------------------------- real autopilot rally
+    // Drives the actual van physics and the new continuous road/collision mesh
+    // through every gate. This is deliberately not a teleport-through-gates
+    // shortcut: the van steers, accelerates and collides with the world.
+    private async Task RallyChecks()
+    {
+        Expect(!Main.RtStarted, "rally test starts on the title screen");
+        var started = Main.RtStartNewGameFromTitleConfirmed(CharacterCustomisation.Boy);
+        await Wait(0.8f);
+        Expect(started.Success && Main.RtStarted, "rally test starts a fresh village");
+
+        Expect(Main.RtPrepareRally("M05"), "M05 autopilot prepared");
+        await Wait(0.4f);
+        Expect(Main.RtRallyAutopilot && Main.RtMode == "Driving", "M05 autopilot owns the van");
+        float deadline = 60f;
+        while (!Main.RtMissionCompleted("M05") && deadline > 0f)
+        {
+            deadline -= 0.5f;
+            await Wait(0.5f);
+        }
+        Expect(Main.RtMissionCompleted("M05"), "M05 completes through real driving");
+        Expect(Main.RtRaceCheckpoint("M05") == 4, "M05 reaches all four gates");
+        Main.RtStopRallyAutopilot();
+        Main.RtCloseModal();
+        await Wait(0.5f);
+
+        Expect(Main.RtPrepareRally("M09"), "M09 autopilot prepared");
+        await Wait(0.4f);
+        Expect(Main.RtRallyAutopilot && Main.RtMode == "Driving", "M09 autopilot owns the van");
+        deadline = 60f;
+        while (!Main.RtMissionCompleted("M09") && deadline > 0f)
+        {
+            deadline -= 0.5f;
+            await Wait(0.5f);
+        }
+        Expect(Main.RtMissionCompleted("M09"), "M09 completes through real driving");
+        Expect(Main.RtRaceCheckpoint("M09") == 4, "M09 reaches all four gates");
+        Main.RtStopRallyAutopilot();
+        Main.RtCloseModal();
+        await Wait(0.4f);
+    }
 
     private async Task<bool> RecoveryChecks()
     {

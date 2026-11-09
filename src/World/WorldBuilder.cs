@@ -36,18 +36,18 @@ public partial class WorldBuilder : Node3D
     public Vector3 VillageGreenSign { get; } = new(10.0f, 0.0f, 10.7f);
     public Vector3 GroveCenter { get; } = new(-40.0f, 0.0f, -32.0f);
     public Vector3 StonePatchCenter { get; } = new(18.0f, 0.0f, -34.0f);
-    public Vector3 RaceStart { get; } = new(55.0f, 0.0f, 1.5f);
+    public Vector3 RaceStart { get; private set; } = new(56.0f, 0.0f, -6.0f);
     public Vector3 ParkingSign { get; } = new(-33.0f, 0.0f, 12.5f);
     public Vector3 FurnitureStation { get; } = new(-40.5f, 0.0f, 20.5f);
 
     public Vector3[] SwingFrames { get; } = { new(-41.0f, 0.0f, -5.0f), new(-35.0f, 0.0f, -5.0f) };
-    public (Vector3 Position, float Yaw)[] RaceGates { get; } = new[]
-    {
-        (new Vector3(62.0f, 0f, 12.0f), 35.0f),
-        (new Vector3(76.0f, 0f, 22.0f), 54.5f),
-        (new Vector3(85.0f, 0f, 6.0f), 150.5f),
-        (new Vector3(74.0f, 0f, -10.0f), -145.5f),
-    };
+    public (Vector3 Position, float Yaw)[] RaceGates { get; private set; } = System.Array.Empty<(Vector3, float)>();
+    public (Vector3 Position, float Yaw)[] M19RaceGates { get; private set; } = System.Array.Empty<(Vector3, float)>();
+    public Node3D RallyRoad { get; private set; }
+    public Node3D RaceGates4Root { get; private set; }
+    public Node3D RaceGates6Root { get; private set; }
+    public int RallySampleCount { get; private set; }
+    public float RallyLength { get; private set; }
 
     public Node3D BridgeBarrier { get; private set; }
     public Node3D FinishedBridge { get; private set; }
@@ -99,7 +99,9 @@ public partial class WorldBuilder : Node3D
         Geo.StaticBox(this, "EastIsland", new Vector3(72.5f, -0.5f, 0f), new Vector3(47f, 1f, 110f), Palette.Grass);
 
         // Ocean skirt far below, purely visual.
-        Geo.Box(this, new Vector3(18f, -2.4f, 0f), new Vector3(250f, 0.2f, 220f), Palette.Water, null, false, "Ocean");
+        var ocean = Geo.Box(this, new Vector3(18f, -2.4f, 0f), new Vector3(250f, 0.2f, 220f),
+            Palette.Water, null, false, "Ocean");
+        ocean.CastShadow = GeometryInstance3D.ShadowCastingSetting.Off;
 
         // Sandy edges around the island.
         Geo.Box(this, new Vector3(15f, 0.02f, -54.4f), new Vector3(148f, 0.06f, 1.6f), Palette.Sand);
@@ -168,31 +170,38 @@ public partial class WorldBuilder : Node3D
         // Main road edge lines and centre dashes.
         for (float x = -46; x < 39; x += 5.4f)
         {
-            Geo.Box(this, new Vector3(x, 0.035f, 0), new Vector3(2.5f, 0.02f, 0.16f), Palette.RoadMark);
+            Geo.Box(this, new Vector3(x, 0.058f, 0), new Vector3(2.5f, 0.012f, 0.16f), Palette.RoadMark);
         }
         for (float x = 51.5f; x < 87; x += 5.4f)
         {
-            Geo.Box(this, new Vector3(x, 0.035f, 0), new Vector3(2.5f, 0.02f, 0.16f), Palette.RoadMark);
+            Geo.Box(this, new Vector3(x, 0.058f, 0), new Vector3(2.5f, 0.012f, 0.16f), Palette.RoadMark);
         }
         for (float x = -46; x < 87; x += 4f)
         {
             if (x > 39 && x < 51) continue;
-            Geo.Box(this, new Vector3(x, 0.034f, -3.05f), new Vector3(1.6f, 0.018f, 0.09f), Palette.RoadMark);
-            Geo.Box(this, new Vector3(x, 0.034f, 3.05f), new Vector3(1.6f, 0.018f, 0.09f), Palette.RoadMark);
+            Geo.Box(this, new Vector3(x, 0.06f, -3.05f), new Vector3(1.6f, 0.01f, 0.09f), Palette.RoadMark);
+            Geo.Box(this, new Vector3(x, 0.06f, 3.05f), new Vector3(1.6f, 0.01f, 0.09f), Palette.RoadMark);
         }
         // Crosswalk outside the town hall.
         for (int i = 0; i < 7; i++)
         {
-            Geo.Box(this, new Vector3(-14f, 0.04f, -2.6f + i * 0.9f), new Vector3(4.2f, 0.02f, 0.42f), Palette.RoadMark);
+            Geo.Box(this, new Vector3(-14f, 0.061f, -2.6f + i * 0.9f), new Vector3(4.2f, 0.01f, 0.42f), Palette.RoadMark);
         }
 
         AddKeepClear(new Vector3(-20, 0, -10), new Vector2(6, 24));
         AddKeepClear(new Vector3(25, 0, -5), new Vector2(8, 15));
     }
 
+    private int _roadLayer;
+
     private void AddRoadRect(Vector3 center, float widthX, float lengthZ)
     {
-        Geo.Box(this, new Vector3(center.X, 0.02f, center.Z), new Vector3(widthX, 0.035f, lengthZ), Palette.Road, null, false, "Road");
+        // Each road slab gets a sub-millimetre vertical offset. Overlapping
+        // village roads therefore cannot present coplanar top faces and
+        // Z-fight; the step is invisible to the player and van.
+        float y = 0.018f + (_roadLayer++ % 12) * 0.0016f;
+        Geo.Box(this, new Vector3(center.X, y, center.Z), new Vector3(widthX, 0.035f, lengthZ),
+            Palette.Road, null, false, "Road");
         AddKeepClear(center, new Vector2(widthX * 0.5f + 2.5f, lengthZ * 0.5f + 2.5f));
     }
 
@@ -202,7 +211,7 @@ public partial class WorldBuilder : Node3D
         float len = delta.Length();
         float yaw = Mathf.RadToDeg(Mathf.Atan2(delta.X, delta.Z));
         Vector3 midpoint = (from + to) * 0.5f;
-        Geo.Box(this, new Vector3(midpoint.X, 0.022f, midpoint.Z), new Vector3(width, 0.035f, len),
+        Geo.Box(this, new Vector3(midpoint.X, 0.06f, midpoint.Z), new Vector3(width, 0.035f, len),
             color, new Vector3(0, yaw, 0), false, "CourseRoad");
     }
 
@@ -495,7 +504,7 @@ public partial class WorldBuilder : Node3D
         Mannequin(root, new Vector3(2.8f, 0, frontZ - 1.15f), false,
             new Color("2674EC"), new Color("FFD23F"));
 
-        Geo.Box(this, new Vector3(ClothesShopCenter.X, 0.025f, 2.55f),
+        Geo.Box(this, new Vector3(ClothesShopCenter.X, 0.056f, 2.55f),
             new Vector3(3.0f, 0.03f, 2.6f), PathSand, null, false, "ClothesShopPath");
         AddKeepClear(ClothesShopCenter, new Vector2(7, 6));
     }
@@ -692,87 +701,122 @@ public partial class WorldBuilder : Node3D
 
     private void BuildRaceMeadow()
     {
-        // Wide, forgiving meadow track loop.
-        Vector3 start = RaceStart;
-        Vector3 g1 = RaceGates[0].Position;
-        Vector3 g2 = RaceGates[1].Position;
-        Vector3 g3 = RaceGates[2].Position;
-        Vector3 g4 = RaceGates[3].Position;
-        AddRoadSegment(start, g1, 9.0f, Color.FromHtml("8A8491"));
-        AddRoadSegment(g1, g2, 9.0f, Color.FromHtml("8A8491"));
-        AddRoadSegment(g2, g3, 9.0f, Color.FromHtml("8A8491"));
-        AddRoadSegment(g3, g4, 9.0f, Color.FromHtml("8A8491"));
-        AddRoadSegment(g4, start, 9.0f, Color.FromHtml("8A8491"));
-        // Shortcut through the meadow.
-        AddRoadSegment(new Vector3(68f, 0, 16f), new Vector3(78f, 0, 10f), 5.5f, PathSand);
-        Geo.SignBoard(this, new Vector3(71f, 1.4f, 18f), 180f, "SHORTCUT", Palette.Yellow, 3.0f, 0.65f, "waypoint", 30);
+        var road = RallyRoadBuilder.Build(this);
+        RallyRoad = road.Root;
+        RallySampleCount = road.SampleCount;
+        RallyLength = road.Length;
+        RaceStart = new Vector3(RallyCourse.Sample(0f).X, 0f, RallyCourse.Sample(0f).Z);
 
-        Geo.SignBoard(this, new Vector3(54.5f, 2.7f, 4.2f), 180f, "RACE MEADOW", Palette.Yellow, 6.0f, 1.0f, "flag", 46);
-        Geo.SignBoard(this, new Vector3(54.5f, 1.2f, 4.2f), 180f, "DRIVE GATES 1-2-3-4", Palette.Red, 5.4f, 0.55f, null, 28);
-        // Start/finish checks.
-        for (int i = 0; i < 8; i++)
+        RaceGates4Root = new Node3D { Name = "RaceGates4Root", Visible = true };
+        AddChild(RaceGates4Root);
+        RaceGates6Root = new Node3D { Name = "RaceGates6Root", Visible = false };
+        AddChild(RaceGates6Root);
+
+        var four = new List<(Vector3, float)>();
+        foreach (var gate in RallyCourse.FourGates)
         {
-            Geo.Box(this, new Vector3(52.0f, 0.045f, -4.2f + i * 1.05f), new Vector3(0.8f, 0.025f, 0.5f), Palette.RoadMark);
+            var position = new Vector3(gate.X, 0f, gate.Z);
+            four.Add((position, gate.YawDegrees));
+            BuildRaceGate(RaceGates4Root, gate.Number, position, gate.YawDegrees, "RaceGate");
+            BuildGateArrow(RaceGates4Root, gate.Fraction, gate.Number);
         }
-        for (int i = 0; i < 4; i++)
-            Geo.Cone(this, new Vector3(52.0f, 0.4f, -5.5f + i * 3.4f), 0.3f, 0.75f, Palette.Orange, 8);
+        RaceGates = four.ToArray();
 
-        for (int i = 0; i < RaceGates.Length; i++)
+        var six = new List<(Vector3, float)>();
+        foreach (var gate in RallyCourse.SixGates)
         {
-            BuildRaceGate(i + 1, RaceGates[i].Position, RaceGates[i].Yaw);
+            var position = new Vector3(gate.X, 0f, gate.Z);
+            six.Add((position, gate.YawDegrees));
+            BuildRaceGate(RaceGates6Root, gate.Number, position, gate.YawDegrees, "M19Gate");
+            BuildGateArrow(RaceGates6Root, gate.Fraction, gate.Number);
         }
+        M19RaceGates = six.ToArray();
 
-        // Race flags around the meadow.
-        for (int i = 0; i < 8; i++)
-        {
-            float angle = i * Mathf.Pi * 2f / 8f;
-            Vector3 p = new Vector3(72f + Mathf.Cos(angle) * 19f, 0, 7f + Mathf.Sin(angle) * 19f);
-            Geo.Box(this, new Vector3(p.X, 1.5f, p.Z), new Vector3(0.1f, 3f, 0.1f), Palette.WoodDark);
-            Geo.Box(this, new Vector3(p.X + 0.4f, 2.8f, p.Z), new Vector3(0.8f, 0.6f, 0.06f),
-                i % 2 == 0 ? Palette.Yellow : Palette.Red, null, true);
-        }
-        // Grandstand decoration.
-        Geo.StaticBox(this, "Grandstand", new Vector3(58.0f, 0.7f, -15.0f), new Vector3(8f, 1.4f, 2.5f), Color.FromHtml("E9D8B7"));
-        Geo.Box(this, new Vector3(58.0f, 1.5f, -14.5f), new Vector3(8.2f, 0.25f, 1.3f), Palette.Red);
-        for (int i = 0; i < 3; i++)
-            Flag(new Vector3(56f + i * 2.5f, 0, -16.5f), i % 2 == 0 ? Palette.Yellow : Palette.Lavender);
+        // Entry sign on the grass strip west of the new loop, clear of the road.
+        Geo.SignBoard(this, new Vector3(50.4f, 2.6f, 8.0f), 90f, "RACE MEADOW",
+            Palette.Yellow, 5.4f, 0.95f, "flag", 42);
+        Geo.SignBoard(this, new Vector3(50.4f, 1.3f, 8.0f), 90f, "GATES 1-4  ·  1-6",
+            Palette.Red, 5.0f, 0.55f, null, 26);
 
-        RaceStartFlag = new Node3D { Name = "RaceStartFlag", Position = new Vector3(52f, 0, -6.8f) };
+        // Start/finish flag and gold pennant sit in the infield, not on tarmac.
+        RaceStartFlag = new Node3D { Name = "RaceStartFlag", Position = new Vector3(61.5f, 0, -8.5f) };
         AddChild(RaceStartFlag);
         Geo.Box(RaceStartFlag, new Vector3(0, 3.0f, 0), new Vector3(0.12f, 6f, 0.12f), Palette.WoodDark);
         Geo.Box(RaceStartFlag, new Vector3(1.0f, 5.4f, 0), new Vector3(2.0f, 1.2f, 0.08f), Palette.Yellow, null, true);
-        Geo.Label(RaceStartFlag, new Vector3(1.0f, 5.4f, 0.06f), "RACE", 54, Palette.Navy, false, 0.006f);
+        Geo.Label(RaceStartFlag, new Vector3(1.0f, 5.4f, 0.06f), "START / FINISH", 42, Palette.Navy, false, 0.005f);
 
-        // M09's gold pennant appears only after the bonus race is completed.
-        GoldCourseFlag = new Node3D { Name = "GoldCourseFlag", Position = new Vector3(54.4f, 0, -6.8f), Visible = false };
+        GoldCourseFlag = new Node3D { Name = "GoldCourseFlag", Position = new Vector3(64.5f, 0, -12.0f), Visible = false };
         AddChild(GoldCourseFlag);
         Color gold = Color.FromHtml("F4C542");
         Geo.Cylinder(GoldCourseFlag, new Vector3(0, 2.4f, 0), 0.09f, 0.12f, 4.8f, Palette.WoodDark, 6);
         Geo.Box(GoldCourseFlag, new Vector3(1.05f, 4.45f, 0), new Vector3(2.1f, 1.35f, 0.08f), gold, null, true);
         Geo.Label(GoldCourseFlag, new Vector3(1.05f, 4.45f, 0.06f), "GOLD LAP", 42, Palette.Navy, false, 0.006f);
         Geo.Sphere(GoldCourseFlag, new Vector3(0, 5.05f, 0), 0.28f, gold, 8, 4, null, "GoldOrb");
-        AddKeepClear(new Vector3(72, 0, 6), new Vector2(23, 23));
+
+        // A small infield grandstand, deliberately clear of the loop.
+        Geo.StaticBox(this, "Grandstand", new Vector3(67.0f, 0.7f, -10.0f),
+            new Vector3(7.5f, 1.4f, 2.4f), Color.FromHtml("E9D8B7"));
+        Geo.Box(this, new Vector3(67.0f, 1.5f, -9.5f), new Vector3(7.7f, 0.25f, 1.2f), Palette.Red);
+        for (int i = 0; i < 3; i++)
+            Flag(new Vector3(64.5f + i * 2.5f, 0, -12.2f), i % 2 == 0 ? Palette.Yellow : Palette.Lavender);
+
+        // Infield pennants are decorative and no longer cross the driving line.
+        for (int i = 0; i < 8; i++)
+        {
+            float angle = i * Mathf.Pi * 2f / 8f;
+            Vector3 p = new(71f + Mathf.Cos(angle) * 8f, 0, 7f + Mathf.Sin(angle) * 8f);
+            Geo.Box(this, new Vector3(p.X, 1.5f, p.Z), new Vector3(0.1f, 3f, 0.1f), Palette.WoodDark);
+            Geo.Box(this, new Vector3(p.X + 0.4f, 2.8f, p.Z), new Vector3(0.8f, 0.6f, 0.06f),
+                i % 2 == 0 ? Palette.Yellow : Palette.Red, null, true);
+        }
+
+        // A wide infield service lane is not part of the race and is clearly
+        // separate from the continuous loop.
+        Geo.Box(this, new Vector3(70f, 0.02f, -20f), new Vector3(1.2f, 0.02f, 12f), PathSand, null, false, "ServiceLane");
     }
 
-    private void BuildRaceGate(int number, Vector3 position, float yaw)
+    private void BuildGateArrow(Node3D parent, float fraction, int number)
     {
-        var root = new Node3D { Name = $"RaceGate{number}", Position = position, RotationDegrees = new Vector3(0, yaw, 0) };
-        AddChild(root);
+        float f = (fraction - 0.026f + 1f) % 1f;
+        var point = RallyCourse.Sample(f);
+        float yaw = RallyCourse.YawDegrees(f);
+        var root = new Node3D
+        {
+            Name = $"GateArrow{number}",
+            Position = new Vector3(point.X, RallyBuilderY, point.Z),
+            RotationDegrees = new Vector3(0, yaw, 0),
+        };
+        parent.AddChild(root);
+        Color color = number % 2 == 0 ? Palette.Yellow : Palette.Cream;
+        Geo.Box(root, new Vector3(0, 0, -0.1f), new Vector3(0.5f, 0.018f, 1.4f), color);
+        Geo.Triangle(root, "ArrowHead",
+            new Vector3(-0.95f, 0, 0.55f),
+            new Vector3(0.95f, 0, 0.55f),
+            new Vector3(0f, 0, 2.25f), color);
+        Geo.Label(root, new Vector3(0, 0.03f, -0.8f), number.ToString(), 48, Palette.Navy, false, 0.004f);
+    }
+
+    private const float RallyBuilderY = RallyRoadBuilder.MarkingY + 0.012f;
+
+    private void BuildRaceGate(Node3D parent, int number, Vector3 position, float yaw, string namePrefix)
+    {
+        var root = new Node3D { Name = $"{namePrefix}{number}", Position = position, RotationDegrees = new Vector3(0, yaw, 0) };
+        parent.AddChild(root);
         Color gateColor = number switch
         {
             1 => Palette.Yellow,
             2 => Palette.Blue,
             3 => Palette.Lavender,
-            _ => Palette.Orange,
+            4 => Palette.Orange,
+            5 => Color.FromHtml("3B9B5A"),
+            _ => Palette.Pink,
         };
         Geo.Box(root, new Vector3(-5.2f, 2.4f, 0), new Vector3(0.8f, 4.8f, 0.8f), gateColor);
         Geo.Box(root, new Vector3(5.2f, 2.4f, 0), new Vector3(0.8f, 4.8f, 0.8f), gateColor);
         Geo.Box(root, new Vector3(0, 4.75f, 0), new Vector3(11.2f, 0.8f, 0.8f), gateColor);
         Geo.Box(root, new Vector3(0, 5.45f, 0), new Vector3(3.2f, 2.3f, 0.3f), Palette.Cream);
-        Geo.Label(root, new Vector3(0, 5.45f, 0.19f), number.ToString(), 180, Palette.Navy, false, 0.006f);
-        Geo.Label(root, new Vector3(0, 5.45f, -0.19f), number.ToString(), 180, Palette.Navy, false, 0.006f,
-            0, new Vector3(0, 180, 0));
-        Geo.Label(root, new Vector3(0, 6.9f, 0), number.ToString(), 160, gateColor, true, 0.007f);
+        Geo.Label(root, new Vector3(0, 5.45f, 0), number.ToString(), 180, Palette.Navy,
+            true, 0.006f, 0, null, "GateNumber", true);
         Flag(root, new Vector3(-5.2f, 4.8f, 0), gateColor);
         Flag(root, new Vector3(5.2f, 4.8f, 0), gateColor);
 
@@ -827,12 +871,12 @@ public partial class WorldBuilder : Node3D
         Fir(new Vector3(-44, 0, -44), 1.1f);
         Fir(new Vector3(-15, 0, -46), 1.2f);
         Fir(new Vector3(36, 0, 30), 1.1f);
-        Fir(new Vector3(87, 0, 35), 1.1f);
-        Fir(new Vector3(87, 0, -26), 1.0f);
-        Tree(new Vector3(86, 0, 28), 0.9f);
-        Tree(new Vector3(85, 0, -22), 1.0f);
-        Tree(new Vector3(62, 0, -28), 1.2f);
-        Tree(new Vector3(90, 0, 12), 0.9f);
+        Fir(new Vector3(91f, 0, 47f), 1.1f);
+        Fir(new Vector3(78f, 0, -14f), 1.0f);
+        Tree(new Vector3(72f, 0, 20f), 0.9f);
+        Tree(new Vector3(70f, 0, -16f), 1.0f);
+        Tree(new Vector3(68f, 0, -20f), 1.2f);
+        Tree(new Vector3(74f, 0, 12f), 0.9f);
 
         // Grove cluster leaves a clear southern entrance for the wood pickups.
         Tree(new Vector3(GroveCenter.X - 12, 0, GroveCenter.Z - 2), 1.0f);
@@ -872,7 +916,8 @@ public partial class WorldBuilder : Node3D
                     break;
                 }
             }
-            if (clear && (p.X < 39 || p.X > 51)) return p;
+            if (clear && (p.X < 39 || p.X > 51) &&
+                RallyCourse.NearestDistance(p.X, p.Z) > 8.0f) return p;
         }
         return new Vector3(-48, 0, 38);
     }
@@ -977,9 +1022,7 @@ public partial class WorldBuilder : Node3D
         Geo.Box(this, new Vector3(ParkingSign.X, 0.6f, ParkingSign.Z), new Vector3(0.18f, 1.2f, 0.18f), Palette.WoodDark);
         Geo.SignBoard(this, new Vector3(ParkingSign.X, 1.7f, ParkingSign.Z), 90f, "VAN PARKING", Palette.Yellow, 4.2f, 0.8f, "van", 40);
         Geo.Box(this, new Vector3(ParkingSign.X + 0.6f, 0.35f, ParkingSign.Z), new Vector3(0.1f, 0.7f, 0.1f), Palette.WoodDark);
-        // A small paddock fence near the meadow.
-        FenceLine(new Vector3(51.5f, 0, -18f), new Vector3(88f, 0, -18f), Palette.White);
-        FenceLine(new Vector3(88f, 0, -18f), new Vector3(88f, 0, -8f), Palette.White);
+        // The old paddock fence crossed the expanded rally line and was removed.
 
         // Celebration decorations, hidden until all jobs are done.
         CelebrationDecor = new Node3D { Name = "CelebrationDecor", Visible = false };
@@ -1055,9 +1098,13 @@ public partial class WorldBuilder : Node3D
             float y = 22 + (i % 3) * 4f;
             var root = new Node3D { Name = "Cloud", Position = new Vector3(x, y, z) };
             AddChild(root);
-            Geo.Sphere(root, Vector3.Zero, 3.4f, cloud, 7, 4, new Vector3(1.6f, 0.65f, 1f));
-            Geo.Sphere(root, new Vector3(3.2f, -0.3f, 0.5f), 2.3f, cloud, 7, 4, new Vector3(1.4f, 0.6f, 1f));
-            Geo.Sphere(root, new Vector3(-3.1f, -0.4f, 0.2f), 2.1f, cloud, 7, 4, new Vector3(1.4f, 0.6f, 1f));
+            var puffA = Geo.Sphere(root, Vector3.Zero, 3.4f, cloud, 7, 4, new Vector3(1.6f, 0.65f, 1f));
+            var puffB = Geo.Sphere(root, new Vector3(3.2f, -0.3f, 0.5f), 2.3f, cloud, 7, 4, new Vector3(1.4f, 0.6f, 1f));
+            var puffC = Geo.Sphere(root, new Vector3(-3.1f, -0.4f, 0.2f), 2.1f, cloud, 7, 4, new Vector3(1.4f, 0.6f, 1f));
+            // Clouds are decorative; large moving cloud shadows made the roads
+            // look dirty and were a confirmed visual-QA defect.
+            foreach (var puff in new[] { puffA, puffB, puffC })
+                puff.CastShadow = GeometryInstance3D.ShadowCastingSetting.Off;
         }
     }
 

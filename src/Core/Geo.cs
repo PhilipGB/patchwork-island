@@ -195,7 +195,7 @@ public static class Geo
 
     public static Label3D Label(Node parent, Vector3 pos, string text, int fontSize, Color color,
         bool billboard = false, float pixelSize = 0.01f, int outline = 0, Vector3? rotationDegrees = null,
-        string name = "Label3D")
+        string name = "Label3D", bool noDepthTest = false)
     {
         var label = new Label3D
         {
@@ -210,7 +210,7 @@ public static class Geo
                 ? BaseMaterial3D.BillboardModeEnum.Enabled
                 : BaseMaterial3D.BillboardModeEnum.Disabled,
             Position = pos,
-            NoDepthTest = false,
+            NoDepthTest = noDepthTest,
         };
         if (rotationDegrees.HasValue)
             label.RotationDegrees = rotationDegrees.Value;
@@ -253,6 +253,10 @@ public static class Geo
 
         Label(root, new Vector3(textOffset, 0.01f, 0.12f), text, fontSize, Palette.Navy,
             false, 0.0085f, 0, null, "SignText");
+        // Readable from both approach directions; a blank back face looked like
+        // a floating slab during visual QA.
+        Label(root, new Vector3(-textOffset, -0.01f, -0.12f), text, fontSize, Palette.Navy,
+            false, 0.0085f, 0, new Vector3(0, 180, 0), "SignTextBack");
 
         // Invisible camera-only blocker: signs should never swallow the view.
         var cameraBlocker = new StaticBody3D
