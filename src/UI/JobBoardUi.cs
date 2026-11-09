@@ -9,10 +9,32 @@ namespace PatchworkIsland;
 public static class JobBoardUi
 {
     public static void Show(Hud hud, MissionService service, ISet<string> implemented, Action<string> startMission,
-        Action practiceRace = null)
+        Action practiceRace = null, bool showChapterTwo = false)
     {
         var data = service.Data;
-        var body = hud.OpenModal("Patchwork Jobs", new Vector2(900, 590), Palette.Blue);
+        var body = hud.OpenModal("Patchwork Jobs", new Vector2(900, 620), Palette.Blue);
+
+        var tabs = UiKit.HBox(body, 8);
+        var chapterOne = UiKit.Button(tabs, "Village jobs  (1–10)", 19, new Vector2(0, 44),
+            showChapterTwo ? Palette.Cream : new Color("FFF3C9"),
+            showChapterTwo ? Palette.Stone : Palette.Orange);
+        chapterOne.Name = "ChapterOneTab";
+        chapterOne.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        chapterOne.Pressed += () =>
+        {
+            if (showChapterTwo)
+                Show(hud, service, implemented, startMission, practiceRace, false);
+        };
+        var chapterTwo = UiKit.Button(tabs, "New adventures  (11–20)", 19, new Vector2(0, 44),
+            showChapterTwo ? new Color("FFF3C9") : Palette.Cream,
+            showChapterTwo ? Palette.Orange : Palette.Lavender);
+        chapterTwo.Name = "ChapterTwoTab";
+        chapterTwo.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        chapterTwo.Pressed += () =>
+        {
+            if (!showChapterTwo)
+                Show(hud, service, implemented, startMission, practiceRace, true);
+        };
 
         var summary = UiKit.HBox(body, 10);
         UiKit.Icon(summary, "coin", 26);
@@ -22,16 +44,38 @@ public static class JobBoardUi
         if (active != null)
         {
             UiKit.Icon(summary, IconFor(active.Id), 24);
-            UiKit.Label(summary, $"Current job: {active.Title}", 19, Palette.Blue, HorizontalAlignment.Left, false);
+            UiKit.Label(summary, $"Current job: {active.Title}", 19, Palette.Blue,
+                HorizontalAlignment.Left, false);
         }
         else
         {
-            UiKit.Label(summary, "Pick any job with a Start button.", 19, Palette.Success, HorizontalAlignment.Left, false);
+            UiKit.Label(summary, "Pick any available job with a Start button.", 19, Palette.Success,
+                HorizontalAlignment.Left, false);
         }
 
         UiKit.Separator(body);
 
-        if (practiceRace != null && data.IsCompleted("M09"))
+        if (showChapterTwo)
+        {
+            if (!MissionRules.OriginalChapterComplete(data))
+            {
+                var locked = UiKit.Panel(body, new Color("F0EEE8"), Palette.Stone, 14, 3);
+                var lockedRow = UiKit.HBox(locked, 10);
+                UiKit.Icon(lockedRow, "star", 30);
+                UiKit.Label(lockedRow,
+                    "New adventures unlock when all ten Village jobs are finished. " +
+                    "Your current village and every completed job stay exactly as they are.",
+                    19, Palette.Navy);
+                return;
+            }
+            var note = UiKit.Panel(body, new Color("E8F4FF"), Palette.Blue, 14, 3);
+            UiKit.Label(note,
+                "Chapter two: meet the neighbours, help the bakery and library, repair signs " +
+                "and grow a pattern garden. More jobs appear as the chapter is completed.",
+                18, Palette.Navy);
+        }
+
+        if (!showChapterTwo && practiceRace != null && data.IsCompleted("M09"))
         {
             var practicePanel = UiKit.Panel(body, new Color("FFF3C9"), Palette.Orange, 14, 3);
             var practiceRow = UiKit.HBox(practicePanel, 10);
@@ -45,13 +89,16 @@ public static class JobBoardUi
             practice.Pressed += () => practiceRace();
         }
 
-        foreach (var mission in service.Catalog.Missions.OrderBy(m => m.Id))
-        {
+        var missions = service.Catalog.Missions
+            .Where(m => showChapterTwo ? m.Id.CompareTo("M11") >= 0 : m.Id.CompareTo("M11") < 0)
+            .OrderBy(m => m.Id);
+        foreach (var mission in missions)
             AddMissionRow(body, service, mission, implemented.Contains(mission.Id), startMission);
-        }
 
-        UiKit.Label(body, "Jobs will wait for you. You cannot lose progress by choosing another job.", 17,
-            new Color("5C6B7A"));
+        UiKit.Label(body, showChapterTwo
+                ? "Chapter-two progress is saved with the village. Wrong choices never cost an item or a coin."
+                : "Jobs will wait for you. You cannot lose progress by choosing another job.",
+            17, new Color("5C6B7A"));
     }
 
     private static void AddMissionRow(VBoxContainer parent, MissionService service, MissionDefinition mission,
@@ -103,6 +150,7 @@ public static class JobBoardUi
             case MissionStatus.Available when implemented:
             {
                 var start = UiKit.Button(right, "Start", 19, new Vector2(120, 44), new Color("FFF3C9"), Palette.Orange);
+                start.Name = "Start_" + mission.Id;
                 start.Pressed += () => startMission?.Invoke(mission.Id);
                 break;
             }
@@ -128,6 +176,16 @@ public static class JobBoardUi
         "M08" => "house",
         "M09" => "flag",
         "M10" => "house",
+        "M11" => "neighbours",
+        "M12" => "bakery",
+        "M13" => "library",
+        "M14" => "road_signs",
+        "M15" => "garden",
+        "M16" => "delivery",
+        "M17" => "market_maths",
+        "M18" => "mechanic",
+        "M19" => "grand_rally",
+        "M20" => "festival",
         _ => "star",
     };
 }

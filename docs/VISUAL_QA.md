@@ -16,6 +16,12 @@ xvfb-run -a -s "-screen 0 1280x720x24" \
 xvfb-run -a -s "-screen 0 1920x1080x24" \
   godot --path . --resolution 1920x1080 -- --dev --capture-p12 --capture-1080
 
+# chapter-two content, 720p and true 1080p
+xvfb-run -a -s "-screen 0 1280x720x24" \
+  godot --path . --resolution 1280x720 -- --capture-p13
+xvfb-run -a -s "-screen 0 1920x1080x24" \
+  godot --path . --resolution 1920x1080 -- --capture-p13 --capture-1080
+
 # software-renderer frame probe
 xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --resolution 1280x720 -- --dev --perf-probe
 xvfb-run -a -s "-screen 0 1920x1080x24" godot --path . --resolution 1920x1080 -- --dev --perf-probe --perf-1080
@@ -31,6 +37,8 @@ xvfb-run -a -s "-screen 0 1920x1080x24" godot --path . --resolution 1920x1080 --
 | V04 | Village road intersections show coplanar Z-fighting and dirty seams | Overview from high camera | All road slabs and markings shared one top height | Sub-millimetre slab offsets; markings raised to a common proud plane; clothes path raised | `evidence/p12_before_village_roads.png` (baseline `p2_02_village_overview.png`) | `evidence/p12_720_00_village_overview.png`, `evidence/p12_720_08_town_traffic.png` |
 | V05 | Checkpoint number signs read blank or edge-on; road arrows looked like a Y | Drive to gate 1/gate 2 | Number labels were single static faces; arrow was three crossing boxes | Billboard number label with no-depth-test over both faces; proper triangular arrowhead | first P12 pass observed during capture, not committed | `evidence/p12_720_03_gate1.png`, `evidence/p12_720_04_gate4.png`, `evidence/p12_1080_03_gate1.png` |
 | V06 | Large blank sign backs floated over roads | Look back along main road | Sign boards had text only on the front face | Every authored sign now has a correctly rotated back-face label | first P12 pass observed during capture, not committed | `evidence/p12_720_08_town_traffic.png`, `evidence/p12_1080_08_town_traffic.png` |
+| V07 | New chapter-two mission icons floated as 3–4 m blobs over villagers, books and signs | Inspect bakery/library/world marker at 720p | `Sprite3D.PixelSize` assumed the original 48 px SVG set; the supplied mission PNGs are 128 px | `Geo.SignBoard`, `Geo.IconSprite` and `WorldMarker.ShowAt` normalise world icon size by texture width | first P13 capture pass observed during capture, not committed | `evidence/p13_720_01_bakery_stall.png`, `evidence/p13_720_02_library_shelf.png`, `evidence/p13_1080_01_bakery_stall.png` |
+| V08 | Generic library icon covered the large MOON/SUN book cover word | Walk to the MOON book pickup | Book pickups rendered both a 3D cover word and a generic library icon at the same height | Books keep their readable cover word and skip the redundant generic pickup icon | first P13 capture pass observed during capture, not committed | `evidence/p13_720_05_book_pickup.png`, `evidence/p13_1080_05_book_pickup.png` |
 
 ## Continuous-road and driving verification
 
@@ -56,8 +64,25 @@ xvfb-run -a -s "-screen 0 1920x1080x24" godot --path . --resolution 1920x1080 --
 
 `evidence/p12_720_09_job_board.png` and
 `evidence/p12_1080_09_job_board.png` show the 10-job board before the v1.2
-chapter tabs are added. Twenty-job tab layout and refused/received states are
-verified in P13/P14.
+chapter tabs are added.
+
+`evidence/p13_720_06_job_board_chapter_two.png` and the 1080 counterpart show
+the real twenty-job board with `Village jobs 1–10` / `New adventures 11–20`
+tabs, locked rows and the current job. The P13 UI set also proves the real Ada
+card dialogue, bakery order steppers, library shelf matcher, road-sign
+install/remove controls and garden colour correction. P13's runtime
+`--selftest-chapter` presses those same named controls; it does not call a
+hidden completion shortcut.
+
+## Chapter-two world captures
+
+`evidence/p13_720_00_village_chapter_two.png` through
+`evidence/p13_720_05_book_pickup.png` (and the 1080 set) show the new bakery
+stall, library shelf, three sign sockets, six-pad community garden and labelled
+book pickups. `evidence/p13_720_12_repaired_signs.png` and
+`evidence/p13_720_13_garden_complete.png` show the persistent completed-world
+visuals. P13 intentionally captures M16–M20 as **COMING SOON**; their world
+content and evidence belong to P14.
 
 ## Software-renderer measurements (not a desktop-GPU claim)
 

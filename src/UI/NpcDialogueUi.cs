@@ -7,6 +7,8 @@ namespace PatchworkIsland;
 public sealed class NpcOption
 {
     public string Text { get; init; } = "";
+    /// <summary>Optional stable control name used by runtime verification.</summary>
+    public string Name { get; init; } = "";
     public Action Action { get; init; }
     public bool Close { get; init; } = true;
     public Color? Border { get; init; }
@@ -55,6 +57,8 @@ public static class NpcDialogueUi
             if (string.IsNullOrWhiteSpace(option.Text)) continue;
             var button = UiKit.Button(row, option.Text, 19, new Vector2(0, 50), Palette.Cream,
                 option.Border ?? Palette.Blue);
+            if (!string.IsNullOrEmpty(option.Name))
+                button.Name = option.Name;
             button.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
             button.Pressed += () =>
             {

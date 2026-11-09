@@ -25,11 +25,12 @@ internal static class Program
         string json = File.ReadAllText(missionPath);
         var catalog = MissionCatalog.FromJson(json);
 
-        Run("catalog contains exactly ten missions", () =>
+        Run("catalog contains exactly twenty authored missions", () =>
         {
-            Equal(10, catalog.Missions.Count, "mission count");
+            Equal(20, catalog.Missions.Count, "mission count");
             Equal("M01", catalog.Missions[0].Id, "first mission id");
-            Equal("M10", catalog.Missions[^1].Id, "last mission id");
+            Equal("M20", catalog.Missions[^1].Id, "last mission id");
+            Equal("M11", catalog.Missions[10].Id, "first chapter-two mission id");
         });
 
         Run("initial availability and prerequisites", () =>
@@ -431,12 +432,333 @@ internal static class Program
             Check(FurnitureRules.Place(s.Data, "plant", "house3").Success, "plant");
             var m10 = s.CompleteActive();
             Check(m10.Success, "M10 complete");
-            Check(m10.AllComplete, "all-complete flag set");
+            Check(m10.OriginalChapterComplete, "original chapter-complete flag set");
+            Check(!m10.AllTwentyComplete, "twenty-job flag stays false before chapter two");
             Equal(10, s.Data.CompletedMissions.Distinct().Count(), "ten distinct completions");
             Equal(MissionStatus.Completed, s.GetStatus("M09"), "M09 stays completed");
             int wallet = s.Data.Coins;
             Check(!s.CompleteActive().Success, "cannot claim an eleventh reward");
             Equal(wallet, s.Data.Coins, "wallet unchanged after repeat");
+            Equal(MissionStatus.Available, s.GetStatus("M11"), "chapter two opens after the tenth job");
+        });
+
+        Run("chapter two unlocks only after all ten original jobs", () =>
+        {
+            var s = Fresh(catalog);
+            Equal(MissionStatus.Locked, s.GetStatus("M11"), "M11 locked on a fresh save");
+            s = CompleteM10(s);
+            Equal(MissionStatus.Locked, s.GetStatus("M11"),
+                "M11 still locked with races and post outstanding");
+            s = CompleteOriginalExtras(s);
+            Equal(10, s.Data.CompletedMissions.Distinct().Count(), "all ten original jobs recorded");
+            Equal(MissionStatus.Available, s.GetStatus("M11"), "M11 available after all ten");
+            Equal(MissionStatus.Locked, s.GetStatus("M12"), "M12 waits for M11");
+            Equal(MissionStatus.Locked, s.GetStatus("M13"), "M13 waits for M11");
+        });
+
+        Run("M11 grants cards once, refuses wrong names and pays 12 once", () =>
+        {
+            var s = CompleteOriginalTen(Fresh(catalog));
+            int wallet = s.Data.Coins;
+            Check(s.StartMission("M11").Success, "start M11");
+            foreach (string npc in ChapterTwoRules.CardNpcIds)
+                Equal(1, s.Data.GetMissionCounter("M11", $"card_{npc}"), $"{npc} card granted");
+            Equal(1, s.Data.GetMissionCounter("M11", "stock_granted"), "stock recorded");
+            Equal(wallet, s.Data.Coins, "welcome cards cost no personal coins");
+
+            var wrong = s.HandWelcomeCard("ada", "card_ollie");
+            Check(!wrong.Success, "wrong card refused");
+            Equal(1, s.Data.GetMissionCounter("M11", "card_ollie"), "wrong card not consumed");
+            Equal(0, s.Data.GetMissionCounter("M11", "delivered_ada"), "wrong card not delivered");
+            Equal(wallet, s.Data.Coins, "wrong card spends nothing");
+
+            var ada = s.HandWelcomeCard("ada", "card_ada");
+            Check(ada.Success && ada.Completion == null, "first correct card is a partial step");
+            Equal(0, s.Data.GetMissionCounter("M11", "card_ada"), "card consumed");
+            Equal(1, s.Data.GetMissionCounter("M11", "delivered_ada"), "Ada delivery recorded");
+            Check(!s.HandWelcomeCard("ada", "card_ada").Success, "Ada cannot receive a second card");
+
+            Check(s.HandWelcomeCard("ollie", "card_ollie").Success, "Ollie card delivered");
+            var last = s.HandWelcomeCard("fern", "card_fern");
+            Check(last.Success && last.Completion != null, "third card completes M11");
+            Equal(12, last.Completion.CoinsAwarded, "M11 reward");
+            Equal(wallet + 12, s.Data.Coins, "M11 pays exactly once");
+            Check(last.Completion.OriginalChapterComplete, "original chapter stays complete");
+            Check(!last.Completion.AllTwentyComplete, "twenty-job flag stays false in P13");
+            Equal(MissionStatus.Completed, s.GetStatus("M11"), "M11 recorded complete");
+            Check(!s.HandWelcomeCard("fern", "card_fern").Success, "repeat delivery rejected");
+            Equal(wallet + 12, s.Data.Coins, "repeat awards nothing");
+        });
+
+        Run("M12 branches from M11 and rejects wrong quantities without loss", () =>
+        {
+            var s = CompleteM11(CompleteOriginalTen(Fresh(catalog)));
+            Equal(MissionStatus.Available, s.GetStatus("M12"), "M12 after M11");
+            Equal(MissionStatus.Available, s.GetStatus("M13"), "M13 after M11");
+            Equal(MissionStatus.Locked, s.GetStatus("M14"), "M14 waits for M12");
+            Equal(MissionStatus.Locked, s.GetStatus("M15"), "M15 waits for M13");
+            int wallet = s.Data.Coins;
+
+            Check(s.StartMission("M12").Success, "start M12");
+            var wrong = s.ServeBakeryOrder("milo", 1, 1);
+            Check(!wrong.Success, "wrong quantities refused");
+            Equal(0, s.Data.GetMissionCounter("M12", "order_milo"), "wrong order not served");
+            Equal(wallet, s.Data.Coins, "wrong order spends nothing");
+
+            var milo = s.ServeBakeryOrder("milo", 2, 1);
+            Check(milo.Success && milo.Completion == null, "Milo order served");
+            Equal(1, s.Data.GetMissionCounter("M12", "order_milo"), "Milo recorded");
+            Check(!s.ServeBakeryOrder("milo", 2, 1).Success, "Milo cannot be served twice");
+            Check(s.ServeBakeryOrder("fern", 3, 2).Success, "Fern order served");
+            var last = s.ServeBakeryOrder("ivy", 1, 3);
+            Check(last.Success && last.Completion != null, "third order completes M12");
+            Equal(14, last.Completion.CoinsAwarded, "M12 reward");
+            Equal(wallet + 14, s.Data.Coins, "M12 pays exactly once");
+            Equal(MissionStatus.Available, s.GetStatus("M14"), "M14 opens after M12");
+            Equal(MissionStatus.Locked, s.GetStatus("M16"), "M16 still needs M15");
+            Check(!s.ServeBakeryOrder("ivy", 1, 3).Success, "completed bakery refuses more orders");
+            Equal(wallet + 14, s.Data.Coins, "repeat bakery award nothing");
+        });
+
+        Run("M13 keeps wrong-shelf books and pays 14 once", () =>
+        {
+            var s = CompleteM11(CompleteOriginalTen(Fresh(catalog)));
+            int wallet = s.Data.Coins;
+            Check(s.StartMission("M13").Success, "start M13");
+
+            Check(!s.ShelveBook("sun", "sun").Success, "cannot shelve an uncollected book");
+            Check(s.CollectBook("sun").Success, "collect SUN");
+            Check(s.Data.CollectedPickups.Contains("book_sun"), "SUN pickup recorded");
+            Equal(1, s.Data.GetMissionCounter("M13", "has_sun"), "SUN in hand");
+            Check(!s.CollectBook("sun").Success, "SUN cannot be collected twice");
+
+            var wrong = s.ShelveBook("sun", "moon");
+            Check(!wrong.Success, "wrong shelf refused");
+            Equal(1, s.Data.GetMissionCounter("M13", "has_sun"), "wrong shelf keeps SUN");
+            Equal(0, s.Data.GetMissionCounter("M13", "shelf_moon"), "wrong shelf not filled");
+            Equal(wallet, s.Data.Coins, "wrong shelf spends nothing");
+
+            Check(s.ShelveBook("sun", "sun").Success, "SUN shelved correctly");
+            Equal(0, s.Data.GetMissionCounter("M13", "has_sun"), "SUN leaves hand");
+            Equal(1, s.Data.GetMissionCounter("M13", "shelf_sun"), "SUN shelf filled");
+            foreach (string book in new[] { "moon", "tree" })
+            {
+                Check(s.CollectBook(book).Success, $"collect {book}");
+                Check(s.ShelveBook(book, book).Success, $"shelve {book}");
+            }
+            Check(s.CollectBook("star").Success, "collect STAR");
+            var last = s.ShelveBook("star", "star");
+            Check(last.Success && last.Completion != null, "fourth book completes M13");
+            Equal(14, last.Completion.CoinsAwarded, "M13 reward");
+            Equal(wallet + 14, s.Data.Coins, "M13 pays exactly once");
+            Equal(MissionStatus.Available, s.GetStatus("M15"), "M15 opens after M13");
+            Equal(MissionStatus.Locked, s.GetStatus("M16"), "M16 still needs M14");
+            Check(!s.ShelveBook("star", "star").Success, "completed library refuses more books");
+            Equal(wallet + 14, s.Data.Coins, "repeat library award nothing");
+        });
+
+        Run("M14 validates sign and arrow, allows undo and pays 16 once", () =>
+        {
+            var s = CompleteM12(CompleteM11(CompleteOriginalTen(Fresh(catalog))));
+            Equal(MissionStatus.Available, s.GetStatus("M14"), "M14 after M12");
+            int wallet = s.Data.Coins;
+            Check(s.StartMission("M14").Success, "start M14");
+
+            Check(!s.InstallRoadSign("market", "workshop", "west").Success,
+                "wrong sign refused");
+            Check(!s.InstallRoadSign("market", "market", "north").Success,
+                "wrong arrow refused");
+            Equal(0, s.Data.GetMissionCounter("M14", "sign_market"), "failed fits install nothing");
+            Equal(wallet, s.Data.Coins, "failed fits spend nothing");
+
+            Check(s.InstallRoadSign("market", "market", "west").Success, "MARKET sign installed");
+            Equal(1, s.Data.GetMissionCounter("M14", "sign_market"), "MARKET socket filled");
+            Check(s.RemoveRoadSign("market").Success, "MARKET sign removable for retry");
+            Equal(0, s.Data.GetMissionCounter("M14", "sign_market"), "MARKET socket cleared");
+            Check(s.InstallRoadSign("market", "market", "west").Success, "MARKET reinstalled");
+
+            Check(s.InstallRoadSign("workshop", "workshop", "north").Success,
+                "WORKSHOP sign installed");
+            var last = s.InstallRoadSign("green", "green", "south");
+            Check(last.Success && last.Completion != null, "GREEN sign completes M14");
+            Equal(16, last.Completion.CoinsAwarded, "M14 reward");
+            Equal(wallet + 16, s.Data.Coins, "M14 pays exactly once");
+            Equal(MissionStatus.Locked, s.GetStatus("M16"), "M16 still needs M15");
+            Check(!s.InstallRoadSign("green", "green", "south").Success,
+                "completed signs are permanent");
+            Equal(wallet + 16, s.Data.Coins, "repeat sign award nothing");
+        });
+
+        Run("M15 repeats the colour pattern, allows correction and pays 16 once", () =>
+        {
+            var s = CompleteM13(CompleteM11(CompleteOriginalTen(Fresh(catalog))));
+            Equal(MissionStatus.Available, s.GetStatus("M15"), "M15 after M13");
+            int wallet = s.Data.Coins;
+            Check(s.StartMission("M15").Success, "start M15");
+            Equal(1, s.Data.GetMissionCounter("M15", "pad0"),
+                "first RED example is planted on start");
+            Equal(2, s.Data.GetMissionCounter("M15", "pad1"),
+                "second BLUE example is planted on start");
+
+            Check(s.PlantGarden(0, "blue").Success, "wrong colour is allowed as a correction step");
+            Equal(2, s.Data.GetMissionCounter("M15", "pad0"), "pad shows blue");
+            Check(s.PlantGarden(0, "empty").Success, "pad can be cleared");
+            Equal(0, s.Data.GetMissionCounter("M15", "pad0"), "pad cleared");
+            Check(s.StartMission("M12").Success, "switch away from M15");
+            Check(s.StartMission("M15").Success, "switch back to M15");
+            Equal(0, s.Data.GetMissionCounter("M15", "pad0"),
+                "a cleared example pad is not silently re-seeded");
+            Equal(2, s.Data.GetMissionCounter("M15", "pad1"), "the second example stays blue");
+            Check(s.PlantGarden(0, "red").Success, "pad replanted red");
+            Equal(wallet, s.Data.Coins, "garden uses unlimited job stock, not coins");
+            Check(!MissionRules.IsObjectiveComplete(s.Data, "M15"), "one pad is not the pattern");
+            Check(!s.PlantGarden(6, "red").Success, "non-existent pad is rejected");
+            Check(s.StartMission("M15").Success, "M15 can be resumed after correction");
+            Equal(wallet, s.Data.Coins, "garden corrections never touch the wallet");
+        });
+
+        Run("M15 final plant awards 16 once and opens M16 with M14", () =>
+        {
+            var s = CompleteM14(CompleteM12(CompleteM11(CompleteOriginalTen(Fresh(catalog)))));
+            s = CompleteM13(s);
+            int wallet = s.Data.Coins;
+            Check(s.StartMission("M15").Success, "start M15 for final pattern");
+            MissionCompletionResult last = null;
+            for (int i = 0; i < ChapterTwoRules.GardenPattern.Length; i++)
+            {
+                var planted = s.PlantGarden(i, ChapterTwoRules.GardenPattern[i]);
+                Check(planted.Success, $"plant pattern pad {i + 1}");
+                if (planted.Completion != null) last = planted.Completion;
+            }
+            Check(last != null, "final pad completes M15");
+            Equal(16, last.CoinsAwarded, "M15 reward");
+            Equal(wallet + 16, s.Data.Coins, "M15 pays exactly once");
+            Equal(MissionStatus.Available, s.GetStatus("M16"),
+                "M16 opens after both M14 and M15");
+            Check(!s.PlantGarden(0, "red").Success, "completed garden refuses more planting");
+            Equal(wallet + 16, s.Data.Coins, "repeat garden award nothing");
+
+            int before = s.Data.Coins;
+            Check(!s.CompleteActive().Success, "no active mission remains after M15");
+            Equal(before, s.Data.Coins, "no stray completion reward");
+        });
+
+        Run("M12 and M13 branch in either order", () =>
+        {
+            var s = CompleteM11(CompleteOriginalTen(Fresh(catalog)));
+            s = CompleteM13(s);
+            Equal(MissionStatus.Available, s.GetStatus("M12"), "M12 remains available after M13");
+            Equal(MissionStatus.Available, s.GetStatus("M15"), "M15 opens from M13");
+            Equal(MissionStatus.Locked, s.GetStatus("M14"), "M14 still waits for M12");
+            s = CompleteM12(s);
+            Equal(MissionStatus.Available, s.GetStatus("M14"), "M14 opens after the later M12");
+            s = CompleteM14(s);
+            s = CompleteM15(s);
+            Equal(MissionStatus.Available, s.GetStatus("M16"),
+                "M16 opens after both branches complete in reverse order");
+            Equal(15, s.Data.CompletedMissions.Distinct().Count(),
+                "fifteen completions after the first chapter-two half");
+        });
+
+        Run("chapter-two partial progress survives save and reload", () =>
+        {
+            var s = CompleteOriginalTen(Fresh(catalog));
+            s.Data.CelebrationSeen = true;
+            Check(s.StartMission("M11").Success, "start M11 before saving");
+            Check(s.HandWelcomeCard("ada", "card_ada").Success, "deliver one card before saving");
+            int wallet = s.Data.Coins;
+
+            string dir = TempDirectory("chapter-two-save");
+            try
+            {
+                string path = Path.Combine(dir, "save.json");
+                SaveService.Save(s.Data, path, catalog);
+                var loaded = SaveService.Load(path, catalog);
+                Check(loaded.Success, loaded.Message);
+                Equal(SaveService.CurrentVersion, loaded.Data.SchemaVersion, "current schema");
+                Equal("M11", loaded.Data.ActiveMission, "active M11 preserved");
+                Equal(1, loaded.Data.GetMissionCounter("M11", "delivered_ada"), "Ada preserved");
+                Equal(0, loaded.Data.GetMissionCounter("M11", "card_ada"), "spent card preserved");
+                Equal(1, loaded.Data.GetMissionCounter("M11", "card_ollie"), "Ollie card preserved");
+                Equal(1, loaded.Data.GetMissionCounter("M11", "card_fern"), "Fern card preserved");
+                Equal(wallet, loaded.Data.Coins, "wallet preserved");
+                Check(loaded.Data.CelebrationSeen, "original M10 celebration preserved");
+                Check(!loaded.Data.FestivalSeen, "second finale still unseen");
+                Equal(10, loaded.Data.CompletedMissions.Count, "ten original completions preserved");
+
+                var resumed = new MissionService(loaded.Data, catalog);
+                Check(resumed.HandWelcomeCard("ollie", "card_ollie").Success, "resume Ollie");
+                var last = resumed.HandWelcomeCard("fern", "card_fern");
+                Check(last.Success && last.Completion != null, "resume completes M11");
+                Equal(12, last.Completion.CoinsAwarded, "resumed reward");
+                Equal(wallet + 12, resumed.Data.Coins, "resumed reward paid once");
+                SaveService.Save(resumed.Data, path, catalog);
+                var reloaded = SaveService.Load(path, catalog);
+                Equal(11, reloaded.Data.CompletedMissions.Count, "M11 completion persisted");
+                Equal(wallet + 12, reloaded.Data.Coins, "wallet after resumed completion");
+                Check(!reloaded.Data.IsCompleted("M20"), "second chapter remains open");
+            }
+            finally
+            {
+                Directory.Delete(dir, true);
+            }
+        });
+
+        Run("schema 2 original-ten save upgrades to schema 3 intact", () =>
+        {
+            var old = BuildOriginalTenSave();
+            old.SchemaVersion = 2;
+            var node = JsonSerializer.SerializeToNode(old, new JsonSerializerOptions { WriteIndented = true })!;
+            node.AsObject().Remove("FestivalSeen");
+
+            string dir = TempDirectory("chapter-two-migration");
+            try
+            {
+                string path = Path.Combine(dir, SaveService.DefaultFileName);
+                File.WriteAllText(path, node.ToJsonString());
+                var loaded = SaveService.Load(path, catalog);
+                Check(loaded.Success, loaded.Message);
+                Equal(SaveService.CurrentVersion, loaded.Data.SchemaVersion, "migrated schema");
+                Equal(10, loaded.Data.CompletedMissions.Count, "ten completions preserved");
+                Check(loaded.Data.CelebrationSeen, "original celebration preserved");
+                Check(!loaded.Data.FestivalSeen, "second finale is not invented");
+                Check(loaded.Data.Coins == old.Coins, "wallet preserved");
+                Check(loaded.Data.BridgePieces.Count == BuildRules.BridgeSockets.Length,
+                    "bridge world state preserved");
+                Check(loaded.Data.IsCompleted("M10"), "M10 remains complete");
+                var service = new MissionService(loaded.Data, catalog);
+                Equal(MissionStatus.Available, service.GetStatus("M11"), "M11 available on upgrade");
+
+                SaveService.Save(loaded.Data, path, catalog);
+                var rewriten = SaveService.Load(path, catalog);
+                Check(rewriten.Success, "rewritten upgraded save loads");
+                Equal(SaveService.CurrentVersion, rewriten.Data.SchemaVersion,
+                    "rewritten save uses the current schema");
+                Check(!rewriten.Data.FestivalSeen, "rewritten save keeps the festival unseen");
+            }
+            finally
+            {
+                Directory.Delete(dir, true);
+            }
+        });
+
+        Run("celebration and festival markers require their own finales", () =>
+        {
+            var data = BuildOriginalTenSave();
+            Check(SaveValidation.Validate(data, catalog).IsValid,
+                "valid original-ten save may mark the M10 celebration");
+            data.CelebrationSeen = true;
+            Check(SaveValidation.Validate(data, catalog).IsValid,
+                "celebrated original-ten save is valid");
+            data.CompletedMissions.Remove("M10");
+            data.FestivalSeen = true;
+            var invalid = SaveValidation.Validate(data, catalog);
+            Check(!invalid.IsValid, "markers without their finales are rejected");
+            data.FestivalSeen = false;
+            var missingCelebration = SaveValidation.Validate(data, catalog);
+            Check(!missingCelebration.IsValid, "M10 celebration without M10 is rejected");
+            Check(missingCelebration.Message.Contains("celebration"),
+                "celebration validation is explicit");
         });
 
         Run("fresh customisation state is safe and child-friendly", () =>
@@ -570,7 +892,7 @@ internal static class Program
             }
         });
 
-        Run("schema 1 saves migrate to schema 2 with all progress intact", () =>
+        Run("schema 1 saves migrate to the current schema with all progress intact", () =>
         {
             string dir = TempDirectory("patchwork-save-schema-migration");
             string path = Path.Combine(dir, SaveService.DefaultFileName);
@@ -589,6 +911,7 @@ internal static class Program
                 Check(loaded.Success, "schema 1 save loads");
                 Equal(SaveService.CurrentVersion, loaded.Data.SchemaVersion,
                     "schema 1 is migrated to the current schema in memory");
+                Check(!loaded.Data.FestivalSeen, "schema 1 migration leaves the festival unseen");
                 Equal(24, loaded.Data.Coins, "wallet survives migration");
                 Equal("M03", loaded.Data.ActiveMission, "active mission survives migration");
                 Equal(2, loaded.Data.CompletedMissions.Count, "completed missions survive migration");
@@ -610,8 +933,9 @@ internal static class Program
                 SaveService.Save(loaded.Data, path, catalog);
                 using (var document = JsonDocument.Parse(File.ReadAllText(path)))
                 {
-                    Equal(2, document.RootElement.GetProperty("SchemaVersion").GetInt32(),
-                        "rewritten save uses schema 2");
+                    Equal(SaveService.CurrentVersion,
+                        document.RootElement.GetProperty("SchemaVersion").GetInt32(),
+                        "rewritten save uses the current schema");
                 }
 
                 Check(File.Exists(SaveService.BackupPath(path)),
@@ -623,19 +947,19 @@ internal static class Program
                 }
 
                 var reloaded = SaveService.Load(path, catalog);
-                Check(reloaded.Success, "schema 2 save loads");
+                Check(reloaded.Success, "current-schema save loads");
                 Equal(SaveService.CurrentVersion, reloaded.Data.SchemaVersion,
-                    "schema 2 remains current");
-                Equal(24, reloaded.Data.Coins, "wallet survives the schema 2 rewrite");
-                Equal("M03", reloaded.Data.ActiveMission, "active mission survives the schema 2 rewrite");
+                    "rewritten schema is current");
+                Equal(24, reloaded.Data.Coins, "wallet survives the current-schema rewrite");
+                Equal("M03", reloaded.Data.ActiveMission, "active mission survives the current-schema rewrite");
                 Equal(2, reloaded.Data.CompletedMissions.Count,
-                    "completed missions survive the schema 2 rewrite");
-                Equal(2, reloaded.Data.TutorialsSeen.Count, "tutorials survive the schema 2 rewrite");
-                Equal(2, reloaded.Data.CollectedPickups.Count, "pickups survive the schema 2 rewrite");
-                Equal(1, reloaded.Data.GetItem("apple"), "inventory survives the schema 2 rewrite");
-                Equal(3.5f, reloaded.Data.Player.X, "player position survives the schema 2 rewrite");
+                    "completed missions survive the current-schema rewrite");
+                Equal(2, reloaded.Data.TutorialsSeen.Count, "tutorials survive the current-schema rewrite");
+                Equal(2, reloaded.Data.CollectedPickups.Count, "pickups survive the current-schema rewrite");
+                Equal(1, reloaded.Data.GetItem("apple"), "inventory survives the current-schema rewrite");
+                Equal(3.5f, reloaded.Data.Player.X, "player position survives the current-schema rewrite");
                 Check(!reloaded.Data.Settings.MusicEnabled && reloaded.Data.Settings.ReducedMotion,
-                    "settings survive the schema 2 rewrite");
+                    "settings survive the current-schema rewrite");
                 Equal(CharacterCustomisation.Boy, reloaded.Data.CharacterPreset,
                     "migrated preset remains Boy");
                 Equal(CharacterCustomisation.DefaultOutfit, reloaded.Data.EquippedOutfit,
@@ -759,7 +1083,7 @@ internal static class Program
             }
         });
 
-        Run("incompatible schema 3 and 99 saves are rejected without modification", () =>
+        Run("incompatible newer schema 4 and 99 saves are rejected without modification", () =>
         {
             string dir = TempDirectory("patchwork-save-invalid");
             string path = Path.Combine(dir, SaveService.DefaultFileName);
@@ -768,7 +1092,7 @@ internal static class Program
                 var missing = SaveService.Load(path);
                 Check(!missing.Success, "missing save is not loaded");
 
-                foreach (int version in new[] { 3, 99 })
+                foreach (int version in new[] { 4, 99 })
                 {
                     // These values are deliberately incompatible with the
                     // current GameData types. The schema must be classified
@@ -1916,6 +2240,119 @@ internal static class Program
         string path = Path.Combine(Path.GetTempPath(), prefix + "-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(path);
         return path;
+    }
+
+    private static MissionService CompleteOriginalExtras(MissionService service)
+    {
+        var m05 = service.StartMission("M05");
+        if (!m05.Success) throw new Exception("M05 setup start failed: " + m05.Message);
+        for (int gate = 1; gate <= 4; gate++)
+            if (!service.AdvanceCheckpoint(gate).Success)
+                throw new Exception($"M05 setup gate {gate} failed");
+        if (!service.CompleteActive(0).Success) throw new Exception("M05 setup completion failed");
+
+        var m06 = service.StartMission("M06");
+        if (!m06.Success) throw new Exception("M06 setup start failed: " + m06.Message);
+        if (!service.CollectPickup("blue_parcel_0", "blue_parcel", "M06", 2).Success)
+            throw new Exception("M06 setup blue 1 failed");
+        if (!service.CollectPickup("blue_parcel_1", "blue_parcel", "M06", 2).Success)
+            throw new Exception("M06 setup blue 2 failed");
+        if (!service.CollectPickup("orange_parcel_0", "orange_parcel", "M06", 1).Success)
+            throw new Exception("M06 setup orange failed");
+        if (!service.DeliverBlueParcels().Success) throw new Exception("M06 setup blue delivery failed");
+        if (!service.DeliverOrangeParcel().Success) throw new Exception("M06 setup orange delivery failed");
+        if (!service.CompleteActive(0).Success) throw new Exception("M06 setup completion failed");
+
+        var m09 = service.StartMission("M09");
+        if (!m09.Success) throw new Exception("M09 setup start failed: " + m09.Message);
+        for (int gate = 1; gate <= 4; gate++)
+            if (!service.AdvanceCheckpoint(gate).Success)
+                throw new Exception($"M09 setup gate {gate} failed");
+        if (!service.CompleteActive(0).Success) throw new Exception("M09 setup completion failed");
+        return service;
+    }
+
+    private static MissionService CompleteOriginalTen(MissionService service) =>
+        CompleteOriginalExtras(CompleteM10(service));
+
+    private static MissionService CompleteM11(MissionService service)
+    {
+        var started = service.StartMission("M11");
+        if (!started.Success) throw new Exception("M11 setup start failed: " + started.Message);
+        foreach (string npc in ChapterTwoRules.CardNpcIds)
+        {
+            var result = service.HandWelcomeCard(npc, ChapterTwoRules.CardFor(npc));
+            if (!result.Success) throw new Exception($"M11 setup card for {npc} failed: " + result.Message);
+        }
+        if (!service.Data.IsCompleted("M11")) throw new Exception("M11 setup did not complete");
+        return service;
+    }
+
+    private static MissionService CompleteM12(MissionService service)
+    {
+        var started = service.StartMission("M12");
+        if (!started.Success) throw new Exception("M12 setup start failed: " + started.Message);
+        foreach (var order in ChapterTwoRules.BakeryOrders)
+        {
+            var result = service.ServeBakeryOrder(order.CustomerId, order.Bread, order.Cakes);
+            if (!result.Success) throw new Exception($"M12 setup {order.CustomerId} failed: " + result.Message);
+        }
+        if (!service.Data.IsCompleted("M12")) throw new Exception("M12 setup did not complete");
+        return service;
+    }
+
+    private static MissionService CompleteM13(MissionService service)
+    {
+        var started = service.StartMission("M13");
+        if (!started.Success) throw new Exception("M13 setup start failed: " + started.Message);
+        foreach (string book in ChapterTwoRules.BookIds)
+        {
+            if (!service.CollectBook(book).Success)
+                throw new Exception($"M13 setup collect {book} failed");
+            if (!service.ShelveBook(book, book).Success)
+                throw new Exception($"M13 setup shelve {book} failed");
+        }
+        if (!service.Data.IsCompleted("M13")) throw new Exception("M13 setup did not complete");
+        return service;
+    }
+
+    private static MissionService CompleteM14(MissionService service)
+    {
+        var started = service.StartMission("M14");
+        if (!started.Success) throw new Exception("M14 setup start failed: " + started.Message);
+        foreach (var socket in ChapterTwoRules.SignSockets)
+        {
+            var result = service.InstallRoadSign(socket.SocketId, socket.SignId, socket.Direction);
+            if (!result.Success) throw new Exception($"M14 setup {socket.SocketId} failed: " + result.Message);
+        }
+        if (!service.Data.IsCompleted("M14")) throw new Exception("M14 setup did not complete");
+        return service;
+    }
+
+    private static MissionService CompleteM15(MissionService service)
+    {
+        var started = service.StartMission("M15");
+        if (!started.Success) throw new Exception("M15 setup start failed: " + started.Message);
+        for (int i = 0; i < ChapterTwoRules.GardenPattern.Length; i++)
+            if (!service.PlantGarden(i, ChapterTwoRules.GardenPattern[i]).Success)
+                throw new Exception($"M15 setup pad {i + 1} failed");
+        if (!service.Data.IsCompleted("M15")) throw new Exception("M15 setup did not complete");
+        return service;
+    }
+
+    private static GameData BuildOriginalTenSave()
+    {
+        var data = new GameData { Coins = 130, CelebrationSeen = true };
+        foreach (string id in MissionRules.OriginalMissionIds)
+            data.CompletedMissions.Add(id);
+        data.BridgePieces.AddRange(BuildRules.BridgeSockets);
+        data.SwingPieces.AddRange(BuildRules.SwingSockets);
+        data.ParkPlacements.Add(new PlacedItem("bench", "park0"));
+        data.ParkPlacements.Add(new PlacedItem("flowerbed", "park1"));
+        data.ParkPlacements.Add(new PlacedItem("lamp", "park2"));
+        foreach (var pair in FurnitureRules.Required)
+            data.FurnitureOwned[pair.Key] = pair.Value;
+        return data;
     }
 
     private static MissionService CompleteM01(MissionService service)

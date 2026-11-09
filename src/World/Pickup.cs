@@ -73,6 +73,25 @@ public partial class Pickup : Interactable
                 Geo.Sphere(_visual, new Vector3(0.3f, 0.3f, 0.18f), 0.26f, Palette.StoneDark, 5, 2);
                 Geo.Sphere(_visual, new Vector3(-0.26f, 0.26f, -0.12f), 0.22f, Palette.Stone, 5, 2);
                 break;
+            case "book_sun":
+            case "book_moon":
+            case "book_tree":
+            case "book_star":
+            {
+                string word = ItemType.Substring(5).ToUpperInvariant();
+                Color cover = ItemType switch
+                {
+                    "book_sun" => Palette.Yellow,
+                    "book_moon" => Palette.Blue,
+                    "book_tree" => Palette.Grass,
+                    _ => Palette.Pink,
+                };
+                Geo.Box(_visual, new Vector3(0, 0.55f, 0), new Vector3(0.55f, 0.8f, 0.18f), cover);
+                Geo.Box(_visual, new Vector3(0, 0.55f, 0.1f), new Vector3(0.44f, 0.68f, 0.04f), Palette.Cream);
+                Geo.Box(_visual, new Vector3(0, 0.55f, 0.13f), new Vector3(0.36f, 0.08f, 0.02f), Palette.Navy);
+                Geo.Label(_visual, new Vector3(0, 1.18f, 0), word, 64, Palette.Navy, true, 0.006f);
+                break;
+            }
             case "blue_parcel":
             case "orange_parcel":
                 Color parcelColor = ItemType == "blue_parcel" ? Palette.Blue : Palette.Orange;
@@ -91,9 +110,12 @@ public partial class Pickup : Interactable
             "wood" => "wood",
             "stone" => "stone",
             "blue_parcel" or "orange_parcel" => "parcel",
+            "book_sun" or "book_moon" or "book_tree" or "book_star" => "library",
             _ => null,
         };
-        if (iconName != null)
+        // Books carry their own large cover word. A floating generic library
+        // icon would overlap that word at reading distance.
+        if (iconName != null && !ItemType.StartsWith("book_", StringComparison.Ordinal))
             Geo.IconSprite(_visual, new Vector3(0, 1.15f, 0), iconName, 0.015f, true);
         _baseY = _visual.Position.Y;
     }

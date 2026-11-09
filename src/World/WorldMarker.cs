@@ -51,7 +51,17 @@ public partial class WorldMarker : Node3D
         if (_icon != null)
         {
             var texture = Geo.IconTexture(iconName);
-            if (texture != null && _icon.Texture != texture) _icon.Texture = texture;
+            if (texture != null)
+            {
+                if (_icon.Texture != texture)
+                {
+                    _icon.Texture = texture;
+                    // Mission icons arrive as 128 px PNGs while the original
+                    // SVG set is 48 px. Keep the floating marker the same
+                    // physical size for both.
+                    _icon.PixelSize = 0.032f * 48f / Mathf.Max(1, texture.GetWidth());
+                }
+            }
             _icon.Modulate = color.Lightened(0.2f);
         }
         if (_beamMaterial != null)

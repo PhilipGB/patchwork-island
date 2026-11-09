@@ -31,6 +31,11 @@ public static class MissionRules
             "M08" => HasParkPieces(data),
             "M09" => data.GetMissionCounter("M09", "checkpoint") >= 4,
             "M10" => HasHouseFurniture(data),
+            "M11" => ChapterTwoRules.M11Complete(data),
+            "M12" => ChapterTwoRules.M12Complete(data),
+            "M13" => ChapterTwoRules.M13Complete(data),
+            "M14" => ChapterTwoRules.M14Complete(data),
+            "M15" => ChapterTwoRules.M15Complete(data),
             _ => false,
         };
     }
@@ -111,6 +116,10 @@ public sealed class MissionCompletionResult
     public int CoinsAwarded;
     public int BonusCoins;
     public bool AllComplete;
+    /// <summary>All M01–M10 are complete (the original v1.0/v1.1 chapter).</summary>
+    public bool OriginalChapterComplete;
+    /// <summary>All M01–M20 are complete (the v1.2 chapter).</summary>
+    public bool AllTwentyComplete;
     /// <summary>Elapsed race time captured for the completion panel, when relevant.</summary>
     public double RaceSeconds;
 
@@ -128,6 +137,18 @@ public sealed class ActionOutcome
 {
     public bool Success;
     public string Message = "";
+}
+
+/// <summary>
+/// Result of one authored chapter-two interaction. A partial step has
+/// Success=true and no Completion; the final correct step carries the
+/// exactly-once MissionCompletionResult for Main to present.
+/// </summary>
+public sealed class GameplayOutcome
+{
+    public bool Success;
+    public string Message = "";
+    public MissionCompletionResult Completion;
 }
 
 /// <summary>
@@ -180,6 +201,7 @@ public sealed class MissionService
 
         bool switching = !string.IsNullOrEmpty(Data.ActiveMission) && Data.ActiveMission != missionId;
         Data.ActiveMission = missionId;
+        EnsureMissionStock(missionId);
         string switchNote = switching ? " Your other job keeps its progress." : "";
         return new MissionStartResult
         {
@@ -394,6 +416,210 @@ public sealed class MissionService
         };
     }
 
+    private void EnsureMissionStock(string missionId)
+    {
+        if (missionId == "M11")
+        {
+            if (Data.GetMissionCounter("M11", "stock_granted") > 0) return;
+            Data.SetMissionCounter("M11", "stock_granted", 1);
+            foreach (string npc in ChapterTwoRules.CardNpcIds)
+                Data.SetMissionCounter("M11", "card_" + npc, 1);
+            return;
+        }
+
+        // M15 teaches the pattern with the first RED/BLUE pair already planted.
+        // Only seed a genuinely new attempt; a player who clears a pad keeps
+        // that choice after switching jobs or reloading.
+        if (missionId == "M15" && !Data.MissionProgress.ContainsKey("M15"))
+        {
+            Data.SetMissionCounter("M15", "pad0", ChapterTwoRules.GardenCode("red"));
+            Data.SetMissionCounter("M15", "pad1", ChapterTwoRules.GardenCode("blue"));
+        }
+    }
+
+    // ------------------------------------------------- chapter two: M11 cards
+    public GameplayOutcome HandWelcomeCard(string npcId, string cardId)
+    {
+        if (Data.ActiveMission != "M11")
+            return FailGame("Start Meet the Neighbours at the JOBS board first.");
+        if (Data.IsCompleted("M11"))
+            return FailGame("The welcome cards are already delivered.");
+        string expectedCard = ChapterTwoRules.CardFor(npcId);
+        string expectedNpc = ChapterTwoRules.NpcForCard(cardId);
+        if (string.IsNullOrEmpty(expectedCard) || string.IsNullOrEmpty(expectedNpc))
+            return FailGame("That card does not belong to a villager.");
+        if (Data.GetMissionCounter("M11", $"delivered_{npcId}") >= 1)
+            return FailGame($"{ChapterTwoRules.CardLabel(cardId)} already has a welcome card.");
+        if (Data.GetMissionCounter("M11", $"card_{npcId}") <= 0)
+            return FailGame($"You do not have {ChapterTwoRules.CardLabel(expectedCard)}'s card any more.");
+
+        if (expectedNpc != npcId)
+            return FailGame($"That is {ChapterTwoRules.CardLabel(cardId)}'s card. Read the name and try the right neighbour.");
+
+        Data.SetMissionCounter("M11", $"card_{npcId}", 0);
+        Data.SetMissionCounter("M11", $"delivered_{npcId}", 1);
+        var outcome = new GameplayOutcome
+        {
+            Success = true,
+            Message = $"Correct! {ChapterTwoRules.CardLabel(cardId)} gets the {ChapterTwoRules.CardLabel(cardId)} card.",
+        };
+        if (ChapterTwoRules.M11Complete(Data))
+            outcome.Completion = CompleteActive(0);
+        return outcome;
+    }
+
+    // ------------------------------------------------------------- M12 bakery
+    public GameplayOutcome ServeBakeryOrder(string customerId, int bread, int cakes)
+    {
+        if (Data.ActiveMission != "M12")
+            return FailGame("Start Bakery Busy Day at the JOBS board first.");
+        if (Data.IsCompleted("M12"))
+            return FailGame("The bakery orders are already finished.");
+        var order = ChapterTwoRules.FindOrder(customerId);
+        if (order == null)
+            return FailGame("That customer is not waiting today.");
+        if (Data.GetMissionCounter("M12", $"order_{customerId}") >= 1)
+            return FailGame($"{order.CustomerName}'s order is already served.");
+        if (bread < 0 || cakes < 0)
+            return FailGame("Counts cannot be negative.");
+
+        if (bread != order.Bread || cakes != order.Cakes)
+            return FailGame($"That is not {order.CustomerName}'s order. The card says {order.Bread} bread and {order.Cakes} cakes.");
+
+        Data.SetMissionCounter("M12", $"order_{customerId}", 1);
+        var outcome = new GameplayOutcome
+        {
+            Success = true,
+            Message = $"{order.CustomerName}: {bread} bread + {cakes} cakes. Correct!",
+        };
+        if (ChapterTwoRules.M12Complete(Data))
+            outcome.Completion = CompleteActive(0);
+        return outcome;
+    }
+
+    // -------------------------------------------------------------- M13 books
+    public GameplayOutcome CollectBook(string bookId)
+    {
+        if (Data.ActiveMission != "M13")
+            return FailGame("Start Lost Library Books at the JOBS board first.");
+        if (Data.IsCompleted("M13"))
+            return FailGame("The library is already tidy.");
+        if (!ChapterTwoRules.IsBook(bookId))
+            return FailGame("That is not one of Ollie's books.");
+        string pickupId = ChapterTwoRules.BookPickupId(bookId);
+        if (Data.CollectedPickups.Contains(pickupId))
+            return FailGame("You already have that book.");
+        if (Data.GetMissionCounter("M13", ChapterTwoRules.ShelfKey(bookId)) >= 1)
+            return FailGame("That book is already on its shelf.");
+
+        Data.CollectedPickups.Add(pickupId);
+        Data.SetMissionCounter("M13", ChapterTwoRules.HasBookKey(bookId), 1);
+        return new GameplayOutcome
+        {
+            Success = true,
+            Message = $"{ChapterTwoRules.BookLabel(bookId)} book collected. Take it to Ollie's shelves.",
+        };
+    }
+
+    public GameplayOutcome ShelveBook(string bookId, string shelfId)
+    {
+        if (Data.ActiveMission != "M13")
+            return FailGame("Start Lost Library Books at the JOBS board first.");
+        if (Data.IsCompleted("M13"))
+            return FailGame("The library is already tidy.");
+        if (!ChapterTwoRules.IsBook(bookId) || !ChapterTwoRules.IsBook(shelfId))
+            return FailGame("Choose a labelled book and shelf.");
+        if (Data.GetMissionCounter("M13", ChapterTwoRules.HasBookKey(bookId)) <= 0)
+            return FailGame($"You are not carrying the {ChapterTwoRules.BookLabel(bookId)} book.");
+        if (!string.Equals(bookId, shelfId, StringComparison.Ordinal))
+            return FailGame($"The {ChapterTwoRules.BookLabel(bookId)} book does not belong on the {ChapterTwoRules.BookLabel(shelfId)} shelf.");
+
+        Data.SetMissionCounter("M13", ChapterTwoRules.HasBookKey(bookId), 0);
+        Data.SetMissionCounter("M13", ChapterTwoRules.ShelfKey(bookId), 1);
+        var outcome = new GameplayOutcome
+        {
+            Success = true,
+            Message = $"{ChapterTwoRules.BookLabel(bookId)} matched to the {ChapterTwoRules.BookLabel(bookId)} shelf.",
+        };
+        if (ChapterTwoRules.M13Complete(Data))
+            outcome.Completion = CompleteActive(0);
+        return outcome;
+    }
+
+    // --------------------------------------------------------------- M14 signs
+    public GameplayOutcome InstallRoadSign(string socketId, string signId, string direction)
+    {
+        if (Data.ActiveMission != "M14")
+            return FailGame("Start Road Sign Rescue at the JOBS board first.");
+        if (Data.IsCompleted("M14"))
+            return FailGame("All road signs are already repaired.");
+        var socket = ChapterTwoRules.FindSocket(socketId);
+        if (socket == null)
+            return FailGame("That is not a road sign socket.");
+        if (!ChapterTwoRules.SignIds.Contains(signId) || !ChapterTwoRules.Directions.Contains(direction))
+            return FailGame("Choose one of the three signs and a direction.");
+        if (Data.GetMissionCounter("M14", $"sign_{socketId}") >= 1)
+            return FailGame($"{socket.Label} socket is already repaired.");
+        if (!ChapterTwoRules.SignPlacementMatches(socketId, signId, direction))
+            return FailGame($"That sign or arrow does not fit the {socket.Label} socket. Try another direction.");
+
+        Data.SetMissionCounter("M14", $"sign_{socketId}", 1);
+        var outcome = new GameplayOutcome
+        {
+            Success = true,
+            Message = $"{ChapterTwoRules.SignLabel(signId)} {ChapterTwoRules.ArrowFor(direction)} installed.",
+        };
+        if (ChapterTwoRules.M14Complete(Data))
+            outcome.Completion = CompleteActive(0);
+        return outcome;
+    }
+
+    public GameplayOutcome RemoveRoadSign(string socketId)
+    {
+        if (Data.ActiveMission != "M14")
+            return FailGame("Start Road Sign Rescue at the JOBS board first.");
+        if (Data.IsCompleted("M14"))
+            return FailGame("Repaired road signs are permanent.");
+        if (Data.GetMissionCounter("M14", $"sign_{socketId}") <= 0)
+            return FailGame("That socket is already empty.");
+        Data.SetMissionCounter("M14", $"sign_{socketId}", 0);
+        return new GameplayOutcome { Success = true, Message = "Sign removed. Try again when ready." };
+    }
+
+    // -------------------------------------------------------------- M15 garden
+    public GameplayOutcome PlantGarden(int padIndex, string color)
+    {
+        if (Data.ActiveMission != "M15")
+            return FailGame("Start Garden Patterns at the JOBS board first.");
+        if (Data.IsCompleted("M15"))
+            return FailGame("The garden pattern is already finished.");
+        if (padIndex < 0 || padIndex >= ChapterTwoRules.GardenPattern.Length)
+            return FailGame("That is not a garden pad.");
+        int code = ChapterTwoRules.GardenCode(color);
+        if (string.Equals(color, "empty", StringComparison.Ordinal))
+        {
+            Data.SetMissionCounter("M15", $"pad{padIndex}", 0);
+            return new GameplayOutcome { Success = true, Message = "Flower cleared. Seed stock is unlimited." };
+        }
+        if (code == 0)
+            return FailGame("Choose a RED or BLUE flower.");
+
+        Data.SetMissionCounter("M15", $"pad{padIndex}", code);
+        bool correct = ChapterTwoRules.GardenPadMatches(padIndex, color);
+        var outcome = new GameplayOutcome
+        {
+            Success = true,
+            Message = correct
+                ? $"{color.ToUpperInvariant()} flower planted on pad {padIndex + 1}."
+                : $"That pad needs a different colour. Try again — nothing is lost.",
+        };
+        if (ChapterTwoRules.M15Complete(Data))
+            outcome.Completion = CompleteActive(0);
+        return outcome;
+    }
+
+    private static GameplayOutcome FailGame(string message) => new() { Success = false, Message = message };
+
     public MissionCompletionResult CompleteActive(int bonusCoins = 0)
     {
         if (string.IsNullOrEmpty(Data.ActiveMission))
@@ -434,6 +660,7 @@ public sealed class MissionService
         Data.Coins += total;
         string completedId = mission.Id;
         Data.ActiveMission = "";
+        bool allTwenty = Data.CompletedMissions.Distinct().Count() >= Catalog.Missions.Count;
 
         if (completedId == "M01")
             UnlockCosmetic("red_cap");
@@ -444,7 +671,9 @@ public sealed class MissionService
             Mission = mission,
             CoinsAwarded = mission.RewardCoins,
             BonusCoins = bonusCoins,
-            AllComplete = Data.CompletedMissions.Distinct().Count() >= Catalog.Missions.Count,
+            AllComplete = allTwenty,
+            OriginalChapterComplete = MissionRules.OriginalChapterComplete(Data),
+            AllTwentyComplete = allTwenty,
             Message = $"{mission.Title} complete! +{total} coins.",
         };
     }

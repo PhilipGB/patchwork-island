@@ -23,12 +23,21 @@ public partial class Main : Node3D
     private MissionCatalog _catalog;
     private GameData _data;
     private MissionService _missions;
-    private readonly HashSet<string> _implemented = new() { "M01", "M02", "M03", "M04", "M05", "M06", "M07", "M08", "M09", "M10" };
+    private readonly HashSet<string> _implemented = new()
+    {
+        "M01", "M02", "M03", "M04", "M05", "M06", "M07", "M08", "M09", "M10",
+        "M11", "M12", "M13", "M14", "M15",
+    };
     private readonly List<Pickup> _pickups = new();
     private readonly List<NpcActor> _npcs = new();
     private readonly Dictionary<string, NpcActor> _npcById = new(StringComparer.Ordinal);
     private readonly List<TrafficCar> _trafficCars = new();
     private NpcActor _talkingNpc;
+    private readonly List<Interactable> _signStations = new();
+    private readonly List<Interactable> _gardenStations = new();
+    private readonly List<Node3D> _signVisuals = new();
+    private readonly List<Node3D> _gardenFlowerRoots = new();
+    private readonly List<MeshInstance3D> _gardenFlowerHeads = new();
     private Interactable _jobStation;
     private Interactable _redHouseStation;
     private Interactable _workshopStation;
@@ -92,7 +101,7 @@ public partial class Main : Node3D
             ShowFatalContentError(ex.Message);
             return;
         }
-        if (HasUserArg("--selftest"))
+        if (HasUserArg("--selftest") || (IsChapterTest && RuntimeSelfTest.ChapterPhase == 0))
             DeleteSelfTestSaves("selftest-save.json");
         else if (IsRecoveryTest && RuntimeSelfTest.RecoveryPhase == 0)
             DeleteSelfTestSaves("selftest-recovery-save.json");
@@ -137,6 +146,7 @@ public partial class Main : Node3D
 
         CreateBuilderSystems();
         CreateStations();
+        CreateChapterTwoWorldVisuals();
         SpawnPickups();
         SpawnVillagers();
         SpawnTraffic();
@@ -230,6 +240,14 @@ public partial class Main : Node3D
             _hud.CloseModal();
             _player.SetControlEnabled(false);
             _ = CaptureP12();
+            return;
+        }
+        if (HasUserArg("--capture-p13"))
+        {
+            _started = true;
+            _hud.CloseModal();
+            _player.SetControlEnabled(false);
+            _ = CaptureP13();
             return;
         }
         if (HasUserArg("--perf-probe"))
@@ -339,13 +357,17 @@ public partial class Main : Node3D
 
     private static bool IsRallyTest => HasUserArg("--selftest-rally");
 
+    private static bool IsChapterTest => HasUserArg("--selftest-chapter");
+
     private static bool IsSelfTest =>
         HasUserArg("--selftest") || HasUserArg("--selftest-resume") || IsRecoveryTest ||
-        IsLivingTest || IsRallyTest;
+        IsLivingTest || IsRallyTest || IsChapterTest;
 
     private static bool IsSelfTestResume => HasUserArg("--selftest-resume");
 
-    private static bool LoadSelfTestSave => IsSelfTestResume || IsRecoveryTest;
+    private static bool LoadSelfTestSave =>
+        IsSelfTestResume || IsRecoveryTest ||
+        (IsChapterTest && RuntimeSelfTest.ChapterPhase > 0);
 
     /// <summary>
     /// F12, screenshot tours and scenario helpers are development tools. They
@@ -733,6 +755,140 @@ public partial class Main : Node3D
         _houseStation = Interactable.Create(this, _world.PlayerHouseDoor + new Vector3(0, 0.1f, -1.0f),
             "E: Go inside YOUR HOUSE", InteractHouseDoor, null, true, 3.2f, "HouseStation");
         _houseStation.SetPrompt(() => _data.ActiveMission == "M10" ? "E: Go inside YOUR HOUSE" : "E: Look at YOUR HOUSE");
+
+        for (int i = 0; i < _world.SignSocketPositions.Count; i++)
+        {
+            int index = i;
+            var station = Interactable.Create(this, _world.SignSocketPositions[i] + new Vector3(0, 0.1f, 0),
+                "E: Road sign socket", () => InteractSignSocket(index), null, true, 3.2f,
+                $"SignSocketStation_{index}");
+            station.SetPrompt(() => SignSocketPrompt(index));
+            _signStations.Add(station);
+        }
+        for (int i = 0; i < _world.GardenPads.Count; i++)
+        {
+            int index = i;
+            var station = Interactable.Create(this, _world.GardenPads[i] + new Vector3(0, 0.1f, 0),
+                "E: Garden pad", () => InteractGardenPad(index), null, true, 3.0f,
+                $"GardenPadStation_{index}");
+            station.SetPrompt(() => GardenPadPrompt(index));
+            _gardenStations.Add(station);
+        }
+    }
+
+    private string SignSocketPrompt(int index)
+    {
+        string socketId = ChapterTwoRules.SignSockets[index].SocketId;
+        string label = ChapterTwoRules.SignSockets[index].Label;
+        if (_data.GetMissionCounter("M14", $"sign_{socketId}") >= 1)
+            return $"E: {label} sign repaired";
+        if (_data.ActiveMission == "M14")
+            return $"E: Repair {label} sign socket";
+        return "E: Road sign socket";
+    }
+
+    private string GardenPadPrompt(int index)
+    {
+        if (_data.ActiveMission == "M15")
+            return $"E: Garden pad {index + 1}";
+        if (_data.IsCompleted("M15"))
+            return $"E: Garden pad {index + 1}";
+        return "E: Community garden pad";
+    }
+
+    private void CreateChapterTwoWorldVisuals()
+    {
+        foreach (var root in _world.SignSocketRoots)
+        {
+            var socket = ChapterTwoRules.FindSocket(root.Name.ToString().Replace("SignSocket_", ""));
+            if (socket == null) continue;
+            var board = Geo.SignBoard(root, new Vector3(0, 2.05f, 0), 0f,
+                $"{socket.Label} {ChapterTwoRules.ArrowFor(socket.Direction)}",
+                Palette.Blue, 2.15f, 0.72f, null, 28);
+            board.Visible = false;
+            _signVisuals.Add(board);
+        }
+
+        foreach (var pad in _world.GardenPads)
+        {
+            var root = new Node3D { Name = "GardenFlower", Position = pad + new Vector3(0, 0.1f, 0), Visible = false };
+            AddChild(root);
+            Geo.Cylinder(root, new Vector3(0, 0.25f, 0), 0.035f, 0.035f, 0.5f, Palette.GrassDark, 5);
+            var head = Geo.Sphere(root, new Vector3(0, 0.56f, 0), 0.17f, Palette.Red, 7, 4);
+            _gardenFlowerRoots.Add(root);
+            _gardenFlowerHeads.Add(head);
+        }
+    }
+
+    private void InteractSignSocket(int index)
+    {
+        if (index < 0 || index >= ChapterTwoRules.SignSockets.Count) return;
+        string socketId = ChapterTwoRules.SignSockets[index].SocketId;
+        if (_data.IsCompleted("M14"))
+        {
+            _hud.ShowBigToast("This road sign is repaired and permanent.", 2.6f, Palette.Success);
+            return;
+        }
+        if (_data.ActiveMission != "M14")
+        {
+            _hud.ShowHint("Start Road Sign Rescue at the yellow JOBS board first.");
+            return;
+        }
+        SignSocketUi.Show(_hud, _missions, socketId,
+            result => OnMissionCompleted(result), RefreshMissionState);
+    }
+
+    private void InteractGardenPad(int index)
+    {
+        if (index < 0 || index >= _world.GardenPads.Count) return;
+        if (_data.IsCompleted("M15"))
+        {
+            _hud.ShowBigToast("The community garden is finished. Six flowers, three pairs!", 2.8f,
+                Palette.Success);
+            return;
+        }
+        if (_data.ActiveMission != "M15")
+        {
+            _hud.ShowHint("Start Garden Patterns at the yellow JOBS board first.");
+            return;
+        }
+        GardenPadUi.Show(_hud, _missions, index,
+            result => OnMissionCompleted(result), RefreshMissionState);
+    }
+
+    private void RefreshChapterTwoWorld()
+    {
+        for (int i = 0; i < _world.SignSocketRoots.Count && i < _signVisuals.Count; i++)
+        {
+            string socketId = ChapterTwoRules.SignSockets[i].SocketId;
+            bool installed = _data.GetMissionCounter("M14", $"sign_{socketId}") >= 1;
+            _signVisuals[i].Visible = installed;
+            foreach (var child in _world.SignSocketRoots[i].GetChildren())
+                if (child is Label3D label && label.Text == "?")
+                    label.Visible = !installed;
+        }
+
+        for (int i = 0; i < _gardenFlowerRoots.Count && i < ChapterTwoRules.GardenPattern.Length; i++)
+        {
+            int code = _data.GetMissionCounter("M15", $"pad{i}");
+            _gardenFlowerRoots[i].Visible = code != 0;
+            if (_gardenFlowerHeads[i] != null)
+                _gardenFlowerHeads[i].MaterialOverride = Geo.Mat(
+                    code == 1 ? Palette.Red : code == 2 ? Palette.Blue : Palette.Stone);
+        }
+
+        for (int i = 0; i < _world.BakeryDisplaySlots.Count && i < ChapterTwoRules.BakeryOrders.Count; i++)
+        {
+            string customer = ChapterTwoRules.BakeryOrders[i].CustomerId;
+            _world.BakeryDisplaySlots[i].Visible =
+                _data.GetMissionCounter("M12", $"order_{customer}") >= 1;
+        }
+        for (int i = 0; i < _world.LibraryShelfSlots.Count && i < ChapterTwoRules.BookIds.Length; i++)
+        {
+            string book = ChapterTwoRules.BookIds[i];
+            _world.LibraryShelfSlots[i].Visible =
+                _data.GetMissionCounter("M13", ChapterTwoRules.ShelfKey(book)) >= 1;
+        }
     }
 
     private string RedHousePrompt()
@@ -1013,6 +1169,7 @@ public partial class Main : Node3D
         SpawnItemSet("wood", "M02", 5, _world.WoodSpawnPoints, Palette.Wood);
         SpawnItemSet("stone", "M02", 3, _world.StoneSpawnPoints, Palette.Stone);
         SpawnParcelPickups();
+        SpawnBookPickups();
     }
 
     private void SpawnParcelPickups()
@@ -1029,6 +1186,140 @@ public partial class Main : Node3D
             pickup.ProcessMode = ProcessModeEnum.Pausable;
             _pickups.Add(pickup);
         }
+    }
+
+    private void SpawnBookPickups()
+    {
+        foreach (var entry in _world.BookSpawnPoints)
+        {
+            string pickupId = $"book_{entry.Book}";
+            if (_data.HasCollected(pickupId)) continue;
+            string book = entry.Book;
+            var pickup = Pickup.Create(this, entry.Position, pickupId, pickupId, "M13", 1,
+                TakeBookPickup,
+                () => _data.ActiveMission == "M13"
+                    ? $"E: Pick up the {book.ToUpperInvariant()} book"
+                    : "E: A library book for Ollie",
+                () => _data.IsCompleted("M13"));
+            pickup.ProcessMode = ProcessModeEnum.Pausable;
+            _pickups.Add(pickup);
+        }
+    }
+
+    private void TakeBookPickup(Pickup pickup)
+    {
+        if (_data.ActiveMission != "M13")
+        {
+            _hud.ShowHint("Start Lost Library Books at the yellow JOBS board first.");
+            return;
+        }
+        string book = pickup.ItemType.StartsWith("book_", StringComparison.Ordinal)
+            ? pickup.ItemType.Substring(5)
+            : "";
+        var result = _missions.CollectBook(book);
+        if (!result.Success)
+        {
+            _hud.ShowHint(result.Message);
+            return;
+        }
+        pickup.CollectVisual();
+        _pickups.Remove(pickup);
+        AudioManager.PlayWorld("book_collect", -5f);
+        _hud.ShowToast(result.Message, 2.4f, Palette.Blue);
+        RefreshMissionState();
+        _player.ForceRefreshInteraction();
+    }
+
+    private List<NpcOption> BuildNpcMissionOptions(NpcActor npc)
+    {
+        var options = new List<NpcOption>();
+        if (_data.ActiveMission == "M11" && ChapterTwoRules.CardNpcIds.Contains(npc.NpcId))
+        {
+            foreach (string card in new[] { "card_ada", "card_ollie", "card_fern" })
+            {
+                string capturedCard = card;
+                string cardNpc = ChapterTwoRules.NpcForCard(card);
+                if (_data.GetMissionCounter("M11", $"card_{cardNpc}") <= 0) continue;
+                options.Add(new NpcOption
+                {
+                    Text = $"Give {ChapterTwoRules.CardLabel(card)} card",
+                    Name = $"GiveCard_{cardNpc}",
+                    Border = Palette.Orange,
+                    Close = false,
+                    Action = () => CloseNpcDialogueThen(() =>
+                    {
+                        var result = _missions.HandWelcomeCard(npc.NpcId, capturedCard);
+                        if (!result.Success)
+                        {
+                            AudioManager.PlayUi("ui_error");
+                            _hud.ShowHint(result.Message);
+                            return;
+                        }
+                        _audio?.PlaySfx("coin_collect", -7f);
+                        if (result.Completion != null)
+                            OnMissionCompleted(result.Completion);
+                        else
+                        {
+                            _hud.ShowBigToast(result.Message, 3.2f, Palette.Success);
+                            RefreshMissionState();
+                        }
+                    }),
+                });
+            }
+        }
+
+        if (_data.ActiveMission == "M12" && npc.NpcId == "ada")
+        {
+            options.Add(new NpcOption
+            {
+                Text = "Help with today's orders",
+                Name = "BakeryHelp",
+                Border = Palette.Orange,
+                Close = false,
+                Action = () => CloseNpcDialogueThen(() =>
+                    BakeryUi.Show(_hud, _missions,
+                        result => OnMissionCompleted(result), RefreshMissionState)),
+            });
+        }
+
+        if (_data.ActiveMission == "M13" && npc.NpcId == "ollie")
+        {
+            options.Add(new NpcOption
+            {
+                Text = "Match books to shelves",
+                Name = "LibraryHelp",
+                Border = Palette.Blue,
+                Close = false,
+                Action = () => CloseNpcDialogueThen(() =>
+                    LibraryShelfUi.Show(_hud, _missions,
+                        result => OnMissionCompleted(result), RefreshMissionState)),
+            });
+        }
+
+        if (_data.ActiveMission == "M15" && npc.NpcId == "fern")
+        {
+            options.Add(new NpcOption
+            {
+                Text = "Show me the garden pattern",
+                Name = "GardenPatternHelp",
+                Border = Palette.GrassDark,
+                Close = false,
+                Action = () => CloseNpcDialogueThen(() =>
+                {
+                    _hud.ShowHint("RED, BLUE, RED, BLUE, RED, BLUE. " +
+                                 "Use the six garden pads east of the village green.");
+                    AudioManager.PlayWorld("npc_greet_02", -8f);
+                }),
+            });
+        }
+
+        return options;
+    }
+
+    private void CloseNpcDialogueThen(Action action)
+    {
+        if (_hud.ModalOpen) _hud.CloseModal();
+        action?.Invoke();
     }
 
     private void SpawnVillagers()
@@ -1086,6 +1377,7 @@ public partial class Main : Node3D
                 Action = () => _hud.SetModalStatus(npc.Definition.VillageFact, false),
             },
         };
+        options.AddRange(BuildNpcMissionOptions(npc));
         NpcDialogueUi.Show(_hud, npc.Definition, npc.Definition.Intro, options, () =>
         {
             npc.SetTalking(false);
@@ -1153,6 +1445,10 @@ public partial class Main : Node3D
         "stone" => Palette.Stone,
         "blue_parcel" => Palette.Blue,
         "orange_parcel" => Palette.Orange,
+        "book_sun" => Palette.Yellow,
+        "book_moon" => Palette.Blue,
+        "book_tree" => Palette.Grass,
+        "book_star" => Palette.Pink,
         _ => Palette.Yellow,
     };
 
@@ -1331,7 +1627,12 @@ public partial class Main : Node3D
             _hud.ShowBigToast("Finish this build first, then choose another job.", 2.6f, Palette.Lavender);
             return;
         }
-        JobBoardUi.Show(_hud, _missions, _implemented, StartMissionFromBoard, StartPracticeRace);
+        var active = _missions.ActiveMission;
+        bool showChapterTwo = active != null
+            ? string.CompareOrdinal(active.Id, "M11") >= 0
+            : MissionRules.OriginalChapterComplete(_data);
+        JobBoardUi.Show(_hud, _missions, _implemented, StartMissionFromBoard, StartPracticeRace,
+            showChapterTwo);
     }
 
     private void StartMissionFromBoard(string missionId)
@@ -1756,6 +2057,7 @@ public partial class Main : Node3D
         ApplyCosmetics();
         RefreshPickupVisibility();
         RefreshRaceGateVisibility();
+        RefreshChapterTwoWorld();
         if (_world.GoldCourseFlag != null)
             _world.GoldCourseFlag.Visible = _data.IsCompleted("M09");
         if (_world.CelebrationDecor != null)
@@ -1867,6 +2169,45 @@ public partial class Main : Node3D
                 SetObjective(IsInsidePlayerHouse(_player.GlobalPosition) ? _world.FurnitureStation : _world.PlayerHouseDoor,
                     IsInsidePlayerHouse(_player.GlobalPosition) ? "FURNITURE" : "YOUR HOUSE", "house", Palette.Lavender);
                 break;
+            case "M11":
+            {
+                var target = NextCardNpc();
+                if (target != null)
+                    SetObjective(target.GlobalPosition, $"{target.Definition.Name.ToUpperInvariant()} — CARD",
+                        "neighbours", Palette.Orange);
+                else
+                    SetObjective(_world.JobBoard, "JOBS BOARD", "star", Palette.Yellow);
+                break;
+            }
+            case "M12":
+            {
+                var ada = FindNpc("ada");
+                SetObjective(ada?.GlobalPosition ?? _world.BakeryStall, "ADA'S BAKERY", "bakery", Palette.Orange);
+                break;
+            }
+            case "M13":
+            {
+                Vector3? bookTarget = NextBookWorldTarget();
+                if (bookTarget.HasValue)
+                    SetObjective(bookTarget.Value, "LIBRARY BOOK", "library", Palette.Blue);
+                else
+                    SetObjective(FindNpc("ollie")?.GlobalPosition ?? _world.LibraryShelf,
+                        "OLLIE'S SHELF", "library", Palette.Blue);
+                break;
+            }
+            case "M14":
+            {
+                int socket = NextSignSocket();
+                SetObjective(_world.SignSocketPositions[socket],
+                    $"{ChapterTwoRules.SignSockets[socket].Label} SIGN", "road_signs", Palette.Orange);
+                break;
+            }
+            case "M15":
+            {
+                int pad = NextGardenPad();
+                SetObjective(_world.GardenPads[pad], $"GARDEN PAD {pad + 1}", "garden", Palette.GrassDark);
+                break;
+            }
             default:
                 SetObjective(_world.JobBoard, "JOBS BOARD", "star", Palette.Yellow);
                 break;
@@ -1948,6 +2289,54 @@ public partial class Main : Node3D
             rows.Add(("plant", $"Plant: {FurnitureRules.Placed(_data, "plant")}/1"));
             rows.Add(("coin", $"House set costs 8+5+5+3 = 21"));
         }
+        else if (missionId == "M11")
+        {
+            int delivered = ChapterTwoRules.CardNpcIds.Count(n =>
+                _data.GetMissionCounter("M11", $"delivered_{n}") >= 1);
+            int cards = ChapterTwoRules.CardNpcIds.Count(n =>
+                _data.GetMissionCounter("M11", $"card_{n}") >= 1);
+            rows.Add(("neighbours", $"{delivered} / 3 welcome cards delivered"));
+            rows.Add(("star", $"{cards} cards in hand"));
+            rows.Add(("star", "Read the name before giving a card"));
+        }
+        else if (missionId == "M12")
+        {
+            foreach (var order in ChapterTwoRules.BakeryOrders)
+            {
+                bool done = _data.GetMissionCounter("M12", $"order_{order.CustomerId}") >= 1;
+                rows.Add(("bakery", $"{order.CustomerName}: {(done ? "served ✓" : $"{order.Bread} bread + {order.Cakes} cakes")}"));
+            }
+        }
+        else if (missionId == "M13")
+        {
+            int found = ChapterTwoRules.BookIds.Count(b =>
+                _data.GetMissionCounter("M13", ChapterTwoRules.HasBookKey(b)) >= 1 ||
+                _data.GetMissionCounter("M13", ChapterTwoRules.ShelfKey(b)) >= 1);
+            int shelved = ChapterTwoRules.BookIds.Count(b =>
+                _data.GetMissionCounter("M13", ChapterTwoRules.ShelfKey(b)) >= 1);
+            rows.Add(("library", $"Books found {found} / 4"));
+            rows.Add(("library", $"Shelves matched {shelved} / 4"));
+            rows.Add(("star", "Match SUN, MOON, TREE, STAR"));
+        }
+        else if (missionId == "M14")
+        {
+            foreach (var socket in ChapterTwoRules.SignSockets)
+            {
+                bool done = _data.GetMissionCounter("M14", $"sign_{socket.SocketId}") >= 1;
+                rows.Add(("road_signs", $"{socket.Label}: {(done ? "repaired ✓" : "needs sign")}"));
+            }
+        }
+        else if (missionId == "M15")
+        {
+            int correct = 0;
+            for (int i = 0; i < ChapterTwoRules.GardenPattern.Length; i++)
+                if (ChapterTwoRules.GardenPadMatches(i,
+                        ChapterTwoRules.GardenColor(_data.GetMissionCounter("M15", $"pad{i}"))))
+                    correct++;
+            rows.Add(("garden", $"Pattern pads {correct} / 6"));
+            rows.Add(("star", "RED, BLUE, RED, BLUE, RED, BLUE"));
+            rows.Add(("star", "Wrong colours can be changed freely"));
+        }
         else
         {
             rows.Add(("star", "Follow the glowing marker"));
@@ -1962,6 +2351,46 @@ public partial class Main : Node3D
             _world.RaceGates4Root.Visible = !secondChapterRally;
         if (_world?.RaceGates6Root != null)
             _world.RaceGates6Root.Visible = secondChapterRally;
+    }
+
+    private NpcActor FindNpc(string id) =>
+        _npcById.TryGetValue(id, out var npc) ? npc : null;
+
+    private NpcActor NextCardNpc()
+    {
+        foreach (string npcId in ChapterTwoRules.CardNpcIds)
+            if (_data.GetMissionCounter("M11", $"delivered_{npcId}") <= 0)
+                return FindNpc(npcId);
+        return null;
+    }
+
+    private Vector3? NextBookWorldTarget()
+    {
+        foreach (var pickup in _pickups)
+        {
+            if (!GodotObject.IsInstanceValid(pickup) || !pickup.Visible) continue;
+            if (pickup.MissionId != "M13") continue;
+            return pickup.GlobalPosition;
+        }
+        return null;
+    }
+
+    private int NextSignSocket()
+    {
+        for (int i = 0; i < ChapterTwoRules.SignSockets.Count; i++)
+            if (_data.GetMissionCounter("M14", $"sign_{ChapterTwoRules.SignSockets[i].SocketId}") <= 0)
+                return i;
+        return 0;
+    }
+
+    private int NextGardenPad()
+    {
+        for (int i = 0; i < ChapterTwoRules.GardenPattern.Length; i++)
+        {
+            string color = ChapterTwoRules.GardenColor(_data.GetMissionCounter("M15", $"pad{i}"));
+            if (!ChapterTwoRules.GardenPadMatches(i, color)) return i;
+        }
+        return 0;
     }
 
     private void RefreshPickupVisibility()    {
@@ -2001,9 +2430,14 @@ public partial class Main : Node3D
                 ? $"Four gates in {result.RaceSeconds:0.0}s — a gold-lap bonus +{result.BonusCoins}!"
                 : $"Four gates finished in {result.RaceSeconds:0.0}s. Any pace is a winning pace — the gold flag is yours!",
             "M10" => "Table 8 + 2 chairs 10 + plant 3 = 21. Your home is ready to enjoy!",
+            "M11" => "Three names, three cards, three happy neighbours. The new chapter is open!",
+            "M12" => "2+1, 3+2 and 1+3 — every bakery order counted and served!",
+            "M13" => "SUN, MOON, TREE and STAR all matched to their shelves. The library is tidy!",
+            "M14" => "MARKET, WORKSHOP and GREEN signs repaired with the right arrows!",
+            "M15" => "RED, BLUE, RED, BLUE, RED, BLUE — three perfect pairs in the garden!",
             _ => result.Message,
         };
-        Action afterSuccess = result.AllComplete
+        Action afterSuccess = result.OriginalChapterComplete && _data.CelebrationSeen == false
             ? () => Callable.From(ShowVillageCelebration).CallDeferred()
             : () => { };
         _hud.ShowSuccess(result.Mission.Title, result.TotalCoins, detail, afterSuccess);
@@ -2012,7 +2446,7 @@ public partial class Main : Node3D
         if (result.Mission.Id == "M10" && MissionRules.OriginalChapterComplete(_data))
             _audio?.PlaySfx("chapter_unlock");
         RefreshMusicContext();
-        if (result.AllComplete && _catalog.Missions.Count >= 10)
+        if (result.OriginalChapterComplete)
             _world.CelebrationDecor.Visible = true;
         var save = SaveGame(SaveReason.MissionCompleted);
         if (result.Mission.Id is "M05" or "M09")
@@ -2024,8 +2458,7 @@ public partial class Main : Node3D
     }
 
     private bool AllMissionsComplete() =>
-        _catalog != null && _catalog.Missions.Count >= 10 &&
-        _catalog.Missions.All(mission => _data.IsCompleted(mission.Id));
+        _catalog != null && MissionRules.OriginalChapterComplete(_data);
 
     private void ShowVillageCelebration()
     {
@@ -2672,6 +3105,45 @@ public partial class Main : Node3D
 
     internal string RtNearestInteractableName => _player?.NearestInteractable?.Name.ToString() ?? "";
 
+    internal bool RtInteractNearest()
+    {
+        var target = _player?.NearestInteractable;
+        if (target == null || !target.IsAvailable()) return false;
+        target.Interact();
+        return true;
+    }
+
+    internal void RtTeleportNearPickup(string pickupId)
+    {
+        var pickup = _pickups.FirstOrDefault(p => p.PickupId == pickupId);
+        if (pickup == null) return;
+        _player.Teleport(pickup.GlobalPosition + new Vector3(1.4f, 0.15f, 0f), -Mathf.Pi / 2f);
+        _player.ForceRefreshInteraction();
+    }
+
+    internal int RtBookPickupCount => _pickups.Count(p => p.MissionId == "M13");
+
+    internal void RtTeleportNearSignSocket(int index)
+    {
+        if (_world == null || index < 0 || index >= _world.SignSocketPositions.Count) return;
+        _player.Teleport(_world.SignSocketPositions[index] + new Vector3(0f, 0.15f, 1.45f), 0f);
+        _player.ForceRefreshInteraction();
+    }
+
+    internal void RtTeleportNearGardenPad(int index)
+    {
+        if (_world == null || index < 0 || index >= _world.GardenPads.Count) return;
+        _player.Teleport(_world.GardenPads[index] + new Vector3(0f, 0.15f, 0.8f), 0f);
+        _player.ForceRefreshInteraction();
+    }
+
+    internal void RtTeleportNearJobBoard()
+    {
+        if (_jobStation == null || _player == null) return;
+        _player.Teleport(_jobStation.GlobalPosition + new Vector3(0f, 0.1f, 1.5f), 0f);
+        _player.ForceRefreshInteraction();
+    }
+
     internal int RtTrafficCount => _trafficCars.Count;
     internal string RtTrafficIds => string.Join(",", _trafficCars.Select(n => n.RouteId));
     internal Vector3 RtTrafficPosition(string id) =>
@@ -2744,6 +3216,33 @@ public partial class Main : Node3D
         if (result.Success) OnMissionCompleted(result);
     }
 
+    /// <summary>
+    /// Builds the same valid world state a v1.1 player has after finishing the
+    /// original ten jobs. Runtime verification uses this only to reach chapter
+    /// two; the chapter-two interactions afterwards all go through real buttons,
+    /// stations, pickups and mission rules.
+    /// </summary>
+    internal void RtPrepareChapterTwo()
+    {
+        foreach (string id in MissionRules.OriginalMissionIds)
+            if (!_data.CompletedMissions.Contains(id)) _data.CompletedMissions.Add(id);
+        foreach (string socket in BuildRules.BridgeSockets)
+            if (!_data.BridgePieces.Contains(socket)) _data.BridgePieces.Add(socket);
+        foreach (string socket in BuildRules.SwingSockets)
+            if (!_data.SwingPieces.Contains(socket)) _data.SwingPieces.Add(socket);
+        if (ParkRules.Count(_data, "bench") == 0) ParkRules.Place(_data, "bench", "park0");
+        if (ParkRules.Count(_data, "flowerbed") == 0) ParkRules.Place(_data, "flowerbed", "park1");
+        if (ParkRules.Count(_data, "lamp") == 0) ParkRules.Place(_data, "lamp", "park2");
+        FurnitureRules.GrantFreeStarterSet(_data);
+        _data.CelebrationSeen = true;
+        _data.Coins = 100;
+        _data.ActiveMission = "";
+        _world.CelebrationDecor.Visible = true;
+        RefreshMissionState();
+        RefreshChapterTwoWorld();
+        _hud.SetCoins(_data.Coins);
+    }
+
     internal bool RtPrepareRace()
     {
         // Build a valid prerequisite state, including the physical bridge so
@@ -2800,6 +3299,24 @@ public partial class Main : Node3D
 
     internal void RtStopRallyAutopilot() => _van?.StopAutopilot();
     internal bool RtMissionCompleted(string id) => _data.IsCompleted(id);
+    internal MissionStatus RtMissionStatus(string id) => _missions.GetStatus(id);
+    internal int RtMissionCounter(string id, string key) => _data.GetMissionCounter(id, key);
+    internal bool RtCelebrationSeen => _data.CelebrationSeen;
+    internal bool RtFestivalSeen => _data.FestivalSeen;
+    internal int RtSignSocketCount => _world?.SignSocketPositions.Count ?? 0;
+    internal int RtGardenPadCount => _world?.GardenPads.Count ?? 0;
+    internal int RtBakerySlotCount => _world?.BakeryDisplaySlots.Count ?? 0;
+    internal int RtLibrarySlotCount => _world?.LibraryShelfSlots.Count ?? 0;
+    internal bool RtBakerySlotVisible(int index) =>
+        _world != null && index >= 0 && index < _world.BakeryDisplaySlots.Count &&
+        _world.BakeryDisplaySlots[index].Visible;
+    internal bool RtLibrarySlotVisible(int index) =>
+        _world != null && index >= 0 && index < _world.LibraryShelfSlots.Count &&
+        _world.LibraryShelfSlots[index].Visible;
+    internal bool RtSignVisualVisible(int index) =>
+        index >= 0 && index < _signVisuals.Count && _signVisuals[index].Visible;
+    internal bool RtGardenFlowerVisible(int index) =>
+        index >= 0 && index < _gardenFlowerRoots.Count && _gardenFlowerRoots[index].Visible;
     internal bool RtRallyAutopilot => _van?.Autopilot == true;
     internal int RtRaceCheckpoint(string id) => _data.GetMissionCounter(id, "checkpoint");
     internal int RtRallySampleCount => _world?.RallySampleCount ?? 0;
@@ -2932,6 +3449,101 @@ public partial class Main : Node3D
         catch (Exception ex)
         {
             GD.PrintErr($"P12 capture failed: {ex}");
+        }
+        GetTree().Quit();
+    }
+
+    private async Task CaptureP13()
+    {
+        try
+        {
+            await Wait(1.0f);
+            bool highRes = HasUserArg("--capture-1080");
+            if (highRes)
+            {
+                GetWindow().ContentScaleSize = new Vector2I(1920, 1080);
+                GetWindow().Size = new Vector2I(1920, 1080);
+                await Wait(0.6f);
+            }
+            string p = highRes ? "p13_1080" : "p13_720";
+
+            RtPrepareChapterTwo();
+            _data.ActiveMission = "M11";
+            _data.SetMissionCounter("M11", "stock_granted", 1);
+            foreach (string npc in ChapterTwoRules.CardNpcIds)
+                _data.SetMissionCounter("M11", $"card_{npc}", 1);
+            RefreshMissionState();
+
+            _hud.Visible = false;
+            await SnapFreeCamera(new Vector3(30, 70, 30), new Vector3(10, 0, 8), $"{p}_00_village_chapter_two.png");
+            await SnapFreeCamera(new Vector3(15.2f, 12f, 19f), new Vector3(15.2f, 1.5f, 5.2f), $"{p}_01_bakery_stall.png");
+            await SnapFreeCamera(new Vector3(-14.5f, 5f, 2.5f), new Vector3(-20.8f, 1.5f, 8.2f), $"{p}_02_library_shelf.png");
+            await SnapFreeCamera(new Vector3(22, 30, 25), new Vector3(15, 0, 2), $"{p}_03_road_sign_sockets.png");
+            await SnapFreeCamera(new Vector3(29, 12, 33), new Vector3(29, 0.5f, 21), $"{p}_04_community_garden.png");
+            await SnapFreeCamera(new Vector3(-1.5f, 3.5f, 10.5f), new Vector3(-4.2f, 0.7f, 7.0f), $"{p}_05_book_pickup.png");
+
+            _hud.Visible = true;
+            JobBoardUi.Show(_hud, _missions, _implemented, _ => { }, null, true);
+            await Wait(0.5f);
+            await Snap($"{p}_06_job_board_chapter_two.png", DeveloperCaptureDirectory);
+            _hud.CloseModal();
+            await Wait(0.25f);
+
+            RtTalkToNpc("ada");
+            await Wait(0.5f);
+            await Snap($"{p}_07_ada_welcome_cards.png", DeveloperCaptureDirectory);
+            _hud.CloseModal();
+            await Wait(0.25f);
+
+            _data.ActiveMission = "M12";
+            BakeryUi.Show(_hud, _missions, _ => { }, () => { });
+            await Wait(0.5f);
+            await Snap($"{p}_08_bakery_ui.png", DeveloperCaptureDirectory);
+            _hud.CloseModal();
+            await Wait(0.25f);
+
+            _data.ActiveMission = "M13";
+            foreach (string book in ChapterTwoRules.BookIds)
+                _data.SetMissionCounter("M13", ChapterTwoRules.HasBookKey(book), 1);
+            LibraryShelfUi.Show(_hud, _missions, _ => { }, () => { });
+            await Wait(0.5f);
+            await Snap($"{p}_09_library_ui.png", DeveloperCaptureDirectory);
+            _hud.CloseModal();
+            await Wait(0.25f);
+
+            _data.ActiveMission = "M14";
+            SignSocketUi.Show(_hud, _missions, "market", _ => { }, () => { });
+            await Wait(0.5f);
+            await Snap($"{p}_10_sign_ui.png", DeveloperCaptureDirectory);
+            _hud.CloseModal();
+            await Wait(0.25f);
+
+            _data.ActiveMission = "M15";
+            _data.SetMissionCounter("M15", "pad0", ChapterTwoRules.GardenCode("red"));
+            _data.SetMissionCounter("M15", "pad1", ChapterTwoRules.GardenCode("blue"));
+            GardenPadUi.Show(_hud, _missions, 0, _ => { }, () => { });
+            await Wait(0.5f);
+            await Snap($"{p}_11_garden_ui.png", DeveloperCaptureDirectory);
+            _hud.CloseModal();
+            await Wait(0.25f);
+
+            foreach (var socket in ChapterTwoRules.SignSockets)
+                _data.SetMissionCounter("M14", $"sign_{socket.SocketId}", 1);
+            for (int i = 0; i < ChapterTwoRules.GardenPattern.Length; i++)
+                _data.SetMissionCounter("M15", $"pad{i}",
+                    ChapterTwoRules.GardenCode(ChapterTwoRules.GardenPattern[i]));
+            for (int i = 0; i < ChapterTwoRules.BakeryOrders.Count; i++)
+                _data.SetMissionCounter("M12", $"order_{ChapterTwoRules.BakeryOrders[i].CustomerId}", 1);
+            foreach (string book in ChapterTwoRules.BookIds)
+                _data.SetMissionCounter("M13", ChapterTwoRules.ShelfKey(book), 1);
+            RefreshChapterTwoWorld();
+            _hud.Visible = false;
+            await SnapFreeCamera(new Vector3(22, 12, 10), new Vector3(20, 0, -4), $"{p}_12_repaired_signs.png");
+            await SnapFreeCamera(new Vector3(29, 12, 33), new Vector3(29, 0.5f, 21), $"{p}_13_garden_complete.png");
+        }
+        catch (Exception ex)
+        {
+            GD.PrintErr($"P13 capture failed: {ex}");
         }
         GetTree().Quit();
     }

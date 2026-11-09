@@ -10,6 +10,7 @@ namespace PatchworkIsland;
 /// </summary>
 public static class Geo
 {
+    private const float ReferenceIconPixels = 48f;
     private static readonly Dictionary<string, StandardMaterial3D> Materials = new();
     private static readonly Dictionary<string, Texture2D> IconTextures = new();
 
@@ -240,7 +241,11 @@ public static class Geo
                 var sprite = new Sprite3D
                 {
                     Texture = texture,
-                    PixelSize = 0.023f,
+                    // Existing SVG icons are authored at 48 px. Normalise every
+                    // texture, including the 128 px mission PNG fallbacks, to
+                    // the same physical size so a sign icon never dwarfs its
+                    // board.
+                    PixelSize = 0.023f * ReferenceIconPixels / Mathf.Max(1, texture.GetWidth()),
                     Position = new Vector3(-width * 0.5f + 0.72f, 0, 0.11f),
                     Modulate = Colors.White,
                     Shaded = false,
@@ -280,6 +285,18 @@ public static class Geo
             return cached;
         string path = $"res://assets/icons/{name}.svg";
         Texture2D texture = ResourceLoader.Exists(path) ? GD.Load<Texture2D>(path) : null;
+        if (texture == null)
+        {
+            string missionIcon = $"res://assets/ui/mission_icons/{name}.png";
+            if (ResourceLoader.Exists(missionIcon))
+                texture = GD.Load<Texture2D>(missionIcon);
+        }
+        if (texture == null)
+        {
+            string portrait = $"res://assets/ui/npc_portraits/{name}.png";
+            if (ResourceLoader.Exists(portrait))
+                texture = GD.Load<Texture2D>(portrait);
+        }
         IconTextures[name] = texture;
         return texture;
     }
@@ -293,7 +310,9 @@ public static class Geo
         var sprite = new Sprite3D
         {
             Texture = texture,
-            PixelSize = pixelSize,
+            // See SignBoard: keep 48 px SVG art and higher-resolution PNG
+            // fallbacks at the same physical size.
+            PixelSize = pixelSize * ReferenceIconPixels / Mathf.Max(1, texture.GetWidth()),
             Position = pos,
             Modulate = Colors.White,
             Shaded = false,

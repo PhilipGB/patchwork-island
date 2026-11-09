@@ -41,6 +41,11 @@ public sealed class GameData
     public SettingsData Settings { get; set; } = new();
 
     public bool CelebrationSeen { get; set; }
+
+    // v1.2 second-chapter finale. Deliberately separate from CelebrationSeen,
+    // which permanently means the original M01–M10 celebration.
+    public bool FestivalSeen { get; set; }
+
     public long SavedAtUnix { get; set; }
 
     public void Normalise()
