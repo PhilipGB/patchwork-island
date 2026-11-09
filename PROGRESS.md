@@ -1559,7 +1559,7 @@ godot --headless --path . --editor --quit                -> PASS
 godot --headless --path . --quit-after 120               -> PASS
 ```
 
-Rally timings: **M05 18.98 s**, **M09 18.98 s**, **M19 22.31 s**, each with the
+Rally timings: **M05 18.98 s**, **M09 18.92 s**, **M19 22.32 s**, each with the
 existing +5 optional medal. The P14 finale phase reaches M19 through real UI and
 physics, confirms the six-gate count, completes all 20 jobs at exactly 226 coins
 (100 prepared + 20 + 22 + 24 + 30 + 30), re-reads the save, and confirms the
@@ -1587,3 +1587,7 @@ save/reload, and a separate `FestivalSeen` rule.
   evidence is the exact world position and approach direction.
 - M20 keeps the original M10 `CelebrationSeen` untouched and uses only
   `FestivalSeen` for the second finale.
+- All `PhysicsRayQueryParameters3D` / `PhysicsShapeQueryParameters3D` wrappers
+  created by camera collision, build clicks, safe-exit checks and rally coverage
+  are now disposed with `using`; the runtime phases exit 0 with zero leaked
+  unsafe references instead of aborting during Mono shutdown.

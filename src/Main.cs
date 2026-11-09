@@ -2077,7 +2077,7 @@ public partial class Main : Node3D
         var exclude = new Godot.Collections.Array<Rid> { _van.GetRid(), _player.GetRid() };
         foreach (var candidate in _van.GetExitCandidates())
         {
-            var query = PhysicsRayQueryParameters3D.Create(
+            using var query = PhysicsRayQueryParameters3D.Create(
                 new Vector3(candidate.X, 3f, candidate.Z),
                 new Vector3(candidate.X, -4f, candidate.Z), 1u, exclude);
             var hit = space.IntersectRay(query);
@@ -2089,7 +2089,7 @@ public partial class Main : Node3D
             if (ground.X > 40.6f && ground.X < 49.4f && !onBridge) continue;
 
             Vector3 stand = new(ground.X, ground.Y + 0.12f, ground.Z);
-            var shape = new PhysicsShapeQueryParameters3D
+            using var shape = new PhysicsShapeQueryParameters3D
             {
                 Shape = new CapsuleShape3D { Radius = 0.34f, Height = 1.5f },
                 Transform = new Transform3D(Basis.Identity, stand + Vector3.Up * 0.86f),
@@ -4053,7 +4053,7 @@ public partial class Main : Node3D
         int hits = 0;
         foreach (var sample in samples)
         {
-            var query = PhysicsRayQueryParameters3D.Create(
+            using var query = PhysicsRayQueryParameters3D.Create(
                 new Vector3(sample.X, 2.5f, sample.Z),
                 new Vector3(sample.X, -1f, sample.Z), 1u);
             var result = space.IntersectRay(query);

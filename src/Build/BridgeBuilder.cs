@@ -156,7 +156,7 @@ public partial class BridgeBuilder : Node3D, IBuildMode
         Camera3D rayCamera = _buildCamera != null && _buildCamera.Current ? _buildCamera : _camera;
         Vector3 origin = rayCamera.ProjectRayOrigin(screenPosition);
         Vector3 normal = rayCamera.ProjectRayNormal(screenPosition);
-        var query = PhysicsRayQueryParameters3D.Create(origin, origin + normal * 80f, 8u, null);
+        using var query = PhysicsRayQueryParameters3D.Create(origin, origin + normal * 80f, 8u, null);
         query.CollideWithAreas = false;
         var hit = GetWorld3D().DirectSpaceState.IntersectRay(query);
         if (hit.Count == 0)
