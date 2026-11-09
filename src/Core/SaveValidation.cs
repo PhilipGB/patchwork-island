@@ -80,6 +80,8 @@ public static class SaveValidation
             return SaveValidationResult.Fail(error);
         if (!ValidateStrings(data.UnlockedCosmetics, "cosmetic", out error))
             return SaveValidationResult.Fail(error);
+        if (!ValidateCustomisation(data, out error))
+            return SaveValidationResult.Fail(error);
         if (!ValidateStrings(data.CollectedPickups, "collected pickup", out error))
             return SaveValidationResult.Fail(error);
 
@@ -131,6 +133,39 @@ public static class SaveValidation
         }
 
         return SaveValidationResult.Ok();
+    }
+
+    private static bool ValidateCustomisation(GameData data, out string error)
+    {
+        error = "";
+        if (!CharacterCustomisation.IsValidPreset(data.CharacterPreset))
+        {
+            error = $"Unknown character preset '{data.CharacterPreset}'.";
+            return false;
+        }
+        if (!ValidateStrings(data.OwnedOutfits, "owned outfit", out error))
+            return false;
+        foreach (string outfitId in data.OwnedOutfits)
+        {
+            if (CharacterCustomisation.Find(outfitId) == null)
+            {
+                error = $"Unknown owned outfit '{outfitId}'.";
+                return false;
+            }
+        }
+
+        var equipped = CharacterCustomisation.Find(data.EquippedOutfit);
+        if (equipped == null)
+        {
+            error = $"Unknown equipped outfit '{data.EquippedOutfit}'.";
+            return false;
+        }
+        if (!CharacterCustomisation.Owns(data, equipped.Id))
+        {
+            error = $"The equipped outfit '{equipped.Id}' is not owned.";
+            return false;
+        }
+        return true;
     }
 
     private static bool ValidateMissions(GameData data, MissionCatalog catalog, out string error)

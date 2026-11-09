@@ -77,6 +77,106 @@ public partial class RuntimeSelfTest : Node
             "settings returns to the title screen");
         Expect(Main.RtCanContinue == false, "fresh self-test has no continue");
 
+        // Starting a new game asks for a character before the village begins.
+        Main.RtRequestNewGameFromTitle();
+        await Wait(0.2f);
+        Expect(Main.RtModalOpen && Main.RtModalTitle == "Who would you like to play?",
+            "new game opens the character chooser");
+        Expect(!Main.RtStarted && Main.RtPaused && Main.RtMode == "Title",
+            "character chooser keeps the title safe and paused");
+
+        // The actual Cancel button returns to the title without creating a save.
+        Expect(Main.RtPressModalButton("CharacterCancel"), "the real character Cancel button works");
+        await Wait(0.25f);
+        Expect(!Main.RtStarted && Main.RtModalTitle == "" && Main.RtMode == "Title",
+            "cancelling the fresh character chooser returns to the title");
+        Expect(!Main.RtHasSaveFile && !Main.RtCanContinue && !File.Exists(Main.RtSavePath),
+            "cancelling a fresh character chooser writes no save");
+
+        // Choose Boy through the real button, then prove the choice survives Continue.
+        Main.RtRequestNewGameFromTitle();
+        await Wait(0.2f);
+        Expect(Main.RtModalTitle == "Who would you like to play?",
+            "character chooser opens again after Cancel");
+        Expect(Main.RtPressModalButton("Choose_boy"), "the real Play as Boy button works");
+        await Wait(0.35f);
+        Expect(Main.RtStarted && Main.RtCharacterPreset == CharacterCustomisation.Boy,
+            "choosing Boy starts the new game and stores the preset");
+        Expect(Main.RtPlayerPreset == CharacterCustomisation.Boy && !Main.RtPlayerHasLongHair &&
+               !Main.RtPlayerWearsDress, "boy appearance is applied to the player");
+        Expect(Main.RtEquippedOutfit == CharacterCustomisation.DefaultOutfit &&
+               Main.RtOwnedOutfitCount == 0, "new game starts in the free Everyday outfit");
+        var boySave = SaveService.Load(Main.RtSavePath, Main.RtCatalog);
+        Expect(boySave.Success && boySave.Data.SchemaVersion == SaveService.CurrentVersion &&
+               boySave.Data.CharacterPreset == CharacterCustomisation.Boy,
+            "the chosen boy preset is saved at the current schema");
+
+        Main.RtReturnToTitle();
+        await Wait(0.25f);
+        Expect(!Main.RtStarted && Main.RtCanContinue && Main.RtMemoryMatchesPersisted,
+            "the saved boy session offers Continue");
+        Main.RtContinue();
+        await Wait(0.35f);
+        Expect(Main.RtStarted && Main.RtCharacterPreset == CharacterCustomisation.Boy &&
+               Main.RtPlayerPreset == CharacterCustomisation.Boy && !Main.RtPlayerHasLongHair,
+            "Continue restores the chosen boy appearance");
+
+        // Cancelling character selection while replacing an existing game must
+        // leave both the live session and the persisted save untouched.
+        Main.RtReturnToTitle();
+        await Wait(0.25f);
+        byte[] boyPersisted = File.ReadAllBytes(Main.RtSavePath);
+        Main.RtRequestNewGameFromTitle();
+        await Wait(0.2f);
+        Expect(Main.RtModalTitle == "Start a new game?", "existing save asks before replacement");
+        Expect(Main.RtPressModalButton("ModalConfirm"), "the real replacement confirm button works");
+        await Wait(0.2f);
+        Expect(Main.RtModalTitle == "Who would you like to play?",
+            "confirming replacement opens the character chooser");
+        Expect(Main.RtPressModalButton("CharacterCancel"),
+            "the real Cancel button closes the replacement chooser");
+        await Wait(0.25f);
+        Expect(!Main.RtStarted && Main.RtCanContinue && Main.RtMode == "Title",
+            "cancelling replacement returns to the title and keeps Continue");
+        CheckBytes(Main.RtSavePath, boyPersisted,
+            "cancelling replacement leaves the previous save untouched");
+        Main.RtContinue();
+        await Wait(0.35f);
+        Expect(Main.RtStarted && Main.RtCharacterPreset == CharacterCustomisation.Boy &&
+               Main.RtPlayerPreset == CharacterCustomisation.Boy,
+            "Continue after a cancelled replacement restores the boy session");
+
+        // Choose Girl through the real button and verify the saved choice again.
+        Main.RtReturnToTitle();
+        await Wait(0.25f);
+        Main.RtRequestNewGameFromTitle();
+        await Wait(0.2f);
+        Expect(Main.RtModalTitle == "Start a new game?", "existing save asks before the girl choice");
+        Expect(Main.RtPressModalButton("ModalConfirm"), "replacement confirmation opens for Girl");
+        await Wait(0.2f);
+        Expect(Main.RtModalTitle == "Who would you like to play?",
+            "character chooser opens after replacement confirmation");
+        Expect(Main.RtPressModalButton("Choose_girl"), "the real Play as Girl button works");
+        await Wait(0.35f);
+        Expect(Main.RtStarted && Main.RtCharacterPreset == CharacterCustomisation.Girl,
+            "choosing Girl starts the new game and stores the preset");
+        Expect(Main.RtPlayerPreset == CharacterCustomisation.Girl && Main.RtPlayerWearsDress &&
+               Main.RtPlayerHasLongHair, "girl appearance is applied to the player");
+        Expect(Main.RtEquippedOutfit == CharacterCustomisation.DefaultOutfit &&
+               Main.RtOwnedOutfitCount == 0, "girl new game starts in the free Everyday outfit");
+        var girlSave = SaveService.Load(Main.RtSavePath, Main.RtCatalog);
+        Expect(girlSave.Success && girlSave.Data.SchemaVersion == SaveService.CurrentVersion &&
+               girlSave.Data.CharacterPreset == CharacterCustomisation.Girl,
+            "the chosen girl preset is saved at the current schema");
+
+        Main.RtReturnToTitle();
+        await Wait(0.25f);
+        Main.RtContinue();
+        await Wait(0.35f);
+        Expect(Main.RtStarted && Main.RtCharacterPreset == CharacterCustomisation.Girl &&
+               Main.RtPlayerPreset == CharacterCustomisation.Girl && Main.RtPlayerWearsDress &&
+               Main.RtPlayerHasLongHair, "Continue restores the chosen girl appearance");
+
         // Start and walk.
         Main.RtStart();
         await Wait(0.3f);
@@ -129,12 +229,15 @@ public partial class RuntimeSelfTest : Node
         await Wait(0.2f);
 
         // New Game reset through the same coordinator used by the button.
-        var newGame = Main.RtStartNewGame();
+        var newGame = Main.RtStartNewGame(CharacterCustomisation.Girl);
         await Wait(0.25f);
         Expect(newGame.Success, "new game persists successfully");
         Expect(Main.RtMode == "Walking" && !Main.RtPaused, "new game resumes walking");
         Expect(Main.RtCoins == 0 && Main.RtCompletedCount == 0 && Main.RtActiveMission == "",
             "new game resets wallet, missions and active job");
+        Expect(Main.RtCharacterPreset == CharacterCustomisation.Girl &&
+               Main.RtEquippedOutfit == CharacterCustomisation.DefaultOutfit &&
+               Main.RtOwnedOutfitCount == 0, "new game keeps the chosen preset and clears outfits");
         Expect(Main.RtForceAutosave(), "automatic save path succeeds");
 
         // Mission completion modal pauses, then resumes.
@@ -145,6 +248,85 @@ public partial class RuntimeSelfTest : Node
         Main.RtCloseModal();
         await Wait(0.25f);
         Expect(!Main.RtPaused && Main.RtMode == "Walking", "closing completion resumes walking");
+
+        // Clothes shop: buy with real earned coins, wear, and enforce ownership.
+        Expect(Main.RtCoins == 10 && Main.RtCoinText == "10", "M01 coins are visible and available to spend");
+        int beforeShopLook = Main.RtPlayerAppearanceRevision;
+        Main.RtOpenClothesShop();
+        await Wait(0.25f);
+        Expect(Main.RtModalOpen && Main.RtModalTitle == "Clothes Shop", "clothes shop opens");
+        Expect(Main.RtPaused && Main.RtMode == "Modal", "clothes shop pauses the village");
+        Expect(Main.RtPressModalButton("Outfit_sunny"), "the real Sunny Day Buy button works");
+        await Wait(0.25f);
+        Expect(Main.RtCoins == 2 && Main.RtCoinText == "2", "outfit price deducted once and shown in the wallet");
+        Expect(Main.RtOwnsOutfit("sunny") && Main.RtEquippedOutfit == "sunny",
+            "bought outfit is owned and worn");
+        Expect(Main.RtPlayerOutfit == "sunny" && Main.RtPlayerAppearanceRevision > beforeShopLook,
+            "equipped outfit visibly refreshes the player model");
+        Expect(Main.RtPlayerHasLongHair && Main.RtPlayerWearsDress,
+            "girl silhouette survives an outfit change");
+
+        // Every outfit can be previewed, including an unaffordable one. The
+        // preview control stays enabled and never buys or equips anything.
+        Expect(Main.RtFocusModalButton("Preview_meadow"),
+            "focusing an outfit preview control works");
+        await Wait(0.1f);
+        Expect(Main.RtModalLabelText("PreviewOutfitName") == "Meadow Green",
+            "focusing an outfit updates the preview");
+        Expect(Main.RtPressModalButton("Preview_starry"),
+            "an unaffordable outfit still has a selectable preview control");
+        await Wait(0.1f);
+        Expect(Main.RtModalLabelText("PreviewOutfitName") == "Starry Night",
+            "pressing Preview shows the unaffordable outfit");
+        Expect(Main.RtModalLabelText("PreviewOutfitPrice").Contains("15"),
+            "the preview shows the selected outfit price");
+        Expect(Main.RtModalLabelText("PreviewWallet").Contains("2"),
+            "the preview shows the current coin balance");
+        Expect(Main.RtModalLabelText("PreviewNotice").Contains("Not enough coins"),
+            "the preview clearly reports insufficient coins");
+        Expect(Main.RtEquippedOutfit == "sunny" && Main.RtCoins == 2 &&
+               !Main.RtOwnsOutfit("starry"),
+            "previewing changes neither the equipped outfit, wallet nor ownership");
+
+        // The shop disables unaffordable and already-worn purchase actions.
+        Expect(!Main.RtPressModalButton("Outfit_starry"), "unaffordable outfit button is disabled");
+        var tooExpensive = Main.RtShopBuy("starry");
+        Expect(!tooExpensive.Success, "insufficient coins are refused by the domain");
+        Expect(Main.RtCoins == 2 && !Main.RtOwnsOutfit("starry"),
+            "refused purchase changes neither wallet nor ownership");
+        Expect(!Main.RtPressModalButton("Outfit_sunny"), "already-worn outfit cannot be bought twice");
+        var twice = Main.RtShopBuy("sunny");
+        Expect(!twice.Success && Main.RtCoins == 2, "owned outfit cannot be bought twice");
+        var notOwned = Main.RtShopWear("meadow");
+        Expect(!notOwned.Success && Main.RtEquippedOutfit == "sunny",
+            "unowned outfit cannot be equipped");
+
+        // Equip through the UI: back to Everyday with a failed save, then a
+        // successful Sunny Day save must clear the old error message.
+        SaveService.SetTestWriteFailure(full =>
+            string.Equals(full, Path.GetFullPath(Main.RtSavePath), StringComparison.Ordinal)
+                ? new IOException("injected clothes-shop save failure")
+                : null);
+        Expect(Main.RtPressModalButton("Outfit_default"), "the real Everyday Wear button works");
+        await Wait(0.25f);
+        Expect(Main.RtEquippedOutfit == CharacterCustomisation.DefaultOutfit &&
+               Main.RtPlayerOutfit == CharacterCustomisation.DefaultOutfit,
+            "a failed clothes save still applies the outfit for this session");
+        Expect(Main.RtCoins == 2, "wearing an owned outfit is free");
+        Expect(Main.RtModalStatusVisible && Main.RtModalStatus.Contains("could not be saved"),
+            "a failed clothes-shop save shows its error in the modal");
+        SaveService.ClearTestWriteFailure();
+        Expect(Main.RtPressModalButton("Outfit_sunny"), "the first owned shop outfit can be re-worn");
+        await Wait(0.25f);
+        Expect(Main.RtEquippedOutfit == "sunny" && Main.RtPlayerOutfit == "sunny",
+            "owned shop outfit re-equipped through the shop UI");
+        Expect(Main.RtCoins == 2, "re-equipping spends no extra coins");
+        Expect(!Main.RtModalStatusVisible,
+            "a later successful clothes save clears the previous error message");
+
+        Main.RtCloseModal();
+        await Wait(0.25f);
+        Expect(!Main.RtPaused && Main.RtMode == "Walking", "leaving the shop resumes walking");
 
         // Driving pause: input, physics and race timer must all stop.
         Main.RtEnterVan();
@@ -205,6 +387,15 @@ public partial class RuntimeSelfTest : Node
             "Continue restores driving mode");
         Expect(Main.RtVanControlled && !Main.RtPlayerControlled && !Main.RtPlayerVisible,
             "driving control and hidden player restored");
+        Expect(Main.RtCharacterPreset == CharacterCustomisation.Girl,
+            "Continue restores the chosen girl preset");
+        Expect(Main.RtEquippedOutfit == "sunny" && Main.RtOwnsOutfit("sunny"),
+            "Continue restores the bought outfit");
+        Expect(Main.RtPlayerPreset == CharacterCustomisation.Girl && Main.RtPlayerOutfit == "sunny" &&
+               Main.RtPlayerWearsDress && Main.RtPlayerHasLongHair,
+            "Continue restores the visible character appearance");
+        Expect(Main.RtCoins == 2 && Main.RtCoinText == "2",
+            "Continue restores coins after the clothing purchase");
 
         Vector3 hiddenStart = Main.RtPlayerPosition;
         Vector3 vanStart = Main.RtVanPosition;
@@ -229,6 +420,20 @@ public partial class RuntimeSelfTest : Node
         await Wait(0.3f);
         Expect(Main.RtMode == "Walking" && Main.RtPlayerControlled && Main.RtPlayerVisible,
             "restored session exits the van");
+
+        // A fresh new game must clear purchased outfits and the old preset.
+        var reset = Main.RtStartNewGame(CharacterCustomisation.Boy);
+        await Wait(0.3f);
+        Expect(reset.Success, "new game reset after reload saves successfully");
+        Expect(Main.RtCharacterPreset == CharacterCustomisation.Boy &&
+               Main.RtPlayerPreset == CharacterCustomisation.Boy,
+            "new game reset returns to the chosen boy preset");
+        Expect(!Main.RtPlayerWearsDress && !Main.RtPlayerHasLongHair,
+            "new game reset restores the boy silhouette");
+        Expect(Main.RtEquippedOutfit == CharacterCustomisation.DefaultOutfit &&
+               Main.RtOwnedOutfitCount == 0,
+            "new game reset clears bought outfits and returns to Everyday");
+        Expect(Main.RtCoins == 0, "new game reset clears the wallet");
     }
 
     // ------------------------------------------------- recovery integration
@@ -326,6 +531,12 @@ public partial class RuntimeSelfTest : Node
         Expect(Main.RtPlayerPosition.DistanceTo(new Vector3(-38.8f, -0.04f, 21.4f)) < 0.1f,
             "Continue restored the saved player position");
         Expect(Main.RtActiveMission == "M10", "Continue restored the active mission");
+        Expect(Main.RtCharacterPreset == CharacterCustomisation.Girl &&
+               Main.RtPlayerPreset == CharacterCustomisation.Girl && Main.RtPlayerWearsDress,
+            "Continue reload restores the saved girl character");
+        Expect(Main.RtEquippedOutfit == "berry" && Main.RtOwnsOutfit("berry") &&
+               Main.RtPlayerOutfit == "berry",
+            "Continue reload restores the saved outfit ownership and appearance");
         Expect(Main.RtCanContinue, "loaded save remains continuable");
         CheckBytes(path, _seedBytes, "Continue reload does not overwrite the persisted save");
 
@@ -481,8 +692,13 @@ public partial class RuntimeSelfTest : Node
 
         Main.RtRequestNewGameFromTitle();
         await Wait(0.3f);
-        Expect(Main.RtStarted && Main.RtCoins == 0 && Main.RtCompletedCount == 0,
-            "Start adventure resets a discarded session when no save exists");
+        Expect(Main.RtModalOpen && Main.RtModalTitle == "Who would you like to play?",
+            "no-save Start adventure asks for a character");
+        var startedAfterDiscard = Main.RtStartNewGameFromTitleConfirmed(CharacterCustomisation.Boy);
+        await Wait(0.35f);
+        Expect(startedAfterDiscard.Success && Main.RtStarted && Main.RtCoins == 0 &&
+               Main.RtCompletedCount == 0,
+            "choosing a character resets a discarded session when no save exists");
         Expect(File.Exists(path), "Start adventure writes the fresh no-save session");
 
         // Scenario E: create a valid backup-only recovery seed.
@@ -639,10 +855,17 @@ public partial class RuntimeSelfTest : Node
 
     private static GameData BuildNineMissionSave()
     {
-        var data = new GameData { Coins = 130, ActiveMission = "M10" };
+        var data = new GameData
+        {
+            Coins = 130,
+            ActiveMission = "M10",
+            CharacterPreset = CharacterCustomisation.Girl,
+            EquippedOutfit = "berry",
+        };
         data.CompletedMissions.AddRange(new[] { "M01", "M02", "M03", "M04", "M05", "M06", "M07", "M08", "M09" });
         data.TutorialsSeen.AddRange(new[] { "walk", "drive", "build" });
         data.UnlockedCosmetics.Add("red_cap");
+        data.OwnedOutfits.Add("berry");
         data.BridgePieces.AddRange(BuildRules.BridgeSockets);
         data.SwingPieces.AddRange(BuildRules.SwingSockets);
         data.ParkPlacements.Add(new PlacedItem("bench", "park0"));

@@ -415,6 +415,12 @@ public partial class Hud : CanvasLayer
         if (_modalTitle != null) _modalTitle.Text = title;
     }
 
+    /// <summary>Removes stale inline feedback after a later action succeeds.</summary>
+    public void ClearModalStatus()
+    {
+        if (_modalStatusHost != null) _modalStatusHost.Visible = false;
+    }
+
     /// <summary>Inline save status inside the current modal, above its shade.</summary>
     public void SetModalStatus(string text, bool isError)
     {
@@ -445,6 +451,8 @@ public partial class Hud : CanvasLayer
 
     public bool ToastVisible => _toastPanel?.Visible == true;
 
+    public string CoinText => _coinLabel?.Text ?? "";
+
     public void AddModalActionRow(VBoxContainer body, params (string Text, Action Action, Color? Color)[] actions)
     {
         var row = UiKit.HBox(body, 10);
@@ -472,8 +480,10 @@ public partial class Hud : CanvasLayer
         UiKit.Label(body, message, 21, Palette.Navy);
         var row = UiKit.HBox(body, 12);
         var cancel = UiKit.Button(row, cancelText, 21, new Vector2(180, 50), Palette.Cream, Palette.Stone);
+        cancel.Name = "ModalCancel";
         cancel.Pressed += () => CloseModal();
         var yes = UiKit.Button(row, confirmText, 21, new Vector2(240, 50), new Color("FFE0D6"), Palette.Red);
+        yes.Name = "ModalConfirm";
         yes.Pressed += () =>
         {
             CloseModal(false);

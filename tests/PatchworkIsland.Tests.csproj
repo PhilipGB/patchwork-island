@@ -10,6 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../src/Core/GameData.cs" Link="Core/GameData.cs" />
+    <Compile Include="../src/Core/CharacterCustomisation.cs" Link="Core/CharacterCustomisation.cs" />
     <Compile Include="../src/Core/MissionCatalog.cs" Link="Core/MissionCatalog.cs" />
     <Compile Include="../src/Core/MissionIntegrity.cs" Link="Core/MissionIntegrity.cs" />
     <Compile Include="../src/Core/MissionContentConsistency.cs" Link="Core/MissionContentConsistency.cs" />

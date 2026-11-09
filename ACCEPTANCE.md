@@ -1,14 +1,16 @@
 # First playable acceptance contract — final result
 
 **Rule:** Do not mark an item PASS unless exercised with a real game build or an
-appropriate automated test. This file records the P8 release result.
+appropriate automated test. This file records the P8 release result and the P9
+v1.1.0 character addendum.
 Legend: **PASS**, **FAIL**, **NOT TESTED (environment)**, **NOT IMPLEMENTED**.
 Screenshot reference boards are not in-game evidence.
 
 Release baseline: `main` after the P8 final-release PR. P7.1 stability hardening
 was merged first (PR #9). P8.1 reliability hardening is recorded below and in
-`PROGRESS.md`; P8.2 session recovery follows it. Evidence is under
-`evidence/p8_*.png`, `evidence/p81_*.png` and `evidence/p82_*.png`.
+`PROGRESS.md`; P8.2 session recovery follows it. P9 character choice, clothes
+shop and outfits are recorded at the end. Evidence is under `evidence/p8_*.png`,
+`evidence/p81_*.png`, `evidence/p82_*.png` and `evidence/p9_*.png`.
 
 ## A. Boot / controls / visual
 
@@ -322,6 +324,101 @@ save-feedback and domain-guard coverage remains in place. A full fresh-save
 ten-mission walkthrough was **not** repeated in P8.2; the retained v1.0.0/P8
 walkthrough remains the gameplay baseline, supplemented by the targeted
 real-input and runtime regressions above.
+
+## P9 — Character choice, clothes shop and outfits (v1.1.0)
+
+Status: **PASS** on the v1.0.2 baseline, including the four review corrections.
+Project and export metadata report `1.1.0`; the save schema is **2** and is
+versioned separately from the release.
+
+- [x] The player chooses a Boy or Girl presentation before a new game.
+  **PASS** — New Game opens a large two-card chooser; Boy and Girl have distinct
+  paper-doll previews, and the choice can be changed later at the clothes shop.
+  Runtime tests press the real **Play as Boy** and **Play as Girl** buttons,
+  verify each saved choice through Continue, and press the real **Cancel** both
+  for a fresh game and while replacing an existing save.
+- [x] The girl reflects the child sketch's spirit. **PASS** — long hair silhouette,
+  bow accessory, flared dress, simple shoes, blocky face and flat-shaded
+  primitives; readable at gameplay distance. The boy has matching short hair,
+  shirt, shorts and shoes.
+- [x] A clothes shop exists in town. **PASS** — a pink/lavender building with a
+  **CLOTHES** sign, striped awning, `DRESS UP` sign and two mannequins sits on
+  the north side of the main road east of the market, with a short path and a
+  working interaction prompt.
+- [x] The shop sells outfits for coins. **PASS** — Sunny Day 8, Meadow Green 10,
+  Berry Pink 12, Starry Night 15, plus the free Everyday outfit. All are shared
+  by both presets. Buying deducts the exact price once and wears the outfit.
+- [x] Already-owned outfits are not re-purchased; owned outfits can be worn
+  free. **PASS** — duplicate purchases, unowned equips and insufficient funds
+  are rejected by the domain; the shop disables those buttons and displays
+  **Not enough coins (have/price)**.
+- [x] Every outfit is previewable regardless of ownership or coins. **PASS** —
+  every row has an always-enabled **Preview** control plus hover/focus preview;
+  the mirror shows the selected outfit, its price, the current wallet and
+  **Not enough coins** when applicable. Buying stays disabled when unaffordable.
+  Runtime checks prove previewing never deducts coins, buys or equips anything.
+- [x] Equipped clothing visibly changes the player. **PASS** — the 3D character
+  rebuilds its outfit colours and silhouette while retaining the chosen
+  gender; runtime assertions compare player preset/outfit and appearance
+  revision before/after.
+- [x] Character and clothing persist through save/load. **PASS** — pure JSON
+  round-trip and real Continue/relaunch checks restore the preset, owned list
+  and equipped outfit. Wallet deduction survives the same save.
+- [x] A failed clothes-shop save does not leave a stale error after recovery.
+  **PASS** — runtime injects a write failure, sees the inline modal error, then
+  succeeds on the next wear and confirms the old message is gone.
+- [x] Older v1.0.0–v1.0.2 saves load and migrate safely. **PASS** — schema 1
+  loads into schema 2 with wallet, missions, tutorials, pickups, inventory,
+  player position and settings intact; absent customisation data defaults to
+  Boy + Everyday + no purchases. The original schema 1 file remains as `.bak`.
+  Unknown or unowned customisation IDs are rejected by save validation.
+- [x] Unsupported newer schemas are refused without modification. **PASS** —
+  schema 3 and 99 loads return `UnsupportedNewer` and leave every byte, backup
+  and filename untouched, even when their other fields use types incompatible
+  with the current model (`Coins` as a string, `CharacterPreset` as an array).
+  The version is read with `JsonDocument` before typed deserialisation. An
+  ordinary save over either file is refused before writing; only an explicitly
+  confirmed New Game replacement preserves a `newer-vN` copy and may proceed.
+- [x] New game reset behaves correctly. **PASS** — runtime reset after a reload
+  clears owned outfits, returns to Everyday, clears the wallet and applies the
+  newly chosen Boy silhouette.
+- [x] Reward accounting remains exact. **PASS** — pure test buys an 8-coin outfit
+  after M01, then completes M02 and verifies the exact 14-coin balance and that
+  an owned outfit cannot be re-purchased.
+- [x] Automated tests cover the new systems. **PASS** — pure runner **78 passed,
+  0 failed**; runtime **103 + 19 + 101 passed, 0 failed**. The runtime phase
+  presses the actual Boy/Girl/Cancel, Preview, Buy and Wear buttons, checks the
+  mirror, wallet display, insufficient funds, ownership, visual appearance,
+  save-failure recovery and Continue.
+- [x] Existing tests continue passing. **PASS** — all retained mission, save,
+  recovery, pause, driving and mission-catalogue assertions remain green.
+- [x] The game builds and runs. **PASS** — `dotnet build` 0 warnings/0 errors;
+  Godot editor import and headless boot exit 0; Xvfb capture run produced P9
+  screenshots without script errors.
+- [x] Save validation and schema compatibility are documented. **PASS** —
+  schema 2 is current; schema 1 migrates; `CharacterPreset` is `boy`/`girl`;
+  `OwnedOutfits` stores purchasable IDs; `EquippedOutfit` must be known and
+  owned (Everyday is always owned).
+- [x] Fail-first coverage is meaningful. **PASS** — controlled probe removing
+  the insufficient-funds guard failed `insufficient coins cannot buy an outfit`;
+  removing the duplicate-ownership guard failed the reward-accounting repeat
+  purchase assertion. Both files were restored before the final green run.
+
+**Evidence:** `evidence/p9_01_character_choice.png`,
+`p9_02_girl_at_clothes_shop.png`, `p9_03_clothes_shop_ui.png`,
+`p9_04_outfit_owned_and_worn.png`, `p9_05_girl_sunny_outfit_world.png`,
+`p9_06_boy_default_outfit_world.png`; build/test log summary in
+`evidence/p9_verification.txt`.
+
+**Export verification:** v1.1.0 Linux and Windows exports were produced from
+the final source. The Linux packaged binary booted headlessly and passed
+**103 + 19 + 101** runtime assertions; the Windows executable is PE32+ x86-64
+with file/product version `1.1.0.0`. **Windows startup was not tested** (no
+Windows runtime/Wine).
+
+**Remaining graphical gaps:** the in-shop preview is a deliberately simple 2D
+paper doll rather than a live 3D turntable; no skeletal rig was introduced;
+Windows startup and real-GPU/child-playtesting remain untested.
 
 ## Release severity
 

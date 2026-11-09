@@ -9,13 +9,19 @@ namespace PatchworkIsland;
 /// </summary>
 public sealed class GameData
 {
-    public int SchemaVersion { get; set; } = 1;
+    public int SchemaVersion { get; set; } = SaveService.CurrentVersion;
 
     public string ActiveMission { get; set; } = "";
     public List<string> CompletedMissions { get; set; } = new();
     public List<string> TutorialsSeen { get; set; } = new();
     public List<string> CollectedPickups { get; set; } = new();
     public List<string> UnlockedCosmetics { get; set; } = new();
+
+    // P9 character personalisation, introduced by save schema 2. Older schema
+    // 1 saves have no such fields and receive these defaults when migrated.
+    public string CharacterPreset { get; set; } = CharacterCustomisation.DefaultPreset;
+    public List<string> OwnedOutfits { get; set; } = new();
+    public string EquippedOutfit { get; set; } = CharacterCustomisation.DefaultOutfit;
 
     public int Coins { get; set; }
     public Dictionary<string, int> Inventory { get; set; } = new();
@@ -43,6 +49,9 @@ public sealed class GameData
         TutorialsSeen ??= new();
         CollectedPickups ??= new();
         UnlockedCosmetics ??= new();
+        CharacterPreset = CharacterCustomisation.NormalisePreset(CharacterPreset);
+        OwnedOutfits ??= new();
+        EquippedOutfit = CharacterCustomisation.NormaliseOutfit(EquippedOutfit);
         Inventory ??= new();
         MissionProgress ??= new();
         HintLevels ??= new();

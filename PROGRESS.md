@@ -1070,3 +1070,185 @@ bb4eb027ef80327ede43ce0931f3cbce94cfc60bfb6eec22de9416b12ebcc846  PatchworkIslan
 - Remaining limitations unchanged: no bundled audio, fixed text scaling,
   Windows startup unverified, GPU performance and child usability untested.
   Practice racing remains reward-free and intentionally unsaved.
+
+## P9 — Character choice, clothes shop and outfit customisation (v1.1.0)
+
+**Status: implementation complete, including four review corrections; local
+build, pure tests, runtime tests and graphical capture PASS.** Project/export
+metadata is `1.1.0`; the save schema is **2** and is versioned separately from
+the release.
+
+### Scope and design
+
+- Added `CharacterCustomisation` as a Godot-free domain (`src/Core/CharacterCustomisation.cs`)
+  with two presets (`boy`, `girl`), five outfits (free Everyday plus four
+  purchasable shared outfits), ownership/equip rules, exact coin deduction and
+  shared colour/style definitions.
+- Extended `GameData` with `CharacterPreset`, `OwnedOutfits` and
+  `EquippedOutfit` and moved the persistence contract to **schema 2**. Schema 1
+  saves migrate with every progression field intact; missing customisation
+  fields default to **Boy + Everyday + no purchases**. Schema 3 and newer are
+  rejected without modification, and ordinary saves cannot overwrite them.
+  Explicit New Game replacement and `newer-vN` backup preservation remain.
+- `SaveValidation` rejects unknown presets/outfits, duplicate ownership records,
+  and equipping an outfit that is not owned. The starting outfit is always
+  implicitly owned.
+- New Game now opens a Boy/Girl chooser before the village starts. The choice
+  is stored in the save; New Game reset clears purchases and the wallet.
+- Added a real town clothes shop at `(24, 7)` on the north side of the main
+  road, east of the market: `CLOTHES` sign, shirt icon, striped awning,
+  `DRESS UP` sign, path, two mannequins and an `E` interaction. It is not a
+  mission-gated building.
+- Added `ClothesShopUi`: wallet, five outfit rows with prices, owned/wearing
+  state, disabled insufficient-funds states, Buy/Wear actions, stylised 2D
+  paper-doll preview (`CharacterDoll`) and an optional Boy/Girl switch.
+- Buying deducts coins exactly once, records ownership and immediately wears
+  the outfit; wearing an owned outfit is free. Purchases and preset changes
+  save immediately through the existing `SaveGame` pipeline with a
+  `Customisation` save reason.
+- Player presentation uses modular primitive parts, not a rig rewrite: the girl
+  has long hair/back locks, bow, dress, skirt hem and shoes; the boy has short
+  hair, shirt, shorts and shoes. Both keep the existing walk/jump animation
+  pivots and the M01 red-cap reward.
+
+### Review corrections
+
+1. **Forward-compatible saves.** `SaveService.CurrentVersion` is now 2.
+   `Migrate` normalises schema 1 into schema 2 and fills the customisation
+   defaults without touching progression. `ReadFile` reads `SchemaVersion`
+   independently through `JsonDocument` before typed deserialisation, so a
+   newer save whose other fields have future types is still classified as
+   `UnsupportedNewer` rather than corruption. Loading schema 3/99 returns
+   `UnsupportedNewer` without renaming, quarantining or rewriting the file.
+   `SaveService.Save` now refuses to overwrite an unsupported newer save unless
+   its explicit `allowNewerReplacement` flag is set; `Main.SaveGame` only sets
+   that after the session's confirmed New Game / Save Now retry. The old backup
+   and `newer-vN` preservation paths are unchanged.
+2. **Preview every outfit.** Each row has an always-enabled **Preview** button
+   (plus hover/focus preview). The mirror shows the selected outfit, price,
+   wallet balance, owned/wearing state and **Not enough coins** when relevant.
+   Buy/Wear availability is separate, so preview works when buying is disabled.
+   Preview never mutates `Coins`, `OwnedOutfits` or `EquippedOutfit`.
+3. **Real character buttons in runtime tests.** The chooser's actual
+   `Choose_boy`, `Choose_girl` and `CharacterCancel` buttons are pressed. Tests
+   cover Boy and Girl appearance, on-disk preset, Continue restoration, fresh
+   cancellation and cancellation during replacement of an existing save. The
+   replacement confirmation itself is also pressed through `ModalConfirm`.
+4. **Save feedback correction.** A failed clothes-shop save sets the inline
+   modal error; the next successful clothes save calls `ClearModalStatus()` so
+   the stale error cannot survive. The runtime test injects a write failure,
+   verifies the error, clears the failure, saves successfully and asserts the
+   error is gone.
+
+### Verification
+
+```text
+dotnet build PatchworkIsland.sln                         -> 0 warnings, 0 errors
+dotnet tests/bin/Debug/net8.0/PatchworkIsland.Tests.dll  -> 78 passed, 0 failed
+godot --headless --path . --editor --quit                -> exit 0
+godot --headless --path . --quit-after 120               -> exit 0
+godot --headless --path . -- --selftest                  -> 103 passed, 0 failed
+godot --headless --path . -- --selftest-resume           -> 19 passed, 0 failed
+godot --headless --path . -- --selftest-recovery         -> 101 passed, 0 failed
+xvfb-run -a godot --path . -- --dev --capture            -> P9 screenshots written
+godot --export-release "Linux" ...                       -> exit 0
+godot --export-release "Windows Desktop" ...             -> exit 0
+dist/linux/PatchworkIsland.x86_64 --headless --quit-after 120 -> exit 0
+dist/linux/PatchworkIsland.x86_64 (three runtime phases) -> 103 + 19 + 101 passed
+```
+
+The exported Windows executable is PE32+ x86-64 with file/product version
+`1.1.0.0`. The Linux exported binary passed the same three runtime phases from
+the packaged payload.
+
+Pure additions cover: fresh defaults, starting ownership, price deduction,
+insufficient funds, duplicate purchase, free equip, unowned equip rejection,
+preset switching, save/load round-trip, older saves without customisation
+fields, invalid customisation rejection, new-game reset semantics and exact
+mission reward accounting after a clothing purchase.
+
+Runtime additions cover: the real chooser, Girl appearance (dress/long hair),
+opening the real shop, pressing the actual Buy button, wallet display update,
+insufficient/duplicate/unowned refusals, pressing the actual Wear button to
+switch outfits, save while driving, Continue restoring the Girl preset and
+Sunny Day outfit, and a post-reload New Game reset to Boy/Everyday/0 coins.
+The recovery seed now carries a Girl/Berry appearance and asserts it after a
+real scene reload.
+
+### Fail-first evidence
+
+Two controlled probes were run against the completed tests and then reverted:
+
+- Disabling the insufficient-funds guard produced
+  `FAIL insufficient coins cannot buy an outfit` and `RESULT: 76 passed, 1 failed`.
+- Disabling the duplicate-ownership guard produced
+  `FAIL job rewards stay exact after buying clothes` and
+  `RESULT: 76 passed, 1 failed`.
+
+Both probes were restored, rebuilt and re-run green at **77 passed, 0 failed**;
+the review additions then raised the final total to **78 passed, 0 failed**.
+A C# compile error from an invalid `Polygon2D.MouseFilter` usage in the first
+paper-doll draft was also caught by the build and fixed.
+
+### Evidence / graphical verification
+
+Captured with the real Godot scene under Xvfb/Mesa llvmpipe at 1280×720:
+
+- `evidence/p9_01_character_choice.png` — Boy/Girl chooser with both paper dolls.
+- `evidence/p9_02_girl_at_clothes_shop.png` — girl in-world at the CLOTHES shop.
+- `evidence/p9_03_clothes_shop_ui.png` — shop modal with enabled Preview controls, prices, wallet, owned/insufficient states and the changing room.
+- `evidence/p9_04_outfit_owned_and_worn.png` — actual Buy feedback, wallet 2, Sunny Day worn, all rows visible.
+- `evidence/p9_05_girl_sunny_outfit_world.png` — yellow Sunny Day dress in the world.
+- `evidence/p9_06_boy_default_outfit_world.png` — matching boy presentation.
+
+The first capture round exposed a clipped chooser footer/cancel button and a
+shop status message below the scroll fold. The chooser was compacted (Cancel at
+the top) and the shop status moved above the outfit rows. The review preview
+round then exposed a clipped changing-room footer; the preview was compacted so
+the price/wallet line, character buttons and every outfit row fit at 1280×720
+without losing the mirror. The modal still scrolls if the window is shorter.
+
+### Remaining limitations
+
+- In-shop preview is a deliberately simple 2D paper doll, not a live 3D
+  turntable; the in-world player is the authoritative 3D appearance.
+- No skeletal rig or custom animation was added; the existing walk/jump motion
+  is retained.
+- Child playtesting and real-GPU performance testing remain unavailable.
+- Windows startup remains untested (no Windows runtime/Wine). v1.1.0 was
+  exported for Linux and Windows; the Linux packaged binary passed all runtime
+  phases, while the Windows binary was inspected but not launched.
+
+### Delivery
+
+- Branch: `p9-character-customisation`
+- Pull request: [#15 P9 — Character choice, clothes shop and outfit customisation](https://github.com/PhilipGB/patchwork-island/pull/15)
+- GitHub Actions on the PR: **build-test PASS** (build, pure tests, import,
+  boot, runtime phases, Linux export/boot) and **windows-tests PASS**.
+- Source/package version: **1.1.0** (`project.godot`, `export_presets.cfg` and
+  the Windows file/product version all report 1.1.0).
+
+### Review follow-up delivery
+
+- Commit `e602f14` on `p9-character-customisation`: schema 2 migration,
+  schema 3/99 refusal, always-enabled outfit previews, real Boy/Girl/Cancel
+  runtime tests and stale clothes-save error clearing.
+- Final verification: **78** pure tests, **103 + 19 + 101** runtime assertions,
+  v1.1.0 Linux export boot and packaged runtime phases, and a v1.1.0 Windows
+  executable reporting file/product version `1.1.0.0`.
+- GitHub Actions on the updated PR: **build-test PASS** and
+  **windows-tests PASS**.
+- Review corrections are recorded in `ACCEPTANCE.md` and
+  `evidence/p9_verification.txt`.
+
+### P2 schema-preflight correction
+
+- Commit `1ac8a8c`: `ReadFile` now reads `SchemaVersion` with `JsonDocument`
+  before deserialising into `GameData`. A future save that changes an existing
+  field's type is therefore still `UnsupportedNewer`, not corruption.
+- Regression fixtures for schema 3 and 99 now use incompatible values
+  (`Coins` as a string, `CharacterPreset` as an array, `Player.X` as a string).
+  Load and ordinary save leave the files byte-for-byte untouched.
+- Verification after the change: **78** pure tests and **103 + 19 + 101**
+  runtime assertions pass; the packaged Linux binary passes all three runtime
+  phases. GitHub Actions: **build-test PASS**, **windows-tests PASS**.

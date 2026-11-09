@@ -28,6 +28,7 @@ public partial class Main : Node3D
     private Interactable _redHouseStation;
     private Interactable _workshopStation;
     private Interactable _shopStation;
+    private Interactable _clothesStation;
     private Interactable _houseStation;
     private Interactable _bridgeStation;
     private Interactable _townHallStation;
@@ -449,7 +450,8 @@ public partial class Main : Node3D
         try
         {
             CaptureSnapshots();
-            result = SaveService.TrySave(_data, SavePath, _catalog);
+            result = SaveService.TrySave(_data, SavePath, _catalog,
+                _session.NewerReplacementAuthorized);
             if (result.Success)
                 _session.RecordSaveSuccess();
             else
@@ -644,6 +646,10 @@ public partial class Main : Node3D
             "E: Look at the SHOP", InteractShop, null, true, 3.2f, "ShopStation");
         _shopStation.SetPrompt(ShopPrompt);
 
+        _clothesStation = Interactable.Create(this, _world.ClothesShopDoor + new Vector3(0, 0.1f, -1.1f),
+            "E: Visit the CLOTHES SHOP", InteractClothesShop, null, true, 3.4f, "ClothesShopStation");
+        _clothesStation.SetPrompt(ClothesShopPrompt);
+
         _townHallStation = Interactable.Create(this, _world.TownHallDoor + new Vector3(0, 0.1f, -1.0f),
             "E: Look at TOWN HALL", InteractTownHall, null, true, 3.2f, "TownHallStation");
         _townHallStation.SetPrompt(TownHallPrompt);
@@ -716,6 +722,12 @@ public partial class Main : Node3D
     {
         if (_data.ActiveMission == "M04") return "E: Shop for Market Basket";
         return "E: Look at the SHOP";
+    }
+
+    private string ClothesShopPrompt()
+    {
+        string wearing = CharacterCustomisation.Equipped(_data)?.Name ?? "Everyday";
+        return $"E: CLOTHES SHOP — wearing {wearing}";
     }
 
     private string TownHallPrompt()
@@ -895,6 +907,18 @@ public partial class Main : Node3D
             _hud.ShowBigToast("The three apples are in the crate beside the SHOP.");
         else
             _hud.ShowInfo("SHOP", "The little market sells bread and milk. Start Market Basket at the JOBS board to use the 12-coin job purse.");
+    }
+
+    private void InteractClothesShop()
+    {
+        ClothesShopUi.Show(_hud, _data, PersistCustomisation);
+    }
+
+    /// <summary>The shop calls this after a purchase, outfit change or preset change.</summary>
+    private SaveResult PersistCustomisation()
+    {
+        RefreshMissionState();
+        return SaveGame(SaveReason.Customisation);
     }
 
     private void InteractTownHall()
@@ -1103,8 +1127,8 @@ public partial class Main : Node3D
         {
             // There is no persisted session to replace, but a discarded
             // in-memory session must not leak through the title's New Game
-            // button either. Start a genuinely fresh world.
-            BeginNewGameFromTitle();
+            // button either. Choose a character first, then start fresh.
+            ShowCharacterChoice(preset => BeginNewGameFromTitle(preset), ShowTitle);
             return;
         }
         _hud.Confirm("Start a new game?",
@@ -1112,13 +1136,20 @@ public partial class Main : Node3D
                 ? "This will replace the newer save with a fresh adventure. A preserved copy of the newer save will be kept first."
                 : "This will replace the saved village with a fresh adventure. Your current save will be overwritten.",
             "Start a new game",
-            () => BeginNewGameFromTitle(),
+            () => ShowCharacterChoice(preset => BeginNewGameFromTitle(preset), ShowTitle),
             "Cancel", ShowTitle);
     }
 
-    private SaveResult BeginNewGameFromTitle()
+    private void ShowCharacterChoice(Action<string> onChosen, Action onCancel)
     {
-        var result = ResetSession();
+        // A fresh village always begins with the default Everyday outfit; the
+        // chosen preset is applied by ResetSession below.
+        CharacterChoiceUi.Show(_hud, onChosen, onCancel);
+    }
+
+    private SaveResult BeginNewGameFromTitle(string preset)
+    {
+        var result = ResetSession(preset);
         StartAdventure();
         if (!result.Success)
             _hud.ShowBigToast(
@@ -1811,6 +1842,7 @@ public partial class Main : Node3D
     private void ApplyCosmetics()
     {
         if (_player == null) return;
+        _player.SetAppearance(_data.CharacterPreset, _data.EquippedOutfit);
         _player.SetCapColor(_data.UnlockedCosmetics.Contains("red_cap") ? Palette.Red : Palette.Blue);
     }
 
@@ -2082,20 +2114,20 @@ public partial class Main : Node3D
     private void ConfirmNewGame()
     {
         _hud.Confirm("Start a new game?", "This restarts the village from the beginning. Are you sure?", "Start new game",
-            () =>
+            () => ShowCharacterChoice(preset =>
             {
-                var result = ResetSession();
+                var result = ResetSession(preset);
                 if (result.Success)
                     _hud.ShowBigToast("New game started. Find the JOBS board!");
                 else
                     _hud.ShowBigToast(
                         "New game started, but it could not be saved yet. Use Save now to try again.",
                         7f, Palette.Red);
-            },
+            }, ShowPauseMenu),
             "Cancel", ShowPauseMenu);
     }
 
-    private SaveResult ResetSession()
+    private SaveResult ResetSession(string preset = null)
     {
         foreach (var mode in _buildModes)
         {
@@ -2135,6 +2167,11 @@ public partial class Main : Node3D
         _lastIndoor = false;
         _rig.SetIndoor(false);
         _data = new GameData();
+        if (CharacterCustomisation.IsValidPreset(preset))
+        {
+            _data.CharacterPreset = preset;
+            _data.EquippedOutfit = CharacterCustomisation.DefaultOutfit;
+        }
         _missions = new MissionService(_data, _catalog);
         _saveNotice = "";
         _recoveredJobNote = "";
@@ -2359,6 +2396,15 @@ public partial class Main : Node3D
     internal bool RtBridgeBuilt => _bridgeBuilder?.IsBuilt == true;
     internal int RtParkPlacementCount => _data.ParkPlacements.Count;
     internal int RtSwingPieceCount => _data.SwingPieces.Count;
+    internal string RtCharacterPreset => _data.CharacterPreset;
+    internal string RtEquippedOutfit => _data.EquippedOutfit;
+    internal int RtOwnedOutfitCount => _data.OwnedOutfits.Count;
+    internal bool RtOwnsOutfit(string outfitId) => CharacterCustomisation.Owns(_data, outfitId);
+    internal string RtPlayerPreset => _player.AppearancePreset;
+    internal string RtPlayerOutfit => _player.AppearanceOutfit;
+    internal bool RtPlayerHasLongHair => _player.HasLongHair;
+    internal bool RtPlayerWearsDress => _player.WearsDress;
+    internal int RtPlayerAppearanceRevision => _player.AppearanceRevision;
 
     internal void RtStart() => StartAdventure();
     internal void RtContinue() => ContinueAdventure();
@@ -2368,7 +2414,47 @@ public partial class Main : Node3D
     internal void RtOpenSettingsFromTitle() => OpenSettingsFromTitle();
     internal void RtConfirmNewGame() => ConfirmNewGame();
     internal void RtRequestNewGameFromTitle() => StartNewGameFromTitle();
-    internal SaveResult RtStartNewGameFromTitleConfirmed() => BeginNewGameFromTitle();
+    internal SaveResult RtStartNewGameFromTitleConfirmed() =>
+        BeginNewGameFromTitle(CharacterCustomisation.DefaultPreset);
+    internal SaveResult RtStartNewGameFromTitleConfirmed(string preset) => BeginNewGameFromTitle(preset);
+    internal SaveResult RtStartNewGame(string preset) => ResetSession(preset);
+    internal void RtOpenClothesShop() => InteractClothesShop();
+    internal bool RtPressModalButton(string name)
+    {
+        if (!_hud.ModalOpen) return false;
+        var button = _hud.FindChild(name, true, false) as Button;
+        if (button == null || button.Disabled || !button.Visible) return false;
+        button.EmitSignal(BaseButton.SignalName.Pressed);
+        return true;
+    }
+
+    internal bool RtFocusModalButton(string name)
+    {
+        if (!_hud.ModalOpen) return false;
+        var button = _hud.FindChild(name, true, false) as Button;
+        if (button == null || button.Disabled || !button.Visible) return false;
+        button.GrabFocus();
+        return true;
+    }
+
+    internal string RtModalLabelText(string name)
+    {
+        if (!_hud.ModalOpen) return "";
+        return (_hud.FindChild(name, true, false) as Label)?.Text ?? "";
+    }
+
+    internal ActionOutcome RtShopBuy(string outfitId)
+    {
+        var outcome = CharacterCustomisation.BuyOutfit(_data, outfitId);
+        if (outcome.Success) PersistCustomisation();
+        return outcome;
+    }
+    internal ActionOutcome RtShopWear(string outfitId)
+    {
+        var outcome = CharacterCustomisation.EquipOutfit(_data, outfitId);
+        if (outcome.Success) PersistCustomisation();
+        return outcome;
+    }
     internal void RtReturnToTitle() => ReturnToTitle();
     internal void RtReturnAnyway() => DiscardUnsavedSessionAndShowTitle();
     internal Error RtReloadScene() => GetTree().ReloadCurrentScene();
@@ -2377,6 +2463,7 @@ public partial class Main : Node3D
     internal bool RtForceAutosave() => SaveGame(SaveReason.Autosave).Success;
     internal SaveResult RtStartNewGame() => ResetSession();
     internal int RtCoins => _data.Coins;
+    internal string RtCoinText => _hud.CoinText;
     internal int RtCompletedCount => _data.CompletedMissions.Count;
     internal string RtActiveMission => _data.ActiveMission;
     internal bool RtMusicEnabled => _data.Settings.MusicEnabled;
@@ -2524,6 +2611,46 @@ public partial class Main : Node3D
             _rig.SetView(0f, 18f, 8.2f);
             await Wait(0.7f);
             await Snap("p2_09_workshop.png", DeveloperCaptureDirectory);
+
+            // P9 character and clothes-shop evidence.
+            CharacterChoiceUi.Show(_hud, _ => { }, () => { });
+            await Wait(0.7f);
+            await Snap("p9_01_character_choice.png", DeveloperCaptureDirectory);
+            _hud.CloseModal();
+            await Wait(0.4f);
+
+            _data.CharacterPreset = CharacterCustomisation.Girl;
+            _data.EquippedOutfit = CharacterCustomisation.DefaultOutfit;
+            ApplyCosmetics();
+            _player.Teleport(new Vector3(24f, 0.2f, 0.6f), Mathf.Pi);
+            _rig.SetView(180f, 18f, 8.2f);
+            await Wait(0.8f);
+            await Snap("p9_02_girl_at_clothes_shop.png", DeveloperCaptureDirectory);
+
+            ClothesShopUi.Show(_hud, _data, () =>
+            {
+                ApplyCosmetics();
+                _hud.SetCoins(_data.Coins);
+                return SaveResult.Ok();
+            });
+            await Wait(0.7f);
+            await Snap("p9_03_clothes_shop_ui.png", DeveloperCaptureDirectory);
+            RtPressModalButton("Outfit_sunny");
+            await Wait(0.7f);
+            await Snap("p9_04_outfit_owned_and_worn.png", DeveloperCaptureDirectory);
+            _hud.CloseModal();
+            await Wait(0.4f);
+
+            _player.Teleport(new Vector3(24f, 0.2f, 0.6f), Mathf.Pi);
+            _rig.SetView(180f, 18f, 8.2f);
+            await Wait(0.7f);
+            await Snap("p9_05_girl_sunny_outfit_world.png", DeveloperCaptureDirectory);
+
+            _data.CharacterPreset = CharacterCustomisation.Boy;
+            _data.EquippedOutfit = CharacterCustomisation.DefaultOutfit;
+            ApplyCosmetics();
+            await Wait(0.5f);
+            await Snap("p9_06_boy_default_outfit_world.png", DeveloperCaptureDirectory);
         }
         catch (Exception ex)
         {

@@ -10,6 +10,7 @@ public enum SaveReason
     MissionStart,
     MissionCompleted,
     Settings,
+    Customisation,
     NewGame,
     ReturnToTitle,
     Quit,
@@ -109,6 +110,8 @@ public sealed class SaveFeedbackPolicy
                 if (_settingsFailureReported) return SaveNotice.None;
                 _settingsFailureReported = true;
                 return Error($"Setting applied for this session, but it could not be saved: {detail}");
+            case SaveReason.Customisation:
+                return Error($"Your new look is applied for this session, but it could not be saved: {detail}");
             default:
                 if (_automaticFailureReported) return SaveNotice.None;
                 _automaticFailureReported = true;

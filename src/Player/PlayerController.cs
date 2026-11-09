@@ -23,7 +23,18 @@ public partial class PlayerController : CharacterBody3D
     private Node3D _leftLeg, _rightLeg, _leftArm, _rightArm, _head;
     private MeshInstance3D _capTop, _capBrim;
     private Color _capColor = new(-1, -1, -1);
+    private string _preset = CharacterCustomisation.DefaultPreset;
+    private string _outfitId = CharacterCustomisation.DefaultOutfit;
+    private bool _longHair;
+    private bool _wearsDress;
+    private int _appearanceRevision;
     private float _yaw;
+
+    public string AppearancePreset => _preset;
+    public string AppearanceOutfit => _outfitId;
+    public bool HasLongHair => _longHair;
+    public bool WearsDress => _wearsDress;
+    public int AppearanceRevision => _appearanceRevision;
 
     /// <summary>Current model facing, saved so a reload faces the same way.</summary>
     public float FacingYaw => _yaw;
@@ -55,19 +66,60 @@ public partial class PlayerController : CharacterBody3D
 
     private void BuildModel()
     {
-        _model = new Node3D { Name = "Model" };
+        if (_model != null && GodotObject.IsInstanceValid(_model))
+        {
+            RemoveChild(_model);
+            _model.QueueFree();
+        }
+
+        _longHair = _preset == CharacterCustomisation.Girl;
+        _wearsDress = _longHair;
+        _appearanceRevision++;
+
+        var style = CharacterCustomisation.StyleFor(_preset, _outfitId);
+        Color main = Color.FromHtml(style.MainHex);
+        Color secondary = Color.FromHtml(style.SecondaryHex);
+        Color accent = Color.FromHtml(style.AccentHex);
+        Color shoes = Color.FromHtml(style.ShoeHex);
+        Color hair = Color.FromHtml("6E462B");
+        Color darkHair = hair.Darkened(0.14f);
+
+        _model = new Node3D { Name = "Model", Rotation = new Vector3(0, _yaw, 0) };
         _model.Scale = new Vector3(0.92f, 0.92f, 0.92f);
         AddChild(_model);
 
-        // Torso, jacket and sunny rucksack.
-        Geo.Box(_model, new Vector3(0, 1.02f, 0), new Vector3(0.72f, 0.66f, 0.46f), Palette.Blue);
-        Geo.Box(_model, new Vector3(0, 1.28f, 0), new Vector3(0.78f, 0.16f, 0.5f), Palette.Yellow);
-        Geo.Box(_model, new Vector3(0, 1.02f, 0.34f), new Vector3(0.56f, 0.62f, 0.28f), Palette.Yellow);
-        Geo.Box(_model, new Vector3(0, 1.05f, 0.49f), new Vector3(0.34f, 0.28f, 0.06f), Palette.Orange);
+        if (_wearsDress)
+            BuildDressBody(main, secondary, accent);
+        else
+            BuildShirtBody(main, secondary, accent);
 
         // Head and friendly face.
         _head = new Node3D { Name = "Head", Position = new Vector3(0, 1.61f, 0) };
         _model.AddChild(_head);
+
+        if (_longHair)
+        {
+            // Long hair silhouette and side locks, behind the face.
+            Geo.Box(_head, new Vector3(0, -0.24f, 0.3f), new Vector3(0.6f, 0.72f, 0.18f), hair,
+                null, false, "LongHairBack");
+            Geo.Box(_head, new Vector3(-0.32f, -0.16f, 0.02f), new Vector3(0.09f, 0.56f, 0.4f), darkHair,
+                null, false, "LongHairLeft");
+            Geo.Box(_head, new Vector3(0.32f, -0.16f, 0.02f), new Vector3(0.09f, 0.56f, 0.4f), darkHair,
+                null, false, "LongHairRight");
+            Geo.Box(_head, new Vector3(0, 0.2f, 0.04f), new Vector3(0.62f, 0.18f, 0.46f), hair,
+                null, false, "LongHairTop");
+        }
+        else
+        {
+            // Short, tidy hair with a small front fringe.
+            Geo.Box(_head, new Vector3(0, 0.2f, 0.03f), new Vector3(0.58f, 0.16f, 0.44f), hair,
+                null, false, "ShortHairTop");
+            Geo.Box(_head, new Vector3(0, 0.1f, 0.24f), new Vector3(0.5f, 0.2f, 0.12f), darkHair,
+                null, false, "ShortHairBack");
+            Geo.Box(_head, new Vector3(0, 0.24f, -0.25f), new Vector3(0.46f, 0.1f, 0.07f), hair,
+                null, false, "ShortHairFringe");
+        }
+
         Geo.Box(_head, Vector3.Zero, new Vector3(0.6f, 0.55f, 0.52f), Palette.Skin);
         Geo.Box(_head, new Vector3(0, -0.24f, 0.05f), new Vector3(0.2f, 0.14f, 0.2f), Palette.Skin);
         Geo.Box(_head, new Vector3(-0.14f, 0.05f, -0.27f), new Vector3(0.07f, 0.1f, 0.035f), Palette.Navy);
@@ -75,8 +127,18 @@ public partial class PlayerController : CharacterBody3D
         Geo.Box(_head, new Vector3(0, -0.1f, -0.28f), new Vector3(0.18f, 0.035f, 0.025f), Palette.Navy);
         Geo.Box(_head, new Vector3(-0.24f, -0.05f, -0.27f), new Vector3(0.08f, 0.04f, 0.02f), new Color("E99A86"));
         Geo.Box(_head, new Vector3(0.24f, -0.05f, -0.27f), new Vector3(0.08f, 0.04f, 0.02f), new Color("E99A86"));
-        // Hair tuft.
-        Geo.Box(_head, new Vector3(0, 0.18f, 0.22f), new Vector3(0.32f, 0.18f, 0.12f), new Color("6E462B"));
+
+        if (_longHair)
+        {
+            // A cheerful bow, matching the sketch's flower/bow accessory.
+            var bow = new Node3D { Name = "HairBow", Position = new Vector3(0.28f, 0.26f, -0.02f) };
+            _head.AddChild(bow);
+            Geo.Box(bow, new Vector3(-0.09f, 0, 0), new Vector3(0.16f, 0.12f, 0.07f), accent,
+                new Vector3(0, 0, 22));
+            Geo.Box(bow, new Vector3(0.09f, 0, 0), new Vector3(0.16f, 0.12f, 0.07f), accent,
+                new Vector3(0, 0, -22));
+            Geo.Box(bow, new Vector3(0, 0, 0.035f), new Vector3(0.08f, 0.08f, 0.06f), accent.Darkened(0.18f));
+        }
 
         // Cap (recoloured by the M01 reward).
         _capTop = Geo.Cylinder(_head, new Vector3(0, 0.32f, 0), 0.34f, 0.34f, 0.18f, Palette.Blue, 12);
@@ -86,29 +148,90 @@ public partial class PlayerController : CharacterBody3D
         // Arms with pivots at the shoulders.
         _leftArm = new Node3D { Position = new Vector3(-0.44f, 1.28f, 0) };
         _model.AddChild(_leftArm);
-        Geo.Box(_leftArm, new Vector3(0, -0.25f, 0), new Vector3(0.19f, 0.5f, 0.2f), Palette.Blue);
-        Geo.Sphere(_leftArm, new Vector3(0, -0.53f, 0), 0.11f, Palette.Skin, 6, 3);
+        BuildArm(_leftArm, main, accent);
         _rightArm = new Node3D { Position = new Vector3(0.44f, 1.28f, 0) };
         _model.AddChild(_rightArm);
-        Geo.Box(_rightArm, new Vector3(0, -0.25f, 0), new Vector3(0.19f, 0.5f, 0.2f), Palette.Blue);
-        Geo.Sphere(_rightArm, new Vector3(0, -0.53f, 0), 0.11f, Palette.Skin, 6, 3);
+        BuildArm(_rightArm, main, accent);
 
-        // Legs.
+        // Legs and simple shoes.
         _leftLeg = new Node3D { Position = new Vector3(-0.18f, 0.64f, 0) };
         _model.AddChild(_leftLeg);
-        Geo.Box(_leftLeg, new Vector3(0, -0.28f, 0), new Vector3(0.22f, 0.54f, 0.25f), Palette.Navy);
-        Geo.Box(_leftLeg, new Vector3(0, -0.56f, -0.06f), new Vector3(0.25f, 0.13f, 0.37f), Palette.Blue);
+        BuildLeg(_leftLeg, secondary, shoes, _wearsDress);
         _rightLeg = new Node3D { Position = new Vector3(0.18f, 0.64f, 0) };
         _model.AddChild(_rightLeg);
-        Geo.Box(_rightLeg, new Vector3(0, -0.28f, 0), new Vector3(0.22f, 0.54f, 0.25f), Palette.Navy);
-        Geo.Box(_rightLeg, new Vector3(0, -0.56f, -0.06f), new Vector3(0.25f, 0.13f, 0.37f), Palette.Blue);
+        BuildLeg(_rightLeg, secondary, shoes, _wearsDress);
+
+        ApplyCapColor();
+    }
+
+    private void BuildShirtBody(Color main, Color secondary, Color accent)
+    {
+        // Shirt, shorts and a small sunny pocket.
+        Geo.Box(_model, new Vector3(0, 1.06f, 0), new Vector3(0.72f, 0.58f, 0.46f), main);
+        Geo.Box(_model, new Vector3(0, 1.3f, 0), new Vector3(0.78f, 0.12f, 0.5f), accent);
+        Geo.Box(_model, new Vector3(0, 0.74f, 0), new Vector3(0.64f, 0.32f, 0.44f), secondary);
+        Geo.Box(_model, new Vector3(0, 1.04f, 0.25f), new Vector3(0.3f, 0.22f, 0.06f), accent);
+        Geo.Box(_model, new Vector3(0, 0.51f, 0), new Vector3(0.66f, 0.08f, 0.46f), accent);
+    }
+
+    private void BuildDressBody(Color main, Color secondary, Color accent)
+    {
+        // Bodice and a low-poly flared skirt: unmistakably a dress while
+        // keeping the same friendly proportions as the boy character.
+        Geo.Box(_model, new Vector3(0, 1.09f, 0), new Vector3(0.64f, 0.5f, 0.42f), main);
+        Geo.Box(_model, new Vector3(0, 1.27f, 0), new Vector3(0.68f, 0.1f, 0.46f), accent);
+        Geo.Box(_model, new Vector3(0, 1.02f, 0.23f), new Vector3(0.14f, 0.12f, 0.06f), accent);
+        Geo.Cylinder(_model, new Vector3(0, 0.79f, 0), 0.34f, 0.52f, 0.56f, main, 10,
+            null, false, "DressSkirt");
+        Geo.Cylinder(_model, new Vector3(0, 0.535f, 0), 0.525f, 0.525f, 0.07f, accent, 10,
+            null, false, "DressHem");
+        // A little waist ribbon ties the dress to the selected outfit.
+        Geo.Box(_model, new Vector3(0, 0.98f, 0), new Vector3(0.68f, 0.08f, 0.46f), secondary);
+    }
+
+    private static void BuildArm(Node3D arm, Color main, Color accent)
+    {
+        Geo.Box(arm, new Vector3(0, -0.18f, 0), new Vector3(0.19f, 0.36f, 0.2f), main);
+        Geo.Box(arm, new Vector3(0, -0.37f, 0), new Vector3(0.2f, 0.05f, 0.21f), accent);
+        Geo.Box(arm, new Vector3(0, -0.46f, 0), new Vector3(0.16f, 0.2f, 0.17f), Palette.Skin);
+        Geo.Sphere(arm, new Vector3(0, -0.58f, 0), 0.1f, Palette.Skin, 6, 3);
+    }
+
+    private static void BuildLeg(Node3D leg, Color secondary, Color shoes, bool dress)
+    {
+        Color legColor = dress ? Palette.Skin : secondary;
+        Geo.Box(leg, new Vector3(0, -0.28f, 0), new Vector3(0.21f, 0.54f, 0.24f), legColor);
+        Geo.Box(leg, new Vector3(0, -0.56f, -0.06f), new Vector3(0.25f, 0.13f, 0.37f), shoes);
+        Geo.Box(leg, new Vector3(0, -0.61f, -0.06f), new Vector3(0.26f, 0.04f, 0.39f), shoes.Darkened(0.2f));
+    }
+
+    public void SetAppearance(string preset, string outfitId)
+    {
+        string normalisedPreset = CharacterCustomisation.IsValidPreset(preset)
+            ? preset
+            : CharacterCustomisation.DefaultPreset;
+        string normalisedOutfit = CharacterCustomisation.Find(outfitId) != null
+            ? outfitId
+            : CharacterCustomisation.DefaultOutfit;
+
+        if (_model != null && normalisedPreset == _preset && normalisedOutfit == _outfitId)
+            return;
+
+        _preset = normalisedPreset;
+        _outfitId = normalisedOutfit;
+        BuildModel();
     }
 
     public void SetCapColor(Color color)
     {
-        if (_capTop == null) return;
-        if (color == _capColor) return;
         _capColor = color;
+        ApplyCapColor();
+    }
+
+    private void ApplyCapColor()
+    {
+        if (_capTop == null || _capBrim == null) return;
+        Color color = _capColor.R < 0 ? Palette.Blue : _capColor;
         _capTop.MaterialOverride = Geo.Mat(color);
         _capBrim.MaterialOverride = Geo.Mat(color.Darkened(0.08f));
     }
