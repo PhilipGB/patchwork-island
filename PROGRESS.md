@@ -1240,3 +1240,15 @@ without losing the mirror. The modal still scrolls if the window is shorter.
   **windows-tests PASS**.
 - Review corrections are recorded in `ACCEPTANCE.md` and
   `evidence/p9_verification.txt`.
+
+### P2 schema-preflight correction
+
+- Commit `1ac8a8c`: `ReadFile` now reads `SchemaVersion` with `JsonDocument`
+  before deserialising into `GameData`. A future save that changes an existing
+  field's type is therefore still `UnsupportedNewer`, not corruption.
+- Regression fixtures for schema 3 and 99 now use incompatible values
+  (`Coins` as a string, `CharacterPreset` as an array, `Player.X` as a string).
+  Load and ordinary save leave the files byte-for-byte untouched.
+- Verification after the change: **78** pure tests and **103 + 19 + 101**
+  runtime assertions pass; the packaged Linux binary passes all three runtime
+  phases. GitHub Actions: **build-test PASS**, **windows-tests PASS**.
