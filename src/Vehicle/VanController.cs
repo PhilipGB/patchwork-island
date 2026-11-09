@@ -30,6 +30,20 @@ public partial class VanController : CharacterBody3D
     private bool _resetting;
     private AudioStreamPlayer3D _engineIdle;
     private AudioStreamPlayer3D _engineDrive;
+    private bool _autopilot;
+    private IReadOnlyList<RallyCourse.Point> _autopilotPath;
+    private int _autopilotIndex;
+
+    public bool Autopilot => _autopilot;
+
+    public void StartRallyAutopilot()
+    {
+        _autopilotPath = RallyCourse.SampleClosed(10);
+        _autopilotIndex = 1 % System.Math.Max(1, _autopilotPath.Count);
+        _autopilot = true;
+    }
+
+    public void StopAutopilot() => _autopilot = false;
 
     public void Initialize(Vector3 parkingPosition, float parkingYaw, Hud hud)
     {
@@ -210,6 +224,8 @@ public partial class VanController : CharacterBody3D
 
         float throttle = InputEnabled ? Input.GetAxis("move_back", "move_forward") : 0f;
         float steerAxis = InputEnabled ? Input.GetAxis("move_left", "move_right") : 0f;
+        if (_autopilot)
+            ComputeAutopilot(out throttle, out steerAxis);
         _steerInput = Mathf.MoveToward(_steerInput, steerAxis, dt * 4.2f);
 
         if (throttle > 0.05f)
@@ -239,7 +255,7 @@ public partial class VanController : CharacterBody3D
             float turnRate = 1.18f * Mathf.Clamp(Mathf.Abs(Speed) / 5f, 0.18f, 1f);
             Rotation = new Vector3(0, Rotation.Y - _steerInput * turnRate * dt * Mathf.Sign(Speed), 0);
         }
-        else if (Mathf.Abs(throttle) < 0.05f)
+        else if (Mathf.Abs(throttle) < 0.05f && !_autopilot)
         {
             // Friendly toy-like pivot: children can line the van up before driving.
             Rotation = new Vector3(0, Rotation.Y - steerAxis * 1.25f * dt, 0);
@@ -268,6 +284,37 @@ public partial class VanController : CharacterBody3D
         _bodyBob = Mathf.Sin(Time.GetTicksMsec() / 130f) * Mathf.Clamp(Mathf.Abs(Speed) / MaxForwardSpeed, 0f, 1f) * 0.015f;
         _visual.Position = new Vector3(0, _bodyBob, 0);
         _visual.Rotation = new Vector3(0, 0, -_steerInput * Mathf.Clamp(Mathf.Abs(Speed) / MaxForwardSpeed, 0f, 1f) * 0.035f);
+    }
+
+    private void ComputeAutopilot(out float throttle, out float steerAxis)
+    {
+        throttle = 0f;
+        steerAxis = 0f;
+        if (_autopilotPath == null || _autopilotPath.Count < 2) return;
+        var targetPoint = _autopilotPath[_autopilotIndex];
+        Vector3 target = new(targetPoint.X, GlobalPosition.Y, targetPoint.Z);
+        Vector3 to = target - GlobalPosition;
+        to.Y = 0;
+        if (to.Length() < 3.6f)
+        {
+            _autopilotIndex = (_autopilotIndex + 1) % _autopilotPath.Count;
+            targetPoint = _autopilotPath[_autopilotIndex];
+            target = new Vector3(targetPoint.X, GlobalPosition.Y, targetPoint.Z);
+            to = target - GlobalPosition;
+            to.Y = 0;
+        }
+        if (to.LengthSquared() < 0.001f) return;
+        float desiredYaw = Mathf.Atan2(-to.X, -to.Z);
+        float angle = Mathf.Wrap(desiredYaw - Rotation.Y, -Mathf.Pi, Mathf.Pi);
+        steerAxis = Mathf.Clamp(-angle * 2.4f, -1f, 1f);
+        float absAngle = Mathf.Abs(angle);
+        if (Speed > 7.4f) throttle = -0.15f;
+        else if (absAngle > 1.15f) throttle = Speed < 1.2f ? 0.35f : 0.05f;
+        else if (absAngle > 0.55f) throttle = 0.42f;
+        else throttle = 0.9f;
+        // Keep the autopilot test out of the river if it is ever pushed off.
+        if (GlobalPosition.X > 40.5f && GlobalPosition.X < 49.5f && GlobalPosition.Y < 0.2f)
+            throttle = 0f;
     }
 
     private void UpdateEngineAudio()

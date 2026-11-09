@@ -1813,6 +1813,56 @@ internal static class Program
         Check(rival.SpeedMetresPerSecond <= 8f, "rival speed cap");
     });
 
+    Run("rally centreline does not self-overlap its own road width", () =>
+    {
+        var samples = RallyCourse.SampleClosed(20);
+        int n = samples.Count;
+        float best = float.MaxValue;
+        for (int i = 0; i < n; i++)
+        {
+            var a1 = samples[i];
+            var a2 = samples[(i + 1) % n];
+            for (int j = i + 2; j < n; j++)
+            {
+                if (i == 0 && j == n - 1) continue; // adjacent across the seam
+                if (i == n - 2 && j == n - 1) continue; // adjacent at the seam end
+                int forwardGap = j - i;
+                int backwardGap = n - forwardGap;
+                if (forwardGap <= 40 || backwardGap <= 40) continue;
+                var b1 = samples[j];
+                var b2 = samples[(j + 1) % n];
+                float distance = SegmentDistance(a1, a2, b1, b2);
+                if (distance < best) best = distance;
+            }
+        }
+        Check(best > RallyCourse.RoadWidth, $"rally road overlaps itself ({best:0.0}m)");
+    });
+
+    Run("partial four-gate progress survives the enlarged circuit", () =>
+    {
+        var service = CompleteBridge(Fresh(catalog));
+        var started = service.StartMission("M05");
+        Check(started.Success, "M05 starts after the bridge");
+        service.Data.SetMissionCounter("M05", "checkpoint", 2);
+        service.Data.SetMissionCounter("M05", "elapsedMs", 30_000);
+        string dir = TempDirectory("rally-progress");
+        try
+        {
+            string path = Path.Combine(dir, "save.json");
+            SaveService.Save(service.Data, path, catalog);
+            var loaded = SaveService.Load(path, catalog);
+            Check(loaded.Success, loaded.Message);
+            Equal(2, loaded.Data.GetMissionCounter("M05", "checkpoint"), "checkpoint preserved");
+            Equal("M05", loaded.Data.ActiveMission, "active race preserved");
+            Check(!MissionRules.IsObjectiveComplete(loaded.Data, "M05"), "race still in progress");
+            Equal(4, RallyCourse.FourGates.Count, "four gate identities remain");
+        }
+        finally
+        {
+            Directory.Delete(dir, true);
+        }
+    });
+
         Console.WriteLine();
         Console.WriteLine($"RESULT: {_passed} passed, {_failed} failed");
         if (_failed == 0) return 0;
@@ -1822,6 +1872,44 @@ internal static class Program
     }
 
     private static MissionService Fresh(MissionCatalog catalog) => new(new GameData(), catalog);
+
+    private static float SegmentDistance(RallyCourse.Point a, RallyCourse.Point b,
+        RallyCourse.Point c, RallyCourse.Point d)
+    {
+        if (SegmentsIntersect(a, b, c, d)) return 0f;
+        return MathF.Min(
+            MathF.Min(PointSegmentDistance(a, c, d), PointSegmentDistance(b, c, d)),
+            MathF.Min(PointSegmentDistance(c, a, b), PointSegmentDistance(d, a, b)));
+    }
+
+    private static bool SegmentsIntersect(RallyCourse.Point a, RallyCourse.Point b,
+        RallyCourse.Point c, RallyCourse.Point d)
+    {
+        float d1 = Cross(c, d, a);
+        float d2 = Cross(c, d, b);
+        float d3 = Cross(a, b, c);
+        float d4 = Cross(a, b, d);
+        return ((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) &&
+               ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0));
+    }
+
+    private static float Cross(RallyCourse.Point a, RallyCourse.Point b, RallyCourse.Point c) =>
+        (b.X - a.X) * (c.Z - a.Z) - (b.Z - a.Z) * (c.X - a.X);
+
+    private static float PointSegmentDistance(RallyCourse.Point p, RallyCourse.Point a,
+        RallyCourse.Point b)
+    {
+        float dx = b.X - a.X;
+        float dz = b.Z - a.Z;
+        float lengthSq = dx * dx + dz * dz;
+        if (lengthSq < 1e-8f)
+            return MathF.Sqrt((p.X - a.X) * (p.X - a.X) + (p.Z - a.Z) * (p.Z - a.Z));
+        float t = ((p.X - a.X) * dx + (p.Z - a.Z) * dz) / lengthSq;
+        t = Math.Clamp(t, 0f, 1f);
+        float cx = a.X + dx * t;
+        float cz = a.Z + dz * t;
+        return MathF.Sqrt((p.X - cx) * (p.X - cx) + (p.Z - cz) * (p.Z - cz));
+    }
 
     private static string TempDirectory(string prefix)
     {

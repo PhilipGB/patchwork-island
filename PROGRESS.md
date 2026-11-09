@@ -1358,3 +1358,60 @@ Captured at 1280×720 under Xvfb/Mesa llvmpipe:
   procedural geometry matching the existing P9 player/van style. The supplied
   portraits are used in-world and in dialogue; mission icons will be used from
   P13. This decision is recorded in `docs/ASSET_USAGE.md`.
+
+## P12 — World visual cleanup and expanded rally (v1.2.0)
+
+**Branch:** `p12-rally-polish`
+
+### Delivered
+
+- Replaced the old five-rectangle rally meadow with a single closed
+  Catmull-Rom road mesh (364 samples, ~206 m), welded shoulders, continuous
+  edge lines/dashes, a connected bridge spur and one concave collision mesh.
+- Preserved four-gate M05/M09 IDs, ordering, saved checkpoint semantics,
+  `elapsedMs` and the 90/75-second optional bonus rules. The four gates moved
+  to the new circuit; M19's six-gate layout is authored and hidden until M19.
+- Gate number boards are billboard-readable from both sides; painted arrows now
+  have a proper triangular head and point along the direction of travel.
+- Removed the old paddock fence that crossed the new circuit, relocated trees
+  that were within canopy distance of the road, moved the grandstand/flags into
+  the infield and moved the start/finish signage clear of tarmac.
+- Visual root-cause fixes: cloud/ocean shadows disabled, village road slabs get
+  sub-millimetre height offsets, markings raised to a consistent proud plane,
+  clothes-shop path raised, sign boards readable from the back.
+- Added a real-physics autopilot verification mode (`--selftest-rally`) that
+  drives the genuine van through both four-gate races, plus a software-renderer
+  frame probe (`--perf-probe`).
+
+### Verification
+
+```text
+dotnet build PatchworkIsland.sln                         -> 0 warnings, 0 errors
+dotnet run --project tests/PatchworkIsland.Tests.csproj  -> 86 passed, 0 failed
+godot --headless --path . -- --selftest                  -> 161 passed, 0 failed
+godot --headless --path . -- --selftest-resume           -> 21 passed, 0 failed
+godot --headless --path . -- --selftest-recovery         -> 101 passed, 0 failed
+godot --headless --path . -- --selftest-living           -> 238 passed, 0 failed
+godot --headless --path . -- --selftest-rally            -> 10 passed, 0 failed
+```
+
+Autopilot race times: **M05 18.98 s**, **M09 19.03 s**, both with four gates in
+order and the existing optional bonus awarded. A part-completed M05 save with
+`checkpoint=2` reloads with its active mission and timer preserved.
+
+### Visual evidence
+
+- 720p and true 1080p captures: `evidence/p12_720_*.png` and
+  `evidence/p12_1080_*.png` (overview, rally overview, start line, gates 1/4,
+  road join, clothes shop, village roads, town traffic, job board).
+- Baseline before images: `evidence/p12_before_old_rally.png`,
+  `evidence/p12_before_village_roads.png`.
+- Reproducible defect list and root causes: `docs/VISUAL_QA.md`.
+
+### Performance
+
+Software-renderer (Mesa llvmpipe, **not** a desktop GPU claim): 1280×720 mean
+86.25 ms / p95 97.15 ms; 1920×1080 mean 97.34 ms / p95 106.84 ms; 2581 nodes,
+2997 draw calls, 60,647 primitives. The v1.1.0 baseline had no probe, so a
+baseline frame-time comparison is **NOT TESTED**. Real Radeon 890M profiling is
+**NOT TESTED** (hardware unavailable).

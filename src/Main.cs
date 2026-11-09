@@ -185,10 +185,10 @@ public partial class Main : Node3D
         }
         if (HasUserArg("--scenario-m09"))
         {
-            _van.GlobalPosition = new Vector3(55f, 0.15f, 1.5f);
-            _van.Rotation = new Vector3(0, Mathf.DegToRad(35f), 0);
-            BeginScenario(new Vector3(55f, 0.2f, 6.0f), Mathf.Pi,
-                "SCENARIO: M09 active in the meadow. Drive gates 1-2-3-4; under 75 s is an optional bonus.", 5f);
+            _van.GlobalPosition = new Vector3(56f, 0.15f, -2.0f);
+            _van.Rotation = new Vector3(0, 0, 0);
+            BeginScenario(new Vector3(52.8f, 0.2f, 2.0f), 0f,
+                "SCENARIO: M09 active on the new long circuit. Drive gates 1-2-3-4; under 75 s is an optional bonus.", 5f);
             return;
         }
         if (HasUserArg("--scenario-m10"))
@@ -222,6 +222,22 @@ public partial class Main : Node3D
             _hud.CloseModal();
             _player.SetControlEnabled(false);
             _ = CaptureP11();
+            return;
+        }
+        if (HasUserArg("--capture-p12"))
+        {
+            _started = true;
+            _hud.CloseModal();
+            _player.SetControlEnabled(false);
+            _ = CaptureP12();
+            return;
+        }
+        if (HasUserArg("--perf-probe"))
+        {
+            _started = true;
+            _hud.CloseModal();
+            _player.SetControlEnabled(false);
+            _ = RunPerformanceProbe();
             return;
         }
         ShowTitle();
@@ -321,8 +337,11 @@ public partial class Main : Node3D
 
     private static bool IsLivingTest => HasUserArg("--selftest-living");
 
+    private static bool IsRallyTest => HasUserArg("--selftest-rally");
+
     private static bool IsSelfTest =>
-        HasUserArg("--selftest") || HasUserArg("--selftest-resume") || IsRecoveryTest || IsLivingTest;
+        HasUserArg("--selftest") || HasUserArg("--selftest-resume") || IsRecoveryTest ||
+        IsLivingTest || IsRallyTest;
 
     private static bool IsSelfTestResume => HasUserArg("--selftest-resume");
 
@@ -1736,6 +1755,7 @@ public partial class Main : Node3D
         _hud.SetCoins(_data.Coins);
         ApplyCosmetics();
         RefreshPickupVisibility();
+        RefreshRaceGateVisibility();
         if (_world.GoldCourseFlag != null)
             _world.GoldCourseFlag.Visible = _data.IsCompleted("M09");
         if (_world.CelebrationDecor != null)
@@ -1935,8 +1955,16 @@ public partial class Main : Node3D
         return rows;
     }
 
-    private void RefreshPickupVisibility()
+    private void RefreshRaceGateVisibility()
     {
+        bool secondChapterRally = _missions?.ActiveMission?.Id == "M19";
+        if (_world?.RaceGates4Root != null)
+            _world.RaceGates4Root.Visible = !secondChapterRally;
+        if (_world?.RaceGates6Root != null)
+            _world.RaceGates6Root.Visible = secondChapterRally;
+    }
+
+    private void RefreshPickupVisibility()    {
         foreach (var pickup in _pickups.ToList())
         {
             if (!GodotObject.IsInstanceValid(pickup)) continue;
@@ -1987,6 +2015,8 @@ public partial class Main : Node3D
         if (result.AllComplete && _catalog.Missions.Count >= 10)
             _world.CelebrationDecor.Visible = true;
         var save = SaveGame(SaveReason.MissionCompleted);
+        if (result.Mission.Id is "M05" or "M09")
+            GD.Print($"RACE_TIME {result.Mission.Id} {result.RaceSeconds:0.00}s bonus={result.BonusCoins}");
         if (!save.Success)
             _hud.SetModalStatus(
                 "Your job is complete in this session, but the save failed. Use Save now from the pause menu to retry.",
@@ -2732,6 +2762,68 @@ public partial class Main : Node3D
         return true;
     }
 
+    internal void RtPlaceVanAtRallyStart()
+    {
+        if (_driving)
+        {
+            _driving = false;
+            _van.SetDriven(false);
+            _player.Visible = true;
+        }
+        _van.StopAutopilot();
+        var start = RallyCourse.Sample(0f);
+        _van.GlobalPosition = new Vector3(start.X, 0.2f, start.Z);
+        _van.Rotation = new Vector3(0, 0, 0);
+        _van.Velocity = Vector3.Zero;
+        _player.Teleport(_van.GlobalPosition + new Vector3(-2.6f, 0.1f, 0f), 0f);
+        _vehicleSwitchCooldown = 0f;
+        EnterVan();
+    }
+
+    internal bool RtPrepareRally(string missionId)
+    {
+        if (missionId is not ("M05" or "M09")) return false;
+        foreach (string id in new[] { "M01", "M02", "M03", "M04" })
+            if (!_data.CompletedMissions.Contains(id)) _data.CompletedMissions.Add(id);
+        foreach (string socket in BuildRules.BridgeSockets)
+            if (!_data.BridgePieces.Contains(socket)) _data.BridgePieces.Add(socket);
+        if (missionId == "M09" && !_data.CompletedMissions.Contains("M05"))
+            _data.CompletedMissions.Add("M05");
+        if (!_missions.StartMission(missionId).Success) return false;
+        _raceTimer = new RaceTimer();
+        RtPlaceVanAtRallyStart();
+        if (!_driving) return false;
+        _van.StartRallyAutopilot();
+        RefreshMissionState();
+        return true;
+    }
+
+    internal void RtStopRallyAutopilot() => _van?.StopAutopilot();
+    internal bool RtMissionCompleted(string id) => _data.IsCompleted(id);
+    internal bool RtRallyAutopilot => _van?.Autopilot == true;
+    internal int RtRaceCheckpoint(string id) => _data.GetMissionCounter(id, "checkpoint");
+    internal int RtRallySampleCount => _world?.RallySampleCount ?? 0;
+    internal float RtRallyLength => _world?.RallyLength ?? 0f;
+
+    internal int RtRallyCollisionCoverage()
+    {
+        if (_world == null) return 0;
+        var samples = RallyCourse.SampleClosed(4);
+        var space = GetWorld3D().DirectSpaceState;
+        int hits = 0;
+        foreach (var sample in samples)
+        {
+            var query = PhysicsRayQueryParameters3D.Create(
+                new Vector3(sample.X, 2.5f, sample.Z),
+                new Vector3(sample.X, -1f, sample.Z), 1u);
+            var result = space.IntersectRay(query);
+            if (result.Count == 0) continue;
+            Vector3 hit = (Vector3)result["position"];
+            if (hit.Y >= 0.03f) hits++;
+        }
+        return hits;
+    }
+
     internal void RtEnterVan()
     {
         _vehicleSwitchCooldown = 0f;
@@ -2768,6 +2860,91 @@ public partial class Main : Node3D
             GD.PrintErr($"Title capture failed: {ex}");
         }
         GetTree().Quit();
+    }
+
+    private async Task RunPerformanceProbe()
+    {
+        try
+        {
+            bool highRes = HasUserArg("--perf-1080");
+            if (highRes)
+            {
+                GetWindow().ContentScaleSize = new Vector2I(1920, 1080);
+                GetWindow().Size = new Vector2I(1920, 1080);
+            }
+            await Wait(1.5f);
+            var frameMs = new List<double>(600);
+            ulong previous = Time.GetTicksUsec();
+            for (int i = 0; i < 600; i++)
+            {
+                await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+                ulong now = Time.GetTicksUsec();
+                frameMs.Add((now - previous) / 1000.0);
+                previous = now;
+            }
+            frameMs.Sort();
+            double mean = frameMs.Average();
+            double p95 = frameMs[(int)(frameMs.Count * 0.95)];
+            double max = frameMs[^1];
+            GD.Print($"PERF resolution={(highRes ? "1920x1080" : "1280x720")} " +
+                     $"mean_ms={mean:0.00} p95_ms={p95:0.00} max_ms={max:0.00} " +
+                     $"frames={frameMs.Count} nodes={GetTree().GetNodeCount()} " +
+                     $"draw_calls={(int)Performance.GetMonitor(Performance.Monitor.RenderTotalDrawCallsInFrame)} " +
+                     $"primitives={(int)Performance.GetMonitor(Performance.Monitor.RenderTotalPrimitivesInFrame)}");
+        }
+        catch (Exception ex)
+        {
+            GD.PrintErr($"Performance probe failed: {ex}");
+        }
+        GetTree().Quit();
+    }
+
+    private async Task CaptureP12()
+    {
+        try
+        {
+            await Wait(1.0f);
+            bool highRes = HasUserArg("--capture-1080");
+            if (highRes)
+            {
+                GetWindow().ContentScaleSize = new Vector2I(1920, 1080);
+                GetWindow().Size = new Vector2I(1920, 1080);
+                await Wait(0.6f);
+            }
+            _hud.Visible = false;
+            string p = highRes ? "p12_1080" : "p12_720";
+
+            await SnapFreeCamera(new Vector3(25, 60, 78), new Vector3(70, 0, 0), $"{p}_00_village_overview.png");
+            await SnapFreeCamera(new Vector3(45, 48, 12), new Vector3(72, 0, 0), $"{p}_01_rally_overview.png");
+            await SnapFreeCamera(new Vector3(48, 7, 4), new Vector3(57, 0, -8), $"{p}_02_start_line.png");
+            await SnapFreeCamera(new Vector3(48, 7, -12), new Vector3(56.6f, 1, -26.6f), $"{p}_03_gate1.png");
+            await SnapFreeCamera(new Vector3(55, 12, 20), new Vector3(64.6f, 1, 43.3f), $"{p}_04_gate4.png");
+            await SnapFreeCamera(new Vector3(78, 6, 12), new Vector3(86, 0, 0), $"{p}_05_road_join.png");
+            await SnapFreeCamera(new Vector3(18, 3, 0.5f), new Vector3(24, 1, 5), $"{p}_06_clothes_shop.png");
+            await SnapFreeCamera(new Vector3(10, 16, 34), new Vector3(-8, 0, 0), $"{p}_07_village_roads.png");
+            await SnapFreeCamera(new Vector3(22, 3, -0.5f), new Vector3(-18, 1, 2), $"{p}_08_town_traffic.png");
+            _hud.Visible = true;
+            JobBoardUi.Show(_hud, _missions, _implemented, _ => { });
+            await Wait(0.5f);
+            await Snap($"{p}_09_job_board.png", DeveloperCaptureDirectory);
+            _hud.CloseModal();
+        }
+        catch (Exception ex)
+        {
+            GD.PrintErr($"P12 capture failed: {ex}");
+        }
+        GetTree().Quit();
+    }
+
+    private async Task SnapFreeCamera(Vector3 position, Vector3 lookAt, string fileName)
+    {
+        var camera = new Camera3D { Fov = 62f, Current = true };
+        AddChild(camera);
+        camera.GlobalPosition = position;
+        camera.LookAt(lookAt, Vector3.Up);
+        await Wait(0.35f);
+        await Snap(fileName, DeveloperCaptureDirectory);
+        camera.QueueFree();
     }
 
     private async Task CaptureP11()

@@ -53,12 +53,12 @@ public static class TrafficCatalog
             SpeedMetresPerSecond = 2.8f,
             Points = new[]
             {
-                new NpcPoint(52f, -1.5f), new NpcPoint(58f, -1.5f),
-                new NpcPoint(66f, -1.5f), new NpcPoint(74f, -1.5f),
-                new NpcPoint(78f, -1.5f), new NpcPoint(80f, 0f),
-                new NpcPoint(78f, 1.5f), new NpcPoint(74f, 1.5f),
-                new NpcPoint(66f, 1.5f), new NpcPoint(58f, 1.5f),
-                new NpcPoint(52f, 1.5f), new NpcPoint(50f, 0f),
+                new NpcPoint(66f, -1.5f), new NpcPoint(70f, -1.5f),
+                new NpcPoint(74f, -1.5f), new NpcPoint(78f, -1.5f),
+                new NpcPoint(80f, -1.5f), new NpcPoint(80f, 0f),
+                new NpcPoint(80f, 1.5f), new NpcPoint(78f, 1.5f),
+                new NpcPoint(74f, 1.5f), new NpcPoint(70f, 1.5f),
+                new NpcPoint(66f, 1.5f), new NpcPoint(65f, 0f),
             },
         },
         new()
