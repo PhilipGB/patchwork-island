@@ -17,7 +17,9 @@ public sealed class ClothesShopUi
     private Label _walletLabel;
     private Label _statusLabel;
     private Label _previewName;
-    private Label _wearingLabel;
+    private Label _previewPrice;
+    private Label _previewWallet;
+    private Label _previewNotice;
     private CharacterDoll _preview;
     private Button _boyButton;
     private Button _girlButton;
@@ -62,8 +64,8 @@ public sealed class ClothesShopUi
 
         var list = UiKit.VBox(main, 8);
         list.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
-        UiKit.Label(list, "Point at an outfit to try it on in the mirror.", 18,
-            new Color("5C6B7A"));
+        UiKit.Label(list, "Point at or preview any outfit to try it on in the mirror. Previewing never spends coins.",
+            18, new Color("5C6B7A"));
 
         // Keep purchase/equip feedback above the list so it stays visible when
         // the five outfit rows fill the modal.
@@ -72,32 +74,35 @@ public sealed class ClothesShopUi
 
         foreach (var outfit in CharacterCustomisation.Outfits)
             AddOutfitRow(list, outfit);
-
-        var hint = UiKit.Label(list,
-            "Buying spends your own coins. Wearing an outfit you already own is always free. " +
-            "You can come back any time.",
-            16, new Color("5C6B7A"));
-        hint.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
     }
 
     private void BuildPreview(HBoxContainer main)
     {
         var panel = UiKit.Panel(main, new Color("FFF3C9"), Palette.Pink, 18, 4);
+        panel.AddThemeStyleboxOverride("panel",
+            UiKit.Style(new Color("FFF3C9"), Palette.Pink, 18, 4, 20, 4));
         panel.CustomMinimumSize = new Vector2(260, 0);
-        var box = UiKit.VBox(panel, 6);
+        var box = UiKit.VBox(panel, 3);
 
-        UiKit.Label(box, "Changing room", 21, Palette.Navy, HorizontalAlignment.Center, false);
-
-        var mirror = new CenterContainer { CustomMinimumSize = new Vector2(0, 260) };
+        var mirror = new CenterContainer { CustomMinimumSize = new Vector2(0, 240) };
         box.AddChild(mirror);
         _preview = new CharacterDoll();
         mirror.AddChild(_preview);
 
         _previewName = UiKit.Label(box, "", 21, Palette.Navy, HorizontalAlignment.Center, false);
-        _wearingLabel = UiKit.Label(box, "", 16, new Color("5C6B7A"), HorizontalAlignment.Center);
+        _previewName.Name = "PreviewOutfitName";
+        var priceRow = UiKit.HBox(box, 8);
+        priceRow.Alignment = BoxContainer.AlignmentMode.Center;
+        _previewPrice = UiKit.Label(priceRow, "", 17, Palette.Navy, HorizontalAlignment.Center,
+            false);
+        _previewPrice.Name = "PreviewOutfitPrice";
+        _previewWallet = UiKit.Label(priceRow, "", 16, new Color("5C6B7A"),
+            HorizontalAlignment.Center, false);
+        _previewWallet.Name = "PreviewWallet";
+        _previewNotice = UiKit.Label(box, "", 16, Palette.Red, HorizontalAlignment.Center, false);
+        _previewNotice.Name = "PreviewNotice";
 
         UiKit.Separator(box);
-        UiKit.Label(box, "Character", 18, Palette.Navy, HorizontalAlignment.Center, false);
         var presets = UiKit.HBox(box, 8);
         _boyButton = UiKit.Button(presets, "Boy", 19, new Vector2(0, 44), Palette.Cream, Palette.Blue);
         _boyButton.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
@@ -123,9 +128,19 @@ public sealed class ClothesShopUi
         UiKit.Label(info, outfit.Description, 16, new Color("5C6B7A"), HorizontalAlignment.Left, false);
 
         var state = UiKit.Label(row, "", 17, Palette.Navy, HorizontalAlignment.Right, false);
-        state.CustomMinimumSize = new Vector2(150, 0);
+        state.CustomMinimumSize = new Vector2(132, 0);
 
-        var action = UiKit.Button(row, "", 18, new Vector2(130, 44), new Color("FFF3C9"), Palette.Orange);
+        // Preview is always enabled, even when an outfit is already worn or
+        // cannot be afforded. It only changes the mirror, never the wallet or
+        // the equipped outfit.
+        var preview = UiKit.Button(row, "Preview", 16, new Vector2(96, 44), Palette.Cream,
+            Palette.Lavender);
+        preview.Name = "Preview_" + outfit.Id;
+        preview.Pressed += () => PreviewOutfit(outfit.Id);
+        preview.MouseEntered += () => PreviewOutfit(outfit.Id);
+        preview.FocusEntered += () => PreviewOutfit(outfit.Id);
+
+        var action = UiKit.Button(row, "", 18, new Vector2(124, 44), new Color("FFF3C9"), Palette.Orange);
         action.Name = "Outfit_" + outfit.Id;
         action.Pressed += () => Activate(outfit);
         action.MouseEntered += () => PreviewOutfit(outfit.Id);
@@ -162,6 +177,8 @@ public sealed class ClothesShopUi
         else
         {
             ShowStatus(outcome.Message, false);
+            if (save != null)
+                _hud.ClearModalStatus();
         }
     }
 
@@ -186,6 +203,8 @@ public sealed class ClothesShopUi
         else
         {
             ShowStatus(outcome.Message, false);
+            if (save != null)
+                _hud.ClearModalStatus();
         }
     }
 
@@ -229,15 +248,35 @@ public sealed class ClothesShopUi
             }
         }
 
-        var equipped = CharacterCustomisation.Equipped(_data);
-        _wearingLabel.Text = $"Wearing: {equipped.Name}";
         PreviewOutfit(_data.EquippedOutfit);
     }
 
     private void PreviewOutfit(string outfitId)
     {
         var outfit = CharacterCustomisation.Find(outfitId) ?? CharacterCustomisation.Find(CharacterCustomisation.DefaultOutfit);
+        bool owned = CharacterCustomisation.Owns(_data, outfit.Id);
         _previewName.Text = outfit.Name;
+        _previewPrice.Text = outfit.Price == 0
+            ? "Free starting outfit"
+            : $"{outfit.Price} coins";
+        _previewWallet.Text = $"You have {_data.Coins} coins";
+
+        if (owned)
+        {
+            _previewNotice.Text = _data.EquippedOutfit == outfit.Id ? "Owned · Wearing" : "Owned";
+            _previewNotice.AddThemeColorOverride("font_color", Palette.Success);
+        }
+        else if (_data.Coins < outfit.Price)
+        {
+            _previewNotice.Text = "Not enough coins";
+            _previewNotice.AddThemeColorOverride("font_color", Palette.Red);
+        }
+        else
+        {
+            _previewNotice.Text = "Ready to buy";
+            _previewNotice.AddThemeColorOverride("font_color", Palette.Success);
+        }
+
         _preview.SetAppearance(_data.CharacterPreset, outfit.Id,
             _data.UnlockedCosmetics.Contains("red_cap"));
     }

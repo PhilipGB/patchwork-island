@@ -31,7 +31,11 @@ public sealed class SaveLoadResult
 /// </summary>
 public static class SaveService
 {
-    public const int CurrentVersion = 1;
+    /// <summary>
+    /// The persistence contract, deliberately separate from the game release
+    /// version. Increment this only when the saved data shape changes.
+    /// </summary>
+    public const int CurrentVersion = 2;
     public const string DefaultFileName = "save.json";
 
     // Narrow test seam for deterministic write failures. It is process-local,
@@ -60,7 +64,8 @@ public static class SaveService
 
     public static string BackupPath(string path) => path + ".bak";
 
-    public static void Save(GameData data, string path, MissionCatalog catalog = null)
+    public static void Save(GameData data, string path, MissionCatalog catalog = null,
+        bool allowNewerReplacement = false)
     {
         if (data == null) throw new ArgumentNullException(nameof(data));
         if (string.IsNullOrWhiteSpace(path)) throw new ArgumentException("A save path is required.", nameof(path));
@@ -72,6 +77,18 @@ public static class SaveService
         var validation = SaveValidation.Validate(data, catalog);
         if (!validation.IsValid)
             throw new InvalidDataException("Refusing to write an invalid save: " + validation.Message);
+
+        // An unsupported newer save is only ever replaced by an explicit New
+        // Game / Save Now retry that the session has already authorised. An
+        // ordinary autosave must leave it completely untouched.
+        if (File.Exists(path))
+        {
+            var existing = ReadFile(path, catalog);
+            if (existing.Status == SaveLoadStatus.UnsupportedNewer && !allowNewerReplacement)
+                throw new InvalidDataException(
+                    $"Refusing to overwrite newer save version {existing.SchemaVersion}; " +
+                    $"this game supports up to version {CurrentVersion}.");
+        }
 
         InjectTestWriteFailure(path);
 
@@ -101,11 +118,12 @@ public static class SaveService
     /// without hiding diagnostics. Invalid in-memory state and I/O failures are
     /// kept separate so callers can phrase the message accurately.
     /// </summary>
-    public static SaveResult TrySave(GameData data, string path, MissionCatalog catalog = null)
+    public static SaveResult TrySave(GameData data, string path, MissionCatalog catalog = null,
+        bool allowNewerReplacement = false)
     {
         try
         {
-            Save(data, path, catalog);
+            Save(data, path, catalog, allowNewerReplacement);
             return SaveResult.Ok();
         }
         catch (InvalidDataException ex)
@@ -120,6 +138,40 @@ public static class SaveService
         {
             return SaveResult.Invalid("An unexpected save error occurred. " + ex.Message, ex);
         }
+    }
+
+    /// <summary>
+    /// Upgrades a supported older save in memory to the current schema. Schema
+    /// 1 predates character customisation, so its missing fields are filled by
+    /// Normalise with Boy + Everyday + no purchases. All progression fields are
+    /// left intact. The file is only rewritten as schema 2 by the next save.
+    /// </summary>
+    public static GameData Migrate(GameData data)
+    {
+        if (data == null) throw new ArgumentNullException(nameof(data));
+        if (data.SchemaVersion > CurrentVersion)
+            throw new InvalidDataException(
+                $"Cannot migrate newer save version {data.SchemaVersion}; " +
+                $"this game supports up to version {CurrentVersion}.");
+
+        data.Normalise();
+        while (data.SchemaVersion < CurrentVersion)
+        {
+            switch (data.SchemaVersion)
+            {
+                case 1:
+                    // Schema 1 predates customisation. Normalise has already
+                    // supplied Boy + Everyday + no purchases without touching
+                    // any progression field, so only the version changes.
+                    data.SchemaVersion = 2;
+                    break;
+
+                default:
+                    throw new InvalidDataException(
+                        $"No migration path from save schema {data.SchemaVersion}.");
+            }
+        }
+        return data;
     }
 
     public static SaveLoadResult Load(string path, MissionCatalog catalog = null)
@@ -240,12 +292,12 @@ public static class SaveService
                 {
                     Status = SaveLoadStatus.UnsupportedNewer,
                     SchemaVersion = declaredVersion,
-                    Message = $"Save version {declaredVersion} is newer than this game (version {CurrentVersion}).",
+                    Message = $"Save version {declaredVersion} is newer than this game " +
+                              $"(save schema {CurrentVersion}).",
                 };
             }
 
-            data.Normalise();
-            data.SchemaVersion = CurrentVersion;
+            Migrate(data);
             var validation = SaveValidation.Validate(data, catalog);
             if (!validation.IsValid)
                 return ReadOutcome.Corrupt("Save data is invalid: " + validation.Message);

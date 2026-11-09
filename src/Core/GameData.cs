@@ -9,7 +9,7 @@ namespace PatchworkIsland;
 /// </summary>
 public sealed class GameData
 {
-    public int SchemaVersion { get; set; } = 1;
+    public int SchemaVersion { get; set; } = SaveService.CurrentVersion;
 
     public string ActiveMission { get; set; } = "";
     public List<string> CompletedMissions { get; set; } = new();
@@ -17,8 +17,8 @@ public sealed class GameData
     public List<string> CollectedPickups { get; set; } = new();
     public List<string> UnlockedCosmetics { get; set; } = new();
 
-    // P9 character personalisation. These are additive, optional fields inside
-    // schema version 1 so v1.0.x saves load with safe defaults.
+    // P9 character personalisation, introduced by save schema 2. Older schema
+    // 1 saves have no such fields and receive these defaults when migrated.
     public string CharacterPreset { get; set; } = CharacterCustomisation.DefaultPreset;
     public List<string> OwnedOutfits { get; set; } = new();
     public string EquippedOutfit { get; set; } = CharacterCustomisation.DefaultOutfit;

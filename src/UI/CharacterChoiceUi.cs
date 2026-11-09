@@ -21,6 +21,7 @@ public static class CharacterChoiceUi
             20, Palette.Navy);
         instruction.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         var cancel = UiKit.Button(intro, "Cancel", 19, new Vector2(130, 44), Palette.Cream, Palette.Stone);
+        cancel.Name = "CharacterCancel";
         cancel.Pressed += () =>
         {
             hud.CloseModal();
@@ -60,6 +61,7 @@ public static class CharacterChoiceUi
         var choose = UiKit.Button(box, $"Play as {CharacterCustomisation.PresetLabel(preset)}", 21,
             new Vector2(0, 54), preset == CharacterCustomisation.Girl ? new Color("FFE4EE") : new Color("E7F2FF"),
             border);
+        choose.Name = "Choose_" + preset;
         choose.Pressed += () =>
         {
             hud.CloseModal();

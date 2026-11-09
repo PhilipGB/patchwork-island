@@ -24,13 +24,14 @@ the persisted clock.
 **v1.1.0 (P9) character personalisation** adds a Boy/Girl choice when starting
 a new game, four purchasable outfits plus the free Everyday starting outfit, a
 clothes shop in town, coin spending, an in-shop changing room, and save/load for
-the chosen preset, owned outfits and worn outfit. The save schema remains
-version 1; the new fields are optional and older saves default to Boy + the
-Everyday outfit without data loss. v1.1.0 Windows x64 and Linux x86_64 exports
-were produced from this source; the Linux export passed all three runtime
-phases headlessly.
+the chosen preset, owned outfits and worn outfit. Save schema **2** introduces
+those fields; schema 1 saves migrate with all progression intact and default to
+Boy + the Everyday outfit. Unsupported newer schemas are never loaded or
+overwritten automatically. See [Save data](#save-data). v1.1.0 Windows x64 and
+Linux x86_64 exports were produced from this source; the Linux export passed all
+three runtime phases headlessly.
 
-- v1.1.0 Linux export: launched headlessly, exit 0, and passed **70 + 19 + 101**
+- v1.1.0 Linux export: launched headlessly, exit 0, and passed **103 + 19 + 101**
   runtime assertions from the packaged executable.
 - v1.1.0 Windows export: PE32+ x86-64, file/product version `1.1.0.0`.
   **Windows startup was not tested** because no Windows runtime or Wine is
@@ -215,15 +216,28 @@ Godot writes `user://save.json` with a `user://save.json.bak` backup:
 
 Writes are atomic (temporary file, flush, move). A structurally invalid or
 unreadable main save is renamed `save.json.corrupt-<timestamp>` and the backup
-is loaded if possible. A save from a newer game version is **never** renamed or
-overwritten automatically: the title screen explains the incompatibility, and
-an explicitly confirmed New Game preserves a
-`save.json.newer-vN-<timestamp>` copy first. Settings, player/van positions,
-missions, bridge/swing parts, park/furniture placements, wallet, inventory,
-character preset, owned outfits, equipped outfit and the celebration flag are
-stored. Autosave runs every 20 seconds while playing and after mission
-start/completion. The customisation fields are additive within save schema
-version 1, so v1.0.0–v1.0.2 files load as Boy + Everyday with no purchases.
+is loaded if possible.
+
+Save schema versions are separate from game release versions. v1.1.0 writes
+schema **2** and loads supported older schemas:
+
+- **Schema 1** (v1.0.x) saves migrate in memory to schema 2. Every progression
+  field is preserved; missing character fields default to **Boy + Everyday + no
+  purchases**. The file is rewritten as schema 2 by the next save, and the
+  original schema 1 copy is kept as the `.bak` backup.
+- **Schema 3 or newer** is unsupported and is **never** loaded, downgraded,
+  discarded or overwritten automatically. The title screen explains the
+  incompatibility. An ordinary autosave refuses to touch the file. Only an
+  explicitly confirmed New Game may replace it, and a
+  `save.json.newer-vN-<timestamp>` copy is preserved first.
+- Future releases must keep loading supported older schemas while refusing
+  unsupported newer ones. Increment the schema only when the persistence
+  contract changes, not for every game release.
+
+Settings, player/van positions, missions, bridge/swing parts, park/furniture
+placements, wallet, inventory, character preset, owned outfits, equipped outfit
+and the celebration flag are stored. Autosave runs every 20 seconds while
+playing and after mission start/completion.
 
 Save failures are explicit: manual saves show success or an inline failure in
 the pause menu, autosave failures produce one throttled warning until a later
@@ -266,8 +280,8 @@ the game is fully playable with sound off.
 ## Verification summary
 
 - `dotnet build PatchworkIsland.sln`: 0 errors, 0 warnings.
-- Automated tests: **77 passed, 0 failed**.
-- Godot runtime self-tests: **70 + 19 + 101 assertions passed, 0 failed**.
+- Automated tests: **78 passed, 0 failed**.
+- Godot runtime self-tests: **103 + 19 + 101 assertions passed, 0 failed**.
 - P9 screenshots: character chooser, girl/boy world models, clothes shop,
   purchase feedback and outfit change (`evidence/p9_*.png`).
 - Headless editor import and main-scene boot: exit 0.
@@ -302,15 +316,19 @@ the game is fully playable with sound off.
 - P9 v1.1.0: Boy/Girl choice, four purchasable outfits, clothes-shop building,
   real Buy/Wear runtime tests, save/Continue persistence and new-game reset.
   Project and export metadata report version `1.1.0`.
-- v1.1.0 Linux export: headless boot exit 0 and **70 + 19 + 101** runtime
+- P9 review corrections: schema 1→2 migration with schema 3/99 refusal and
+  untouched-file checks; all outfits previewable through enabled Preview
+  controls; actual Boy/Girl/Cancel buttons exercised in runtime tests; a
+  successful clothes-shop retry clears the previous save error.
+- v1.1.0 Linux export: headless boot exit 0 and **103 + 19 + 101** runtime
   assertions passed from the packaged binary.
 - v1.1.0 Windows export: PE32+ x86-64, file/product version `1.1.0.0`.
 - F12 is inactive in the normal export (screenshot count unchanged).
 - Windows startup: **NOT TESTED** (no Windows runtime or Wine).
 - SHA-256 checksums are recorded in `dist/SHA256SUMS`; the Linux ZIP is
-  `2650ae5dd4b8ecedab766265cd23512084e5e3d3b81fcfe3cfdc7b3e6f45df9e` and the
+  `c6f4b7e6bdcc53df6167b9632266266b873c119fb4837cf4e2f13849c27defad` and the
   Windows ZIP is
-  `bb4eb027ef80327ede43ce0931f3cbce94cfc60bfb6eec22de9416b12ebcc846`.
+  `5bebe3aaadb5ef7737af718d4cadbb074a0a1bd9a25ef52173051a4c183d0e8e`.
 
 Detailed evidence and commands are in `PROGRESS.md`, `ACCEPTANCE.md`,
 `evidence/p8_*.png`, `evidence/p81_*.png` and `evidence/p9_*.png`.

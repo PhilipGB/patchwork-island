@@ -84,14 +84,98 @@ public partial class RuntimeSelfTest : Node
             "new game opens the character chooser");
         Expect(!Main.RtStarted && Main.RtPaused && Main.RtMode == "Title",
             "character chooser keeps the title safe and paused");
-        var chosen = Main.RtStartNewGameFromTitleConfirmed(CharacterCustomisation.Girl);
+
+        // The actual Cancel button returns to the title without creating a save.
+        Expect(Main.RtPressModalButton("CharacterCancel"), "the real character Cancel button works");
+        await Wait(0.25f);
+        Expect(!Main.RtStarted && Main.RtModalTitle == "" && Main.RtMode == "Title",
+            "cancelling the fresh character chooser returns to the title");
+        Expect(!Main.RtHasSaveFile && !Main.RtCanContinue && !File.Exists(Main.RtSavePath),
+            "cancelling a fresh character chooser writes no save");
+
+        // Choose Boy through the real button, then prove the choice survives Continue.
+        Main.RtRequestNewGameFromTitle();
+        await Wait(0.2f);
+        Expect(Main.RtModalTitle == "Who would you like to play?",
+            "character chooser opens again after Cancel");
+        Expect(Main.RtPressModalButton("Choose_boy"), "the real Play as Boy button works");
         await Wait(0.35f);
-        Expect(chosen.Success && Main.RtStarted, "choosing Girl starts the new game");
-        Expect(Main.RtCharacterPreset == CharacterCustomisation.Girl, "girl preset stored");
+        Expect(Main.RtStarted && Main.RtCharacterPreset == CharacterCustomisation.Boy,
+            "choosing Boy starts the new game and stores the preset");
+        Expect(Main.RtPlayerPreset == CharacterCustomisation.Boy && !Main.RtPlayerHasLongHair &&
+               !Main.RtPlayerWearsDress, "boy appearance is applied to the player");
+        Expect(Main.RtEquippedOutfit == CharacterCustomisation.DefaultOutfit &&
+               Main.RtOwnedOutfitCount == 0, "new game starts in the free Everyday outfit");
+        var boySave = SaveService.Load(Main.RtSavePath, Main.RtCatalog);
+        Expect(boySave.Success && boySave.Data.SchemaVersion == SaveService.CurrentVersion &&
+               boySave.Data.CharacterPreset == CharacterCustomisation.Boy,
+            "the chosen boy preset is saved at the current schema");
+
+        Main.RtReturnToTitle();
+        await Wait(0.25f);
+        Expect(!Main.RtStarted && Main.RtCanContinue && Main.RtMemoryMatchesPersisted,
+            "the saved boy session offers Continue");
+        Main.RtContinue();
+        await Wait(0.35f);
+        Expect(Main.RtStarted && Main.RtCharacterPreset == CharacterCustomisation.Boy &&
+               Main.RtPlayerPreset == CharacterCustomisation.Boy && !Main.RtPlayerHasLongHair,
+            "Continue restores the chosen boy appearance");
+
+        // Cancelling character selection while replacing an existing game must
+        // leave both the live session and the persisted save untouched.
+        Main.RtReturnToTitle();
+        await Wait(0.25f);
+        byte[] boyPersisted = File.ReadAllBytes(Main.RtSavePath);
+        Main.RtRequestNewGameFromTitle();
+        await Wait(0.2f);
+        Expect(Main.RtModalTitle == "Start a new game?", "existing save asks before replacement");
+        Expect(Main.RtPressModalButton("ModalConfirm"), "the real replacement confirm button works");
+        await Wait(0.2f);
+        Expect(Main.RtModalTitle == "Who would you like to play?",
+            "confirming replacement opens the character chooser");
+        Expect(Main.RtPressModalButton("CharacterCancel"),
+            "the real Cancel button closes the replacement chooser");
+        await Wait(0.25f);
+        Expect(!Main.RtStarted && Main.RtCanContinue && Main.RtMode == "Title",
+            "cancelling replacement returns to the title and keeps Continue");
+        CheckBytes(Main.RtSavePath, boyPersisted,
+            "cancelling replacement leaves the previous save untouched");
+        Main.RtContinue();
+        await Wait(0.35f);
+        Expect(Main.RtStarted && Main.RtCharacterPreset == CharacterCustomisation.Boy &&
+               Main.RtPlayerPreset == CharacterCustomisation.Boy,
+            "Continue after a cancelled replacement restores the boy session");
+
+        // Choose Girl through the real button and verify the saved choice again.
+        Main.RtReturnToTitle();
+        await Wait(0.25f);
+        Main.RtRequestNewGameFromTitle();
+        await Wait(0.2f);
+        Expect(Main.RtModalTitle == "Start a new game?", "existing save asks before the girl choice");
+        Expect(Main.RtPressModalButton("ModalConfirm"), "replacement confirmation opens for Girl");
+        await Wait(0.2f);
+        Expect(Main.RtModalTitle == "Who would you like to play?",
+            "character chooser opens after replacement confirmation");
+        Expect(Main.RtPressModalButton("Choose_girl"), "the real Play as Girl button works");
+        await Wait(0.35f);
+        Expect(Main.RtStarted && Main.RtCharacterPreset == CharacterCustomisation.Girl,
+            "choosing Girl starts the new game and stores the preset");
         Expect(Main.RtPlayerPreset == CharacterCustomisation.Girl && Main.RtPlayerWearsDress &&
                Main.RtPlayerHasLongHair, "girl appearance is applied to the player");
         Expect(Main.RtEquippedOutfit == CharacterCustomisation.DefaultOutfit &&
-               Main.RtOwnedOutfitCount == 0, "new game starts in the free Everyday outfit");
+               Main.RtOwnedOutfitCount == 0, "girl new game starts in the free Everyday outfit");
+        var girlSave = SaveService.Load(Main.RtSavePath, Main.RtCatalog);
+        Expect(girlSave.Success && girlSave.Data.SchemaVersion == SaveService.CurrentVersion &&
+               girlSave.Data.CharacterPreset == CharacterCustomisation.Girl,
+            "the chosen girl preset is saved at the current schema");
+
+        Main.RtReturnToTitle();
+        await Wait(0.25f);
+        Main.RtContinue();
+        await Wait(0.35f);
+        Expect(Main.RtStarted && Main.RtCharacterPreset == CharacterCustomisation.Girl &&
+               Main.RtPlayerPreset == CharacterCustomisation.Girl && Main.RtPlayerWearsDress &&
+               Main.RtPlayerHasLongHair, "Continue restores the chosen girl appearance");
 
         // Start and walk.
         Main.RtStart();
@@ -182,7 +266,29 @@ public partial class RuntimeSelfTest : Node
         Expect(Main.RtPlayerHasLongHair && Main.RtPlayerWearsDress,
             "girl silhouette survives an outfit change");
 
-        // The shop disables unaffordable and already-worn actions.
+        // Every outfit can be previewed, including an unaffordable one. The
+        // preview control stays enabled and never buys or equips anything.
+        Expect(Main.RtFocusModalButton("Preview_meadow"),
+            "focusing an outfit preview control works");
+        await Wait(0.1f);
+        Expect(Main.RtModalLabelText("PreviewOutfitName") == "Meadow Green",
+            "focusing an outfit updates the preview");
+        Expect(Main.RtPressModalButton("Preview_starry"),
+            "an unaffordable outfit still has a selectable preview control");
+        await Wait(0.1f);
+        Expect(Main.RtModalLabelText("PreviewOutfitName") == "Starry Night",
+            "pressing Preview shows the unaffordable outfit");
+        Expect(Main.RtModalLabelText("PreviewOutfitPrice").Contains("15"),
+            "the preview shows the selected outfit price");
+        Expect(Main.RtModalLabelText("PreviewWallet").Contains("2"),
+            "the preview shows the current coin balance");
+        Expect(Main.RtModalLabelText("PreviewNotice").Contains("Not enough coins"),
+            "the preview clearly reports insufficient coins");
+        Expect(Main.RtEquippedOutfit == "sunny" && Main.RtCoins == 2 &&
+               !Main.RtOwnsOutfit("starry"),
+            "previewing changes neither the equipped outfit, wallet nor ownership");
+
+        // The shop disables unaffordable and already-worn purchase actions.
         Expect(!Main.RtPressModalButton("Outfit_starry"), "unaffordable outfit button is disabled");
         var tooExpensive = Main.RtShopBuy("starry");
         Expect(!tooExpensive.Success, "insufficient coins are refused by the domain");
@@ -195,18 +301,28 @@ public partial class RuntimeSelfTest : Node
         Expect(!notOwned.Success && Main.RtEquippedOutfit == "sunny",
             "unowned outfit cannot be equipped");
 
-        // Equip through the UI: back to Everyday, then Sunny Day again, free.
+        // Equip through the UI: back to Everyday with a failed save, then a
+        // successful Sunny Day save must clear the old error message.
+        SaveService.SetTestWriteFailure(full =>
+            string.Equals(full, Path.GetFullPath(Main.RtSavePath), StringComparison.Ordinal)
+                ? new IOException("injected clothes-shop save failure")
+                : null);
         Expect(Main.RtPressModalButton("Outfit_default"), "the real Everyday Wear button works");
-        await Wait(0.2f);
+        await Wait(0.25f);
         Expect(Main.RtEquippedOutfit == CharacterCustomisation.DefaultOutfit &&
                Main.RtPlayerOutfit == CharacterCustomisation.DefaultOutfit,
-            "owned starting outfit can be worn again");
+            "a failed clothes save still applies the outfit for this session");
         Expect(Main.RtCoins == 2, "wearing an owned outfit is free");
+        Expect(Main.RtModalStatusVisible && Main.RtModalStatus.Contains("could not be saved"),
+            "a failed clothes-shop save shows its error in the modal");
+        SaveService.ClearTestWriteFailure();
         Expect(Main.RtPressModalButton("Outfit_sunny"), "the first owned shop outfit can be re-worn");
-        await Wait(0.2f);
+        await Wait(0.25f);
         Expect(Main.RtEquippedOutfit == "sunny" && Main.RtPlayerOutfit == "sunny",
             "owned shop outfit re-equipped through the shop UI");
         Expect(Main.RtCoins == 2, "re-equipping spends no extra coins");
+        Expect(!Main.RtModalStatusVisible,
+            "a later successful clothes save clears the previous error message");
 
         Main.RtCloseModal();
         await Wait(0.25f);

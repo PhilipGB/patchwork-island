@@ -450,7 +450,8 @@ public partial class Main : Node3D
         try
         {
             CaptureSnapshots();
-            result = SaveService.TrySave(_data, SavePath, _catalog);
+            result = SaveService.TrySave(_data, SavePath, _catalog,
+                _session.NewerReplacementAuthorized);
             if (result.Success)
                 _session.RecordSaveSuccess();
             else
@@ -2426,6 +2427,22 @@ public partial class Main : Node3D
         button.EmitSignal(BaseButton.SignalName.Pressed);
         return true;
     }
+
+    internal bool RtFocusModalButton(string name)
+    {
+        if (!_hud.ModalOpen) return false;
+        var button = _hud.FindChild(name, true, false) as Button;
+        if (button == null || button.Disabled || !button.Visible) return false;
+        button.GrabFocus();
+        return true;
+    }
+
+    internal string RtModalLabelText(string name)
+    {
+        if (!_hud.ModalOpen) return "";
+        return (_hud.FindChild(name, true, false) as Label)?.Text ?? "";
+    }
+
     internal ActionOutcome RtShopBuy(string outfitId)
     {
         var outcome = CharacterCustomisation.BuyOutfit(_data, outfitId);

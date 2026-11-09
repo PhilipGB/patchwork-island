@@ -4,28 +4,48 @@ Patchwork Island P9 — character choice and clothes shop (v1.1.0)
 Date: 2026-11-09
 Engine: Godot 4.7.2.stable.mono
 Target: net8.0 / C#
+Save schema: 2 (game release 1.1.0)
 
 Final source checks
 -------------------
 dotnet build PatchworkIsland.sln                         -> 0 warnings, 0 errors
-dotnet tests/bin/Debug/net8.0/PatchworkIsland.Tests.dll  -> 77 passed, 0 failed
+dotnet tests/bin/Debug/net8.0/PatchworkIsland.Tests.dll  -> 78 passed, 0 failed
 godot --headless --path . --editor --quit                -> exit 0
 godot --headless --path . --quit-after 120               -> exit 0
-godot --headless --path . -- --selftest                  -> 70 passed, 0 failed
+godot --headless --path . -- --selftest                  -> 103 passed, 0 failed
 godot --headless --path . -- --selftest-resume           -> 19 passed, 0 failed
 godot --headless --path . -- --selftest-recovery         -> 101 passed, 0 failed
 xvfb-run -a godot --path . -- --dev --capture            -> 6 P9 screenshots written
 
 P9 runtime assertions specifically include:
-- new game opens the character chooser and choosing Girl applies a dress/long-hair model
+- new game opens the character chooser; the real Boy, Girl and Cancel buttons
+- Boy and Girl each start the correct appearance and are saved on disk
+- Continue restores either chosen appearance after returning to the title
+- cancelling a fresh chooser or a replacement chooser leaves the old save intact
 - opening the real clothes shop and pressing the actual Sunny Day Buy button
 - wallet text changes from 10 to 2 after the 8-coin purchase
+- every outfit has an enabled Preview control, including unaffordable outfits
+- focusing/pressing Preview updates the name, price, wallet and Not enough coins
+- previewing changes neither the wallet, ownership nor equipped outfit
 - unaffordable and already-owned action buttons are disabled
 - the domain refuses insufficient, duplicate and unowned outfit operations
-- pressing the actual Everyday Wear button and then Sunny Day again costs no coins
+- a failed clothes save shows an inline error and still applies the look in memory
+- the next successful clothes save clears that previous error message
 - Save Now while driving, Continue restores Girl + Sunny Day + 2 coins
 - New Game reset after reload returns to Boy + Everyday + 0 owned outfits + 0 coins
-- recovery seed with Girl/Berry restores both ownership and visible appearance after reload
+- recovery seed with Girl/Berry restores ownership and appearance after reload
+
+Save schema tests
+-----------------
+- A schema 1 save loads and migrates to schema 2 in memory.
+- Wallet, active mission, completions, tutorials, pickups, inventory, player
+  position and settings all survive the migration and the schema 2 rewrite.
+- Missing character fields default to Boy + Everyday + no purchases.
+- The pre-migration schema 1 file remains as save.json.bak.
+- Schema 3 and 99 loads return UnsupportedNewer and leave every byte untouched.
+- An ordinary save over schema 3/99 is refused before writing; no backup or
+  newer-vN copy is created by the refused write.
+- Explicit replacement still preserves a newer-v99 copy before writing schema 2.
 
 Fail-first evidence (probes reverted before final run)
 ------------------------------------------------------
@@ -37,29 +57,31 @@ Fail-first evidence (probes reverted before final run)
    RESULT: 76 passed, 1 failed
 Restored implementation:
    RESULT: 77 passed, 0 failed
+(The review additions raised the final pure total to 78.)
 
 Graphical evidence
 ------------------
 p9_01_character_choice.png          Boy/Girl chooser with both paper dolls
 p9_02_girl_at_clothes_shop.png      Girl at the CLOTHES shop in town
-p9_03_clothes_shop_ui.png           Shop modal with prices and owned/insufficient states
-p9_04_outfit_owned_and_worn.png     Actual Buy button feedback, wallet 2, Sunny Day worn
+p9_03_clothes_shop_ui.png           Shop with Preview controls, prices, wallet,
+                                    owned/insufficient states and changing room
+p9_04_outfit_owned_and_worn.png     Actual Buy feedback, wallet 2, Sunny Day
 p9_05_girl_sunny_outfit_world.png   Sunny Day dress visible in the world
 p9_06_boy_default_outfit_world.png  Boy presentation in the same location
 
 Save compatibility
 ------------------
-Schema remains version 1. CharacterPreset, OwnedOutfits and EquippedOutfit are
-optional additive fields. A v1.0.x save with none of them loads as Boy +
-Everyday with no purchases. Unknown/unowned customisation IDs are rejected by
-validation rather than silently repaired.
+Schema 2 is current. Schema 1 is migrated with all progress preserved.
+Schema 3+ is unsupported and is never loaded, downgraded, discarded or
+overwritten automatically. Only an explicitly confirmed New Game may replace
+it, after preserving a newer-vN copy.
 
 Exported builds
 ---------------
 v1.1.0 Linux and Windows exports were produced from the final source.
 dist/linux/PatchworkIsland.x86_64:
   --headless --quit-after 120 -> exit 0
-  --selftest / --selftest-resume / --selftest-recovery -> 70 + 19 + 101 passed
+  --selftest / --selftest-resume / --selftest-recovery -> 103 + 19 + 101 passed
 dist/windows/PatchworkIsland.exe:
   PE32+ x86-64; file/product version 1.1.0.0; not launched (no Windows runtime)
 

@@ -17,7 +17,7 @@ public partial class CharacterDoll : Control
     public override void _Ready()
     {
         MouseFilter = MouseFilterEnum.Ignore;
-        CustomMinimumSize = new Vector2(190, 250);
+        CustomMinimumSize = new Vector2(190, 240);
         if (!_built) Rebuild();
     }
 

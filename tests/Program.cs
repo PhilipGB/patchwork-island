@@ -570,6 +570,83 @@ internal static class Program
             }
         });
 
+        Run("schema 1 saves migrate to schema 2 with all progress intact", () =>
+        {
+            string dir = TempDirectory("patchwork-save-schema-migration");
+            string path = Path.Combine(dir, SaveService.DefaultFileName);
+            try
+            {
+                File.WriteAllText(path,
+                    "{\"SchemaVersion\":1,\"Coins\":24,\"ActiveMission\":\"M03\"," +
+                    "\"CompletedMissions\":[\"M01\",\"M02\"]," +
+                    "\"TutorialsSeen\":[\"walk\",\"drive\"]," +
+                    "\"CollectedPickups\":[\"apple_0\",\"apple_1\"]," +
+                    "\"Inventory\":{\"apple\":1}," +
+                    "\"Player\":{\"X\":3.5,\"Y\":0.2,\"Z\":-7.5,\"RotationY\":1.25,\"Valid\":true}," +
+                    "\"Settings\":{\"MusicEnabled\":false,\"ReducedMotion\":true}}");
+
+                var loaded = SaveService.Load(path, catalog);
+                Check(loaded.Success, "schema 1 save loads");
+                Equal(SaveService.CurrentVersion, loaded.Data.SchemaVersion,
+                    "schema 1 is migrated to the current schema in memory");
+                Equal(24, loaded.Data.Coins, "wallet survives migration");
+                Equal("M03", loaded.Data.ActiveMission, "active mission survives migration");
+                Equal(2, loaded.Data.CompletedMissions.Count, "completed missions survive migration");
+                Check(loaded.Data.CompletedMissions.Contains("M01") &&
+                      loaded.Data.CompletedMissions.Contains("M02"),
+                    "both completed mission ids survive migration");
+                Equal(2, loaded.Data.TutorialsSeen.Count, "tutorial flags survive migration");
+                Equal(2, loaded.Data.CollectedPickups.Count, "pickup ids survive migration");
+                Equal(1, loaded.Data.GetItem("apple"), "inventory survives migration");
+                Equal(3.5f, loaded.Data.Player.X, "player position survives migration");
+                Check(!loaded.Data.Settings.MusicEnabled && loaded.Data.Settings.ReducedMotion,
+                    "settings survive migration");
+                Equal(CharacterCustomisation.Boy, loaded.Data.CharacterPreset,
+                    "missing character preset defaults to Boy");
+                Equal(CharacterCustomisation.DefaultOutfit, loaded.Data.EquippedOutfit,
+                    "missing outfit defaults to Everyday");
+                Equal(0, loaded.Data.OwnedOutfits.Count, "missing outfit purchases default to none");
+
+                SaveService.Save(loaded.Data, path, catalog);
+                using (var document = JsonDocument.Parse(File.ReadAllText(path)))
+                {
+                    Equal(2, document.RootElement.GetProperty("SchemaVersion").GetInt32(),
+                        "rewritten save uses schema 2");
+                }
+
+                Check(File.Exists(SaveService.BackupPath(path)),
+                    "the pre-migration schema 1 save is kept as backup");
+                using (var backup = JsonDocument.Parse(File.ReadAllText(SaveService.BackupPath(path))))
+                {
+                    Equal(1, backup.RootElement.GetProperty("SchemaVersion").GetInt32(),
+                        "backup still contains the original schema 1 save");
+                }
+
+                var reloaded = SaveService.Load(path, catalog);
+                Check(reloaded.Success, "schema 2 save loads");
+                Equal(SaveService.CurrentVersion, reloaded.Data.SchemaVersion,
+                    "schema 2 remains current");
+                Equal(24, reloaded.Data.Coins, "wallet survives the schema 2 rewrite");
+                Equal("M03", reloaded.Data.ActiveMission, "active mission survives the schema 2 rewrite");
+                Equal(2, reloaded.Data.CompletedMissions.Count,
+                    "completed missions survive the schema 2 rewrite");
+                Equal(2, reloaded.Data.TutorialsSeen.Count, "tutorials survive the schema 2 rewrite");
+                Equal(2, reloaded.Data.CollectedPickups.Count, "pickups survive the schema 2 rewrite");
+                Equal(1, reloaded.Data.GetItem("apple"), "inventory survives the schema 2 rewrite");
+                Equal(3.5f, reloaded.Data.Player.X, "player position survives the schema 2 rewrite");
+                Check(!reloaded.Data.Settings.MusicEnabled && reloaded.Data.Settings.ReducedMotion,
+                    "settings survive the schema 2 rewrite");
+                Equal(CharacterCustomisation.Boy, reloaded.Data.CharacterPreset,
+                    "migrated preset remains Boy");
+                Equal(CharacterCustomisation.DefaultOutfit, reloaded.Data.EquippedOutfit,
+                    "migrated outfit remains Everyday");
+            }
+            finally
+            {
+                Directory.Delete(dir, true);
+            }
+        });
+
         Run("invalid customisation data is rejected, not silently repaired", () =>
         {
             var unknownPreset = new GameData { CharacterPreset = "robot" };
@@ -640,6 +717,8 @@ internal static class Program
                 Check(!File.Exists(path + ".tmp"), "temporary file cleaned up");
                 var loaded = SaveService.Load(path);
                 Check(loaded.Success, "save loaded");
+                Equal(SaveService.CurrentVersion, loaded.Data.SchemaVersion,
+                    "new saves use the current schema");
                 Equal(47, loaded.Data.Coins, "coins restored");
                 Equal("M03", loaded.Data.ActiveMission, "active mission restored");
                 Equal(1, loaded.Data.BridgePieces.Count, "bridge pieces restored");
@@ -680,7 +759,7 @@ internal static class Program
             }
         });
 
-        Run("missing and newer saves are handled safely", () =>
+        Run("schema 3 and 99 saves are rejected without modification", () =>
         {
             string dir = TempDirectory("patchwork-save-invalid");
             string path = Path.Combine(dir, SaveService.DefaultFileName);
@@ -688,12 +767,35 @@ internal static class Program
             {
                 var missing = SaveService.Load(path);
                 Check(!missing.Success, "missing save is not loaded");
-                File.WriteAllText(path, "{\"SchemaVersion\":99,\"Coins\":5}");
-                var newer = SaveService.Load(path);
-                Check(!newer.Success, "newer version rejected");
-                Check(newer.Message.Contains("newer"), "newer version message");
-                Check(File.Exists(path), "newer save must not be moved away as corrupt");
-                Check(Directory.GetFiles(dir, "*.corrupt-*").Length == 0, "newer save must not be quarantined");
+
+                foreach (int version in new[] { 3, 99 })
+                {
+                    string original =
+                        $"{{\"SchemaVersion\":{version},\"Coins\":5,\"CharacterPreset\":\"girl\"}}";
+                    File.WriteAllText(path, original);
+                    byte[] before = File.ReadAllBytes(path);
+
+                    var newer = SaveService.Load(path, catalog);
+                    Check(!newer.Success, $"schema {version} cannot be loaded");
+                    Equal(SaveLoadStatus.UnsupportedNewer, newer.Status,
+                        $"schema {version} is reported as unsupported newer");
+                    Check(newer.Message.Contains("newer"), $"schema {version} message explains the refusal");
+                    Check(File.Exists(path), $"schema {version} save must remain on disk");
+                    Check(File.ReadAllBytes(path).SequenceEqual(before),
+                        $"schema {version} load leaves every byte untouched");
+                    Check(Directory.GetFiles(dir, "*.corrupt-*").Length == 0,
+                        $"schema {version} must not be quarantined as corrupt");
+                    Check(Directory.GetFiles(dir, "save.json.newer-v*").Length == 0,
+                        $"schema {version} must not be renamed automatically");
+
+                    var automatic = SaveService.TrySave(new GameData { Coins = 77 }, path, catalog);
+                    Check(!automatic.Success && automatic.Outcome == SaveOutcome.InvalidState,
+                        $"automatic save refuses to overwrite schema {version}");
+                    Check(File.ReadAllBytes(path).SequenceEqual(before),
+                        $"automatic save leaves schema {version} untouched");
+                    Check(!File.Exists(SaveService.BackupPath(path)),
+                        $"refused overwrite does not replace the backup for schema {version}");
+                }
             }
             finally
             {
@@ -1113,7 +1215,8 @@ internal static class Program
             try
             {
                 File.WriteAllText(path, "{\"SchemaVersion\":99,\"Coins\":5}");
-                SaveService.Save(new GameData { Coins = 1 }, path, catalog);
+                SaveService.Save(new GameData { Coins = 1 }, path, catalog,
+                    allowNewerReplacement: true);
                 var preserved = Directory.GetFiles(dir, "save.json.newer-v99-*");
                 Equal(1, preserved.Length, "newer save preserved before overwrite");
                 Check(File.ReadAllText(preserved[0]).Contains("\"SchemaVersion\":99"),
