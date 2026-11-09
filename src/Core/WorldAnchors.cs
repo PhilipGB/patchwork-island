@@ -32,6 +32,13 @@ public static class WorldAnchors
             ("garden pad 4", 26f, 23.4f),
             ("garden pad 5", 29f, 23.4f),
             ("garden pad 6", 32f, 23.4f),
+            ("post counter station", -11.5f, 8f),
+            ("repair station", 35.2f, -5.4f),
+            ("festival table 1", 12f, 23.2f),
+            ("festival table 2", 18f, 23.2f),
+            ("festival lantern 1", 9f, 23.2f),
+            ("festival lantern 2", 21f, 23.2f),
+            ("festival lantern 3", 15f, 25f),
         };
 
     public static readonly IReadOnlyList<(float X, float Z, float HalfX, float HalfZ)> Buildings =

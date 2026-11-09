@@ -34,6 +34,7 @@ public static class RallyRoadBuilder
         BuildStrip(root, samples, RallyCourse.HalfRoad, RoadTopY, Color.FromHtml("8A8491"),
             "RallyRoadSurface", colorVariant: false);
         BuildShoulders(root, samples, faces);
+        BuildShoulderSkirts(samples, faces);
         BuildRoadFaces(samples, RallyCourse.HalfRoad, RoadTopY, faces);
         BuildEdgeLines(root, samples);
         BuildDashes(root, samples);
@@ -44,7 +45,7 @@ public static class RallyRoadBuilder
             CollisionLayer = 1,
             CollisionMask = 0,
         };
-        var shape = new ConcavePolygonShape3D();
+        var shape = new ConcavePolygonShape3D { BackfaceCollision = true };
         shape.SetFaces(faces.ToArray());
         collision.AddChild(new CollisionShape3D { Shape = shape });
         root.AddChild(collision);
@@ -125,6 +126,35 @@ public static class RallyRoadBuilder
             AddQuadFaces(faces, aInR, aOutR, bInR, bOutR);
         }
         CommitSurface(parent, surface, "RallyShoulders");
+    }
+
+    private static void BuildShoulderSkirts(IReadOnlyList<RallyCourse.Point> samples,
+        List<Vector3> faces)
+    {
+        int count = samples.Count;
+        var lefts = LeftVectors(samples);
+        const float skirt = 0.65f;
+        for (int i = 0; i < count; i++)
+        {
+            var a = samples[i];
+            var b = samples[(i + 1) % count];
+            var la = lefts[i];
+            var lb = lefts[(i + 1) % count];
+            for (int side = -1; side <= 1; side += 2)
+            {
+                Vector3 aTop = new(a.X + side * la.X * RallyCourse.HalfClearance, ShoulderTopY,
+                    a.Z + side * la.Y * RallyCourse.HalfClearance);
+                Vector3 bTop = new(b.X + side * lb.X * RallyCourse.HalfClearance, ShoulderTopY,
+                    b.Z + side * lb.Y * RallyCourse.HalfClearance);
+                Vector3 aBottom = new(
+                    a.X + side * la.X * (RallyCourse.HalfClearance + skirt), 0f,
+                    a.Z + side * la.Y * (RallyCourse.HalfClearance + skirt));
+                Vector3 bBottom = new(
+                    b.X + side * lb.X * (RallyCourse.HalfClearance + skirt), 0f,
+                    b.Z + side * lb.Y * (RallyCourse.HalfClearance + skirt));
+                AddQuadFaces(faces, aBottom, bBottom, bTop, aTop);
+            }
+        }
     }
 
     private static void BuildRoadFaces(IReadOnlyList<RallyCourse.Point> samples, float halfWidth,
@@ -255,19 +285,51 @@ public static class RallyRoadBuilder
         var surface = new SurfaceTool();
         surface.Begin(Mesh.PrimitiveType.Triangles);
         var connectorLefts = LeftVectors(connectorSamples);
+        const float connectorHalf = 3.2f;
+
+        // The bridge deck is flush with the ground while the connector sits at
+        // road height. A short collision ramp lets a slow van roll on without
+        // catching the 6.5 cm front edge.
+        var first = connectorSamples[0];
+        var second = connectorSamples[1];
+        float dx = second.X - first.X;
+        float dz = second.Z - first.Z;
+        float length = Mathf.Max(0.001f, Mathf.Sqrt(dx * dx + dz * dz));
+        var tangent = new Vector2(dx / length, dz / length);
+        var firstLeft = new Vector2(-tangent.Y, tangent.X);
+        Vector3 backCenter = new(first.X - tangent.X * 1.2f, 0f, first.Z - tangent.Y * 1.2f);
+        Vector3 backL = new(backCenter.X + firstLeft.X * connectorHalf, 0f,
+            backCenter.Z + firstLeft.Y * connectorHalf);
+        Vector3 backR = new(backCenter.X - firstLeft.X * connectorHalf, 0f,
+            backCenter.Z - firstLeft.Y * connectorHalf);
+        Vector3 startL = new(first.X + firstLeft.X * connectorHalf, RoadTopY,
+            first.Z + firstLeft.Y * connectorHalf);
+        Vector3 startR = new(first.X - firstLeft.X * connectorHalf, RoadTopY,
+            first.Z - firstLeft.Y * connectorHalf);
+        AddQuadFaces(faces, backL, backR, startR, startL);
+
         for (int i = 0; i < connectorSamples.Count - 1; i++)
         {
             var a = connectorSamples[i];
             var b = connectorSamples[i + 1];
             var la = connectorLefts[i];
             var lb = connectorLefts[i + 1];
-            const float half = 3.2f;
+            const float half = connectorHalf;
             Vector3 aL = new(a.X + la.X * half, RoadTopY, a.Z + la.Y * half);
             Vector3 aR = new(a.X - la.X * half, RoadTopY, a.Z - la.Y * half);
             Vector3 bL = new(b.X + lb.X * half, RoadTopY, b.Z + lb.Y * half);
             Vector3 bR = new(b.X - lb.X * half, RoadTopY, b.Z - lb.Y * half);
             AddQuad(surface, aL, aR, bL, bR, Color.FromHtml("8A8491"));
             AddQuadFaces(faces, aL, aR, bL, bR);
+            const float skirt = 0.55f;
+            AddQuadFaces(faces,
+                new Vector3(a.X + la.X * (half + skirt), 0f, a.Z + la.Y * (half + skirt)),
+                new Vector3(b.X + lb.X * (half + skirt), 0f, b.Z + lb.Y * (half + skirt)),
+                bL, aL);
+            AddQuadFaces(faces,
+                new Vector3(a.X - la.X * (half + skirt), 0f, a.Z - la.Y * (half + skirt)),
+                new Vector3(b.X - lb.X * (half + skirt), 0f, b.Z - lb.Y * (half + skirt)),
+                bR, aR);
         }
         CommitSurface(node, surface, "RallyConnectorSurface");
         shape.SetFaces(faces.ToArray());

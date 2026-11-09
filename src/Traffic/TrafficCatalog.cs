@@ -69,8 +69,21 @@ public static class TrafficCatalog
             ColourHex = "#e98a75",
             SpeedMetresPerSecond = 6.7f,
             RallyOnly = true,
+            Points = RallyRivalPoints(),
         },
     };
+
+    private static IReadOnlyList<NpcPoint> RallyRivalPoints()
+    {
+        const int count = 32;
+        var points = new NpcPoint[count];
+        for (int i = 0; i < count; i++)
+        {
+            var sample = RallyCourse.Sample(i / (float)count);
+            points[i] = new NpcPoint(sample.X, sample.Z);
+        }
+        return points;
+    }
 
     public static TrafficRouteDefinition Find(string id) =>
         Routes.FirstOrDefault(route => string.Equals(route.Id, id, StringComparison.Ordinal));

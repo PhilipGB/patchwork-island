@@ -116,7 +116,7 @@ public partial class FurnitureBuilder : Node3D, IBuildMode
         Camera3D camera = _buildCamera.Current ? _buildCamera : _camera;
         Vector3 origin = camera.ProjectRayOrigin(screenPosition);
         Vector3 normal = camera.ProjectRayNormal(screenPosition);
-        var query = PhysicsRayQueryParameters3D.Create(origin, origin + normal * 60f, 8u, null);
+        using var query = PhysicsRayQueryParameters3D.Create(origin, origin + normal * 60f, 8u, null);
         var hit = GetWorld3D().DirectSpaceState.IntersectRay(query);
         if (hit.Count == 0 || hit["collider"].AsGodotObject() is not BuildSocket socket)
         {

@@ -92,6 +92,24 @@ public partial class Pickup : Interactable
                 Geo.Label(_visual, new Vector3(0, 1.18f, 0), word, 64, Palette.Navy, true, 0.006f);
                 break;
             }
+            case "tyre":
+                Geo.Cylinder(_visual, new Vector3(0, 0.36f, 0), 0.42f, 0.42f, 0.22f,
+                    Color.FromHtml("343A46"), 12, new Vector3(90, 0, 0));
+                Geo.Cylinder(_visual, new Vector3(0, 0.36f, 0), 0.2f, 0.2f, 0.24f,
+                    Color.FromHtml("AEB6C2"), 10, new Vector3(90, 0, 0));
+                break;
+            case "lamp":
+                Geo.Box(_visual, new Vector3(0, 0.42f, 0), new Vector3(0.5f, 0.4f, 0.28f), Palette.Yellow);
+                Geo.Box(_visual, new Vector3(0, 0.42f, 0.15f), new Vector3(0.36f, 0.28f, 0.04f), Palette.Cream);
+                Geo.Cylinder(_visual, new Vector3(0, 0.12f, 0), 0.12f, 0.12f, 0.2f,
+                    Palette.StoneDark, 8);
+                break;
+            case "battery":
+                Geo.Box(_visual, new Vector3(0, 0.35f, 0), new Vector3(0.55f, 0.7f, 0.4f), Palette.Navy);
+                Geo.Box(_visual, new Vector3(0, 0.62f, 0), new Vector3(0.4f, 0.12f, 0.42f), Palette.Yellow);
+                Geo.Box(_visual, new Vector3(-0.14f, 0.72f, 0), new Vector3(0.1f, 0.1f, 0.08f), Palette.Red);
+                Geo.Box(_visual, new Vector3(0.14f, 0.72f, 0), new Vector3(0.1f, 0.1f, 0.08f), Palette.Blue);
+                break;
             case "blue_parcel":
             case "orange_parcel":
                 Color parcelColor = ItemType == "blue_parcel" ? Palette.Blue : Palette.Orange;
