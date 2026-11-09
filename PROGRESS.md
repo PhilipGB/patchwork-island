@@ -1115,7 +1115,10 @@ the release.
 
 1. **Forward-compatible saves.** `SaveService.CurrentVersion` is now 2.
    `Migrate` normalises schema 1 into schema 2 and fills the customisation
-   defaults without touching progression. Loading schema 3/99 returns
+   defaults without touching progression. `ReadFile` reads `SchemaVersion`
+   independently through `JsonDocument` before typed deserialisation, so a
+   newer save whose other fields have future types is still classified as
+   `UnsupportedNewer` rather than corruption. Loading schema 3/99 returns
    `UnsupportedNewer` without renaming, quarantining or rewriting the file.
    `SaveService.Save` now refuses to overwrite an unsupported newer save unless
    its explicit `allowNewerReplacement` flag is set; `Main.SaveGame` only sets

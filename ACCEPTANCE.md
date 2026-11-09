@@ -374,9 +374,11 @@ versioned separately from the release.
   Unknown or unowned customisation IDs are rejected by save validation.
 - [x] Unsupported newer schemas are refused without modification. **PASS** —
   schema 3 and 99 loads return `UnsupportedNewer` and leave every byte, backup
-  and filename untouched. An ordinary save over either file is refused before
-  writing; only an explicitly confirmed New Game replacement preserves a
-  `newer-vN` copy and may proceed.
+  and filename untouched, even when their other fields use types incompatible
+  with the current model (`Coins` as a string, `CharacterPreset` as an array).
+  The version is read with `JsonDocument` before typed deserialisation. An
+  ordinary save over either file is refused before writing; only an explicitly
+  confirmed New Game replacement preserves a `newer-vN` copy and may proceed.
 - [x] New game reset behaves correctly. **PASS** — runtime reset after a reload
   clears owned outfits, returns to Everyday, clears the wallet and applies the
   newly chosen Boy silhouette.

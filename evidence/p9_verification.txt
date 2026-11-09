@@ -42,7 +42,10 @@ Save schema tests
   position and settings all survive the migration and the schema 2 rewrite.
 - Missing character fields default to Boy + Everyday + no purchases.
 - The pre-migration schema 1 file remains as save.json.bak.
-- Schema 3 and 99 loads return UnsupportedNewer and leave every byte untouched.
+- Schema 3 and 99 loads return UnsupportedNewer and leave every byte untouched,
+  including when fields use types incompatible with the current model
+  (Coins as a string, CharacterPreset as an array).
+- SchemaVersion is read through JsonDocument before typed deserialisation.
 - An ordinary save over schema 3/99 is refused before writing; no backup or
   newer-vN copy is created by the refused write.
 - Explicit replacement still preserves a newer-v99 copy before writing schema 2.

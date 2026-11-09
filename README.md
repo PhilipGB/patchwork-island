@@ -326,9 +326,9 @@ the game is fully playable with sound off.
 - F12 is inactive in the normal export (screenshot count unchanged).
 - Windows startup: **NOT TESTED** (no Windows runtime or Wine).
 - SHA-256 checksums are recorded in `dist/SHA256SUMS`; the Linux ZIP is
-  `c6f4b7e6bdcc53df6167b9632266266b873c119fb4837cf4e2f13849c27defad` and the
+  `eab7138a3ab252012cd957245f855939f4074924af14a172f682d3a1077ced50` and the
   Windows ZIP is
-  `5bebe3aaadb5ef7737af718d4cadbb074a0a1bd9a25ef52173051a4c183d0e8e`.
+  `58a372da15cd1010c25de7cdf7101f99f541ddee22c7fe087a895d249e098b50`.
 
 Detailed evidence and commands are in `PROGRESS.md`, `ACCEPTANCE.md`,
 `evidence/p8_*.png`, `evidence/p81_*.png` and `evidence/p9_*.png`.

@@ -759,7 +759,7 @@ internal static class Program
             }
         });
 
-        Run("schema 3 and 99 saves are rejected without modification", () =>
+        Run("incompatible schema 3 and 99 saves are rejected without modification", () =>
         {
             string dir = TempDirectory("patchwork-save-invalid");
             string path = Path.Combine(dir, SaveService.DefaultFileName);
@@ -770,8 +770,13 @@ internal static class Program
 
                 foreach (int version in new[] { 3, 99 })
                 {
+                    // These values are deliberately incompatible with the
+                    // current GameData types. The schema must be classified
+                    // before typed deserialisation, otherwise the JsonException
+                    // would look like corruption and could displace the file.
                     string original =
-                        $"{{\"SchemaVersion\":{version},\"Coins\":5,\"CharacterPreset\":\"girl\"}}";
+                        $"{{\"SchemaVersion\":{version},\"Coins\":\"100\"," +
+                        "\"CharacterPreset\":[\"girl\"],\"Player\":{\"X\":\"left\"}}";
                     File.WriteAllText(path, original);
                     byte[] before = File.ReadAllBytes(path);
 
@@ -779,7 +784,9 @@ internal static class Program
                     Check(!newer.Success, $"schema {version} cannot be loaded");
                     Equal(SaveLoadStatus.UnsupportedNewer, newer.Status,
                         $"schema {version} is reported as unsupported newer");
-                    Check(newer.Message.Contains("newer"), $"schema {version} message explains the refusal");
+                    Check(newer.Message.Contains($"version {version}") &&
+                          newer.Message.Contains("newer"),
+                        $"schema {version} message explains the refusal");
                     Check(File.Exists(path), $"schema {version} save must remain on disk");
                     Check(File.ReadAllBytes(path).SequenceEqual(before),
                         $"schema {version} load leaves every byte untouched");

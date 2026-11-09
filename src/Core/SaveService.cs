@@ -281,22 +281,47 @@ public static class SaveService
         try
         {
             string json = File.ReadAllText(path);
+
+            // Read SchemaVersion from the JSON document before touching the
+            // typed model. A future schema may legitimately change an existing
+            // field's type, and that must still be classified as unsupported
+            // newer rather than corruption that could be quarantined.
+            int declaredVersion = 1;
+            using (var document = JsonDocument.Parse(json))
+            {
+                var root = document.RootElement;
+                if (root.ValueKind != JsonValueKind.Object)
+                    return ReadOutcome.Corrupt("Save file is not a JSON object.");
+
+                foreach (var property in root.EnumerateObject())
+                {
+                    if (!string.Equals(property.Name, "SchemaVersion",
+                            StringComparison.OrdinalIgnoreCase))
+                        continue;
+                    if (property.Value.ValueKind != JsonValueKind.Number ||
+                        !property.Value.TryGetInt32(out declaredVersion))
+                    {
+                        return ReadOutcome.Corrupt("Save file has an invalid schema version.");
+                    }
+                }
+
+                if (declaredVersion > CurrentVersion)
+                {
+                    return new ReadOutcome
+                    {
+                        Status = SaveLoadStatus.UnsupportedNewer,
+                        SchemaVersion = declaredVersion,
+                        Message = $"Save version {declaredVersion} is newer than this game " +
+                                  $"(save schema {CurrentVersion}).",
+                    };
+                }
+            }
+
             var data = JsonSerializer.Deserialize<GameData>(json, JsonOptions);
             if (data == null)
                 return ReadOutcome.Corrupt("Save file is empty.");
 
-            int declaredVersion = data.SchemaVersion;
-            if (declaredVersion > CurrentVersion)
-            {
-                return new ReadOutcome
-                {
-                    Status = SaveLoadStatus.UnsupportedNewer,
-                    SchemaVersion = declaredVersion,
-                    Message = $"Save version {declaredVersion} is newer than this game " +
-                              $"(save schema {CurrentVersion}).",
-                };
-            }
-
+            data.SchemaVersion = declaredVersion;
             Migrate(data);
             var validation = SaveValidation.Validate(data, catalog);
             if (!validation.IsValid)
