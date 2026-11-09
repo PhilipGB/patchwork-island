@@ -1184,3 +1184,12 @@ scrollbar for its five rows at 720p, but every row is visible in the final
 - Windows startup remains untested (no Windows runtime/Wine). v1.1.0 was
   exported for Linux and Windows; the Linux packaged binary passed all runtime
   phases, while the Windows binary was inspected but not launched.
+
+### Delivery
+
+- Branch: `p9-character-customisation`
+- Pull request: [#15 P9 — Character choice, clothes shop and outfit customisation](https://github.com/PhilipGB/patchwork-island/pull/15)
+- GitHub Actions on the PR: **build-test PASS** (build, pure tests, import,
+  boot, runtime phases, Linux export/boot) and **windows-tests PASS**.
+- Source/package version: **1.1.0** (`project.godot`, `export_presets.cfg` and
+  the Windows file/product version all report 1.1.0).
