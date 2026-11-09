@@ -93,6 +93,18 @@ public static class UiKit
         return textureRect;
     }
 
+    public static ColorRect Swatch(Node parent, Color color, float size = 22f)
+    {
+        var swatch = new ColorRect
+        {
+            Color = color,
+            CustomMinimumSize = new Vector2(size, size),
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        parent?.AddChild(swatch);
+        return swatch;
+    }
+
     public static void Anchor(Control control, float left, float top, float right, float bottom,
         float offsetLeft, float offsetTop, float offsetRight, float offsetBottom)
     {

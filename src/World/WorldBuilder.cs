@@ -23,6 +23,8 @@ public partial class WorldBuilder : Node3D
     public Vector3 RedHouseCenter { get; } = new(-20.0f, 0.0f, -24.0f);
     public Vector3 ShopDoor { get; } = new(5.0f, 0.0f, 3.8f);
     public Vector3 ShopCenter { get; } = new(5.0f, 0.0f, 9.0f);
+    public Vector3 ClothesShopDoor { get; } = new(24.0f, 0.0f, 3.5f);
+    public Vector3 ClothesShopCenter { get; } = new(24.0f, 0.0f, 7.0f);
     public Vector3 WorkshopDoor { get; } = new(25.0f, 0.0f, -10.3f);
     public Vector3 WorkshopCenter { get; } = new(25.0f, 0.0f, -16.0f);
     public Vector3 AppleCrate { get; } = new(-2.5f, 0.0f, 3.6f);
@@ -212,6 +214,7 @@ public partial class WorldBuilder : Node3D
         BuildTownHall();
         BuildRedHouse();
         BuildShop();
+        BuildClothesShop();
         BuildWorkshop();
     }
 
@@ -463,6 +466,59 @@ public partial class WorldBuilder : Node3D
         Crate(new Vector3(10.0f, 0, 2.7f));
         Geo.Cylinder(this, new Vector3(8.2f, 0.55f, 2.0f), 0.45f, 0.5f, 0.8f, Palette.Wood, 8);
         AddKeepClear(new Vector3(ShopCenter.X, 0, 1.2f), new Vector2(8, 4));
+    }
+
+    private void BuildClothesShop()
+    {
+        // A small, bright shop between the market and the village green. It is
+        // deliberately reachable from the main road by a short sandy path.
+        var root = BuildHouseShell("ClothesShop", ClothesShopCenter, 9f, 7f, 3.2f,
+            Color.FromHtml("FFE4EE"), Palette.Lavender, -1, false, 2.2f, out var frontZ, out _);
+        Geo.SignBoard(root, new Vector3(0, 2.7f, frontZ - 0.23f), 180f, "CLOTHES", Palette.Pink,
+            5.2f, 1.15f, "shirt", 56);
+
+        // Striped awning and a little "DRESS UP" sign by the door.
+        for (int i = 0; i < 8; i++)
+        {
+            float x = -3.85f + i * 1.1f;
+            Geo.Box(root, new Vector3(x, 2.2f, frontZ - 0.78f), new Vector3(1.09f, 0.16f, 1.55f),
+                i % 2 == 0 ? Palette.Lavender : Palette.Cream, new Vector3(-12, 0, 0));
+        }
+        Geo.Box(root, new Vector3(0, 2.0f, frontZ - 1.45f), new Vector3(9.1f, 0.12f, 0.16f), Palette.Lavender);
+        Geo.SignBoard(this, new Vector3(ClothesShopCenter.X - 4.9f, 1.5f, ClothesShopCenter.Z - 4.4f),
+            180f, "DRESS UP", Palette.Pink, 2.9f, 0.72f, null, 34);
+
+        // Two friendly mannequins show that this is a clothes shop, not the
+        // grocery market. They are decorative and do not block the doorway.
+        Mannequin(root, new Vector3(-2.8f, 0, frontZ - 1.15f), true,
+            new Color("F49ABD"), new Color("FFD23F"));
+        Mannequin(root, new Vector3(2.8f, 0, frontZ - 1.15f), false,
+            new Color("2674EC"), new Color("FFD23F"));
+
+        Geo.Box(this, new Vector3(ClothesShopCenter.X, 0.025f, 2.55f),
+            new Vector3(3.0f, 0.03f, 2.6f), PathSand, null, false, "ClothesShopPath");
+        AddKeepClear(ClothesShopCenter, new Vector2(7, 6));
+    }
+
+    private static void Mannequin(Node3D root, Vector3 position, bool dress, Color main, Color accent)
+    {
+        var stand = new Node3D { Name = "Mannequin", Position = position };
+        root.AddChild(stand);
+        Geo.Cylinder(stand, new Vector3(0, 0.12f, 0), 0.42f, 0.5f, 0.24f, Palette.WoodDark, 8);
+        Geo.Cylinder(stand, new Vector3(0, 0.72f, 0), 0.07f, 0.07f, 1.2f, Palette.WoodDark, 6);
+        if (dress)
+        {
+            Geo.Cylinder(stand, new Vector3(0, 1.08f, 0), 0.26f, 0.48f, 0.72f, main, 8);
+            Geo.Box(stand, new Vector3(0, 1.47f, 0), new Vector3(0.5f, 0.34f, 0.34f), main);
+            Geo.Box(stand, new Vector3(0, 1.28f, 0), new Vector3(0.6f, 0.08f, 0.4f), accent);
+        }
+        else
+        {
+            Geo.Box(stand, new Vector3(0, 1.38f, 0), new Vector3(0.56f, 0.62f, 0.36f), main);
+            Geo.Box(stand, new Vector3(0, 1.66f, 0), new Vector3(0.62f, 0.1f, 0.4f), accent);
+            Geo.Box(stand, new Vector3(0, 1.02f, 0), new Vector3(0.52f, 0.2f, 0.34f), Palette.Navy);
+        }
+        Geo.Sphere(stand, new Vector3(0, 1.88f, 0), 0.22f, new Color("EAD6B5"), 8, 4, null, "MannequinHead");
     }
 
     private void BuildWorkshop()

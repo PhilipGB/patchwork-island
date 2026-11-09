@@ -1,0 +1,70 @@
+Patchwork Island P9 — character choice and clothes shop (v1.1.0)
+================================================================
+
+Date: 2026-11-09
+Engine: Godot 4.7.2.stable.mono
+Target: net8.0 / C#
+
+Final source checks
+-------------------
+dotnet build PatchworkIsland.sln                         -> 0 warnings, 0 errors
+dotnet tests/bin/Debug/net8.0/PatchworkIsland.Tests.dll  -> 77 passed, 0 failed
+godot --headless --path . --editor --quit                -> exit 0
+godot --headless --path . --quit-after 120               -> exit 0
+godot --headless --path . -- --selftest                  -> 70 passed, 0 failed
+godot --headless --path . -- --selftest-resume           -> 19 passed, 0 failed
+godot --headless --path . -- --selftest-recovery         -> 101 passed, 0 failed
+xvfb-run -a godot --path . -- --dev --capture            -> 6 P9 screenshots written
+
+P9 runtime assertions specifically include:
+- new game opens the character chooser and choosing Girl applies a dress/long-hair model
+- opening the real clothes shop and pressing the actual Sunny Day Buy button
+- wallet text changes from 10 to 2 after the 8-coin purchase
+- unaffordable and already-owned action buttons are disabled
+- the domain refuses insufficient, duplicate and unowned outfit operations
+- pressing the actual Everyday Wear button and then Sunny Day again costs no coins
+- Save Now while driving, Continue restores Girl + Sunny Day + 2 coins
+- New Game reset after reload returns to Boy + Everyday + 0 owned outfits + 0 coins
+- recovery seed with Girl/Berry restores both ownership and visible appearance after reload
+
+Fail-first evidence (probes reverted before final run)
+------------------------------------------------------
+1. Insufficient-funds guard disabled:
+   FAIL insufficient coins cannot buy an outfit
+   RESULT: 76 passed, 1 failed
+2. Duplicate-ownership guard disabled:
+   FAIL job rewards stay exact after buying clothes
+   RESULT: 76 passed, 1 failed
+Restored implementation:
+   RESULT: 77 passed, 0 failed
+
+Graphical evidence
+------------------
+p9_01_character_choice.png          Boy/Girl chooser with both paper dolls
+p9_02_girl_at_clothes_shop.png      Girl at the CLOTHES shop in town
+p9_03_clothes_shop_ui.png           Shop modal with prices and owned/insufficient states
+p9_04_outfit_owned_and_worn.png     Actual Buy button feedback, wallet 2, Sunny Day worn
+p9_05_girl_sunny_outfit_world.png   Sunny Day dress visible in the world
+p9_06_boy_default_outfit_world.png  Boy presentation in the same location
+
+Save compatibility
+------------------
+Schema remains version 1. CharacterPreset, OwnedOutfits and EquippedOutfit are
+optional additive fields. A v1.0.x save with none of them loads as Boy +
+Everyday with no purchases. Unknown/unowned customisation IDs are rejected by
+validation rather than silently repaired.
+
+Exported builds
+---------------
+v1.1.0 Linux and Windows exports were produced from the final source.
+dist/linux/PatchworkIsland.x86_64:
+  --headless --quit-after 120 -> exit 0
+  --selftest / --selftest-resume / --selftest-recovery -> 70 + 19 + 101 passed
+dist/windows/PatchworkIsland.exe:
+  PE32+ x86-64; file/product version 1.1.0.0; not launched (no Windows runtime)
+
+Remaining limitations
+---------------------
+- The shop preview is a 2D paper doll, not a live 3D turntable.
+- No skeletal rig rewrite; existing walk/jump animation retained.
+- Windows startup and real-GPU/child playtesting were not available.

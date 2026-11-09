@@ -1070,3 +1070,117 @@ bb4eb027ef80327ede43ce0931f3cbce94cfc60bfb6eec22de9416b12ebcc846  PatchworkIslan
 - Remaining limitations unchanged: no bundled audio, fixed text scaling,
   Windows startup unverified, GPU performance and child usability untested.
   Practice racing remains reward-free and intentionally unsaved.
+
+## P9 — Character choice, clothes shop and outfit customisation (v1.1.0)
+
+**Status: implementation complete; local build, pure tests, runtime tests and
+graphical capture PASS.** Project/export metadata is now `1.1.0`; the saved
+schema intentionally remains version 1.
+
+### Scope and design
+
+- Added `CharacterCustomisation` as a Godot-free domain (`src/Core/CharacterCustomisation.cs`)
+  with two presets (`boy`, `girl`), five outfits (free Everyday plus four
+  purchasable shared outfits), ownership/equip rules, exact coin deduction and
+  shared colour/style definitions.
+- Extended `GameData` additively with `CharacterPreset`, `OwnedOutfits` and
+  `EquippedOutfit`. Existing saves have no such properties and default to
+  **Boy + Everyday + no purchases**. No schema version bump was needed.
+- `SaveValidation` rejects unknown presets/outfits, duplicate ownership records,
+  and equipping an outfit that is not owned. The starting outfit is always
+  implicitly owned.
+- New Game now opens a Boy/Girl chooser before the village starts. The choice
+  is stored in the save; New Game reset clears purchases and the wallet.
+- Added a real town clothes shop at `(24, 7)` on the north side of the main
+  road, east of the market: `CLOTHES` sign, shirt icon, striped awning,
+  `DRESS UP` sign, path, two mannequins and an `E` interaction. It is not a
+  mission-gated building.
+- Added `ClothesShopUi`: wallet, five outfit rows with prices, owned/wearing
+  state, disabled insufficient-funds states, Buy/Wear actions, stylised 2D
+  paper-doll preview (`CharacterDoll`) and an optional Boy/Girl switch.
+- Buying deducts coins exactly once, records ownership and immediately wears
+  the outfit; wearing an owned outfit is free. Purchases and preset changes
+  save immediately through the existing `SaveGame` pipeline with a
+  `Customisation` save reason.
+- Player presentation uses modular primitive parts, not a rig rewrite: the girl
+  has long hair/back locks, bow, dress, skirt hem and shoes; the boy has short
+  hair, shirt, shorts and shoes. Both keep the existing walk/jump animation
+  pivots and the M01 red-cap reward.
+
+### Verification
+
+```text
+dotnet build PatchworkIsland.sln                         -> 0 warnings, 0 errors
+dotnet tests/bin/Debug/net8.0/PatchworkIsland.Tests.dll  -> 77 passed, 0 failed
+godot --headless --path . --editor --quit                -> exit 0
+godot --headless --path . --quit-after 120               -> exit 0
+godot --headless --path . -- --selftest                  -> 70 passed, 0 failed
+godot --headless --path . -- --selftest-resume           -> 19 passed, 0 failed
+godot --headless --path . -- --selftest-recovery         -> 101 passed, 0 failed
+xvfb-run -a godot --path . -- --dev --capture            -> P9 screenshots written
+godot --export-release "Linux" ...                       -> exit 0
+godot --export-release "Windows Desktop" ...             -> exit 0
+dist/linux/PatchworkIsland.x86_64 --headless --quit-after 120 -> exit 0
+dist/linux/PatchworkIsland.x86_64 (three runtime phases) -> 70 + 19 + 101 passed
+```
+
+The exported Windows executable is PE32+ x86-64 with file/product version
+`1.1.0.0`. The Linux exported binary passed the same three runtime phases from
+the packaged payload.
+
+Pure additions cover: fresh defaults, starting ownership, price deduction,
+insufficient funds, duplicate purchase, free equip, unowned equip rejection,
+preset switching, save/load round-trip, older saves without customisation
+fields, invalid customisation rejection, new-game reset semantics and exact
+mission reward accounting after a clothing purchase.
+
+Runtime additions cover: the real chooser, Girl appearance (dress/long hair),
+opening the real shop, pressing the actual Buy button, wallet display update,
+insufficient/duplicate/unowned refusals, pressing the actual Wear button to
+switch outfits, save while driving, Continue restoring the Girl preset and
+Sunny Day outfit, and a post-reload New Game reset to Boy/Everyday/0 coins.
+The recovery seed now carries a Girl/Berry appearance and asserts it after a
+real scene reload.
+
+### Fail-first evidence
+
+Two controlled probes were run against the completed tests and then reverted:
+
+- Disabling the insufficient-funds guard produced
+  `FAIL insufficient coins cannot buy an outfit` and `RESULT: 76 passed, 1 failed`.
+- Disabling the duplicate-ownership guard produced
+  `FAIL job rewards stay exact after buying clothes` and
+  `RESULT: 76 passed, 1 failed`.
+
+Both probes were restored, rebuilt and re-run green at **77 passed, 0 failed**.
+A C# compile error from an invalid `Polygon2D.MouseFilter` usage in the first
+paper-doll draft was also caught by the build and fixed.
+
+### Evidence / graphical verification
+
+Captured with the real Godot scene under Xvfb/Mesa llvmpipe at 1280×720:
+
+- `evidence/p9_01_character_choice.png` — Boy/Girl chooser with both paper dolls.
+- `evidence/p9_02_girl_at_clothes_shop.png` — girl in-world at the CLOTHES shop.
+- `evidence/p9_03_clothes_shop_ui.png` — shop modal, prices, owned/insufficient states.
+- `evidence/p9_04_outfit_owned_and_worn.png` — actual Buy button feedback, wallet 2, Sunny Day worn.
+- `evidence/p9_05_girl_sunny_outfit_world.png` — yellow Sunny Day dress in the world.
+- `evidence/p9_06_boy_default_outfit_world.png` — matching boy presentation.
+
+The first capture round exposed a clipped chooser footer/cancel button and a
+shop status message below the scroll fold. The chooser was compacted (Cancel at
+the top), the shop was made taller and the purchase status moved above the
+outfit rows; the final captures show both fully visible. The shop still has a
+scrollbar for its five rows at 720p, but every row is visible in the final
+1280×720 capture.
+
+### Remaining limitations
+
+- In-shop preview is a deliberately simple 2D paper doll, not a live 3D
+  turntable; the in-world player is the authoritative 3D appearance.
+- No skeletal rig or custom animation was added; the existing walk/jump motion
+  is retained.
+- Child playtesting and real-GPU performance testing remain unavailable.
+- Windows startup remains untested (no Windows runtime/Wine). v1.1.0 was
+  exported for Linux and Windows; the Linux packaged binary passed all runtime
+  phases, while the Windows binary was inspected but not launched.

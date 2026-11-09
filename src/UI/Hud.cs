@@ -445,6 +445,8 @@ public partial class Hud : CanvasLayer
 
     public bool ToastVisible => _toastPanel?.Visible == true;
 
+    public string CoinText => _coinLabel?.Text ?? "";
+
     public void AddModalActionRow(VBoxContainer body, params (string Text, Action Action, Color? Color)[] actions)
     {
         var row = UiKit.HBox(body, 10);

@@ -1,13 +1,13 @@
 # Patchwork Island — run and test guide
 
-> Status: P8.2 (v1.0.2) session-recovery release complete. All ten missions,
+> Status: v1.1.0 — P9 character update. All ten missions,
 > practice racing, the all-jobs celebration, save/load, settings, onboarding,
-> stability hardening and release packaging are in place. P8.2 makes Continue
-> reload the persisted village after a discarded or failed session, allows
-> authorised newer-save replacement retries, reports settings failures inside
-> their modal, rejects duplicate mission JSON properties and verifies race
-> bonuses against the persisted clock. See `ACCEPTANCE.md` and `PROGRESS.md` for
-> the final pass/fail matrix and evidence.
+> stability hardening and release packaging remain in place. P9 adds a
+> Boy/Girl starting choice, a town clothes shop, four purchasable outfits, an
+> in-shop changing room and persisted character/outfit ownership. P8.2's
+> session recovery, newer-save protection, inline settings failures, duplicate
+> mission-property rejection and persisted-clock race bonuses are retained. See
+> `ACCEPTANCE.md` and `PROGRESS.md` for the pass/fail matrix and evidence.
 
 ## Prerequisites
 
@@ -62,7 +62,7 @@ godot --headless --path . --quit-after 120
 dotnet run --project tests/PatchworkIsland.Tests.csproj
 ```
 
-The runner currently has **67 tests** and covers mission catalog, prerequisites,
+The runner currently has **77 tests** and covers mission catalog, prerequisites,
 unlocks, duplicate pickups, exactly-once rewards, mission switching, hints,
 bridge/swing snapping (including rejected unknown part types), grocery and park
 budgets, furniture costs/starter fallback/purchase caps, ordered checkpoints,
@@ -72,9 +72,11 @@ validation, corrupt/backup recovery, newer-save preservation, deterministic
 in-process failed-write/retry, race-time restoration and saturation,
 post-completion furniture rearrangement, save-feedback throttling, settings
 feedback isolation, persisted/discarded session state, newer-replacement
-permission, control-mode precedence, mission-catalogue integrity and a
-complete-field comparison of `MISSIONS.json`/`data/missions.json` that rejects
-duplicate properties at any depth.
+permission, control-mode precedence, clothing defaults, purchase and ownership
+rules, equip restrictions, clothing save round-trips, older-save defaults,
+mission-catalogue integrity and a complete-field comparison of
+`MISSIONS.json`/`data/missions.json` that rejects duplicate properties at any
+depth.
 
 ## Godot runtime integration tests
 
@@ -85,16 +87,18 @@ godot --headless --path . -- --selftest-recovery
 ```
 
 These use isolated `user://selftest-save.json` and
-`user://selftest-recovery-save.json` files and run **150 assertions across
+`user://selftest-recovery-save.json` files and run **190 assertions across
 three phases**. The first two cover title/modal pause, pausable player/van/world
 processing, stopped physics and race timers, Pause→Settings→Pause,
-Title→Settings→Title, New Game confirmation cancellation, mission-completion
+Title→Settings→Title, New Game confirmation cancellation, the character
+chooser, real clothes-shop Buy/Wear buttons, wallet updates, insufficient
+funds, owned-outfit protection, visible appearance changes, mission-completion
 pause, New Game reset, manual/automatic saves, and save/relaunch while driving.
 The recovery phase injects deterministic write failures and reloads the real
 scene to verify failed New Game recovery, discarded movement, backup recovery,
 the no-save case, settings failure feedback, autosave warning independence,
-newer-save replacement retries, preserved newest-version copies and unchanged
-on-disk bytes.
+newer-save replacement retries, preserved newest-version copies, restored
+character/outfit state and unchanged on-disk bytes.
 
 If a concurrently running Godot instance makes `dotnet run` wait on the project
 DLL, build once and execute the test assembly directly:
@@ -112,17 +116,22 @@ godot --path . -- --dev --capture-title  # title screen screenshot
 ```
 
 Developer screenshots are gated behind the editor or an explicit `--dev`,
-`--capture` or scenario argument. F12 writes to `user://screenshots/`, never to
-an arbitrary working directory, and reports file errors instead of throwing an
-unobserved task exception.
+`--capture` or scenario argument. The capture tour also writes P9 evidence for
+the character chooser, the Girl/Boy world models, the clothes-shop building and
+the buy/wear feedback inside the shop. F12 writes to `user://screenshots/`,
+never to an arbitrary working directory, and reports file errors instead of
+throwing an unobserved task exception.
 
 ## Current gameplay loop
 
-1. Esc/Enter on the title screen starts the game.
+1. Esc/Enter on the title screen opens a Boy/Girl character choice, then starts
+   the game.
 2. Walk to the yellow JOBS board by the town hall, or press **J** anywhere.
 3. Choose an available job. Prerequisites are shown on locked cards.
 4. Follow the gold marker and top-centre arrow, press **E** on highlighted
    objects, and return to the labelled destination or build site.
+5. Press **E** at the **CLOTHES** shop east of the market to buy/wear outfits or
+   switch between Boy and Girl. Shop purchases use the earned coin wallet.
 
 All ten missions are fully playable (M01 apples, M02 supplies, M03 bridge,
 M04 groceries, M05 rally, M06 parcels, M07 swings, M08 park, M09 optional
@@ -183,19 +192,28 @@ runtime or Wine. See `dist/SHA256SUMS` and `dist/README.txt`.
 
 ```text
 dotnet build PatchworkIsland.sln                         -> 0 warnings, 0 errors
-dotnet run --project tests/PatchworkIsland.Tests.csproj -> 67 passed, 0 failed
+dotnet run --project tests/PatchworkIsland.Tests.csproj -> 77 passed, 0 failed
 godot --headless --path . --editor --quit                -> exit 0
 godot --headless --path . --quit-after 120               -> exit 0
-godot --headless --path . -- --selftest                  -> 42 passed, 0 failed
-godot --headless --path . -- --selftest-resume           -> 10 passed, 0 failed
-godot --headless --path . -- --selftest-recovery         -> 98 passed, 0 failed
-Linux exported binary --headless --quit-after 120        -> exit 0
-Linux exported binary (headless)                         -> 42 + 10 + 98 passed, 0 failed
-Linux exported binary (Xvfb)                             -> title, Continue, 130 coins and job board verified
-Linux exported F12 gate                                  -> no screenshot written
-Windows export                                           -> PASS, version 1.0.2.0
-Windows startup                                          -> NOT TESTED
+godot --headless --path . -- --selftest                  -> 70 passed, 0 failed
+godot --headless --path . -- --selftest-resume           -> 19 passed, 0 failed
+godot --headless --path . -- --selftest-recovery         -> 101 passed, 0 failed
+xvfb-run godot --path . -- --dev --capture               -> P9 visual evidence written
+godot --headless --path . --export-release "Linux" ...    -> exit 0
+godot --headless --path . --export-release "Windows..."   -> exit 0
+dist/linux/PatchworkIsland.x86_64 --headless --quit-after 120 -> exit 0
+dist/linux/PatchworkIsland.x86_64 (three runtime phases)  -> 70 + 19 + 101 passed, 0 failed
 ```
+
+The P9 runtime phase opens the real character chooser and clothes shop, presses
+the actual Buy/Wear buttons, checks wallet and ownership rules, and verifies
+that the saved appearance survives Continue. The recovery phase restores a
+saved girl/outfit seed after a real scene reload.
+
+The v1.1.0 Linux export was produced and passed all three runtime phases from
+the packaged executable. The v1.1.0 Windows executable is PE32+ x86-64 with
+file/product version `1.1.0.0`; Windows startup remains untested. The previous
+v1.0.2 release verification remains recorded in `ACCEPTANCE.md`.
 
 Performance on this machine was measured only with the Mesa llvmpipe software
 renderer at 1280×720: 11–13 FPS. GPU performance and child usability testing
@@ -231,9 +249,12 @@ invalid save is renamed `save.json.corrupt-<timestamp>` and the backup is loaded
 if possible. A save from a newer game version is **never** renamed or
 overwritten automatically: the title screen explains the incompatibility, and an
 explicitly confirmed New Game keeps a `save.json.newer-vN-<timestamp>` copy
-first. Settings, player/van positions, missions, bridge/swing parts, park/furniture
-placements, wallet, inventory and the celebration flag are all stored. Autosave
-runs every 20 seconds while playing and after mission start/completion.
+first. Settings, player/van positions, missions, bridge/swing parts,
+park/furniture placements, wallet, inventory, character preset, owned outfits,
+equipped outfit and the celebration flag are all stored. Autosave runs every 20
+seconds while playing and after mission start/completion. The three
+customisation fields are optional additions inside schema version 1: saves from
+v1.0.0–v1.0.2 load as **Boy + Everyday** with no purchased outfits.
 
 Manual save success/failure is shown inside the pause modal. Automatic failures
 produce one visible warning until a later save succeeds. Settings failures are

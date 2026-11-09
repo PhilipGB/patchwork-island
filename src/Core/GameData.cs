@@ -17,6 +17,12 @@ public sealed class GameData
     public List<string> CollectedPickups { get; set; } = new();
     public List<string> UnlockedCosmetics { get; set; } = new();
 
+    // P9 character personalisation. These are additive, optional fields inside
+    // schema version 1 so v1.0.x saves load with safe defaults.
+    public string CharacterPreset { get; set; } = CharacterCustomisation.DefaultPreset;
+    public List<string> OwnedOutfits { get; set; } = new();
+    public string EquippedOutfit { get; set; } = CharacterCustomisation.DefaultOutfit;
+
     public int Coins { get; set; }
     public Dictionary<string, int> Inventory { get; set; } = new();
     public Dictionary<string, Dictionary<string, int>> MissionProgress { get; set; } = new();
@@ -43,6 +49,9 @@ public sealed class GameData
         TutorialsSeen ??= new();
         CollectedPickups ??= new();
         UnlockedCosmetics ??= new();
+        CharacterPreset = CharacterCustomisation.NormalisePreset(CharacterPreset);
+        OwnedOutfits ??= new();
+        EquippedOutfit = CharacterCustomisation.NormaliseOutfit(EquippedOutfit);
         Inventory ??= new();
         MissionProgress ??= new();
         HintLevels ??= new();

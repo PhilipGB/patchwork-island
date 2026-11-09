@@ -1,4 +1,4 @@
-# Patchwork Island — First Playable v1.0.2
+# Patchwork Island — v1.1.0 character update
 
 A happy little 3D village adventure for players aged roughly 5–10. A storm has
 scattered the village's supplies. Deliver parcels, repair the bridge, drive the
@@ -10,10 +10,10 @@ tests, real-input GUI evidence and release build instructions.
 
 ## Current status
 
-**First playable — complete, with the v1.0.2 reliability update.** All ten
-missions, the optional bonus race, free practice racing, the all-jobs
-celebration, save/load, settings, onboarding, stability hardening and final
-release verification are implemented. v1.0.1 fixed save invalidation after
+**First playable — complete, now at v1.1.0.** All ten missions, the optional
+bonus race, free practice racing, the all-jobs celebration, save/load, settings,
+onboarding, stability hardening and character personalisation are implemented.
+The v1.0.1 reliability update fixed save invalidation after
 furniture rearrangement and long races, truthful save feedback, New Game
 persistence flags and modal cancellation. v1.0.2 makes Continue reload the last
 persisted village after an unsaved session is discarded, allows retry of an
@@ -21,23 +21,32 @@ authorised newer-save replacement, shows settings failures inside their modal,
 rejects duplicate mission JSON properties, and verifies race bonuses against
 the persisted clock.
 
-- Windows x64 and Linux x86_64 standalone exports were produced.
-- The Linux export was launched and played in this environment.
-- The Windows export was produced and inspected, but **Windows startup was not
-  tested** because no Windows runtime or Wine is available here. See
-  [Windows export verification](#windows-export-verification).
+**v1.1.0 (P9) character personalisation** adds a Boy/Girl choice when starting
+a new game, four purchasable outfits plus the free Everyday starting outfit, a
+clothes shop in town, coin spending, an in-shop changing room, and save/load for
+the chosen preset, owned outfits and worn outfit. The save schema remains
+version 1; the new fields are optional and older saves default to Boy + the
+Everyday outfit without data loss. v1.1.0 Windows x64 and Linux x86_64 exports
+were produced from this source; the Linux export passed all three runtime
+phases headlessly.
+
+- v1.1.0 Linux export: launched headlessly, exit 0, and passed **70 + 19 + 101**
+  runtime assertions from the packaged executable.
+- v1.1.0 Windows export: PE32+ x86-64, file/product version `1.1.0.0`.
+  **Windows startup was not tested** because no Windows runtime or Wine is
+  available here. See [Windows export verification](#windows-export-verification).
 
 ## Download / install
 
-Prebuilt artifacts are under `dist/` after an export:
+Prebuilt v1.1.0 artifacts are under `dist/`:
 
 ```text
-dist/windows/PatchworkIsland.exe        Windows x64, single executable
-dist/linux/PatchworkIsland.x86_64       Linux x86_64, single executable
-dist/PatchworkIsland-1.0.2-Windows-x86_64.zip
-dist/PatchworkIsland-1.0.2-Linux-x86_64.zip
-dist/PatchworkIsland-1.0.2-Windows-x86_64.zip
-dist/PatchworkIsland-1.0.2-Linux-x86_64.zip
+dist/windows/PatchworkIsland.exe        Windows x64, single executable (v1.1.0)
+dist/linux/PatchworkIsland.x86_64       Linux x86_64, single executable (v1.1.0)
+dist/PatchworkIsland-1.1.0-Windows-x86_64.zip
+dist/PatchworkIsland-1.1.0-Linux-x86_64.zip
+dist/PatchworkIsland-1.0.2-Windows-x86_64.zip   previous release archive
+dist/PatchworkIsland-1.0.2-Linux-x86_64.zip     previous release archive
 dist/SHA256SUMS
 ```
 
@@ -48,8 +57,9 @@ The Windows build is unsigned, so Windows SmartScreen may ask for confirmation.
 ### Windows export verification
 
 `Godot_v4.7.2-stable_mono_export_templates` produced a valid PE32+ x86-64
-executable. The embedded pack contains `data/missions.json` and the .NET
-assemblies, and the executable references the self-contained
+executable with file/product version `1.1.0.0`. The embedded pack contains
+`data/missions.json`, the P9 customisation code and the .NET assemblies, and
+the executable references the self-contained
 `Microsoft.NETCore.App.Runtime.win-x64` runtime pack. It was **not launched**
 because this machine has no Windows runtime and no Wine. Distinguish this from
 the Linux export, which was launched successfully.
@@ -93,15 +103,31 @@ Or open `project.godot` in Godot 4.7.2 .NET and press F5.
 
 ## How to play
 
-1. Start a new adventure, then walk to the yellow **JOBS** board near the town
-   hall (or press **J** anywhere).
-2. Choose an available job. Locked jobs show the prerequisite they need.
-3. Follow the gold objective marker and the top-centre compass arrow.
-4. Press **E** at highlighted people, crates, worksites and counters.
-5. Job-specific budgets (M04 groceries and M08 park) are separate from your
+1. Start a new adventure and choose **Boy** or **Girl**. The choice is visible
+   immediately and can be changed later in the town clothes shop.
+2. Walk to the yellow **JOBS** board near the town hall (or press **J** anywhere).
+3. Choose an available job. Locked jobs show the prerequisite they need.
+4. Follow the gold objective marker and the top-centre compass arrow.
+5. Press **E** at highlighted people, crates, worksites and counters.
+6. Job-specific budgets (M04 groceries and M08 park) are separate from your
    permanent coin wallet. Wrong placements never consume task pieces.
-6. After all ten jobs, the village celebration plays once and free roam,
+7. Spend earned coins at the **CLOTHES** shop east of the market to buy and
+   wear outfits. Wearing an owned outfit is always free.
+8. After all ten jobs, the village celebration plays once and free roam,
    practice racing, the playground and your furnished home remain available.
+
+### Character and clothes shop
+
+- The free **Everyday** outfit has a distinct boy and girl starting look.
+- **Sunny Day** costs 8 coins, **Meadow Green** 10, **Berry Pink** 12 and
+  **Starry Night** 15. All four are shared by both presets.
+- Buying deducts the exact price once, marks the outfit owned and wears it
+  immediately. Already-owned outfits cannot be bought again; owned outfits can
+  be worn free at any time.
+- The shop shows your wallet, prices, owned/wearing state, a clearly disabled
+  **Not enough coins** state, a paper-doll preview and a Boy/Girl switch.
+- The shop building is on the north side of the main road, east of the market
+  and beside the village green, with a CLOTHES sign, awning and mannequins.
 
 The ten jobs are:
 
@@ -127,7 +153,7 @@ godot --headless --path . --editor --quit
 godot --headless --path . --quit-after 120
 ```
 
-The dependency-free runner currently has **67 tests** covering mission
+The dependency-free runner currently has **77 tests** covering mission
 prerequisites and unlocks, exactly-once rewards, duplicate pickups, mission
 switching, hints, bridge/swing socket rules, grocery and park budgets, house
 costs and free starter fallback, ordered checkpoints, optional race bonuses
@@ -136,11 +162,12 @@ save validation, corrupt/backup recovery, newer-save preservation, deterministic
 cross-platform write failure/retry, race timer restoration and saturation,
 post-completion furniture rearrangement, save-feedback throttling, settings
 feedback isolation, persisted/discarded session state, newer-replacement
-authorisation, control-mode precedence, mission-catalogue integrity and a
-complete-field comparison between `MISSIONS.json` and `data/missions.json`,
-including duplicate-property rejection.
+authorisation, control-mode precedence, mission-catalogue integrity, clothing
+purchase/ownership/equip rules, customisation save round-trips, older-save
+customisation defaults and a complete-field comparison between `MISSIONS.json`
+and `data/missions.json`, including duplicate-property rejection.
 
-Godot runtime integration checks (150 assertions across three phases) execute
+Godot runtime integration checks (190 assertions across three phases) execute
 the real scene headlessly:
 
 ```bash
@@ -150,11 +177,14 @@ godot --headless --path . -- --selftest-recovery
 ```
 
 They cover title and modal pause, player/van physics stopping, race timers
-stopping, settings/New Game modal returns, mission-completion pause, New Game
-reset, autosave/manual save, and driving save/continue. The recovery phase
-injects deterministic write failures and reloads the real scene to verify
-failed New Game recovery, discarded unsaved changes, backup recovery, settings
-failure feedback, a newer-save replacement retry, and exact on-disk bytes.
+stopping, settings/New Game modal returns, mission-completion pause, the
+character chooser, opening the real clothes shop, pressing its Buy/Wear
+buttons, wallet updates, insufficient funds, owned-outfit protection, visual
+appearance changes, New Game reset, autosave/manual save, save/Continue and
+driving. The recovery phase injects deterministic write failures and reloads
+the real scene to verify failed New Game recovery, discarded unsaved changes,
+backup recovery, settings failure feedback, a newer-save replacement retry,
+customisation restoration and exact on-disk bytes.
 
 A GitHub Actions workflow (`.github/workflows/build-and-test.yml`) pins Godot
 4.7.2 .NET, builds the project, runs the pure and runtime tests, imports and
@@ -189,9 +219,11 @@ is loaded if possible. A save from a newer game version is **never** renamed or
 overwritten automatically: the title screen explains the incompatibility, and
 an explicitly confirmed New Game preserves a
 `save.json.newer-vN-<timestamp>` copy first. Settings, player/van positions,
-missions, bridge/swing parts, park/furniture placements, wallet, inventory and
-the celebration flag are stored. Autosave runs every 20 seconds while playing
-and after mission start/completion.
+missions, bridge/swing parts, park/furniture placements, wallet, inventory,
+character preset, owned outfits, equipped outfit and the celebration flag are
+stored. Autosave runs every 20 seconds while playing and after mission
+start/completion. The customisation fields are additive within save schema
+version 1, so v1.0.0–v1.0.2 files load as Boy + Everyday with no purchases.
 
 Save failures are explicit: manual saves show success or an inline failure in
 the pause menu, autosave failures produce one throttled warning until a later
@@ -234,8 +266,10 @@ the game is fully playable with sound off.
 ## Verification summary
 
 - `dotnet build PatchworkIsland.sln`: 0 errors, 0 warnings.
-- Automated tests: **67 passed, 0 failed**.
-- Godot runtime self-tests: **42 + 10 + 98 assertions passed, 0 failed**.
+- Automated tests: **77 passed, 0 failed**.
+- Godot runtime self-tests: **70 + 19 + 101 assertions passed, 0 failed**.
+- P9 screenshots: character chooser, girl/boy world models, clothes shop,
+  purchase feedback and outfit change (`evidence/p9_*.png`).
 - Headless editor import and main-scene boot: exit 0.
 - Missing mission content: explicit FATAL and exit 1.
 - Full fresh-save walkthrough (v1.0.0): M01–M10 completed with real
@@ -265,6 +299,12 @@ the game is fully playable with sound off.
   runtime assertions from the packaged executable. The Windows executable is
   PE32+ x86-64 with version `1.0.2.0`, embedded mission content, assemblies and
   the self-contained .NET 8 runtime.
+- P9 v1.1.0: Boy/Girl choice, four purchasable outfits, clothes-shop building,
+  real Buy/Wear runtime tests, save/Continue persistence and new-game reset.
+  Project and export metadata report version `1.1.0`.
+- v1.1.0 Linux export: headless boot exit 0 and **70 + 19 + 101** runtime
+  assertions passed from the packaged binary.
+- v1.1.0 Windows export: PE32+ x86-64, file/product version `1.1.0.0`.
 - F12 is inactive in the normal export (screenshot count unchanged).
 - Windows startup: **NOT TESTED** (no Windows runtime or Wine).
 - SHA-256 checksums are recorded in `dist/SHA256SUMS`; the Linux ZIP is
@@ -273,7 +313,7 @@ the game is fully playable with sound off.
   `bb4eb027ef80327ede43ce0931f3cbce94cfc60bfb6eec22de9416b12ebcc846`.
 
 Detailed evidence and commands are in `PROGRESS.md`, `ACCEPTANCE.md`,
-`evidence/p8_*.png` and `evidence/p81_*.png`.
+`evidence/p8_*.png`, `evidence/p81_*.png` and `evidence/p9_*.png`.
 
 ## Repository map
 
