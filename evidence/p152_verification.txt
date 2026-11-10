@@ -91,6 +91,8 @@ ae40a90dfbb640b0cf61941831ce69b83800f2cade768668c4f93c34377d0ac5  PatchworkIslan
 
 Publication status
 ------------------
-- v1.2.0 remains published.
-- v1.2.1 tag pending the green focused PR merge head.
+- v1.2.0 remains published as the previous release.
+- v1.2.1 tagged at 2d6647b (tree identical to green PR head 49c7a62).
+- main CI run 42735724391 passed.
+- Published: https://github.com/PhilipGB/patchwork-island/releases/tag/v1.2.1
 - Windows startup NOT TESTED; explicitly waived.

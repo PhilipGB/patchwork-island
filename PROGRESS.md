@@ -1869,5 +1869,10 @@ Hashes:
 - Audio human listening remains PASS from v1.2.0; v1.2.1 was not separately
   auditioned.
 - Windows startup remains NOT TESTED and waived for the Linux-first release.
-- v1.2.0 remains published. v1.2.1 is the tagging candidate after the focused
-  PR is green.
+- v1.2.0 remains published as the previous release.
+- v1.2.1 tagged at `2d6647b` (merge of PR #25), whose tree is identical to the
+  green PR head `49c7a62`. Main CI run
+  [42735724391](https://github.com/PhilipGB/patchwork-island/actions/runs/42735724391)
+  passed.
+- Published: [v1.2.1 release](https://github.com/PhilipGB/patchwork-island/releases/tag/v1.2.1)
+  with Linux/Windows ZIPs, `README.txt` and `SHA256SUMS`.
