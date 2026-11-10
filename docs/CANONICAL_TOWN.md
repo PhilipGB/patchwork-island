@@ -142,3 +142,13 @@ junction-crossing markings, an over-wide crossing, misplaced lamps and
 undersized world labels. All were corrected in the authored scenes; the full
 table is in `docs/VISUAL_QA.md`. Vehicle visuals now use a contact shadow
 because the supplied GLBs carry no face normals.
+
+### Scene-authority follow-up (P3)
+
+Two remaining coordinate copies were removed. The road collision scene now has
+exactly one box per visible road slab, and `RoadNetwork.Roads` mirrors the same
+eight rectangles so surface classification cannot treat grass as asphalt. The
+playground asset now owns `WorksiteMarker`; the `PlaygroundCenter` anchor is
+kept equal to the playground root, and `Main` derives the interaction station
+from the marker rather than embedding a position. Pure and runtime regression
+checks guard both contracts.

@@ -2235,3 +2235,63 @@ probe views plus final 1920×1080 P12/P13/P14 tours. Defect table is in
 - Windows startup remains **NOT TESTED**.
 - The Market gable is visually closed; at very oblique angles the blue roof
   slope remains visible beside the gable, which is normal roof geometry.
+
+### P3 follow-up — road and playground scene consistency
+
+**Road collision and surface classification**
+
+- Removed the three stale `Collision_07/09/10` patches whose visible road
+  meshes no longer exist.
+- Repositioned and resized the five trimmed side-road colliders so all eight
+  collision boxes now match the eight visible `RoadSlab` meshes in
+  `TownRoads_Collidable.tscn` at the same X/Z centres and extents.
+- Replaced the old eleven-rectangle `RoadNetwork` with the same eight authored
+  rectangles. `SurfaceRules`, traffic validation and station checks now agree
+  with the asphalt the player can actually see; grass beside the removed
+  patches is no longer classified as road.
+- `WorldSceneAdapter.ValidateCollisionContract` now requires one layer-1
+  collider per visible `RoadSlab`, rather than accepting a fixed count.
+- Added a pure regression test that parses both road scenes plus
+  `RoadNetwork.Roads` and fails on any missing, extra or moved slab/collider.
+
+**Playground scene authority**
+
+- `Playground.tscn` now owns a `WorksiteMarker` at local `(0, 0.1, 4.5)`
+  (`scene_binding_id = "PlaygroundWorksite"`), on the sand at the old station
+  point.
+- `GameplayAnchors.tscn` `PlaygroundCenter` now synchronises to the authored
+  playground root at `(-38, 0, -9.5)`.
+- `WorldSceneAdapter` resolves the anchor, rejects any drift from the
+  `Playground` root, resolves the marker, and exposes that position to
+  `Main.CreateStations`; the station no longer uses a hard-coded coordinate.
+- Runtime parity checks prove the anchor follows the root, the marker stays on
+  the sand, and the interaction station follows the marker.
+
+### Verification
+
+```text
+dotnet run --project tests/PatchworkIsland.Tests.csproj   113 passed, 0 failed
+--selftest                284 passed, 0 failed
+--selftest-resume          21 passed, 0 failed
+--selftest-recovery       101 passed, 0 failed
+--selftest-living         238 passed, 0 failed
+--selftest-rally           10 passed, 0 failed
+--selftest-chapter        217 passed, 0 failed
+--selftest-hotfix          48 passed, 0 failed
+--selftest-finale         140 passed, 0 failed
+--selftest-traversal       18 passed, 0 failed
+--selftest-release         40 passed, 0 failed
+--selftest-restore         54 passed, 0 failed
+```
+
+Source runtime total: **1171 passed, 0 failed**, every phase exit 0.
+
+Packaged Linux (`dist/linux/PatchworkIsland.x86_64`): boot **PASS**; all 11
+phases **1171 passed, 0 failed**; `--selftest` repeated **3/3 green** (284 each).
+The extracted v1.3.0 ZIP binary booted and passed `--selftest` (284/284).
+Windows binaries were rebuilt but startup remains **NOT TESTED**.
+
+No visual pixel change is expected from this follow-up: the worksite marker
+resolves to the same global `(-38, 0.1, -5.0)` station already shown in the
+V27 evidence, and the road visuals themselves were not moved. The existing
+`evidence/v13_canonical_visual/v13.1_recheck/` captures remain representative.

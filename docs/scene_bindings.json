@@ -244,14 +244,16 @@
     "Use scene-authored NPC and traffic route markers, not catalogue coordinates",
     "Never copy/bake dynamic bridge/swing/furniture states into Town_Assets",
     "Do not call WorldBuilder.Build in runtime",
-    "Do not rerun SceneBakeTool on authored scene"
+    "Do not rerun SceneBakeTool on authored scene",
+    "Playground interaction positions come from Playground/WorksiteMarker, never C# coordinates"
   ],
   "runtime_deviations": [
     "Town.tscn is the runtime copy of Town_Assets.tscn; it adds three SignSocket instances and a scene-owned RaceStart marker required by existing gameplay IDs.",
     "BakeryOrderSlot.tscn and ShelfBookSlot.tscn are authored slot scenes added under BakeryStall and LibraryShelf because the candidate scene did not expose those stable gameplay paths.",
     "Town-road collision is a flat y=0 roadbed while the visual slabs stay 2-3.4 cm proud, removing vertical lips at road junctions and the bridge deck without changing the authored road surfaces.",
     "The swing frame assets contain four BROKEN labels (two per frame), so restoration counts every scene-authored label rather than assuming two.",
-    "No scooter GLB is supplied; the town_scooter route keeps its stable route ID and uses the green town-car visual template."
+    "No scooter GLB is supplied; the town_scooter route keeps its stable route ID and uses the green town-car visual template.",
+    "The playground WorksiteMarker lives inside Playground.tscn; the PlaygroundCenter gameplay anchor is validated against the Playground root at load, and the interaction station uses the marker."
   ],
   "migration_acceptance_test": "Move ClothesShop and its DoorMarker 5 m in Godot: interaction follows without editing C#; v1.2.1 saves still restore."
 }

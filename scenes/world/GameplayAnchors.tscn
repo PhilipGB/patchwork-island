@@ -56,7 +56,7 @@ position = Vector3(45, 0, 0)
 metadata/gameplay_id = "BridgeCenter"
 
 [node name="PlaygroundCenter" type="Marker3D" parent="."]
-position = Vector3(-38, 0, -5)
+position = Vector3(-38, 0, -9.5)
 metadata/gameplay_id = "PlaygroundCenter"
 
 [node name="ParkCenter" type="Marker3D" parent="."]

@@ -719,3 +719,21 @@ gameplay-height probe views plus final 1080p P12/P13/P14 tours).
 
 **Remaining severity:** no visual blocker known. Human sign-off, one continuous
 M01–M20 sitting and Windows startup remain **NOT TESTED**. No tag or release.
+
+## v1.3.0 — road and playground consistency follow-up (P3)
+
+| # | Consistency check | Result |
+|---|---|---|
+| 1 | Every removed visual road patch has its collider removed | **PASS** — stale `Collision_07/09/10` and their shapes removed; 8 slabs have 8 colliders. |
+| 2 | Every remaining collider matches a visible slab | **PASS** — five side-road colliders repositioned/resized to the trimmed mesh extents; pure test matches every centre and half-extent within 0.01 m. |
+| 3 | `RoadNetwork` matches the authored asphalt | **PASS** — eight rectangles mirror `TownRoads_Collidable.tscn`; grass beside the former stray patches is no longer classified as road. |
+| 4 | Runtime rejects count drift | **PASS** — `WorldSceneAdapter` requires one layer-1 collider per visible `RoadSlab`. |
+| 5 | Playground interaction position is scene-owned | **PASS** — `Playground/WorksiteMarker` drives the station; no hard-coded playground coordinate remains. |
+| 6 | Existing `PlaygroundCenter` anchor is synchronised | **PASS** — anchor is `(-38,0,-9.5)` and is rejected at load if it drifts from the Playground root. |
+| 7 | Regression coverage | **PASS** — pure test parses both authored road scenes and `RoadNetwork`; runtime test covers anchor, marker and station. |
+
+**Gates:** pure **113 passed**; source runtime **1171 passed, 0 failed** across
+all 11 phases. Packaged verification is recorded in `PROGRESS.md`.
+
+**Remaining severity:** no known consistency blocker. Human visual sign-off,
+one continuous M01–M20 sitting and Windows startup remain **NOT TESTED**.

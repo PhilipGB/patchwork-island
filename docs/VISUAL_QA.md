@@ -182,3 +182,17 @@ after correction. Evidence is in the ignored
 The blue traffic car in `p12_1080_02_start_line.png` showed the same missing-normal
 roof moiré found on the van. The fix was applied to every `TrafficCar` visual
 (including the rally rival), not just the player van.
+
+### P3 consistency follow-up — no visual pixels changed
+
+The V27 fix moved the playground and station manually, but the underlying
+coordinates were still duplicated in `GameplayAnchors.tscn` and `Main.cs`. The
+playground asset now owns a `WorksiteMarker` at the same verified station point,
+`PlaygroundCenter` follows the scene root, and the station resolves from the
+marker. The rendered position is unchanged, so the existing
+`V27_playground_marker.png` capture remains valid.
+
+The V32 road cleanup removed three visual patches but left their collision
+shapes and old `RoadNetwork` rectangles behind. Collision and road-surface
+classification now use exactly the eight visible slabs; this changes physics
+and footstep classification on the former patches, not any rendered pixels.

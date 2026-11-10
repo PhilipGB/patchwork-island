@@ -31,7 +31,8 @@ public partial class WorldBuilder : Node3D
     public Vector3 PostCounter { get; protected set; } = new(-9.0f, 0.0f, 8.0f);
     public Vector3 BridgeSite { get; protected set; } = new(36.5f, 0.0f, 4.5f);
     public Vector3 BridgeCenter { get; protected set; } = new(45.0f, 0.0f, 0.0f);
-    public Vector3 PlaygroundCenter { get; protected set; } = new(-38.0f, 0.0f, -5.0f);
+    public Vector3 PlaygroundCenter { get; protected set; } = new(-38.0f, 0.0f, -9.5f);
+    public Vector3 PlaygroundWorksite { get; protected set; } = new(-38.0f, 0.1f, -5.0f);
     public Vector3 ParkCenter { get; protected set; } = new(15.0f, 0.0f, 16.0f);
     public Vector3 VillageGreenSign { get; protected set; } = new(10.0f, 0.0f, 10.7f);
     public Vector3 GroveCenter { get; protected set; } = new(-40.0f, 0.0f, -32.0f);
@@ -40,7 +41,7 @@ public partial class WorldBuilder : Node3D
     public Vector3 ParkingSign { get; protected set; } = new(-33.0f, 0.0f, 12.5f);
     public Vector3 FurnitureStation { get; protected set; } = new(-40.5f, 0.0f, 20.5f);
 
-    public Vector3[] SwingFrames { get; protected set; } = { new(-41.0f, 0.0f, -5.0f), new(-35.0f, 0.0f, -5.0f) };
+    public Vector3[] SwingFrames { get; protected set; } = { new(-41.0f, 0.0f, -11.5f), new(-35.0f, 0.0f, -11.5f) };
     public (Vector3 Position, float Yaw)[] RaceGates { get; protected set; } = System.Array.Empty<(Vector3, float)>();
     public (Vector3 Position, float Yaw)[] M19RaceGates { get; protected set; } = System.Array.Empty<(Vector3, float)>();
     public Node3D RallyRoad { get; protected set; }

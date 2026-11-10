@@ -2592,7 +2592,7 @@ internal static class Program
         }
     });
 
-        Run("baked gameplay anchors match the v1.2.1 coordinate manifest", () =>
+        Run("baked gameplay anchors match the v1.2.1 manifest with canonical overrides", () =>
         {
             string root = FindRepoRoot();
             using var manifest = JsonDocument.Parse(File.ReadAllText(
@@ -2601,17 +2601,95 @@ internal static class Program
             var markers = ParseMarkers(Path.Combine(root, "scenes", "world", "GameplayAnchors.tscn"),
                 parent: ".");
             Equal(75, markers.Count, "gameplay anchor count");
+
+            // v1.3.0 relocated the playground inside the canonical scene. The
+            // v1.2.1 manifest remains the historical baseline for every other
+            // anchor; PlaygroundCenter is deliberately scene-derived and has a
+            // dedicated consistency check below.
+            var canonicalOverrides = new Dictionary<string, (float X, float Y, float Z)>
+            {
+                ["PlaygroundCenter"] = ParseInstancePosition(
+                    File.ReadAllText(Path.Combine(root, "scenes", "world", "Town.tscn")),
+                    "Playground"),
+            };
+
             int compared = 0;
             foreach (var anchor in expected.EnumerateObject())
             {
                 var value = anchor.Value;
-                var want = (value[0].GetSingle(), value[1].GetSingle(), value[2].GetSingle());
+                var want = canonicalOverrides.TryGetValue(anchor.Name, out var canonical)
+                    ? canonical
+                    : (value[0].GetSingle(), value[1].GetSingle(), value[2].GetSingle());
                 Check(markers.TryGetValue(anchor.Name, out var got), $"missing anchor {anchor.Name}");
                 Check(Distance(got, want) <= 0.01f,
                     $"anchor {anchor.Name} is {got} not {want}");
                 compared++;
             }
             Equal(markers.Count, compared, "every source anchor is represented");
+        });
+
+        Run("playground anchor and worksite follow the authored scene", () =>
+        {
+            string root = FindRepoRoot();
+            var centre = ParseInstancePosition(
+                File.ReadAllText(Path.Combine(root, "scenes", "world", "Town.tscn")),
+                "Playground");
+            var playgroundMarkers = ParseMarkers(
+                Path.Combine(root, "scenes", "world", "assets", "landmarks", "Playground.tscn"),
+                parent: ".");
+            Check(playgroundMarkers.TryGetValue("WorksiteMarker", out var worksite),
+                "Playground is missing its scene-owned WorksiteMarker");
+            var anchors = ParseMarkers(
+                Path.Combine(root, "scenes", "world", "GameplayAnchors.tscn"), parent: ".");
+            Check(anchors.TryGetValue("PlaygroundCenter", out var anchor),
+                "missing PlaygroundCenter anchor");
+            Check(Distance(anchor, centre) <= 0.01f,
+                $"PlaygroundCenter anchor {anchor} does not follow the playground root {centre}");
+            Check(MathF.Abs(worksite.Z - 4.5f) <= 0.01f && MathF.Abs(worksite.Y - 0.1f) <= 0.01f,
+                $"playground WorksiteMarker moved off the sand: {worksite}");
+        });
+
+        Run("authored road slabs, road colliders and RoadNetwork agree", () =>
+        {
+            string root = FindRepoRoot();
+            string environment = Path.Combine(root, "scenes", "world", "assets", "environment");
+            var slabs = ParseRoadSlabs(Path.Combine(environment, "TownRoads_Collidable.tscn"));
+            var reference = ParseRoadSlabs(Path.Combine(environment, "TownRoads.tscn"));
+            Equal(8, slabs.Count, "authored road slab count");
+            Equal(reference.Count, slabs.Count, "reference road slab count");
+            foreach (var slab in slabs)
+            {
+                var matches = reference.Where(candidate => candidate.Name == slab.Name).ToList();
+                Equal(1, matches.Count, $"reference road slab {slab.Name}");
+                Check(SameRoadRect(slab, matches[0]),
+                    $"reference slab {slab.Name} is {Describe(matches[0])}, not {Describe(slab)}");
+            }
+
+            var colliders = ParseRoadColliders(
+                Path.Combine(environment, "TownRoads_Collidable.tscn"));
+            Equal(slabs.Count, colliders.Count, "one collider per road slab");
+            var unmatched = new List<(string Name, float X, float Z, float HalfX, float HalfZ)>(colliders);
+            foreach (var slab in slabs)
+            {
+                int index = unmatched.FindIndex(candidate => SameRoadRect(slab, candidate));
+                Check(index >= 0, $"no collision shape matches road slab {slab.Name} " +
+                                  $"at {Describe(slab)}");
+                unmatched.RemoveAt(index);
+            }
+            Equal(0, unmatched.Count, "road colliders without a visible slab");
+
+            Equal(slabs.Count, RoadNetwork.Roads.Count, "RoadNetwork road rectangle count");
+            unmatched = RoadNetwork.Roads
+                .Select(road => ("RoadNetwork", road.X, road.Z, road.HalfX, road.HalfZ))
+                .ToList();
+            foreach (var slab in slabs)
+            {
+                int index = unmatched.FindIndex(candidate => SameRoadRect(slab, candidate));
+                Check(index >= 0, $"RoadNetwork has no rectangle for visible road slab " +
+                                  $"{slab.Name} at {Describe(slab)}");
+                unmatched.RemoveAt(index);
+            }
+            Equal(0, unmatched.Count, "RoadNetwork rectangles without a visible slab");
         });
 
         Run("baked buildings keep source centres and wall dimensions", () =>
@@ -3087,6 +3165,96 @@ internal static class Program
     {
         if (!EqualityComparer<T>.Default.Equals(expected, actual))
             throw new Exception($"{message}: expected {expected}, got {actual}");
+    }
+
+    private static (float X, float Y, float Z) ParseInstancePosition(
+        string sceneText, string name)
+    {
+        string pattern = "\\[node name=\"" + Regex.Escape(name) + "\" parent=\"\\.\"" +
+                         "[^\\]]*\\](?<body>.*?)(?=\\n\\[node |\\z)";
+        var match = Regex.Match(sceneText, pattern, RegexOptions.Singleline);
+        if (!match.Success) throw new Exception($"Instance {name} missing");
+        return ParseVector(match.Groups["body"].Value);
+    }
+
+    private static List<(string Name, float X, float Z, float HalfX, float HalfZ)> ParseRoadSlabs(
+        string path)
+    {
+        string text = File.ReadAllText(path);
+        var meshes = ParseBoxSizes(text, "BoxMesh");
+        const string pattern = "\\[node name=\"(?<name>RoadSlab[^\"]*)\" " +
+                               "type=\"MeshInstance3D\" parent=\"\\.\"\\]" +
+                               "(?<body>.*?)(?=\\n\\[node |\\z)";
+        var result = new List<(string, float, float, float, float)>();
+        foreach (Match match in Regex.Matches(text, pattern, RegexOptions.Singleline))
+        {
+            string name = match.Groups["name"].Value;
+            var (x, _, z) = ParseVector(match.Groups["body"].Value);
+            var reference = Regex.Match(match.Groups["body"].Value,
+                "mesh = SubResource\\(\"(?<id>[^\"]+)\"\\)");
+            if (!reference.Success || !meshes.TryGetValue(reference.Groups["id"].Value, out var size))
+                throw new Exception($"Road slab {name} has no BoxMesh");
+            result.Add((name, x, z, size.X / 2f, size.Z / 2f));
+        }
+        return result;
+    }
+
+    private static List<(string Name, float X, float Z, float HalfX, float HalfZ)> ParseRoadColliders(
+        string path)
+    {
+        string text = File.ReadAllText(path);
+        var shapes = ParseBoxSizes(text, "BoxShape3D");
+        const string pattern = "\\[node name=\"(?<name>Collision_[^\"]*)\" " +
+                               "type=\"CollisionShape3D\" parent=\"TownRoadCollision\"\\]" +
+                               "(?<body>.*?)(?=\\n\\[node |\\z)";
+        var result = new List<(string, float, float, float, float)>();
+        foreach (Match match in Regex.Matches(text, pattern, RegexOptions.Singleline))
+        {
+            string name = match.Groups["name"].Value;
+            var (x, _, z) = ParseVector(match.Groups["body"].Value);
+            var reference = Regex.Match(match.Groups["body"].Value,
+                "shape = SubResource\\(\"(?<id>[^\"]+)\"\\)");
+            if (!reference.Success || !shapes.TryGetValue(reference.Groups["id"].Value, out var size))
+                throw new Exception($"Road collider {name} has no BoxShape3D");
+            result.Add((name, x, z, size.X / 2f, size.Z / 2f));
+        }
+        return result;
+    }
+
+    private static Dictionary<string, (float X, float Y, float Z)> ParseBoxSizes(
+        string sceneText, string type)
+    {
+        var result = new Dictionary<string, (float, float, float)>(StringComparer.Ordinal);
+        string pattern = "\\[sub_resource type=\"" + type + "\" id=\"(?<id>[^\"]+)\"\\]" +
+                         "(?<body>.*?)(?=\\n\\[|\\z)";
+        foreach (Match match in Regex.Matches(sceneText, pattern, RegexOptions.Singleline))
+        {
+            var size = Regex.Match(match.Groups["body"].Value,
+                "size = Vector3\\(([^)]+)\\)");
+            if (!size.Success) continue;
+            float[] values = size.Groups[1].Value.Split(',')
+                .Select(part => float.Parse(part.Trim(), CultureInfo.InvariantCulture))
+                .ToArray();
+            result[match.Groups["id"].Value] = (values[0], values[1], values[2]);
+        }
+        return result;
+    }
+
+    private static bool SameRoadRect(
+        (string Name, float X, float Z, float HalfX, float HalfZ) a,
+        (string Name, float X, float Z, float HalfX, float HalfZ) b)
+    {
+        return MathF.Abs(a.X - b.X) <= 0.01f &&
+               MathF.Abs(a.Z - b.Z) <= 0.01f &&
+               MathF.Abs(a.HalfX - b.HalfX) <= 0.01f &&
+               MathF.Abs(a.HalfZ - b.HalfZ) <= 0.01f;
+    }
+
+    private static string Describe(
+        (string Name, float X, float Z, float HalfX, float HalfZ) rect)
+    {
+        return $"({rect.X:0.###}, {rect.Z:0.###}) " +
+               $"{rect.HalfX * 2f:0.###}x{rect.HalfZ * 2f:0.###}";
     }
 
     private static Dictionary<string, (float X, float Y, float Z)> ParseMarkers(

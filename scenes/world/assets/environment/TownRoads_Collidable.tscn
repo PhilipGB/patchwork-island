@@ -1,4 +1,4 @@
-[gd_scene load_steps=28 format=3]
+[gd_scene load_steps=25 format=3]
 
 [sub_resource type="BoxMesh" id="BoxMesh_1"]
 size = Vector3(88, 0.035, 6.4)
@@ -59,31 +59,22 @@ size = Vector3(88, 0.035, 6.4)
 size = Vector3(37.5, 0.035, 6.4)
 
 [sub_resource type="BoxShape3D" id="RoadColliderShape_2"]
-size = Vector3(5.2, 0.035, 19)
+size = Vector3(5.2, 0.035, 15.8)
 
 [sub_resource type="BoxShape3D" id="RoadColliderShape_3"]
-size = Vector3(3.4, 0.035, 19)
+size = Vector3(3.4, 0.035, 15.8)
 
 [sub_resource type="BoxShape3D" id="RoadColliderShape_4"]
-size = Vector3(3.8, 0.035, 20)
+size = Vector3(3.8, 0.035, 16.8)
 
 [sub_resource type="BoxShape3D" id="RoadColliderShape_5"]
-size = Vector3(4.8, 0.035, 11)
+size = Vector3(4.8, 0.035, 7.8)
 
 [sub_resource type="BoxShape3D" id="RoadColliderShape_6"]
-size = Vector3(3.6, 0.035, 9)
+size = Vector3(3.6, 0.035, 5.8)
 
 [sub_resource type="BoxShape3D" id="RoadColliderShape_7"]
-size = Vector3(3.8, 0.035, 3.8)
-
-[sub_resource type="BoxShape3D" id="RoadColliderShape_8"]
-size = Vector3(3.2, 0.035, 19.6)
-
-[sub_resource type="BoxShape3D" id="RoadColliderShape_9"]
-size = Vector3(12, 0.035, 3.2)
-
-[sub_resource type="BoxShape3D" id="RoadColliderShape_10"]
-size = Vector3(6.5, 0.035, 4)
+size = Vector3(3.2, 0.035, 16.4)
 
 [node name="TownRoads" type="Node3D"]
 
@@ -526,37 +517,25 @@ position = Vector3(69.25, -0.0175, 0)
 shape = SubResource("RoadColliderShape_1")
 
 [node name="Collision_02" type="CollisionShape3D" parent="TownRoadCollision"]
-position = Vector3(-30, -0.0175, 9.5)
+position = Vector3(-30, -0.0175, 11.1)
 shape = SubResource("RoadColliderShape_2")
 
 [node name="Collision_03" type="CollisionShape3D" parent="TownRoadCollision"]
-position = Vector3(-38, -0.0175, 9.5)
+position = Vector3(-38, -0.0175, 11.1)
 shape = SubResource("RoadColliderShape_3")
 
 [node name="Collision_04" type="CollisionShape3D" parent="TownRoadCollision"]
-position = Vector3(-20, -0.0175, -10)
+position = Vector3(-20, -0.0175, -11.6)
 shape = SubResource("RoadColliderShape_4")
 
 [node name="Collision_05" type="CollisionShape3D" parent="TownRoadCollision"]
-position = Vector3(25, -0.0175, -5.5)
+position = Vector3(25, -0.0175, -7.1)
 shape = SubResource("RoadColliderShape_5")
 
 [node name="Collision_06" type="CollisionShape3D" parent="TownRoadCollision"]
-position = Vector3(-14, -0.0175, 4.5)
+position = Vector3(-14, -0.0175, 6.1)
 shape = SubResource("RoadColliderShape_6")
 
 [node name="Collision_07" type="CollisionShape3D" parent="TownRoadCollision"]
-position = Vector3(5, -0.0175, 1.9)
+position = Vector3(15, -0.0175, 11.4)
 shape = SubResource("RoadColliderShape_7")
-
-[node name="Collision_08" type="CollisionShape3D" parent="TownRoadCollision"]
-position = Vector3(15, -0.0175, 9.8)
-shape = SubResource("RoadColliderShape_8")
-
-[node name="Collision_09" type="CollisionShape3D" parent="TownRoadCollision"]
-position = Vector3(-32, -0.0175, -2.6)
-shape = SubResource("RoadColliderShape_9")
-
-[node name="Collision_10" type="CollisionShape3D" parent="TownRoadCollision"]
-position = Vector3(-22, -0.0175, 3)
-shape = SubResource("RoadColliderShape_10")

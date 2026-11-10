@@ -89,6 +89,18 @@ public partial class RuntimeSelfTest : Node
         Expect(Main.RtBrokenSwingLabelCount >= 2,
             "scene-owned BROKEN swing labels resolve");
 
+        Vector3 playground = Main.RtWorldNodeGlobalPosition("Playground");
+        Vector3 playgroundAnchor = Main.RtWorldAnchorPosition("PlaygroundCenter");
+        Vector3 playgroundWorksite =
+            Main.RtWorldNodeGlobalPosition("Playground/WorksiteMarker");
+        Expect(playgroundAnchor.DistanceTo(playground) < 0.01f,
+            "PlaygroundCenter anchor follows the authored playground root");
+        Expect(playgroundWorksite.DistanceTo(
+                playground + new Vector3(0f, 0.1f, 4.5f)) < 0.01f,
+            "playground worksite marker stays inside the authored sand");
+        Expect(Main.RtPlaygroundStationPosition.DistanceTo(playgroundWorksite) < 0.01f,
+            "playground interaction station follows the scene-owned worksite marker");
+
         foreach (string id in new[]
                  {
                      "PlayerSpawn", "VanSpawn", "JobBoard", "PlayerHouseDoor",

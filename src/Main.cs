@@ -768,7 +768,7 @@ public partial class Main : Node3D
             "E: Call van to parking", ResetVanAtSign, () => !_driving, true, 3.2f, "VanParkingStation");
         _parkingStation.SetPrompt(() => _driving ? "E: Parking sign" : "E: Call van to parking");
 
-        _playgroundStation = Interactable.Create(this, new Vector3(-38f, 0.1f, -5.0f),
+        _playgroundStation = Interactable.Create(this, _world.PlaygroundWorksite,
             "E: Playground worksite", InteractPlayground, null, true, 4.0f, "PlaygroundStation");
         _playgroundStation.SetPrompt(PlaygroundPrompt);
 
@@ -3632,6 +3632,8 @@ public partial class Main : Node3D
         return false;
     }
     internal bool RtPlaygroundFixHidden => _world?.PlaygroundFixSign?.Visible == false;
+    internal Vector3 RtPlaygroundStationPosition =>
+        _playgroundStation?.GlobalPosition ?? new Vector3(9999, 9999, 9999);
     internal int RtParkPlacementCount => _data.ParkPlacements.Count;
     internal int RtParkVisualCount => _parkBuilder?.PlacedVisualCount ?? 0;
     internal int RtFurniturePlacementCount => _data.FurniturePlacements.Count;

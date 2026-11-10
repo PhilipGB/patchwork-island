@@ -161,7 +161,19 @@ public partial class WorldSceneAdapter : WorldBuilder
         AppleCrate = AnchorPosition("AppleCrate");
         PostCounter = AnchorPosition("PostCounter");
         BridgeCenter = AnchorPosition("BridgeCenter");
-        PlaygroundCenter = RequireNode<Node3D>("Playground").GlobalPosition;
+        var playground = RequireNode<Node3D>("Playground");
+        PlaygroundCenter = AnchorPosition("PlaygroundCenter");
+        if (PlaygroundCenter.DistanceTo(playground.GlobalPosition) > 0.01f)
+            throw new InvalidOperationException(
+                $"PlaygroundCenter anchor {PlaygroundCenter} does not match the " +
+                $"authored Playground root {playground.GlobalPosition}.");
+        var worksite = playground.GetNodeOrNull<Marker3D>("WorksiteMarker")
+            ?? throw new InvalidOperationException(
+                "Playground is missing its scene-owned WorksiteMarker.");
+        if (worksite.GetMeta("scene_binding_id", "").AsString() != "PlaygroundWorksite")
+            throw new InvalidOperationException(
+                "Playground/WorksiteMarker has the wrong scene_binding_id.");
+        PlaygroundWorksite = worksite.GlobalPosition;
         ParkCenter = AnchorPosition("ParkCenter");
         VillageGreenSign = AnchorPosition("VillageGreenSign");
         GroveCenter = AnchorPosition("GroveCenter");
@@ -415,9 +427,16 @@ public partial class WorldSceneAdapter : WorldBuilder
     private void ValidateCollisionContract()
     {
         var townRoads = RequireNode<StaticBody3D>("TownRoads/TownRoadCollision");
-        if (townRoads.CollisionLayer != 1u || townRoads.GetChildCount() < 11)
+        int roadSlabs = 0;
+        foreach (Node child in RequireNode<Node3D>("TownRoads").GetChildren())
+            if (child is MeshInstance3D &&
+                child.Name.ToString().StartsWith("RoadSlab", StringComparison.Ordinal))
+                roadSlabs++;
+        if (townRoads.CollisionLayer != 1u || roadSlabs == 0 ||
+            townRoads.GetChildCount() != roadSlabs)
             throw new InvalidOperationException(
-                "TownRoads needs a layer-1 collision body with all road slabs.");
+                "TownRoads needs one layer-1 collider per visible road slab " +
+                $"({townRoads.GetChildCount()} colliders for {roadSlabs} slabs).");
 
         var rallyCollision = RequireNode<StaticBody3D>("RallyRoad/RallyRoadCollision");
         if (rallyCollision.CollisionLayer != 1u || rallyCollision.GetChildCount() == 0)
