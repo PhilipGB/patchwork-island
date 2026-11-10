@@ -202,7 +202,7 @@ godot --headless --path . -- --selftest-living           -> 238 passed, 0 failed
 godot --headless --path . -- --selftest-rally            -> 10 passed, 0 failed
 godot --headless --path . -- --selftest-chapter          -> 217 passed, 0 failed
 godot --headless --path . -- --selftest-finale           -> 140 passed, 0 failed
-godot --headless --path . -- --selftest-traversal        -> 12 passed, 0 failed
+godot --headless --path . -- --selftest-traversal        -> 18 passed, 0 failed
 godot --headless --path . -- --selftest-release          -> 22 passed, 0 failed
 godot --headless --path . --export-release "Linux" ...    -> exit 0
 godot --headless --path . --export-release "Windows..."   -> exit 0
@@ -218,13 +218,20 @@ the same phases, every process exit code 0 with zero leaked unsafe references.
 
 The v1.2.0 Linux export is an ELF x86-64 executable. The Windows executable is
 PE32+ x86-64 with file/product version `1.2.0.0`; **Windows startup was not
-tested** because no Windows runtime or Wine is available. The previous v1.0.2
-and v1.1.0 verification remains recorded in `ACCEPTANCE.md`.
+tested** because no Windows runtime or Wine is available, and was explicitly
+waived for the Linux-first release. The previous v1.0.2 and v1.1.0 verification
+remains recorded in `ACCEPTANCE.md`.
 
 Real AMD Radeon 890M measurements: 720p mean 16.69 ms / p95 17.35 ms and 1080p
 mean 16.67 ms / p95 17.28 ms over 600 frames each. Packaged audio reached the
-real PipeWire sink monitor with nonzero PCM; **human listening was not possible**
-in this environment. Child usability testing remains a manual follow-up.
+real PipeWire sink monitor with nonzero PCM, and **human listening is PASS** —
+the product owner verified the packaged build on 2026-11-09. Child usability
+testing remains a manual follow-up.
+
+The P15.1 bridge hotfix adds 18 traversal checks (fast/slow centre, both road
+edges, westbound, no vertical step, both gate-1 walk/jump checks and a
+from-rest road-lip walk), plus seam/junction/cap captures at exact 720p and true
+1080p.
 
 ## Developer QA scenarios
 

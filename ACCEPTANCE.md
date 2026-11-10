@@ -468,15 +468,15 @@ rally expansion, packaged builds and the remaining blockers.
   and dialogue. **PASS** — living phase and P11 captures.
 - [x] Two safe NPC drivers stay on authored roads, yield and do not block
   stations. **PASS** — 24-second living phase, 238 assertions.
-- [x] Music/SFX are bundled and settings persist. **PASS (structural and
-  physical output)** — all loops/effects decode, buses exist, Music/SFX/UI/
-  Vehicles routing is verified, and a 20-second capture of the real PipeWire
-  sink monitor during the packaged Linux build contained nonzero PCM
-  (peak 19777, RMS 944.8). **Human listening was not possible**; that subjective
-  check remains a publication blocker, not a code failure.
+- [x] Music/SFX are bundled and settings persist. **PASS** — all loops/effects
+  decode, buses exist, Music/SFX/UI/Vehicles routing is verified, and a
+  20-second capture of the real PipeWire sink monitor during the packaged Linux
+  build contained nonzero PCM (peak 20165, RMS 944.0). **Human listening:
+  PASS** — the product owner verified the packaged build on the target
+  Linux/PipeWire system on 2026-11-09.
 - [x] World visual cleanup and larger continuous rally track. **PASS** — P12
-  captures/tests, collision road mesh, gate readability, icon scaling and P14
-  visual fixes V09–V12.
+  captures/tests, collision road mesh, gate readability, icon scaling, P14
+  visual fixes V09–V12, and P15.1 bridge/cap fixes V13–V15.
 - [x] Real-GPU visual and performance check. **PASS** — AMD Radeon 890M (Mesa
   26.0.8, OpenGL 4.6): 1280×720 mean 16.69 ms / p95 17.35 ms; 1920×1080 mean
   16.67 ms / p95 17.28 ms over 600 frames. Real-Radeon P14 captures are in
@@ -488,11 +488,12 @@ rally expansion, packaged builds and the remaining blockers.
 - [x] Save schema 3 and migration documented. **PASS** — schema 1→2→3; current
   schema 3; schema 4+ refused untouched.
 - [x] Full CI and packaged Linux execution. **PASS** — pure **106**, runtime
-  161 + 21 + 101 + 238 + 10 + 217 + 140 + 12 + 22; packaged Linux passed the
-  same phases with exit 0 and zero leaked unsafe references.
+  161 + 21 + 101 + 238 + 10 + 217 + 140 + **18** + 22; packaged Linux passed
+  the same phases with exit 0 and zero leaked unsafe references.
 - [x] Windows compilation/export. **PASS (compile/export only)** — PE32+ x86-64,
   file/product version `1.2.0.0`. **Windows startup is NOT TESTED** (no Windows
-  runtime or Wine).
+  runtime or Wine); the product owner waived Windows startup for this
+  Linux-first release.
 - [x] Version metadata and release docs. **PASS** — project version `1.2.0`,
   export metadata `1.2.0.0`, updated README/README_RUN/release notes.
 - [x] Licensed-source audit. **PASS** — supplied audio/PNG assets are original
@@ -501,20 +502,47 @@ rally expansion, packaged builds and the remaining blockers.
 - [x] SHA-256 archives. **PASS (local artifacts)** — Linux and Windows v1.2.0
   ZIPs and `dist/SHA256SUMS` generated from the exported binaries.
 
+### P15.1 bridge and visual hotfix
+
+The 2026-11-09 playtest reported that the van could cross the bridge but still
+met an invisible obstacle, plus grey-slab/rail artefacts and a floating cap.
+
+- Bridge/road seam: the east road box started 1.45 m inside the bridge deck and
+  the rally connector ramp started under the planks, painting a grey slab over
+  the wood and leaving a raised edge. The road now starts at the bridge edge,
+  the connector starts at x=50.4 with its ramp removed, road/shoulder collision
+  is 1 cm above the lawn (down from 6.5 cm), and the collision proof checks the
+  `RallyRoadCollision` body by name (52/52 rays).
+- Visuals: bank rocks are kept ≥6 m from the bridge, a dark deck underlay
+  closes the plank gaps, side rails end at the water span, the connector has
+  sandy shoulders, and the long-hair back meets the lowered cap.
+- Traversal: **18 passed** — fast and slow centre crossings, both lateral road
+  edges, westbound, no vertical step, both gate-1 walk/jump checks and the
+  from-rest lip walk.
+- Full source gates after the hotfix: build 0/0; pure **106**; selftest 161;
+  resume 21; recovery 101; living 238; rally 10 (M05 18.99 s, M09 18.97 s, +5);
+  chapter 217; finale 140 (M19 22.32 s, +5); traversal **18**; release 22.
+  No leaked unsafe references.
+- New evidence: `p14_*_15_bridge_seam.png`, `p14_*_16_bridge_junction.png`,
+  `p14_*_17_player_cap.png`; the full P14 set was re-captured at exact 720p and
+  true 1080p.
+
 ### Release severity
 
-**BLOCKER (publication):** subjective human listening of the packaged audio was
-not possible in this environment, and Windows startup was not tested. Both must
-be completed before tagging/publishing v1.2.0 as fully verified.
+**BLOCKER (publication):** none for the Linux-first release after the P15.1
+hotfix. Human listening of the packaged audio is **PASS** (product-owner
+verified). Windows startup remains **NOT TESTED** but was explicitly waived for
+this release; it is recorded as an untested platform, not claimed working.
 
 **SHOULD FIX:** none known in code or saves.
 
 **OPTIONAL:** child playtesting, accessibility review, a v1.1.0 real-GPU
-baseline probe.
+baseline probe, Windows startup when a Windows machine is available.
 
-**Tag/publish status:** not tagged. The exact-head commit, package hashes and
+**Tag/publish status:** no tag yet. After the P15.1 PR is green, the exact merge
+head is the only candidate for the v1.2.0 tag. The package hashes and
 verification logs are recorded in `PROGRESS.md` and
-`evidence/p15_verification.txt`; publication waits on the two blockers above.
+`evidence/p15_verification.txt`.
 
 ### Manual walkthrough status
 

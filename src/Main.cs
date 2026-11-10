@@ -3870,14 +3870,17 @@ public partial class Main : Node3D
         _bridgeBuilder?.RefreshFromData();
     }
 
-    internal void RtPrepareBridgeCrossing()
+    internal void RtPrepareBridgeCrossing() =>
+        RtPrepareBridgeCrossingAt(47.0f, 0f, -Mathf.Pi / 2f);
+
+    internal void RtPrepareBridgeCrossingAt(float x, float z, float yaw)
     {
         RtLeaveVanForTest();
         RtBuildBridgeNow();
-        _van.GlobalPosition = new Vector3(47.0f, 0.15f, 0f);
-        _van.Rotation = new Vector3(0f, -Mathf.Pi / 2f, 0f);
+        _van.GlobalPosition = new Vector3(x, 0.15f, z);
+        _van.Rotation = new Vector3(0f, yaw, 0f);
         _van.Velocity = Vector3.Zero;
-        _player.Teleport(new Vector3(44.7f, 0.15f, 0f), -Mathf.Pi / 2f);
+        _player.Teleport(new Vector3(x - 2.3f, 0.15f, z), yaw);
         _vehicleSwitchCooldown = 0f;
         EnterVan();
         RefreshMissionState();
@@ -4062,8 +4065,11 @@ public partial class Main : Node3D
                 new Vector3(sample.X, -1f, sample.Z), 1u);
             var result = space.IntersectRay(query);
             if (result.Count == 0) continue;
-            Vector3 hit = (Vector3)result["position"];
-            if (hit.Y >= 0.03f) hits++;
+            var collider = result["collider"].AsGodotObject();
+            // Collision is intentionally flush with the ground now; prove the
+            // ray actually hit the rally road mesh rather than the island lawn.
+            if (collider is StaticBody3D body && body.Name == "RallyRoadCollision")
+                hits++;
         }
         return hits;
     }
@@ -4434,6 +4440,22 @@ public partial class Main : Node3D
                 $"{p}_13_bridge_approach.png");
             await SnapFreeCamera(new Vector3(63f, 6f, -21f), new Vector3(56.8f, 2f, -27.6f),
                 $"{p}_14_gate_one.png");
+
+            // Bridge/road seam from the driving viewpoint and above.
+            _van.GlobalPosition = new Vector3(52f, 0.15f, 0f);
+            _van.Rotation = new Vector3(0f, -Mathf.Pi / 2f, 0f);
+            await Wait(0.3f);
+            await SnapFreeCamera(new Vector3(44f, 5.5f, 1.6f),
+                new Vector3(54f, 0.4f, -0.5f), $"{p}_15_bridge_seam.png");
+            await SnapFreeCamera(new Vector3(50f, 14f, 9f),
+                new Vector3(52f, 0f, -2f), $"{p}_16_bridge_junction.png");
+
+            // Player cap/hair silhouette from behind.
+            _player.SetAppearance(CharacterCustomisation.Girl, "berry");
+            _player.Teleport(new Vector3(10f, 0.1f, 30f), 0f);
+            await Wait(0.4f);
+            await SnapFreeCamera(new Vector3(10f, 1.72f, 32.2f),
+                new Vector3(10f, 1.55f, 30f), $"{p}_17_player_cap.png");
         }
         catch (Exception ex)
         {

@@ -49,6 +49,9 @@ xvfb-run -a -s "-screen 0 1920x1080x24" godot --path . --resolution 1920x1080 --
 | V10 | Delivery board and post station were placed inside the town-hall shell | Complete M16 and look for the delivery board | Board/station offsets used the post counter's +Z side, which is inside the building | Moved the post station and delivery board to the open south-east approach; capture now shows the board from the road | first P14 capture pass observed during capture, not committed | `evidence/p14_720_02_delivery_board.png`, `evidence/p14_1080_02_delivery_board.png` |
 | V11 | Hand-placed tree canopy covered Pip's broken car | Stand at the workshop repair bay | Existing tree at `(31,0,-9)` was not covered by the new keep-clear rectangle | Moved the tree to `(33,0,-28)`; broken/repaired car silhouettes are readable | first P14 capture pass observed during capture, not committed | `evidence/p14_720_06_broken_pip_car.png`, `evidence/p14_720_07_repaired_pip_car.png` |
 | V12 | Market checkout's Pay button sat below the fold at 720p | Open Market Day Maths at 1280×720 | Three two-line item rows plus footer exceeded the modal body | Compacted item rows to one line each and removed the duplicate footer; Pay and Step away are visible | first P14 capture pass observed during capture, not committed | `evidence/p14_720_03_market_maths_ui.png`, `evidence/p14_1080_03_market_maths_ui.png` |
+| V13 | Grey slab and a raised lip at the bridge-to-road seam; bank boulder sat on the deck | Drive east across the M03 bridge | East road box began at x=49, 1.45 m inside the bridge deck, and the rally connector ramp started at x=48.1; both painted over the wooden planks. A bank rock was authored at (40.1, 0.55, 0) on the deck. | East road now starts at x=50.5; connector starts at x=50.4 with its ramp removed and collision/visuals nearly flush; entrance discs removed; rocks kept ≥6 m from the bridge; side rails pulled back to the water span; dark underlay closes plank gaps. | user playtest screenshots 2026-11-09 23:20 | `evidence/p14_720_15_bridge_seam.png`, `evidence/p14_720_16_bridge_junction.png`, `evidence/p14_1080_15_bridge_seam.png`, `evidence/p14_1080_16_bridge_junction.png` |
+| V14 | Rally connector read as a floating grey wedge at the bridge branch | Look east from the bridge exit | Connector had a road surface but no shoulder strips, unlike the rally loop | Added 0.8 m sandy shoulders on both connector edges and kept the branch clear of the rail ends | same P15.1 capture pass | `evidence/p14_720_16_bridge_junction.png`, `evidence/p14_1080_16_bridge_junction.png` |
+| V15 | Blue cap appeared to hover above the long-hair block | View the girl/Berry character from behind | Cap cylinder sat above a 1 cm exposed strip of head skin; long-hair back stopped below the cap underside | Raised the long-hair back to meet the cap, lowered the cap/brim and shortened the top hair box | user close-up screenshot 2026-11-09 15:24 | `evidence/p14_720_17_player_cap.png`, `evidence/p14_1080_17_player_cap.png` |
 
 ## Continuous-road and driving verification
 
@@ -107,6 +110,12 @@ stuck player. The gate's only nearby static body is the camera-only blocker on
 layer 16; the player capsule uses layers 1 and 3, so the fix targets the road
 shoulder collision rather than the arch visual.
 
+P15.1 re-captured the whole set after the bridge hotfix. The additional
+`p14_*_15_bridge_seam.png` and `p14_*_16_bridge_junction.png` show the road
+meeting the planks without a grey overlay, the connector with sandy shoulders,
+the rails ending before the road, and no boulder on the deck.
+`p14_*_17_player_cap.png` shows the cap seated on the long hair from behind.
+
 ## Software-renderer measurements (not a desktop-GPU claim)
 
 | Resolution | Mean frame | p95 frame | Max frame | Nodes | Draw calls | Primitives |
@@ -116,7 +125,10 @@ shoulder collision rather than the arch visual.
 
 The v1.1.0 baseline did not include this probe, so a baseline frame-time
 comparison is **NOT TESTED**. The relative scene cost is recorded for later
-optimisation. Real Radeon 890M profiling remains **NOT TESTED**.
+optimisation. Real Radeon 890M profiling is recorded in `ACCEPTANCE.md` and
+`evidence/p15_verification.txt`: 720p mean 16.69 ms / p95 17.35 ms and 1080p
+mean 16.67 ms / p95 17.28 ms over 600 frames. Windows rendering remains
+**NOT TESTED**.
 
 ## Remaining visual gaps
 
@@ -125,5 +137,5 @@ optimisation. Real Radeon 890M profiling remains **NOT TESTED**.
 - The large direction-post sign cluster is intentionally whimsical and can look
   edge-on from some angles, but back faces are now readable.
 - Roof gable wedges are part of the flat-shaded toy style, not z-fighting.
-- Real-GPU anti-aliasing, Windows rendering and player-eye comfort remain
-  **NOT TESTED** in this environment.
+- Real-Radeon captures are recorded; Windows rendering and player-eye comfort
+  remain **NOT TESTED** in this environment.
