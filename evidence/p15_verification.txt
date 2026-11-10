@@ -88,4 +88,7 @@ Publication status
 - Human audio listening: PASS (product owner, 2026-11-09).
 - Windows startup: NOT TESTED; waived for the Linux-first release.
 - No known code/save blockers remain after the P15.1 bridge hotfix.
-- No v1.2.0 tag has been created yet; tag from the green P15.1 merge head.
+- v1.2.0 tagged at d0eff9d (tree identical to green PR head b7d3bb9).
+- main CI run 42726477501 passed.
+- Published: https://github.com/PhilipGB/patchwork-island/releases/tag/v1.2.0
+  with Linux/Windows ZIPs, README.txt and SHA256SUMS.

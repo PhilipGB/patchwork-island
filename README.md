@@ -10,11 +10,12 @@ tests, real-input GUI evidence and release build instructions.
 
 ## Current status
 
-**Complete v1.2.0 Living Village Update.** The original ten jobs, optional race,
-free practice racing, first celebration, character customisation and save
-recovery remain. v1.2 adds six named villagers, two safe NPC drivers, original
-music/SFX with persisted settings, a larger continuous rally circuit, and ten
-new jobs M11–M20 ending in a separate village-festival finale.
+**Complete v1.2.0 Living Village Update — tagged and published.** The original
+ten jobs, optional race, free practice racing, first celebration, character
+customisation and save recovery remain. v1.2 adds six named villagers, two safe
+NPC drivers, original music/SFX with persisted settings, a larger continuous
+rally circuit, and ten new jobs M11–M20 ending in a separate village-festival
+finale.
 
 - Save schema **3** adds `FestivalSeen`; `CelebrationSeen` keeps its original
   M10 meaning. Schema 1/2 saves migrate with coins, outfits, world state and
@@ -33,7 +34,11 @@ new jobs M11–M20 ending in a separate village-festival finale.
 
 ## Download / install
 
-Prebuilt v1.2.0 artifacts are under `dist/`:
+Published v1.2.0 downloads:
+[GitHub release v1.2.0](https://github.com/PhilipGB/patchwork-island/releases/tag/v1.2.0)
+(Linux/Windows ZIPs, `README.txt`, `SHA256SUMS`).
+
+The same artifacts are also present locally under `dist/`:
 
 ```text
 dist/windows/PatchworkIsland.exe        Windows x64, single executable (v1.2.0)

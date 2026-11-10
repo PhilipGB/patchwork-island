@@ -1,6 +1,6 @@
 # Patchwork Island — run and test guide
 
-> Status: v1.2.0 — Living Village Update. The original ten missions,
+> Status: v1.2.0 — Living Village Update, tagged and published. The original ten missions,
 > practice racing, first celebration, character customisation, save/load and
 > recovery remain. v1.2 adds six named villagers, two safe NPC drivers, original
 > music/SFX with persisted settings, a larger continuous rally circuit, and

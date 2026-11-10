@@ -1779,4 +1779,9 @@ New hashes:
 - Packaged audio human listening: **PASS** (product-owner verified 2026-11-09).
 - Windows startup: **NOT TESTED**, explicitly waived for the Linux-first
   release.
-- No v1.2.0 tag exists yet; the P15.1 merge head is the next tagging candidate.
+- v1.2.0 tagged at `d0eff9d` (merge of PR #23); its tree is identical to the
+  green PR head `b7d3bb9`. Main CI run
+  [42726477501](https://github.com/PhilipGB/patchwork-island/actions/runs/42726477501)
+  passed.
+- Published: [v1.2.0 release](https://github.com/PhilipGB/patchwork-island/releases/tag/v1.2.0)
+  with Linux/Windows ZIPs, `README.txt` and `SHA256SUMS`.
