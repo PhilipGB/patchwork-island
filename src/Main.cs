@@ -16,7 +16,7 @@ public partial class Main : Node3D
 {
     private Hud _hud;
     private AudioManager _audio;
-    private WorldBuilder _world;
+    private WorldSceneAdapter _world;
     private PlayerController _player;
     private CameraRig _rig;
     private WorldMarker _marker;
@@ -110,6 +110,7 @@ public partial class Main : Node3D
         if (HasUserArg("--selftest") || IsFinaleTest || IsTraversalTest ||
             (IsHotfixTest && RuntimeSelfTest.HotfixPhase == 0) ||
             (IsChapterTest && RuntimeSelfTest.ChapterPhase == 0) ||
+            (IsRestoreTest && RuntimeSelfTest.RestorePhase == 0) ||
             (IsReleaseTest && RuntimeSelfTest.ReleasePhase == 0))
             DeleteSelfTestSaves("selftest-save.json");
         else if (IsRecoveryTest && RuntimeSelfTest.RecoveryPhase == 0)
@@ -118,7 +119,7 @@ public partial class Main : Node3D
         ApplyDeveloperScenario();
         ApplySettings();
 
-        _world = new WorldBuilder { Name = "WorldBuilder", ProcessMode = ProcessModeEnum.Pausable };
+        _world = new WorldSceneAdapter { Name = "WorldBuilder", ProcessMode = ProcessModeEnum.Pausable };
         AddChild(_world);
         _world.Build();
 
@@ -379,11 +380,12 @@ public partial class Main : Node3D
     private static bool IsTraversalTest => HasUserArg("--selftest-traversal");
     private static bool IsReleaseTest => HasUserArg("--selftest-release");
     private static bool IsHotfixTest => HasUserArg("--selftest-hotfix");
+    private static bool IsRestoreTest => HasUserArg("--selftest-restore");
 
     private static bool IsSelfTest =>
         HasUserArg("--selftest") || HasUserArg("--selftest-resume") || IsRecoveryTest ||
         IsLivingTest || IsRallyTest || IsChapterTest || IsFinaleTest || IsTraversalTest ||
-        IsReleaseTest || IsHotfixTest;
+        IsReleaseTest || IsHotfixTest || IsRestoreTest;
 
     private static bool IsSelfTestResume => HasUserArg("--selftest-resume");
 
@@ -391,6 +393,7 @@ public partial class Main : Node3D
         IsSelfTestResume || IsRecoveryTest ||
         (IsChapterTest && RuntimeSelfTest.ChapterPhase > 0) ||
         (IsReleaseTest && RuntimeSelfTest.ReleasePhase > 0) ||
+        (IsRestoreTest && RuntimeSelfTest.RestorePhase > 0) ||
         (IsHotfixTest && RuntimeSelfTest.HotfixPhase > 0);
 
     /// <summary>
@@ -3548,9 +3551,53 @@ public partial class Main : Node3D
     internal ProcessModeEnum RtPlayerProcessMode => _player.ProcessMode;
     internal ProcessModeEnum RtVanProcessMode => _van.ProcessMode;
     internal ProcessModeEnum RtWorldProcessMode => _world.ProcessMode;
+    internal bool RtWorldIsBakedScene =>
+        _world?.Town != null &&
+        _world.Town.SceneFilePath == WorldSceneAdapter.TownScenePath &&
+        _world.Town.Name == "Town_Baked";
+    internal int RtWorldAnchorCount => _world?.AnchorCount ?? 0;
+    internal int RtWorldTopLevelRootCount => _world?.Town?.GetChildCount() ?? 0;
+    internal int RtBrokenSwingLabelCount => _world?.BrokenSwingLabels.Count ?? 0;
+    internal Vector3 RtWorldAnchorPosition(string id) =>
+        _world?.GetAnchorPosition(id) ?? new Vector3(9999, 9999, 9999);
+    internal Vector3 RtWorldNodePosition(string path)
+    {
+        var node = _world?.Town?.GetNodeOrNull<Node3D>(path);
+        return node?.Position ?? new Vector3(9999, 9999, 9999);
+    }
+    internal bool RtWorldNodeExists(string path) =>
+        _world?.Town?.GetNodeOrNull<Node>(path) != null;
+    internal bool RtWorldNodeVisible(string path) =>
+        _world?.Town?.GetNodeOrNull<Node3D>(path)?.Visible == true;
+    internal Vector3 RtWorldBoxMeshSize(string path)
+    {
+        var node = _world?.Town?.GetNodeOrNull<Node>(path);
+        var mesh = node?.GetChildren().OfType<MeshInstance3D>()
+            .Select(instance => instance.Mesh as BoxMesh)
+            .FirstOrDefault(box => box != null);
+        return mesh?.Size ?? Vector3.Zero;
+    }
+    internal string RtWorldRayHit(Vector3 from, Vector3 to, uint mask)
+    {
+        using var query = PhysicsRayQueryParameters3D.Create(from, to, mask);
+        var hit = GetWorld3D().DirectSpaceState.IntersectRay(query);
+        if (hit.Count == 0) return "";
+        return (hit["collider"].AsGodotObject() as Node)?.Name.ToString() ?? "unknown";
+    }
     internal double RtRaceElapsed => _raceTimer.ElapsedSeconds;
     internal bool RtBridgeBuilt => _bridgeBuilder?.IsBuilt == true;
+    internal int RtBridgePieceCount => _data.BridgePieces.Count;
+    internal int RtBridgePlacedSocketCount => _bridgeBuilder?.PlacedSocketCount ?? 0;
+    internal bool RtSwingBuilt => _swingBuilder?.IsBuilt == true;
+    internal int RtSwingPlacedSocketCount => _swingBuilder?.PlacedSocketCount ?? 0;
+    internal int RtBrokenSwingLabelsVisible =>
+        _world?.BrokenSwingLabels.Count(label => label.Visible) ?? 0;
+    internal bool RtBridgeBarrierVisible => _world?.BridgeBarrier?.Visible == true;
+    internal bool RtPlaygroundFixHidden => _world?.PlaygroundFixSign?.Visible == false;
     internal int RtParkPlacementCount => _data.ParkPlacements.Count;
+    internal int RtParkVisualCount => _parkBuilder?.PlacedVisualCount ?? 0;
+    internal int RtFurniturePlacementCount => _data.FurniturePlacements.Count;
+    internal int RtFurnitureVisualCount => _furnitureBuilder?.PlacedVisualCount ?? 0;
     internal int RtSwingPieceCount => _data.SwingPieces.Count;
     internal string RtCharacterPreset => _data.CharacterPreset;
     internal string RtEquippedOutfit => _data.EquippedOutfit;
@@ -4083,6 +4130,12 @@ public partial class Main : Node3D
     internal bool RtPipCarFixedVisible => _world?.PipCarFixed?.Visible == true;
     internal bool RtRallyPodiumVisible => _world?.RallyPodium?.Visible == true;
     internal bool RtFestivalDecorVisible => _world?.FestivalDecor?.Visible == true;
+    internal bool RtFestivalTableVisible(int index) =>
+        _world != null && index >= 0 && index < _world.FestivalTableVisuals.Count &&
+        _world.FestivalTableVisuals[index].Visible;
+    internal bool RtFestivalLanternVisible(int index) =>
+        _world != null && index >= 0 && index < _world.FestivalLanternVisuals.Count &&
+        _world.FestivalLanternVisuals[index].Visible;
     internal bool RtRallyRivalPresent => _rallyRival != null && GodotObject.IsInstanceValid(_rallyRival);
     internal Vector3 RtRallyRivalPosition =>
         _rallyRival != null && GodotObject.IsInstanceValid(_rallyRival)

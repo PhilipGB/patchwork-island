@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 
 namespace PatchworkIsland;
@@ -9,6 +10,7 @@ public partial class SwingBuilder : Node3D, IBuildMode
 {
     public bool Active { get; private set; }
     public bool IsBuilt { get; private set; }
+    public int PlacedSocketCount => _sockets.Values.Count(socket => socket.Placed);
 
     private GameData _data;
     private MissionService _missions;

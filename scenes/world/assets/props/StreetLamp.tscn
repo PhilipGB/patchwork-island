@@ -1,0 +1,41 @@
+[gd_scene load_steps=6 format=3]
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_1"]
+top_radius = 0.08500
+bottom_radius = 0.08500
+height = 3.30000
+radial_segments = 8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2"]
+albedo_color = Color(0.094118, 0.203922, 0.352941, 1)
+roughness = 1.0
+metallic = 0.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_3"]
+size = Vector3(0.9, 0.3, 0.9)
+
+[sub_resource type="BoxMesh" id="BoxMesh_4"]
+size = Vector3(0.7, 0.36, 0.7)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5"]
+albedo_color = Color(1.000000, 0.929412, 0.658824, 1)
+roughness = 1.0
+metallic = 0.0
+
+[node name="StreetLamp" type="Node3D"]
+
+
+[node name="Pole" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.65, 0)
+mesh = SubResource("CylinderMesh_1")
+material_override = SubResource("StandardMaterial3D_2")
+
+[node name="LampTop" type="MeshInstance3D" parent="."]
+position = Vector3(0, 3.23, 0)
+mesh = SubResource("BoxMesh_3")
+material_override = SubResource("StandardMaterial3D_2")
+
+[node name="Light" type="MeshInstance3D" parent="."]
+position = Vector3(0, 2.96, 0)
+mesh = SubResource("BoxMesh_4")
+material_override = SubResource("StandardMaterial3D_5")

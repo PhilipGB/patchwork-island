@@ -1,0 +1,7 @@
+newmtl Road
+Kd 0.54 0.52 0.57
+Ka 0 0 0
+
+newmtl Shoulder
+Kd 0.87 0.81 0.62
+Ka 0 0 0

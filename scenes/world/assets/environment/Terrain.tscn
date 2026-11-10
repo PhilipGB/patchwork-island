@@ -1,0 +1,297 @@
+[gd_scene load_steps=21 format=3]
+
+[sub_resource type="BoxMesh" id="BoxMesh_1"]
+size = Vector3(96.5, 1, 110)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2"]
+albedo_color = Color(0.321569, 0.768627, 0.286275, 1)
+roughness = 1.0
+metallic = 0.0
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_3"]
+size = Vector3(96.5, 1, 110)
+
+[sub_resource type="BoxMesh" id="BoxMesh_4"]
+size = Vector3(47, 1, 110)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_5"]
+size = Vector3(47, 1, 110)
+
+[sub_resource type="BoxMesh" id="BoxMesh_6"]
+size = Vector3(250, 0.2, 220)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7"]
+albedo_color = Color(0.000000, 0.847059, 0.913725, 1)
+roughness = 1.0
+metallic = 0.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_8"]
+size = Vector3(8, 0.16, 108)
+
+[sub_resource type="BoxMesh" id="BoxMesh_9"]
+size = Vector3(8, 0.4, 108)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_10"]
+albedo_color = Color(0.866667, 0.819608, 0.623529, 1)
+roughness = 1.0
+metallic = 0.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_11"]
+size = Vector3(148, 0.06, 1.6)
+
+[sub_resource type="BoxMesh" id="BoxMesh_12"]
+size = Vector3(1.6, 0.06, 108)
+
+[sub_resource type="BoxMesh" id="BoxMesh_13"]
+size = Vector3(150, 1.4, 1.2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_14"]
+albedo_color = Color(0.109804, 0.486275, 0.215686, 1)
+roughness = 1.0
+metallic = 0.0
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_15"]
+size = Vector3(150, 1.4, 1.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_16"]
+size = Vector3(1.2, 1.4, 108)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_17"]
+size = Vector3(1.2, 1.4, 108)
+
+[sub_resource type="BoxMesh" id="BoxMesh_18"]
+size = Vector3(0.8, 0.06, 2.6)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_19"]
+albedo_color = Color(1.000000, 1.000000, 1.000000, 1)
+roughness = 1.0
+metallic = 0.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_20"]
+size = Vector3(0.8, 0.06, 1.8)
+
+[node name="Terrain" type="Node3D"]
+
+
+[node name="WestIsland" type="MeshInstance3D" parent="."]
+position = Vector3(-7.25, -0.5, 0)
+mesh = SubResource("BoxMesh_1")
+material_override = SubResource("StandardMaterial3D_2")
+
+[node name="WestIslandCollision" type="StaticBody3D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="WestIslandShape" type="CollisionShape3D" parent="WestIslandCollision"]
+position = Vector3(-7.25, -0.5, 0)
+shape = SubResource("BoxShape3D_3")
+
+[node name="EastIsland" type="MeshInstance3D" parent="."]
+position = Vector3(72.5, -0.5, 0)
+mesh = SubResource("BoxMesh_4")
+material_override = SubResource("StandardMaterial3D_2")
+
+[node name="EastIslandCollision" type="StaticBody3D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="EastIslandShape" type="CollisionShape3D" parent="EastIslandCollision"]
+position = Vector3(72.5, -0.5, 0)
+shape = SubResource("BoxShape3D_5")
+
+[node name="Ocean" type="MeshInstance3D" parent="."]
+position = Vector3(18, -2.4, 0)
+mesh = SubResource("BoxMesh_6")
+material_override = SubResource("StandardMaterial3D_7")
+
+[node name="River" type="MeshInstance3D" parent="."]
+position = Vector3(45, -1.15, 0)
+mesh = SubResource("BoxMesh_8")
+material_override = SubResource("StandardMaterial3D_7")
+
+[node name="RiverBed" type="MeshInstance3D" parent="."]
+position = Vector3(45, -2.25, 0)
+mesh = SubResource("BoxMesh_9")
+material_override = SubResource("StandardMaterial3D_10")
+
+[node name="SandNorth" type="MeshInstance3D" parent="."]
+position = Vector3(15, 0.02, -54.4)
+mesh = SubResource("BoxMesh_11")
+material_override = SubResource("StandardMaterial3D_10")
+
+[node name="SandSouth" type="MeshInstance3D" parent="."]
+position = Vector3(15, 0.02, 54.4)
+mesh = SubResource("BoxMesh_11")
+material_override = SubResource("StandardMaterial3D_10")
+
+[node name="SandWest" type="MeshInstance3D" parent="."]
+position = Vector3(-54.4, 0.02, 0)
+mesh = SubResource("BoxMesh_12")
+material_override = SubResource("StandardMaterial3D_10")
+
+[node name="SandEast" type="MeshInstance3D" parent="."]
+position = Vector3(94.4, 0.02, 0)
+mesh = SubResource("BoxMesh_12")
+material_override = SubResource("StandardMaterial3D_10")
+
+[node name="BoundNorth" type="MeshInstance3D" parent="."]
+position = Vector3(15, 0.7, -54)
+mesh = SubResource("BoxMesh_13")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="BoundNorthCollision" type="StaticBody3D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="BoundNorthShape" type="CollisionShape3D" parent="BoundNorthCollision"]
+position = Vector3(15, 0.7, -54)
+shape = SubResource("BoxShape3D_15")
+
+[node name="BoundSouth" type="MeshInstance3D" parent="."]
+position = Vector3(15, 0.7, 54)
+mesh = SubResource("BoxMesh_13")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="BoundSouthCollision" type="StaticBody3D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="BoundSouthShape" type="CollisionShape3D" parent="BoundSouthCollision"]
+position = Vector3(15, 0.7, 54)
+shape = SubResource("BoxShape3D_15")
+
+[node name="BoundWest" type="MeshInstance3D" parent="."]
+position = Vector3(-54.5, 0.7, 0)
+mesh = SubResource("BoxMesh_16")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="BoundWestCollision" type="StaticBody3D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="BoundWestShape" type="CollisionShape3D" parent="BoundWestCollision"]
+position = Vector3(-54.5, 0.7, 0)
+shape = SubResource("BoxShape3D_17")
+
+[node name="BoundEast" type="MeshInstance3D" parent="."]
+position = Vector3(94.5, 0.7, 0)
+mesh = SubResource("BoxMesh_16")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="BoundEastCollision" type="StaticBody3D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="BoundEastShape" type="CollisionShape3D" parent="BoundEastCollision"]
+position = Vector3(94.5, 0.7, 0)
+shape = SubResource("BoxShape3D_17")
+
+[node name="WestFoam" type="MeshInstance3D" parent="."]
+position = Vector3(41.2, -1.02, -48)
+mesh = SubResource("BoxMesh_18")
+material_override = SubResource("StandardMaterial3D_19")
+
+[node name="EastFoam" type="MeshInstance3D" parent="."]
+position = Vector3(48.8, -1.02, -46)
+mesh = SubResource("BoxMesh_20")
+material_override = SubResource("StandardMaterial3D_19")
+
+[node name="WestFoam_2" type="MeshInstance3D" parent="."]
+position = Vector3(41.2, -1.02, -38.4)
+mesh = SubResource("BoxMesh_18")
+material_override = SubResource("StandardMaterial3D_19")
+
+[node name="EastFoam_2" type="MeshInstance3D" parent="."]
+position = Vector3(48.8, -1.02, -36.4)
+mesh = SubResource("BoxMesh_20")
+material_override = SubResource("StandardMaterial3D_19")
+
+[node name="WestFoam_3" type="MeshInstance3D" parent="."]
+position = Vector3(41.2, -1.02, -28.8)
+mesh = SubResource("BoxMesh_18")
+material_override = SubResource("StandardMaterial3D_19")
+
+[node name="EastFoam_3" type="MeshInstance3D" parent="."]
+position = Vector3(48.8, -1.02, -26.8)
+mesh = SubResource("BoxMesh_20")
+material_override = SubResource("StandardMaterial3D_19")
+
+[node name="WestFoam_4" type="MeshInstance3D" parent="."]
+position = Vector3(41.2, -1.02, -19.2)
+mesh = SubResource("BoxMesh_18")
+material_override = SubResource("StandardMaterial3D_19")
+
+[node name="EastFoam_4" type="MeshInstance3D" parent="."]
+position = Vector3(48.8, -1.02, -17.2)
+mesh = SubResource("BoxMesh_20")
+material_override = SubResource("StandardMaterial3D_19")
+
+[node name="WestFoam_5" type="MeshInstance3D" parent="."]
+position = Vector3(41.2, -1.02, -9.6)
+mesh = SubResource("BoxMesh_18")
+material_override = SubResource("StandardMaterial3D_19")
+
+[node name="EastFoam_5" type="MeshInstance3D" parent="."]
+position = Vector3(48.8, -1.02, -7.6)
+mesh = SubResource("BoxMesh_20")
+material_override = SubResource("StandardMaterial3D_19")
+
+[node name="WestFoam_6" type="MeshInstance3D" parent="."]
+position = Vector3(41.2, -1.02, 0)
+mesh = SubResource("BoxMesh_18")
+material_override = SubResource("StandardMaterial3D_19")
+
+[node name="EastFoam_6" type="MeshInstance3D" parent="."]
+position = Vector3(48.8, -1.02, 2)
+mesh = SubResource("BoxMesh_20")
+material_override = SubResource("StandardMaterial3D_19")
+
+[node name="WestFoam_7" type="MeshInstance3D" parent="."]
+position = Vector3(41.2, -1.02, 9.6)
+mesh = SubResource("BoxMesh_18")
+material_override = SubResource("StandardMaterial3D_19")
+
+[node name="EastFoam_7" type="MeshInstance3D" parent="."]
+position = Vector3(48.8, -1.02, 11.6)
+mesh = SubResource("BoxMesh_20")
+material_override = SubResource("StandardMaterial3D_19")
+
+[node name="WestFoam_8" type="MeshInstance3D" parent="."]
+position = Vector3(41.2, -1.02, 19.2)
+mesh = SubResource("BoxMesh_18")
+material_override = SubResource("StandardMaterial3D_19")
+
+[node name="EastFoam_8" type="MeshInstance3D" parent="."]
+position = Vector3(48.8, -1.02, 21.2)
+mesh = SubResource("BoxMesh_20")
+material_override = SubResource("StandardMaterial3D_19")
+
+[node name="WestFoam_9" type="MeshInstance3D" parent="."]
+position = Vector3(41.2, -1.02, 28.8)
+mesh = SubResource("BoxMesh_18")
+material_override = SubResource("StandardMaterial3D_19")
+
+[node name="EastFoam_9" type="MeshInstance3D" parent="."]
+position = Vector3(48.8, -1.02, 30.8)
+mesh = SubResource("BoxMesh_20")
+material_override = SubResource("StandardMaterial3D_19")
+
+[node name="WestFoam_10" type="MeshInstance3D" parent="."]
+position = Vector3(41.2, -1.02, 38.4)
+mesh = SubResource("BoxMesh_18")
+material_override = SubResource("StandardMaterial3D_19")
+
+[node name="EastFoam_10" type="MeshInstance3D" parent="."]
+position = Vector3(48.8, -1.02, 40.4)
+mesh = SubResource("BoxMesh_20")
+material_override = SubResource("StandardMaterial3D_19")
+
+[node name="WestFoam_11" type="MeshInstance3D" parent="."]
+position = Vector3(41.2, -1.02, 48)
+mesh = SubResource("BoxMesh_18")
+material_override = SubResource("StandardMaterial3D_19")
+
+[node name="EastFoam_11" type="MeshInstance3D" parent="."]
+position = Vector3(48.8, -1.02, 50)
+mesh = SubResource("BoxMesh_20")
+material_override = SubResource("StandardMaterial3D_19")

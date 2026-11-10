@@ -19,3 +19,11 @@ tests/**/.godot/
 
 # Local handoff originals kept in repo, but generated junk excluded
 *.import
+
+# Reference tour screenshots and generated visual evidence are not runtime or
+# test assets. Keep them local; the written manifest and captures are cited in
+# PROGRESS.md.
+/references/
+/evidence/v13_scene_world/
+/docs/layout_top_down.png
+/handoffs/

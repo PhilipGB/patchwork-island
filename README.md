@@ -1,4 +1,4 @@
-# Patchwork Island — v1.2.1 M18 Persistence Hotfix
+# Patchwork Island — v1.3.0 Scene-Based Town Migration
 
 A happy little 3D village adventure for players aged roughly 5–10. A storm has
 scattered the village's supplies. Deliver parcels, repair the bridge, drive the
@@ -8,7 +8,30 @@ own home. Every completed job visibly changes the island.
 This repository contains the complete Godot 4.7.2 .NET / C# source, automated
 tests, real-input GUI evidence and release build instructions.
 
-## Current status
+## v1.3.0 source status — migration implemented, not released
+
+**The static town now comes from an editor-editable Godot scene.** The exact
+v1.2.1 geometry is baked into `scenes/world/baked/Town_Baked.tscn` and its
+reusable `parts/*.tscn`; `src/World/WorldSceneAdapter.cs` instantiates and
+validates it at runtime. Schema stays **3**, all 20 missions, pickups, build
+sockets, NPC/traffic routes, driving, cosmetics and save-recovery behaviour are
+retained.
+
+- Bake executed with Godot 4.7.2 .NET: 32 reusable roots and 488 town roots.
+- 75 gameplay anchors, six building centres/yaws/wall dimensions and all
+  NPC/traffic waypoints are checked at load; missing or moved content fails
+  loudly.
+- Source runtime **1124 assertions** and pure rules **111 tests** pass; every
+  packaged Linux runtime phase also passes with zero leaked unsafe references.
+- New `--selftest-restore` restores partial M03/M07/M08/M10/M15/M18/M20 worlds;
+  `--selftest-release` restores a v1.2.1-shaped 158-coin save with outfits,
+  bridge, swings, park and furniture intact.
+- Real Radeon 890M: same 3394 draw calls / 66069 primitives and ~16.7 ms mean
+  at 720p and 1080p as the v1.2.1 baseline.
+- **Not tagged or released.** Visual polish, Windows startup and one continuous
+  human M01–M20 sitting remain open. See `PROGRESS.md` P16 and `ACCEPTANCE.md`.
+
+## v1.2.1 published baseline
 
 **Complete v1.2.1 hotfix for the Living Village Update — tagged and
 published.** The original ten jobs, optional race, free practice racing, first
@@ -156,27 +179,38 @@ godot --headless --path . --editor --quit
 godot --headless --path . --quit-after 120
 ```
 
-The dependency-free runner currently has **77 tests** covering mission
+The dependency-free runner currently has **111 tests** covering mission
 prerequisites and unlocks, exactly-once rewards, duplicate pickups, mission
 switching, hints, bridge/swing socket rules, grocery and park budgets, house
 costs and free starter fallback, ordered checkpoints, optional race bonuses
-verified against the persisted clock, the full ten-job graph, JSON round-trips,
-save validation, corrupt/backup recovery, newer-save preservation, deterministic
-cross-platform write failure/retry, race timer restoration and saturation,
-post-completion furniture rearrangement, save-feedback throttling, settings
-feedback isolation, persisted/discarded session state, newer-replacement
-authorisation, control-mode precedence, mission-catalogue integrity, clothing
-purchase/ownership/equip rules, customisation save round-trips, older-save
-customisation defaults and a complete-field comparison between `MISSIONS.json`
-and `data/missions.json`, including duplicate-property rejection.
+verified against the persisted clock, the full twenty-job graph, JSON
+round-trips, save validation, corrupt/backup recovery, newer-save preservation,
+deterministic cross-platform write failure/retry, race timer restoration and
+saturation, post-completion furniture rearrangement, save-feedback throttling,
+settings feedback isolation, persisted/discarded session state,
+newer-replacement authorisation, control-mode precedence, mission-catalogue
+integrity, clothing purchase/ownership/equip rules, customisation save
+round-trips, older-save customisation defaults, a complete-field comparison
+between `MISSIONS.json` and `data/missions.json` (including duplicate-property
+rejection), and two-file scene-parity checks for all 75 anchors, building
+centres/wall sizes, required dynamic roots, rally collision and NPC/traffic
+markers.
 
-Godot runtime integration checks (190 assertions across three phases) execute
-the real scene headlessly:
+Godot runtime integration checks (**1124 assertions across eleven phases**)
+execute the real scene headlessly:
 
 ```bash
 godot --headless --path . -- --selftest
 godot --headless --path . -- --selftest-resume
 godot --headless --path . -- --selftest-recovery
+godot --headless --path . -- --selftest-living
+godot --headless --path . -- --selftest-rally
+godot --headless --path . -- --selftest-chapter
+godot --headless --path . -- --selftest-hotfix
+godot --headless --path . -- --selftest-finale
+godot --headless --path . -- --selftest-traversal
+godot --headless --path . -- --selftest-release
+godot --headless --path . -- --selftest-restore
 ```
 
 They cover title and modal pause, player/van physics stopping, race timers
@@ -287,28 +321,30 @@ and SFX settings; the game remains fully playable with sound off.
 ## Verification summary
 
 - `dotnet build PatchworkIsland.sln`: 0 errors, 0 warnings.
-- Pure tests: **107 passed, 0 failed**.
-- Runtime: **161 + 21 + 101 + 238 + 10 + 217 + 48 + 140 + 18 + 22 = 976**
-  passed, 0 failed (pause/modal, resume, recovery, living village, rally,
-  chapter two, M18 relaunch hotfix, finale, traversal, v1.1 migration).
-- Packaged Linux x64 booted headlessly and passed selftest, rally, finale,
-  traversal and v1.1-migration phases with exit 0 and zero leaked unsafe
-  references.
-- Real AMD Radeon 890M (Mesa 26.0.8, OpenGL 4.6): 720p mean **16.69 ms** /
-  p95 17.35 ms; 1080p mean **16.67 ms** / p95 17.28 ms over 600 frames each.
+- Pure tests: **111 passed, 0 failed**.
+- Runtime: **1124 passed, 0 failed** across eleven phases (pause/modal,
+  resume, recovery, living village, rally, chapter two, M18 relaunch hotfix,
+  finale, traversal, v1.1/v1.2.1 migration, partial-world restoration).
+- Packaged Linux x64 booted headlessly and passed all eleven phases with exit 0
+  and zero leaked unsafe references.
+- Real AMD Radeon 890M (Mesa 26.0.8, OpenGL 4.6): the scene-backed build matches
+  the v1.2.1 procedural baseline with identical 3394 draw calls / 66069
+  primitives; 720p mean **16.68–16.71 ms** / p95 17.21–17.26 ms and 1080p mean
+  **16.68 ms** / p95 17.21 ms over 600 frames each (baseline 16.67–16.71 ms).
 - Packaged audio reached the real PipeWire sink monitor (nonzero PCM), and the
-  product owner verified audible playback on 2026-11-09.
-- v1.2.1 exports: Linux ELF x86-64; Windows PE32+ x86-64 with file/product
-  version `1.2.1.0`.
+  product owner verified audible playback on 2026-11-09. Audio is unchanged by
+  the v1.3.0 migration.
+- v1.3.0 source version and final Linux export are built; Windows was not
+  produced or tested for this migration (last Windows artifact: v1.2.1).
 - Save schema 3 migration, M05/M09 four-gate timing, the original M10
   celebration and the separate M20 festival are covered by pure and runtime
   tests.
-- The v1.2.1 hotfix adds a real partial-M18 save/relaunch phase, a legacy-save
-  normalisation test, and a one-shot off-island traffic stop check.
-- The P15.1 bridge hotfix adds the seam/junction/cap captures
-  (`evidence/p14_720_15..17_*.png`, `evidence/p14_1080_15..17_*.png`) and an
-  18-check traversal phase covering both road edges, westbound travel, no
-  vertical step, and walking/jumping at both number-1 arches.
+- New in v1.3.0: `--selftest-restore` reloads partial M03/M07/M08/M10/M15/M18/
+  M20 worlds; `--selftest-release` restores a v1.2.1-shaped 158-coin save with
+  outfits, bridge, swings, park and furniture; the scene adapter validates all
+  75 anchors and every building/NPC/traffic coordinate at load.
+- 720p and 1080p P14 capture tours are in `evidence/v13_scene_world/`; the known
+  v1.2.1 visual glitches remain because parity preceded the optional polish pass.
 
 Detailed evidence and commands are in `PROGRESS.md`, `ACCEPTANCE.md`,
 `evidence/p8_*.png`, `evidence/p81_*.png` and `evidence/p9_*.png`.

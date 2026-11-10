@@ -600,3 +600,36 @@ The complete M01–M20 domain walkthrough is automated and green. The real-UI
 phases collectively cover M11–M20; the original M01–M10 real-input walkthrough
 from P2/P9 remains the prior evidence. One continuous human M01–M20 sitting is
 **NOT TESTED** in this environment.
+
+## v1.3.0 — scene-based town migration (P16 gate)
+
+Scope: replace the runtime procedural static town with the exact baked
+`Town_Baked.tscn` while keeping v1.2.1 gameplay, schema-3 saves and mission
+content byte-for-byte compatible. Source version is `1.3.0`; no tag or release
+was created. Baseline is `2d6647b` (v1.2.1).
+
+| # | Handoff parity requirement | Result |
+|---|---|---|
+| 1 | `Town_Baked` imports/opens with no missing resources | **PASS** — editor import exit 0; scene opens and every packaged phase loads it. |
+| 2 | Source placement/yaw/wall dimensions/doors match manifest ≤0.01 m | **PASS** — adapter enforces six centres/yaws and wall boxes; all 75 door/pad/pickup anchors match. Pure scene tests repeat the checks. |
+| 3 | All critical anchors resolve exactly once | **PASS** — 75/75 anchors cached, unique and validated; wrong count fails loudly. |
+| 4 | Equivalent collision; camera-only blockers layer 16 | **PASS** — layer-1 ground/wall/rally collision rays, open river gap, layer-16 door blocker checks, plus the real traversal suite across both bridge directions. |
+| 5 | World object/scene IDs match historical saves; no renames | **PASS** — dynamic roots keep source names; `--selftest-restore` proves partial bridge/swing/park/furniture/finale states reload. |
+| 6 | All 20 missions complete through stations | **PASS** — 1124 source runtime assertions and every packaged phase. |
+| 7 | Partial M03/M07/M08/M10/M15/M18/M20 saves restore visuals | **PASS** — new `--selftest-restore` (54 assertions) reloads seven real fixtures. |
+| 8 | v1.2.1 158-coin save with placements/outfits/bridge restores | **PASS** — release phase writes and reloads a schema-3 158-coin fixture with bridge, swings, park, furniture, outfits and player/van transforms. |
+| 9 | NPC patrols and both free-roam traffic routes unchanged | **PASS** — adapter validates every waypoint against `NpcCatalog`/`TrafficCatalog`; pure tests validate the same marker scenes. |
+| 10 | Linux export boot, CI, packaged runtime pass | **PASS (local)** — packaged Linux build passes all 11 phases and `--quit-after 120`; CI command list updated. GitHub CI not yet run on a pushed commit. |
+| 11 | Comparable GPU FPS/frame time, no large regression | **PASS** — real Radeon 890M: identical 3394 draw calls / 66069 primitives; 16.68–16.71 ms mean at 720p and 1080p vs 16.67–16.71 ms baseline. |
+| 12 | Visual check at 1280×720 and 1920×1080 | **PASS (capture)** — full 18-shot P14 tours captured at both sizes in `evidence/v13_scene_world/`; known v1.2.1 glitches remain by design. |
+
+**Build/test gates:** build 0/0; pure **111 passed**; source runtime **1124
+passed, 0 failed**; packaged Linux runtime **1124 passed, 0 failed**; zero leaked
+unsafe references; packaged boot exit 0.
+
+**Final package:** `dist/linux/PatchworkIsland.x86_64`, SHA-256
+`439083f34467e3bbfe7d1e93202745e246f2df68042ac903766e968096e2455a`.
+
+**Remaining severity:** no migration blocker known. Visual polish, Windows
+startup and one continuous human M01–M20 sitting remain untested/deferred; they
+are not claimed. No tag or release has been created.

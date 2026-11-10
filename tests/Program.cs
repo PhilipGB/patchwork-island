@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using PatchworkIsland;
 
 namespace PatchworkIsland.Tests;
@@ -2590,6 +2592,122 @@ internal static class Program
         }
     });
 
+        Run("baked gameplay anchors match the v1.2.1 coordinate manifest", () =>
+        {
+            string root = FindRepoRoot();
+            using var manifest = JsonDocument.Parse(File.ReadAllText(
+                Path.Combine(root, "docs", "layout_manifest_v1.2.1.json")));
+            var expected = manifest.RootElement.GetProperty("anchors");
+            var markers = ParseMarkers(Path.Combine(root, "scenes", "world", "GameplayAnchors.tscn"),
+                parent: ".");
+            Equal(75, markers.Count, "gameplay anchor count");
+            int compared = 0;
+            foreach (var anchor in expected.EnumerateObject())
+            {
+                var value = anchor.Value;
+                var want = (value[0].GetSingle(), value[1].GetSingle(), value[2].GetSingle());
+                Check(markers.TryGetValue(anchor.Name, out var got), $"missing anchor {anchor.Name}");
+                Check(Distance(got, want) <= 0.01f,
+                    $"anchor {anchor.Name} is {got} not {want}");
+                compared++;
+            }
+            Equal(markers.Count, compared, "every source anchor is represented");
+        });
+
+        Run("baked buildings keep source centres and wall dimensions", () =>
+        {
+            string root = FindRepoRoot();
+            using var manifest = JsonDocument.Parse(File.ReadAllText(
+                Path.Combine(root, "docs", "layout_manifest_v1.2.1.json")));
+            string town = File.ReadAllText(Path.Combine(root, "scenes", "world", "baked",
+                "Town_Baked.tscn"));
+            foreach (var building in manifest.RootElement.GetProperty("building_instances")
+                         .EnumerateArray())
+            {
+                string id = building.GetProperty("id").GetString();
+                var position = building.GetProperty("position");
+                var actual = ParseInstanceOrigin(town, id);
+                var want = (position[0].GetSingle(), position[1].GetSingle(), position[2].GetSingle());
+                Check(Distance(actual, want) <= 0.01f,
+                    $"{id} instance moved to {actual}, expected {want}");
+
+                string part = File.ReadAllText(Path.Combine(root, "scenes", "world", "baked",
+                    "parts", id + ".tscn"));
+                var west = ParseWallSize(part, "WallWest");
+                Check(Math.Abs(west.Y - building.GetProperty("wall_height").GetSingle()) <= 0.01f,
+                    $"{id} wall height {west.Y}");
+                Check(Math.Abs(west.Z - building.GetProperty("depth").GetSingle()) <= 0.01f,
+                    $"{id} depth {west.Z}");
+                var back = ParseWallSize(part, "WallBack");
+                Check(Math.Abs(back.X - building.GetProperty("width").GetSingle()) <= 0.01f,
+                    $"{id} width {back.X}");
+            }
+        });
+
+        Run("baked town keeps static collision and dynamic finale roots", () =>
+        {
+            string root = FindRepoRoot();
+            string baked = Path.Combine(root, "scenes", "world", "baked");
+            string town = File.ReadAllText(Path.Combine(baked, "Town_Baked.tscn"));
+            var required = new[]
+            {
+                "BridgeBarrier", "PipCarBroken", "PipCarFixed", "DeliveryBoard",
+                "MarketStock", "RallyPodium", "FestivalDecor", "CelebrationDecor",
+                "RaceGates4Root", "RaceGates6Root", "GameplayAnchors",
+                "NpcPatrolMarkers", "TrafficRouteMarkers",
+            };
+            foreach (string id in required)
+                Check(town.Contains($"name=\"{id}\"", StringComparison.Ordinal),
+                    $"Town_Baked is missing {id}");
+            string rally = File.ReadAllText(Path.Combine(baked, "parts", "RallyRoad.tscn"));
+            Check(rally.Contains("RallyRoadCollision", StringComparison.Ordinal),
+                "rally road part has no collision body");
+            string house = File.ReadAllText(Path.Combine(baked, "parts", "PlayerHouse.tscn"));
+            Check(house.Contains("DoorCameraBlocker", StringComparison.Ordinal) &&
+                  house.Contains("collision_layer = 16", StringComparison.Ordinal),
+                "enterable house keeps its layer-16 camera blocker");
+        });
+
+        Run("scene NPC and traffic markers match the authored routes", () =>
+        {
+            string root = FindRepoRoot();
+            using var manifest = JsonDocument.Parse(File.ReadAllText(
+                Path.Combine(root, "docs", "layout_manifest_v1.2.1.json")));
+            var npcRoutes = ParseMarkersByParent(Path.Combine(root, "scenes", "world",
+                "NpcPatrolMarkers.tscn"));
+            foreach (var route in manifest.RootElement.GetProperty("npc_patrol_routes").EnumerateObject())
+            {
+                Check(npcRoutes.TryGetValue(route.Name, out var points),
+                    $"missing NPC route {route.Name}");
+                Equal(route.Value.GetArrayLength(), points.Count, $"{route.Name} waypoint count");
+                int i = 0;
+                foreach (var point in route.Value.EnumerateArray())
+                {
+                    var want = (point[0].GetSingle(), point[1].GetSingle(), point[2].GetSingle());
+                    Check(Distance(points[i], want) <= 0.01f,
+                        $"{route.Name} waypoint {i} moved");
+                    i++;
+                }
+            }
+
+            var traffic = ParseMarkersByParent(Path.Combine(root, "scenes", "world",
+                "TrafficRouteMarkers.tscn"));
+            foreach (var route in manifest.RootElement.GetProperty("traffic_routes").EnumerateObject())
+            {
+                Check(traffic.TryGetValue(route.Name, out var points),
+                    $"missing traffic route {route.Name}");
+                Equal(route.Value.GetArrayLength(), points.Count, $"{route.Name} waypoint count");
+                int i = 0;
+                foreach (var point in route.Value.EnumerateArray())
+                {
+                    var want = (point[0].GetSingle(), point[1].GetSingle(), point[2].GetSingle());
+                    Check(Distance(points[i], want) <= 0.01f,
+                        $"{route.Name} waypoint {i} moved");
+                    i++;
+                }
+            }
+        });
+
         Console.WriteLine();
         Console.WriteLine($"RESULT: {_passed} passed, {_failed} failed");
         if (_failed == 0) return 0;
@@ -2969,6 +3087,97 @@ internal static class Program
     {
         if (!EqualityComparer<T>.Default.Equals(expected, actual))
             throw new Exception($"{message}: expected {expected}, got {actual}");
+    }
+
+    private static Dictionary<string, (float X, float Y, float Z)> ParseMarkers(
+        string path, string parent)
+    {
+        string text = File.ReadAllText(path);
+        string pattern = "\\[node name=\"(?<name>[^\"]+)\" type=\"Marker3D\" parent=\"" +
+                         Regex.Escape(parent) + "\"\\](?<body>.*?)(?=\\n\\[node |\\z)";
+        var result = new Dictionary<string, (float, float, float)>(StringComparer.Ordinal);
+        foreach (Match match in Regex.Matches(text, pattern, RegexOptions.Singleline))
+        {
+            result[match.Groups["name"].Value] = ParseVector(match.Groups["body"].Value);
+        }
+        return result;
+    }
+
+    private static Dictionary<string, List<(float X, float Y, float Z)>> ParseMarkersByParent(
+        string path)
+    {
+        string text = File.ReadAllText(path);
+        string pattern = "\\[node name=\"Waypoint_[0-9]+\" type=\"Marker3D\" " +
+                         "parent=\"(?<parent>[^\"]+)\"\\](?<body>.*?)(?=\\n\\[node |\\z)";
+        var result = new Dictionary<string, List<(float, float, float)>>(StringComparer.Ordinal);
+        foreach (Match match in Regex.Matches(text, pattern, RegexOptions.Singleline))
+        {
+            string parent = match.Groups["parent"].Value;
+            if (!result.TryGetValue(parent, out var list))
+            {
+                list = new List<(float, float, float)>();
+                result[parent] = list;
+            }
+            list.Add(ParseVector(match.Groups["body"].Value));
+        }
+        return result;
+    }
+
+    private static (float X, float Y, float Z) ParseVector(string text)
+    {
+        var match = Regex.Match(text, "position = Vector3\\(([^)]+)\\)");
+        if (!match.Success) throw new Exception("Vector3 position missing");
+        float[] values = match.Groups[1].Value.Split(',')
+            .Select(part => float.Parse(part.Trim(), CultureInfo.InvariantCulture))
+            .ToArray();
+        return (values[0], values[1], values[2]);
+    }
+
+    private static (float X, float Y, float Z) ParseInstanceOrigin(string sceneText, string name)
+    {
+        string pattern = "\\[node name=\"" + Regex.Escape(name) + "\" type=\"Node3D\" " +
+                         "parent=\"\\.\"[^\\]]*instance=ExtResource\\(\"[^\"]+\"\\)\\]" +
+                         "\\s*\\ntransform = Transform3D\\(([^)]+)\\)";
+        var match = Regex.Match(sceneText, pattern);
+        if (!match.Success) throw new Exception($"Instance {name} transform missing");
+        float[] values = match.Groups[1].Value.Split(',')
+            .Select(part => float.Parse(part.Trim(), CultureInfo.InvariantCulture))
+            .ToArray();
+        if (values.Length != 12) throw new Exception($"Instance {name} transform malformed");
+        return (values[9], values[10], values[11]);
+    }
+
+    private static (float X, float Y, float Z) ParseWallSize(string sceneText, string wallName)
+    {
+        var boxMeshes = new Dictionary<string, (float, float, float)>(StringComparer.Ordinal);
+        string boxPattern = "\\[sub_resource type=\"BoxMesh\" id=\"(?<id>[^\"]+)\"\\]" +
+                            "(?<body>.*?)(?=\\n\\[sub_resource |\\n\\[node |\\z)";
+        foreach (Match match in Regex.Matches(sceneText, boxPattern, RegexOptions.Singleline))
+        {
+            var size = Regex.Match(match.Groups["body"].Value, "size = Vector3\\(([^)]+)\\)");
+            if (!size.Success) continue;
+            float[] values = size.Groups[1].Value.Split(',')
+                .Select(part => float.Parse(part.Trim(), CultureInfo.InvariantCulture))
+                .ToArray();
+            boxMeshes[match.Groups["id"].Value] = (values[0], values[1], values[2]);
+        }
+
+        string meshPattern = "\\[node name=\"[^\"]+\" type=\"MeshInstance3D\" parent=\"" +
+                             Regex.Escape(wallName) + "\"[^\\]]*\\](?<body>.*?)(?=\\n\\[node |\\z)";
+        var meshNode = Regex.Match(sceneText, meshPattern, RegexOptions.Singleline);
+        if (!meshNode.Success) throw new Exception($"No mesh child under {wallName}");
+        var reference = Regex.Match(meshNode.Groups["body"].Value,
+            "mesh = SubResource\\(\"(?<id>[^\"]+)\"\\)");
+        if (!reference.Success) throw new Exception($"No BoxMesh on {wallName}");
+        return boxMeshes[reference.Groups["id"].Value];
+    }
+
+    private static float Distance((float X, float Y, float Z) a, (float X, float Y, float Z) b)
+    {
+        float dx = a.X - b.X;
+        float dy = a.Y - b.Y;
+        float dz = a.Z - b.Z;
+        return MathF.Sqrt(dx * dx + dy * dy + dz * dz);
     }
 
     private static string FindRepoRoot()

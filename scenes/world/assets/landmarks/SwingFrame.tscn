@@ -1,0 +1,57 @@
+[gd_scene load_steps=5 format=3]
+
+[sub_resource type="BoxMesh" id="BoxMesh_1"]
+size = Vector3(0.22, 3.4, 0.22)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2"]
+albedo_color = Color(0.658824, 0.454902, 0.231373, 1)
+roughness = 1.0
+metallic = 0.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_3"]
+size = Vector3(4.2, 0.24, 0.24)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4"]
+albedo_color = Color(0.439216, 0.258824, 0.121569, 1)
+roughness = 1.0
+metallic = 0.0
+
+[node name="SwingFrame" type="Node3D"]
+
+
+[node name="SwingLeg" type="MeshInstance3D" parent="."]
+position = Vector3(-1.8, 1.6, 0)
+mesh = SubResource("BoxMesh_1")
+material_override = SubResource("StandardMaterial3D_2")
+rotation = Vector3(0, 0, -0.20944)
+
+[node name="SwingLeg_2" type="MeshInstance3D" parent="."]
+position = Vector3(-1.8, 1.6, 1.8)
+mesh = SubResource("BoxMesh_1")
+material_override = SubResource("StandardMaterial3D_2")
+rotation = Vector3(0.20944, 0, -0.20944)
+
+[node name="SwingLeg_3" type="MeshInstance3D" parent="."]
+position = Vector3(1.8, 1.6, 0)
+mesh = SubResource("BoxMesh_1")
+material_override = SubResource("StandardMaterial3D_2")
+rotation = Vector3(0, 0, 0.20944)
+
+[node name="SwingLeg_4" type="MeshInstance3D" parent="."]
+position = Vector3(1.8, 1.6, 1.8)
+mesh = SubResource("BoxMesh_1")
+material_override = SubResource("StandardMaterial3D_2")
+rotation = Vector3(0.20944, 0, 0.20944)
+
+[node name="SwingCrossbar" type="MeshInstance3D" parent="."]
+position = Vector3(0, 3.26, 0.9)
+mesh = SubResource("BoxMesh_3")
+material_override = SubResource("StandardMaterial3D_4")
+
+[node name="BrokenTag" type="Label3D" parent="."]
+position = Vector3(0, 3.74, 0.93)
+text = "BROKEN"
+font_size = 36
+pixel_size = 0.007
+modulate = Color(0.094118, 0.203922, 0.352941, 1)
+billboard = 0

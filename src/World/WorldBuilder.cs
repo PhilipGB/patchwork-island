@@ -36,25 +36,25 @@ public partial class WorldBuilder : Node3D
     public Vector3 VillageGreenSign { get; } = new(10.0f, 0.0f, 10.7f);
     public Vector3 GroveCenter { get; } = new(-40.0f, 0.0f, -32.0f);
     public Vector3 StonePatchCenter { get; } = new(18.0f, 0.0f, -34.0f);
-    public Vector3 RaceStart { get; private set; } = new(56.0f, 0.0f, -6.0f);
+    public Vector3 RaceStart { get; protected set; } = new(56.0f, 0.0f, -6.0f);
     public Vector3 ParkingSign { get; } = new(-33.0f, 0.0f, 12.5f);
     public Vector3 FurnitureStation { get; } = new(-40.5f, 0.0f, 20.5f);
 
     public Vector3[] SwingFrames { get; } = { new(-41.0f, 0.0f, -5.0f), new(-35.0f, 0.0f, -5.0f) };
-    public (Vector3 Position, float Yaw)[] RaceGates { get; private set; } = System.Array.Empty<(Vector3, float)>();
-    public (Vector3 Position, float Yaw)[] M19RaceGates { get; private set; } = System.Array.Empty<(Vector3, float)>();
-    public Node3D RallyRoad { get; private set; }
-    public Node3D RaceGates4Root { get; private set; }
-    public Node3D RaceGates6Root { get; private set; }
-    public int RallySampleCount { get; private set; }
-    public float RallyLength { get; private set; }
+    public (Vector3 Position, float Yaw)[] RaceGates { get; protected set; } = System.Array.Empty<(Vector3, float)>();
+    public (Vector3 Position, float Yaw)[] M19RaceGates { get; protected set; } = System.Array.Empty<(Vector3, float)>();
+    public Node3D RallyRoad { get; protected set; }
+    public Node3D RaceGates4Root { get; protected set; }
+    public Node3D RaceGates6Root { get; protected set; }
+    public int RallySampleCount { get; protected set; }
+    public float RallyLength { get; protected set; }
 
-    public Node3D BridgeBarrier { get; private set; }
-    public Node3D FinishedBridge { get; private set; }
-    public Node3D CelebrationDecor { get; private set; }
-    public Node3D RaceStartFlag { get; private set; }
-    public Node3D GoldCourseFlag { get; private set; }
-    public Node3D PlaygroundFixSign { get; private set; }
+    public Node3D BridgeBarrier { get; protected set; }
+    public Node3D FinishedBridge { get; protected set; }
+    public Node3D CelebrationDecor { get; protected set; }
+    public Node3D RaceStartFlag { get; protected set; }
+    public Node3D GoldCourseFlag { get; protected set; }
+    public Node3D PlaygroundFixSign { get; protected set; }
     public List<Label3D> BrokenSwingLabels { get; } = new();
     public List<Vector3> WoodSpawnPoints { get; } = new();
     public List<Vector3> StoneSpawnPoints { get; } = new();
@@ -78,12 +78,12 @@ public partial class WorldBuilder : Node3D
     public List<Vector3> FestivalLanternPads { get; } = new();
     public List<Node3D> FestivalTableVisuals { get; } = new();
     public List<Node3D> FestivalLanternVisuals { get; } = new();
-    public Node3D DeliveryBoard { get; private set; }
-    public Node3D MarketStock { get; private set; }
-    public Node3D PipCarBroken { get; private set; }
-    public Node3D PipCarFixed { get; private set; }
-    public Node3D RallyPodium { get; private set; }
-    public Node3D FestivalDecor { get; private set; }
+    public Node3D DeliveryBoard { get; protected set; }
+    public Node3D MarketStock { get; protected set; }
+    public Node3D PipCarBroken { get; protected set; }
+    public Node3D PipCarFixed { get; protected set; }
+    public Node3D RallyPodium { get; protected set; }
+    public Node3D FestivalDecor { get; protected set; }
 
     private readonly RandomNumberGenerator _rng = new();
     private readonly List<(Vector2 Center, Vector2 HalfExtents)> _keepClear = new();
@@ -93,7 +93,7 @@ public partial class WorldBuilder : Node3D
     private static readonly Color RoofGreen = Color.FromHtml("3B9B5A");
     private static readonly Color WorkshopWall = Color.FromHtml("E8D5B0");
 
-    public void Build()
+    public virtual void Build()
     {
         _rng.Seed = 20261107;
         Name = "Village";

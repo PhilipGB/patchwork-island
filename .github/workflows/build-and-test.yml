@@ -56,6 +56,7 @@ jobs:
           timeout 300 godot --headless --path . -- --selftest-finale
           timeout 120 godot --headless --path . -- --selftest-traversal
           timeout 180 godot --headless --path . -- --selftest-release
+          timeout 180 godot --headless --path . -- --selftest-restore
 
       - name: Cache Godot export templates
         uses: actions/cache@v4

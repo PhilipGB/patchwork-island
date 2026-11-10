@@ -1,0 +1,84 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_a15hq"]
+shading_mode = 2
+specular_mode = 2
+albedo_color = Color(0.6117647, 0.6392157, 0.6784314, 1)
+roughness = 0.95
+
+[sub_resource type="BoxMesh" id="BoxMesh_5bsr1"]
+size = Vector3(3.4, 0.7, 2.2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xhse2"]
+shading_mode = 2
+specular_mode = 2
+albedo_color = Color(1, 0.972549, 0.9254902, 1)
+roughness = 0.95
+
+[sub_resource type="BoxMesh" id="BoxMesh_hpt26"]
+size = Vector3(3.6, 0.12, 2.4)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_72auq"]
+shading_mode = 2
+specular_mode = 2
+albedo_color = Color(1, 0.8235294, 0.24705882, 1)
+roughness = 0.95
+
+[sub_resource type="BoxMesh" id="BoxMesh_ft8cd"]
+size = Vector3(1, 0.8, 0.8)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0w3wb"]
+shading_mode = 2
+specular_mode = 2
+albedo_color = Color(0.95686275, 0.77254903, 0.25882354, 1)
+roughness = 0.95
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_6s44p"]
+top_radius = 0.22
+bottom_radius = 0.28
+height = 0.5
+radial_segments = 12
+rings = 1
+
+[sub_resource type="SphereMesh" id="SphereMesh_rqayo"]
+radius = 0.32
+height = 0.64
+radial_segments = 8
+rings = 4
+
+[node name="RallyPodium" type="Node3D" unique_id=1545777004]
+visible = false
+
+[node name="Box" type="MeshInstance3D" parent="." unique_id=899138887]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.35, 0)
+material_override = SubResource("StandardMaterial3D_a15hq")
+mesh = SubResource("BoxMesh_5bsr1")
+
+[node name="@MeshInstance3D@777" type="MeshInstance3D" parent="." unique_id=1969838928]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.72, 0)
+material_override = SubResource("StandardMaterial3D_xhse2")
+mesh = SubResource("BoxMesh_hpt26")
+
+[node name="@MeshInstance3D@778" type="MeshInstance3D" parent="." unique_id=1536793288]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
+material_override = SubResource("StandardMaterial3D_72auq")
+mesh = SubResource("BoxMesh_ft8cd")
+
+[node name="Cylinder" type="MeshInstance3D" parent="." unique_id=1825504992]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8, 0)
+material_override = SubResource("StandardMaterial3D_0w3wb")
+mesh = SubResource("CylinderMesh_6s44p")
+
+[node name="Sphere" type="MeshInstance3D" parent="." unique_id=619444287]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.25, 0)
+material_override = SubResource("StandardMaterial3D_0w3wb")
+mesh = SubResource("SphereMesh_rqayo")
+
+[node name="Label3D" type="Label3D" parent="." unique_id=715682239]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.9, 0)
+billboard = 1
+modulate = Color(0.15294118, 0.21176471, 0.29411766, 1)
+outline_modulate = Color(1, 1, 1, 0.9)
+text = "GRAND RALLY"
+font_size = 42
+outline_size = 0

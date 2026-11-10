@@ -1876,3 +1876,134 @@ Hashes:
   passed.
 - Published: [v1.2.1 release](https://github.com/PhilipGB/patchwork-island/releases/tag/v1.2.1)
   with Linux/Windows ZIPs, `README.txt` and `SHA256SUMS`.
+
+## P16 — v1.3.0 scene-based town migration — PASS (parity migration)
+
+**Branch/worktree:** no branch created; the additive asset kit was already
+present in the v1.2.1 checkout. Runtime changes are uncommitted in this working
+tree. No tag or release was created.
+
+**Source baseline:** `2d6647b` (`v1.2.1` tree). **Source version:** `1.3.0`;
+save schema stays **3**.
+
+### Exact bake — executed successfully
+
+```text
+$ dotnet build PatchworkIsland.sln
+Build succeeded. 0 Warning(s), 0 Error(s)
+
+$ godot --headless --path . --editor --quit
+exit 0
+
+$ godot --headless --path . res://scenes/tools/SceneBakeTool.tscn
+[SCENE BAKE] 32 reusable roots saved; 488 town roots; version source: 1.2.1.
+[SCENE BAKE] OK: Town_Baked.tscn and reusable landmark parts written.
+exit 0
+```
+
+Generated output: `scenes/world/baked/Town_Baked.tscn` (488 top-level roots),
+32 reusable `parts/*.tscn`, 748 mesh instances, 59 static bodies and 59 collision
+shapes. The baked rally part contains `RallyRoadCollision`.
+
+### Runtime migration
+
+- New `src/World/WorldSceneAdapter.cs` subclasses the retained procedural
+  `WorldBuilder` data contract, instantiates `Town_Baked.tscn`, and exposes the
+  exact existing gameplay handles/arrays to `Main` and the build systems.
+- All **75** anchors in `GameplayAnchors.tscn` are cached and checked against the
+  v1.2.1 coordinates. The adapter also checks all six building centres, yaws,
+  wall heights/widths/depths, door anchors, swing frames, both race-gate sets,
+  rally sample count/length, and every NPC/traffic waypoint against the authored
+  catalogs.
+- Missing or moved nodes fail loudly at load; there is no zero-coordinate or
+  procedural fallback.
+- `Main` now constructs `WorldSceneAdapter`. `WorldBuilder.Build()` remains only
+  as the deterministic source passed to `SceneBakeTool`; it is not called at
+  runtime.
+- Dynamic bridge/swing/park/furniture/rally/finale state remains owned by the
+  existing scripts and save model. No completed or partial state is baked as a
+  permanent static duplicate.
+- New `--selftest-restore` reloads seven real partial saves: M03 (5/7 bridge
+  pieces), M07 (3 swing pieces), M08 (bench only), M10 (two furniture pieces),
+  M15 (two planted pads plus completed M11–M14 visuals), M18 (one tyre, one
+  collected pickup) and M20 (invites + one table + one lantern). It proves the
+  scene world and all restored visuals, not just in-memory counters.
+- `--selftest-release` now adds a real v1.2.1-shaped **158-coin** schema-3 save
+  with bridge, swings, park, furniture, outfits, mission state and player/van
+  transforms, reloads the scene and verifies exact restoration.
+
+### Verification — source
+
+```text
+dotnet build PatchworkIsland.sln                   0 warnings, 0 errors
+dotnet run --project tests/PatchworkIsland.Tests.csproj   111 passed, 0 failed
+godot --headless --path . --editor --quit          exit 0
+godot --headless --path . --quit-after 120         exit 0, 0 unsafe leaks
+
+--selftest                237 passed, 0 failed
+--selftest-resume          21 passed, 0 failed
+--selftest-recovery       101 passed, 0 failed
+--selftest-living         238 passed, 0 failed
+--selftest-rally           10 passed, 0 failed
+--selftest-chapter        217 passed, 0 failed
+--selftest-hotfix          48 passed, 0 failed
+--selftest-finale         140 passed, 0 failed
+--selftest-traversal       18 passed, 0 failed
+--selftest-release         40 passed, 0 failed
+--selftest-restore         54 passed, 0 failed
+```
+
+Source runtime total: **1124 passed, 0 failed**, every process exit 0 and zero
+leaked unsafe references. The pure runner includes new scene/manifest tests for
+all 75 anchors, all six building instances/wall dimensions, required dynamic
+roots, rally collision and all NPC/traffic markers.
+
+### Verification — packaged Linux
+
+Final export (Godot 4.7.2 .NET, version `1.3.0`):
+
+```text
+dist/linux/PatchworkIsland.x86_64   157 MB
+sha256 439083f34467e3bbfe7d1e93202745e246f2df68042ac903766e968096e2455a
+```
+
+Every packaged phase passed with the same counts as source (boot 0,
+237 + 21 + 101 + 238 + 10 + 217 + 48 + 140 + 18 + 40 + 54 = **1124**),
+exit 0, zero leaked unsafe references. `--quit-after 120` boot also exits 0.
+
+### Performance — real AMD Radeon 890M, vsync 600 frames
+
+v1.2.1 procedural baseline vs scene-backed build, same environment:
+
+| Run | Resolution | Mean | p95 | Draw calls | Primitives |
+|---|---|---|---|---|---|
+| baseline | 1280×720 | 16.67–16.70 ms | 17.17–17.19 ms | 3394 | 66069 |
+| scene | 1280×720 | 16.68–16.71 ms | 17.21–17.26 ms | 3394 | 66069 |
+| baseline | 1920×1080 | 16.71 ms | 17.26 ms | 3394 | 66069 |
+| scene | 1920×1080 | 16.68 ms | 17.21 ms | 3394 | 66069 |
+
+Runtime node count rises from 2944 to 3087 (+143 marker/group nodes); rendered
+draw calls and primitives are identical. No measurable GPU regression. Software
+llvmpipe runs were also compared (same draw calls/primitives; ~5% mean delta at
+1280×720 from the extra marker nodes).
+
+### Visual verification
+
+- 1280×720 tour: `p2_01_start`, `p2_02_village_overview` plus the full 18-shot
+  P14 tour captured successfully.
+- 1920×1080 P14 tour captured successfully (same 18 views).
+- Captures copied to `evidence/v13_scene_world/`. The scene looks and behaves
+  like v1.2.1; the known reference glitches (large foreground trees, close
+  camera caps, sign occlusion, rally/through-road seams) are still present
+  because this milestone intentionally preserves parity before polish.
+
+### Remaining gaps / not claimed
+
+- No automatic tag or release. Human visual/gameplay sign-off is still required.
+- The optional v1.3.0 visual-polish pass (camera canopy fade, junction surfacing,
+  sign occlusion) was deliberately **not** applied yet; parity came first.
+- Windows export/startup was not produced or tested.
+- One continuous human M01–M20 sitting remains **NOT TESTED**; the automated
+  real-UI walkthrough and all mission rules remain green.
+- GitHub CI has not run on a pushed commit; the exact CI command list was run
+  locally, including the new `--selftest-restore` phase.

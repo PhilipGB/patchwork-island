@@ -1,0 +1,76 @@
+[gd_scene load_steps=8 format=3]
+
+[sub_resource type="BoxMesh" id="BoxMesh_1"]
+size = Vector3(0.2, 2.6, 0.2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2"]
+albedo_color = Color(0.439216, 0.258824, 0.121569, 1)
+roughness = 1.0
+metallic = 0.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_3"]
+size = Vector3(4.6, 1.55, 0.18)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4"]
+albedo_color = Color(1.000000, 0.960784, 0.898039, 1)
+roughness = 1.0
+metallic = 0.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_5"]
+size = Vector3(4.9, 0.24, 0.3)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6"]
+albedo_color = Color(1.000000, 0.831373, 0.231373, 1)
+roughness = 1.0
+metallic = 0.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_7"]
+size = Vector3(4.9, 0.22, 0.3)
+
+[node name="JobBoard" type="Node3D"]
+
+
+[node name="Post" type="MeshInstance3D" parent="."]
+position = Vector3(-1.8, 1.3, 0)
+mesh = SubResource("BoxMesh_1")
+material_override = SubResource("StandardMaterial3D_2")
+
+[node name="Post_2" type="MeshInstance3D" parent="."]
+position = Vector3(1.8, 1.3, 0)
+mesh = SubResource("BoxMesh_1")
+material_override = SubResource("StandardMaterial3D_2")
+
+[node name="Board" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.85, 0)
+mesh = SubResource("BoxMesh_3")
+material_override = SubResource("StandardMaterial3D_4")
+
+[node name="Header" type="MeshInstance3D" parent="."]
+position = Vector3(0, 2.65, 0)
+mesh = SubResource("BoxMesh_5")
+material_override = SubResource("StandardMaterial3D_6")
+
+[node name="Footer" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.08, 0)
+mesh = SubResource("BoxMesh_7")
+material_override = SubResource("StandardMaterial3D_6")
+
+[node name="Title" type="Label3D" parent="."]
+position = Vector3(0, 2.27, -0.12)
+text = "JOBS"
+font_size = 72
+pixel_size = 0.007
+modulate = Color(0.094118, 0.203922, 0.352941, 1)
+billboard = 0
+
+[node name="Subtitle" type="Label3D" parent="."]
+position = Vector3(0, 1.75, -0.12)
+text = "Pick a job here"
+font_size = 32
+pixel_size = 0.007
+modulate = Color(0.094118, 0.203922, 0.352941, 1)
+billboard = 0
+
+[node name="Interaction" type="Marker3D" parent="."]
+position = Vector3(0, 0, -1.4)
+metadata/gameplay_id = "job-board"

@@ -1,0 +1,371 @@
+[gd_scene load_steps=39 format=3]
+
+[sub_resource type="BoxMesh" id="BoxMesh_1"]
+size = Vector3(13.6, 0.4, 10.6)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2"]
+albedo_color = Color(0.705882, 0.717647, 0.741176, 1)
+roughness = 1.0
+metallic = 0.0
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_3"]
+size = Vector3(13.6, 0.4, 10.6)
+
+[sub_resource type="BoxMesh" id="BoxMesh_4"]
+size = Vector3(0.3, 3.7, 10)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5"]
+albedo_color = Color(0.909804, 0.835294, 0.690196, 1)
+roughness = 1.0
+metallic = 0.0
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_6"]
+size = Vector3(0.3, 3.7, 10)
+
+[sub_resource type="BoxMesh" id="BoxMesh_7"]
+size = Vector3(13, 3.7, 0.3)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_8"]
+size = Vector3(13, 3.7, 0.3)
+
+[sub_resource type="BoxMesh" id="BoxMesh_9"]
+size = Vector3(2, 2.2, 0.14)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_10"]
+albedo_color = Color(0.658824, 0.454902, 0.231373, 1)
+roughness = 1.0
+metallic = 0.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_11"]
+size = Vector3(2.5, 0.22, 0.3)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_12"]
+albedo_color = Color(1.000000, 0.960784, 0.898039, 1)
+roughness = 1.0
+metallic = 0.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_13"]
+size = Vector3(3, 0.14, 1.5)
+
+[sub_resource type="BoxMesh" id="BoxMesh_14"]
+size = Vector3(14.2, 0.26, 6.3356)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_15"]
+albedo_color = Color(0.231373, 0.607843, 0.352941, 1)
+roughness = 1.0
+metallic = 0.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_16"]
+size = Vector3(0.8, 1.9, 0.8)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_17"]
+albedo_color = Color(0.780392, 0.466667, 0.364706, 1)
+roughness = 1.0
+metallic = 0.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_18"]
+size = Vector3(1, 0.18, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_19"]
+albedo_color = Color(0.435294, 0.466667, 0.509804, 1)
+roughness = 1.0
+metallic = 0.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_20"]
+size = Vector3(1.55, 1.45, 0.09)
+
+[sub_resource type="BoxMesh" id="BoxMesh_21"]
+size = Vector3(1.25, 1.15, 0.1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_22"]
+albedo_color = Color(0.560784, 0.843137, 1.000000, 1)
+roughness = 1.0
+metallic = 0.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_23"]
+size = Vector3(0.07, 1.15, 0.11)
+
+[sub_resource type="BoxMesh" id="BoxMesh_24"]
+size = Vector3(1.25, 0.07, 0.11)
+
+[sub_resource type="BoxMesh" id="BoxMesh_25"]
+size = Vector3(0.08, 1.3, 1.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_26"]
+size = Vector3(0.1, 1, 1.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_27"]
+size = Vector3(0.16, 2.2, 0.16)
+
+[sub_resource type="BoxMesh" id="BoxMesh_28"]
+size = Vector3(0.8, 0.5, 0.6)
+
+[sub_resource type="BoxMesh" id="BoxMesh_29"]
+size = Vector3(0.36, 0.3, 0.35)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_30"]
+albedo_color = Color(0.956863, 0.607843, 0.729412, 1)
+roughness = 1.0
+metallic = 0.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_31"]
+size = Vector3(3.7, 0.16, 0.5)
+
+[sub_resource type="BoxMesh" id="BoxMesh_32"]
+size = Vector3(7.2, 0.8, 0.18)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_33"]
+albedo_color = Color(1.000000, 0.596078, 0.223529, 1)
+roughness = 1.0
+metallic = 0.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_34"]
+size = Vector3(6.95, 0.6, 0.04)
+
+[sub_resource type="BoxMesh" id="BoxMesh_35"]
+size = Vector3(4.4, 3.2, 0.12)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_36"]
+albedo_color = Color(0.352941, 0.274510, 0.203922, 1)
+roughness = 1.0
+metallic = 0.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_37"]
+size = Vector3(5.2, 0.3, 0.3)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_38"]
+albedo_color = Color(0.439216, 0.258824, 0.121569, 1)
+roughness = 1.0
+metallic = 0.0
+
+[node name="Workshop" type="Node3D"]
+
+
+[node name="Foundation" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.2, 0)
+mesh = SubResource("BoxMesh_1")
+material_override = SubResource("StandardMaterial3D_2")
+
+[node name="FoundationCollision" type="StaticBody3D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="FoundationShape" type="CollisionShape3D" parent="FoundationCollision"]
+position = Vector3(0, 0.2, 0)
+shape = SubResource("BoxShape3D_3")
+
+[node name="WallWest" type="MeshInstance3D" parent="."]
+position = Vector3(-6.35, 2.1, 0)
+mesh = SubResource("BoxMesh_4")
+material_override = SubResource("StandardMaterial3D_5")
+
+[node name="WallWestCollision" type="StaticBody3D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="WallWestShape" type="CollisionShape3D" parent="WallWestCollision"]
+position = Vector3(-6.35, 2.1, 0)
+shape = SubResource("BoxShape3D_6")
+
+[node name="WallEast" type="MeshInstance3D" parent="."]
+position = Vector3(6.35, 2.1, 0)
+mesh = SubResource("BoxMesh_4")
+material_override = SubResource("StandardMaterial3D_5")
+
+[node name="WallEastCollision" type="StaticBody3D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="WallEastShape" type="CollisionShape3D" parent="WallEastCollision"]
+position = Vector3(6.35, 2.1, 0)
+shape = SubResource("BoxShape3D_6")
+
+[node name="WallBack" type="MeshInstance3D" parent="."]
+position = Vector3(0, 2.1, -5)
+mesh = SubResource("BoxMesh_7")
+material_override = SubResource("StandardMaterial3D_5")
+
+[node name="WallBackCollision" type="StaticBody3D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="WallBackShape" type="CollisionShape3D" parent="WallBackCollision"]
+position = Vector3(0, 2.1, -5)
+shape = SubResource("BoxShape3D_8")
+
+[node name="WallFront" type="MeshInstance3D" parent="."]
+position = Vector3(0, 2.1, 5)
+mesh = SubResource("BoxMesh_7")
+material_override = SubResource("StandardMaterial3D_5")
+
+[node name="WallFrontCollision" type="StaticBody3D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="WallFrontShape" type="CollisionShape3D" parent="WallFrontCollision"]
+position = Vector3(0, 2.1, 5)
+shape = SubResource("BoxShape3D_8")
+
+[node name="Door" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.35, 5.09)
+mesh = SubResource("BoxMesh_9")
+material_override = SubResource("StandardMaterial3D_10")
+
+[node name="DoorLintel" type="MeshInstance3D" parent="."]
+position = Vector3(0, 2.55, 5.1)
+mesh = SubResource("BoxMesh_11")
+material_override = SubResource("StandardMaterial3D_12")
+
+[node name="DoorStep" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.08, 5.8)
+mesh = SubResource("BoxMesh_13")
+material_override = SubResource("StandardMaterial3D_2")
+
+[node name="RoofNorth" type="MeshInstance3D" parent="."]
+position = Vector3(0, 5.25, -2.5)
+mesh = SubResource("BoxMesh_14")
+material_override = SubResource("StandardMaterial3D_15")
+rotation = Vector3(-0.47952, 0, 0)
+
+[node name="RoofSouth" type="MeshInstance3D" parent="."]
+position = Vector3(0, 5.25, 2.5)
+mesh = SubResource("BoxMesh_14")
+material_override = SubResource("StandardMaterial3D_15")
+rotation = Vector3(0.47952, 0, 0)
+
+[node name="Chimney" type="MeshInstance3D" parent="."]
+position = Vector3(3.64, 6.4, -1.8)
+mesh = SubResource("BoxMesh_16")
+material_override = SubResource("StandardMaterial3D_17")
+
+[node name="ChimneyCap" type="MeshInstance3D" parent="."]
+position = Vector3(3.64, 7.38, -1.8)
+mesh = SubResource("BoxMesh_18")
+material_override = SubResource("StandardMaterial3D_19")
+
+[node name="WindowTrim" type="MeshInstance3D" parent="."]
+position = Vector3(-3.64, 2.25, 5.1)
+mesh = SubResource("BoxMesh_20")
+material_override = SubResource("StandardMaterial3D_12")
+
+[node name="WindowGlass" type="MeshInstance3D" parent="."]
+position = Vector3(-3.64, 2.25, 5.152)
+mesh = SubResource("BoxMesh_21")
+material_override = SubResource("StandardMaterial3D_22")
+
+[node name="WindowBar" type="MeshInstance3D" parent="."]
+position = Vector3(-3.64, 2.25, 5.21)
+mesh = SubResource("BoxMesh_23")
+material_override = SubResource("StandardMaterial3D_12")
+
+[node name="WindowCross" type="MeshInstance3D" parent="."]
+position = Vector3(-3.64, 2.37, 5.21)
+mesh = SubResource("BoxMesh_24")
+material_override = SubResource("StandardMaterial3D_12")
+
+[node name="SideWindowTrim" type="MeshInstance3D" parent="."]
+position = Vector3(-6.52, 2.2, 0)
+mesh = SubResource("BoxMesh_25")
+material_override = SubResource("StandardMaterial3D_12")
+
+[node name="SideWindowGlass" type="MeshInstance3D" parent="."]
+position = Vector3(-6.585, 2.2, 0)
+mesh = SubResource("BoxMesh_26")
+material_override = SubResource("StandardMaterial3D_22")
+
+[node name="WindowTrim_2" type="MeshInstance3D" parent="."]
+position = Vector3(3.64, 2.25, 5.1)
+mesh = SubResource("BoxMesh_20")
+material_override = SubResource("StandardMaterial3D_12")
+
+[node name="WindowGlass_2" type="MeshInstance3D" parent="."]
+position = Vector3(3.64, 2.25, 5.152)
+mesh = SubResource("BoxMesh_21")
+material_override = SubResource("StandardMaterial3D_22")
+
+[node name="WindowBar_2" type="MeshInstance3D" parent="."]
+position = Vector3(3.64, 2.25, 5.21)
+mesh = SubResource("BoxMesh_23")
+material_override = SubResource("StandardMaterial3D_12")
+
+[node name="WindowCross_2" type="MeshInstance3D" parent="."]
+position = Vector3(3.64, 2.37, 5.21)
+mesh = SubResource("BoxMesh_24")
+material_override = SubResource("StandardMaterial3D_12")
+
+[node name="SideWindowTrim_2" type="MeshInstance3D" parent="."]
+position = Vector3(6.52, 2.2, 0)
+mesh = SubResource("BoxMesh_25")
+material_override = SubResource("StandardMaterial3D_12")
+
+[node name="SideWindowGlass_2" type="MeshInstance3D" parent="."]
+position = Vector3(6.585, 2.2, 0)
+mesh = SubResource("BoxMesh_26")
+material_override = SubResource("StandardMaterial3D_22")
+
+[node name="PorchPost" type="MeshInstance3D" parent="."]
+position = Vector3(-1.7, 1.2, 5.85)
+mesh = SubResource("BoxMesh_27")
+material_override = SubResource("StandardMaterial3D_12")
+
+[node name="PorchPlanter" type="MeshInstance3D" parent="."]
+position = Vector3(-2.5, 0.25, 5.8)
+mesh = SubResource("BoxMesh_28")
+material_override = SubResource("StandardMaterial3D_10")
+
+[node name="PorchFlower" type="MeshInstance3D" parent="."]
+position = Vector3(-2.5, 0.65, 5.8)
+mesh = SubResource("BoxMesh_29")
+material_override = SubResource("StandardMaterial3D_30")
+
+[node name="PorchPost_2" type="MeshInstance3D" parent="."]
+position = Vector3(1.7, 1.2, 5.85)
+mesh = SubResource("BoxMesh_27")
+material_override = SubResource("StandardMaterial3D_12")
+
+[node name="PorchPlanter_2" type="MeshInstance3D" parent="."]
+position = Vector3(2.5, 0.25, 5.8)
+mesh = SubResource("BoxMesh_28")
+material_override = SubResource("StandardMaterial3D_10")
+
+[node name="PorchFlower_2" type="MeshInstance3D" parent="."]
+position = Vector3(2.5, 0.65, 5.8)
+mesh = SubResource("BoxMesh_29")
+material_override = SubResource("StandardMaterial3D_30")
+
+[node name="PorchHeader" type="MeshInstance3D" parent="."]
+position = Vector3(0, 2.32, 5.85)
+mesh = SubResource("BoxMesh_31")
+material_override = SubResource("StandardMaterial3D_15")
+
+[node name="SignBacking" type="MeshInstance3D" parent="."]
+position = Vector3(0, 3.2, 5.23)
+mesh = SubResource("BoxMesh_32")
+material_override = SubResource("StandardMaterial3D_33")
+
+[node name="SignPanel" type="MeshInstance3D" parent="."]
+position = Vector3(0, 3.2, 5.34)
+mesh = SubResource("BoxMesh_34")
+material_override = SubResource("StandardMaterial3D_12")
+
+[node name="SignText" type="Label3D" parent="."]
+position = Vector3(0, 3.12, 5.39)
+text = "WORKSHOP"
+font_size = 52
+pixel_size = 0.007
+modulate = Color(0.094118, 0.203922, 0.352941, 1)
+billboard = 0
+
+[node name="GarageDoor" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.75, 5.18)
+mesh = SubResource("BoxMesh_35")
+material_override = SubResource("StandardMaterial3D_36")
+
+[node name="GarageLintel" type="MeshInstance3D" parent="."]
+position = Vector3(0, 3.35, 5.22)
+mesh = SubResource("BoxMesh_37")
+material_override = SubResource("StandardMaterial3D_38")
+
+[node name="Entrance" type="Marker3D" parent="."]
+position = Vector3(0, 0, 5.85)
+metadata/gameplay_id = "Workshop.door"

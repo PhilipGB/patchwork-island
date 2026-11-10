@@ -1,0 +1,65 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_jvrox"]
+shading_mode = 2
+specular_mode = 2
+albedo_color = Color(0.7254902, 0.52156866, 0.3137255, 1)
+roughness = 0.95
+
+[sub_resource type="BoxMesh" id="BoxMesh_oirgy"]
+size = Vector3(0.22, 3.4, 0.22)
+
+[sub_resource type="BoxMesh" id="BoxMesh_jvsub"]
+size = Vector3(0.22, 3.4, 0.22)
+
+[sub_resource type="BoxMesh" id="BoxMesh_yjatg"]
+size = Vector3(0.22, 3.4, 0.22)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ftsog"]
+size = Vector3(0.22, 3.4, 0.22)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_fpvy1"]
+shading_mode = 2
+specular_mode = 2
+albedo_color = Color(0.53333336, 0.34509805, 0.18431373, 1)
+roughness = 0.95
+
+[sub_resource type="BoxMesh" id="BoxMesh_3b1m7"]
+size = Vector3(4.2, 0.24, 0.24)
+
+[node name="SwingFrame" type="Node3D" unique_id=916492778]
+
+[node name="Box" type="MeshInstance3D" parent="." unique_id=911906557]
+transform = Transform3D(0.9781476, 0.2079117, 0, -0.2079117, 0.9781476, 0, 0, 0, 1, -1.8, 1.6, 0)
+material_override = SubResource("StandardMaterial3D_jvrox")
+mesh = SubResource("BoxMesh_oirgy")
+
+[node name="@MeshInstance3D@618" type="MeshInstance3D" parent="." unique_id=1243774783]
+transform = Transform3D(0.9781476, -0.2079117, 0, 0.2079117, 0.9781476, 0, 0, 0, 1, 1.8, 1.6, 0)
+material_override = SubResource("StandardMaterial3D_jvrox")
+mesh = SubResource("BoxMesh_jvsub")
+
+[node name="@MeshInstance3D@619" type="MeshInstance3D" parent="." unique_id=2119583240]
+transform = Transform3D(0.9781476, 0.2079117, 0, -0.20336834, 0.9567728, -0.2079117, -0.043227274, 0.20336834, 0.9781476, -1.8, 1.6, 1.8)
+material_override = SubResource("StandardMaterial3D_jvrox")
+mesh = SubResource("BoxMesh_yjatg")
+
+[node name="@MeshInstance3D@620" type="MeshInstance3D" parent="." unique_id=526195484]
+transform = Transform3D(0.9781476, -0.2079117, 0, 0.20336834, 0.9567728, 0.2079117, -0.043227274, -0.20336834, 0.9781476, 1.8, 1.6, 1.8)
+material_override = SubResource("StandardMaterial3D_jvrox")
+mesh = SubResource("BoxMesh_ftsog")
+
+[node name="@MeshInstance3D@621" type="MeshInstance3D" parent="." unique_id=298477009]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.26, 0.9)
+material_override = SubResource("StandardMaterial3D_fpvy1")
+mesh = SubResource("BoxMesh_3b1m7")
+
+[node name="Label3D" type="Label3D" parent="." unique_id=1123800972]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.75, 0.9)
+pixel_size = 0.006
+billboard = 1
+modulate = Color(0.15294118, 0.21176471, 0.29411766, 1)
+outline_modulate = Color(1, 1, 1, 0.9)
+text = "BROKEN"
+font_size = 36
+outline_size = 0
