@@ -10,11 +10,12 @@ tests, real-input GUI evidence and release build instructions.
 
 ## Current status
 
-**Complete v1.2.1 hotfix for the Living Village Update.** The original ten jobs,
-optional race, free practice racing, first celebration, character customisation
-and save recovery remain. v1.2 adds six named villagers, two safe NPC drivers,
-original music/SFX with persisted settings, a larger continuous rally circuit,
-and ten new jobs M11–M20 ending in a separate village-festival finale. v1.2.1
+**Complete v1.2.1 hotfix for the Living Village Update — tagged and
+published.** The original ten jobs, optional race, free practice racing, first
+celebration, character customisation and save recovery remain. v1.2 adds six
+named villagers, two safe NPC drivers, original music/SFX with persisted
+settings, a larger continuous rally circuit, and ten new jobs M11–M20 ending in
+a separate village-festival finale. v1.2.1
 fixes M18 repair-part persistence across save/reload and makes off-island NPC
 traffic stop permanently.
 
@@ -35,10 +36,10 @@ traffic stop permanently.
 
 ## Download / install
 
-v1.2.0 downloads remain available as the previous release. The v1.2.1 archives
-are built locally and are the release candidate for the focused hotfix:
-[GitHub release v1.2.0](https://github.com/PhilipGB/patchwork-island/releases/tag/v1.2.0)
-(Linux/Windows ZIPs, `README.txt`, `SHA256SUMS`).
+Published v1.2.1 downloads:
+[GitHub release v1.2.1](https://github.com/PhilipGB/patchwork-island/releases/tag/v1.2.1)
+(Linux/Windows ZIPs, `README.txt`, `SHA256SUMS`). v1.2.0 remains available as
+the previous release.
 
 The same artifacts are also present locally under `dist/`:
 

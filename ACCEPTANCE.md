@@ -585,10 +585,14 @@ changes.
   - `PatchworkIsland-1.2.1-Linux-x86_64.zip` `cb04e909db41ba19bb74199653c7c6018356e2904d4f6b092f8358aa1408fdf6`
   - `PatchworkIsland-1.2.1-Windows-x86_64.zip` `ae40a90dfbb640b0cf61941831ce69b83800f2cade768668c4f93c34377d0ac5`
 
-**Tag/publish status:** v1.2.0 remains published. The v1.2.1 tag will point at
-the green merge head of the focused persistence PR; the exact commit and
-release URL are recorded in `PROGRESS.md` and
-`docs/RELEASE_NOTES_v1.2.1.md`.
+**Tag/publish status:** **v1.2.1 tagged and published.** Tag `v1.2.1` points at
+`2d6647b` (merge of PR #25), whose tree is identical to green PR head
+`49c7a62`. Main CI run
+[42735724391](https://github.com/PhilipGB/patchwork-island/actions/runs/42735724391)
+passed. Release:
+[v1.2.1](https://github.com/PhilipGB/patchwork-island/releases/tag/v1.2.1)
+with Linux/Windows ZIPs, `README.txt` and `SHA256SUMS`. v1.2.0 remains
+published as the previous release.
 
 ### Manual walkthrough status
 
