@@ -70,6 +70,49 @@ public sealed class GameData
         Settings ??= new();
         if (SchemaVersion <= 0) SchemaVersion = 1;
         ActiveMission ??= "";
+        NormaliseRepairPickups();
+    }
+
+    /// <summary>
+    /// v1.2.0 wrote M18 carried/fitted counts without the physical pickup IDs.
+    /// Infer how many parts were actually acquired and record that many IDs so a
+    /// legacy partial save cannot respawn a duplicate after upgrading. IDs that
+    /// are already recorded always win; this never adds more than were earned.
+    /// </summary>
+    private void NormaliseRepairPickups()
+    {
+        int acquiredTyres = Math.Clamp(
+            GetMissionCounter("M18", "has_tyre") + GetMissionCounter("M18", "tyres_fitted"),
+            0, FinaleRules.RequiredTyres);
+        int acquiredLamps = Math.Clamp(
+            GetMissionCounter("M18", "has_lamp") + GetMissionCounter("M18", "lamp_fitted"),
+            0, FinaleRules.RequiredLamps);
+        int acquiredBatteries = Math.Clamp(
+            GetMissionCounter("M18", "has_battery") + GetMissionCounter("M18", "battery_fitted"),
+            0, FinaleRules.RequiredBatteries);
+
+        MarkAcquiredRepairPickups("tyre", acquiredTyres);
+        MarkAcquiredRepairPickups("lamp", acquiredLamps);
+        MarkAcquiredRepairPickups("battery", acquiredBatteries);
+    }
+
+    private void MarkAcquiredRepairPickups(string part, int acquired)
+    {
+        if (acquired <= 0) return;
+        int recorded = 0;
+        foreach (string pickupId in FinaleRules.RepairPickupIds)
+            if (FinaleRules.RepairPickupPart(pickupId) == part && CollectedPickups.Contains(pickupId))
+                recorded++;
+        int missing = acquired - recorded;
+        if (missing <= 0) return;
+        foreach (string pickupId in FinaleRules.RepairPickupIds)
+        {
+            if (missing <= 0) break;
+            if (FinaleRules.RepairPickupPart(pickupId) != part) continue;
+            if (CollectedPickups.Contains(pickupId)) continue;
+            CollectedPickups.Add(pickupId);
+            missing--;
+        }
     }
 
     public int GetItem(string item)

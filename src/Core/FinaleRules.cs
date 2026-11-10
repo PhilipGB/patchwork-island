@@ -105,6 +105,21 @@ public static class FinaleRules
         _ => part,
     };
 
+    /// <summary>Stable pickup IDs for the four M18 parts in spawn order.</summary>
+    public static readonly string[] RepairPickupIds =
+    {
+        "part_tyre_0", "part_tyre_1", "part_lamp_0", "part_battery_0",
+    };
+
+    /// <summary>Part type carried by a physical M18 pickup, or "" if unknown.</summary>
+    public static string RepairPickupPart(string pickupId) => pickupId switch
+    {
+        "part_tyre_0" or "part_tyre_1" => "tyre",
+        "part_lamp_0" => "lamp",
+        "part_battery_0" => "battery",
+        _ => "",
+    };
+
     public static int HasPart(GameData data, string part) =>
         data.GetMissionCounter("M18", "has_" + part);
 

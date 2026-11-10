@@ -1,12 +1,12 @@
 # Patchwork Island — run and test guide
 
-> Status: v1.2.0 — Living Village Update, tagged and published. The original ten missions,
+> Status: v1.2.1 — M18 Persistence Hotfix. The original ten missions,
 > practice racing, first celebration, character customisation, save/load and
 > recovery remain. v1.2 adds six named villagers, two safe NPC drivers, original
 > music/SFX with persisted settings, a larger continuous rally circuit, and
 > M11–M20 ending in a separate village-festival finale. Save schema 3 migrates
 > schema 1/2 progress and refuses unsupported newer schemas. See `ACCEPTANCE.md`,
-> `PROGRESS.md` and `docs/RELEASE_NOTES_v1.2.0.md` for the pass/fail matrix,
+> `PROGRESS.md` and `docs/RELEASE_NOTES_v1.2.1.md` for the pass/fail matrix,
 > evidence and remaining verification gaps.
 
 ## Prerequisites
@@ -192,7 +192,7 @@ runtime or Wine. See `dist/SHA256SUMS` and `dist/README.txt`.
 
 ```text
 dotnet build PatchworkIsland.sln                         -> 0 warnings, 0 errors
-dotnet run --project tests/PatchworkIsland.Tests.csproj -> 106 passed, 0 failed
+dotnet run --project tests/PatchworkIsland.Tests.csproj -> 107 passed, 0 failed
 godot --headless --path . --editor --quit                -> exit 0
 godot --headless --path . --quit-after 120               -> exit 0
 godot --headless --path . -- --selftest                  -> 161 passed, 0 failed
@@ -201,6 +201,7 @@ godot --headless --path . -- --selftest-recovery         -> 101 passed, 0 failed
 godot --headless --path . -- --selftest-living           -> 238 passed, 0 failed
 godot --headless --path . -- --selftest-rally            -> 10 passed, 0 failed
 godot --headless --path . -- --selftest-chapter          -> 217 passed, 0 failed
+godot --headless --path . -- --selftest-hotfix           -> 48 passed, 0 failed
 godot --headless --path . -- --selftest-finale           -> 140 passed, 0 failed
 godot --headless --path . -- --selftest-traversal        -> 18 passed, 0 failed
 godot --headless --path . -- --selftest-release          -> 22 passed, 0 failed
@@ -210,14 +211,14 @@ dist/linux/PatchworkIsland.x86_64 --headless --quit-after 120 -> exit 0
 dist/linux/PatchworkIsland.x86_64 (all runtime phases)    -> 0 failed
 ```
 
-The new phases cover M11–M15, M16–M20, six-gate rally, real bridge/road
+The new phases cover M11–M15, M16–M20, a partial-M18 save/relaunch, six-gate rally, real bridge/road
 traversal, and a schema 2 v1.1.0 save loaded through the real title/Continue path
 with 137 coins, girl + Berry outfit, the original celebration already seen, M11
 available and no repeated M10 celebration. The packaged Linux executable passed
 the same phases, every process exit code 0 with zero leaked unsafe references.
 
-The v1.2.0 Linux export is an ELF x86-64 executable. The Windows executable is
-PE32+ x86-64 with file/product version `1.2.0.0`; **Windows startup was not
+The v1.2.1 Linux export is an ELF x86-64 executable. The Windows executable is
+PE32+ x86-64 with file/product version `1.2.1.0`; **Windows startup was not
 tested** because no Windows runtime or Wine is available, and was explicitly
 waived for the Linux-first release. The previous v1.0.2 and v1.1.0 verification
 remains recorded in `ACCEPTANCE.md`.
@@ -228,7 +229,9 @@ real PipeWire sink monitor with nonzero PCM, and **human listening is PASS** —
 the product owner verified the packaged build on 2026-11-09. Child usability
 testing remains a manual follow-up.
 
-The P15.1 bridge hotfix adds 18 traversal checks (fast/slow centre, both road
+The v1.2.1 hotfix adds a real partial-M18 save/relaunch test, legacy-save
+pickup normalisation and a terminal off-island traffic stop, plus the P15.1
+bridge work. Traversal adds 18 checks (fast/slow centre, both road
 edges, westbound, no vertical step, both gate-1 walk/jump checks and a
 from-rest road-lip walk), plus seam/junction/cap captures at exact 720p and true
 1080p.
@@ -262,7 +265,7 @@ Writes are atomic (temporary file, flush, move). An unreadable or structurally
 invalid save is renamed `save.json.corrupt-<timestamp>` and the backup is loaded
 if possible.
 
-Save schema versions are separate from game release versions. v1.2.0 writes
+Save schema versions are separate from game release versions. v1.2.1 writes
 schema **3**. Schema 1 migrates through schema 2; missing character fields
 default to **Boy + Everyday**. Schema 2 (v1.1.0) keeps coins, outfits,
 cosmetics, bridge/park/furniture state, player/van snapshots and

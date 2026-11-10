@@ -23,6 +23,7 @@ public partial class RuntimeSelfTest : Node
     // real scene. The chapter phase proves a mid-mission save survives relaunch.
     internal static int RecoveryPhase { get; set; }
     internal static int ChapterPhase { get; set; }
+    internal static int HotfixPhase { get; set; }
     internal static int ReleasePhase { get; set; }
 
     private static int _passed;
@@ -53,6 +54,8 @@ public partial class RuntimeSelfTest : Node
                 await RallyChecks();
             else if (HasArg("--selftest-chapter"))
                 reloading = await ChapterChecks();
+            else if (HasArg("--selftest-hotfix"))
+                reloading = await HotfixChecks();
             else if (HasArg("--selftest-finale"))
                 await FinaleChecks();
             else if (HasArg("--selftest-traversal"))
@@ -1156,6 +1159,121 @@ public partial class RuntimeSelfTest : Node
             Main.RtPlayerPosition.Z - lipStart.Z).Length();
         Expect(lipMoved > 1.5f,
             $"player starts from rest at the road lip and walks onto the shoulder (moved {lipMoved:0.0}m)");
+    }
+
+    // ---------------------------------------------- v1.2.1 persistence hotfix
+    // Reproduces a partial M18 save in the real world, relaunches, and proves
+    // the collected tyre does not respawn. Also proves an off-island traffic
+    // route enters one terminal stopped state instead of erroring every frame.
+    private async Task<bool> HotfixChecks()
+    {
+        if (HotfixPhase == 0) return await HotfixFreshChecks();
+        return await HotfixResumeChecks();
+    }
+
+    private async Task<bool> HotfixFreshChecks()
+    {
+        Expect(!Main.RtStarted, "hotfix test starts on the title screen");
+        var started = Main.RtStartNewGameFromTitleConfirmed(CharacterCustomisation.Boy);
+        await Wait(0.8f);
+        Expect(started.Success && Main.RtStarted, "hotfix test starts a fresh village");
+
+        Main.RtPrepareMechanicJob();
+        await Wait(0.4f);
+        Expect(Main.RtMissionStatus("M18") == MissionStatus.Available,
+            "M18 is available after the prepared M16/M17 jobs");
+        Expect(await StartJobFromBoard("M18"), "M18 starts from the job board");
+
+        Main.RtTeleportNearPickup("part_tyre_0");
+        await Wait(0.3f);
+        Expect(Main.RtNearestInteractableName == "Pickup_part_tyre_0",
+            "the first tyre is the nearest E interaction");
+        await PressInteract();
+        Expect(Main.RtMissionCounter("M18", "has_tyre") == 1,
+            "first tyre collected through the real pickup");
+        Expect(Main.RtCollectedPickup("part_tyre_0"),
+            "first tyre pickup ID is recorded");
+        Expect(Main.RtRepairPickupCount == 3,
+            "three remaining repair-part pickups stay in the world");
+
+        Expect(Main.RtSaveNow(), "partial M18 progress saves");
+        var partial = SaveService.Load(Main.RtSavePath, Main.RtCatalog);
+        Expect(partial.Success, partial.Message);
+        Expect(partial.Success && partial.Data.ActiveMission == "M18",
+            "saved partial job is M18");
+        Expect(partial.Success && partial.Data.GetMissionCounter("M18", "has_tyre") == 1,
+            "saved partial tyre count is on disk");
+        Expect(partial.Success && partial.Data.HasCollected("part_tyre_0"),
+            "saved file records the collected tyre pickup");
+
+        Main.RtDropTrafficOffIsland("town_scooter");
+        await Wait(0.6f);
+        Expect(Main.RtTrafficStopped("town_scooter"),
+            "off-island traffic enters a terminal stopped state");
+        Expect(Main.RtTrafficStopEvents("town_scooter") == 1,
+            "off-island traffic logs one failure");
+        Vector3 resting = Main.RtTrafficPosition("town_scooter");
+        await Wait(0.6f);
+        Expect(Main.RtTrafficStopEvents("town_scooter") == 1,
+            "stopped traffic does not repeat its failure");
+        Expect(resting.DistanceTo(Main.RtTrafficPosition("town_scooter")) < 0.001f,
+            "stopped traffic no longer moves");
+
+        HotfixPhase = 1;
+        Main.RtReloadScene();
+        return true;
+    }
+
+    private async Task<bool> HotfixResumeChecks()
+    {
+        Expect(!Main.RtStarted, "hotfix resume starts on the title screen");
+        Expect(Main.RtCanContinue, "the partial M18 save offers Continue");
+        Main.RtContinue();
+        await Wait(0.5f);
+        Expect(Main.RtStarted && Main.RtMode == "Walking", "Continue resumes the village");
+        Expect(Main.RtActiveMission == "M18", "Continue restores active M18");
+        Expect(Main.RtMissionCounter("M18", "has_tyre") == 1,
+            "Continue restores the collected tyre");
+        Expect(Main.RtCollectedPickup("part_tyre_0"),
+            "Continue restores the collected pickup ID");
+        Expect(!Main.RtPickupPresent("part_tyre_0"),
+            "the collected tyre does not respawn after relaunch");
+        Expect(Main.RtRepairPickupCount == 3,
+            "only the three uncollected parts remain after relaunch");
+
+        foreach (string partId in new[] { "part_tyre_1", "part_lamp_0", "part_battery_0" })
+        {
+            Main.RtTeleportNearPickup(partId);
+            await Wait(0.3f);
+            Expect(Main.RtNearestInteractableName == "Pickup_" + partId,
+                $"{partId} is the nearest E interaction after relaunch");
+            await PressInteract();
+        }
+        Expect(Main.RtMissionCounter("M18", "has_tyre") == 2,
+            "second tyre collected after relaunch");
+        Expect(Main.RtMissionCounter("M18", "has_lamp") == 1,
+            "lamp collected after relaunch");
+        Expect(Main.RtMissionCounter("M18", "has_battery") == 1,
+            "battery collected after relaunch");
+        Expect(Main.RtRepairPickupCount == 0, "all four part pickups are gone");
+
+        Main.RtTeleportNearRepairCar();
+        await Wait(0.3f);
+        Expect(Main.RtNearestInteractableName == "RepairStation", "repair bench is nearest");
+        await PressInteract();
+        Expect(Main.RtModalTitle == "Mechanic's Toolbox", "repair bench opens");
+        Expect(Main.RtPressModalButton("InspectCar"), "inspect action works after relaunch");
+        await Wait(0.2f);
+        for (int i = 0; i < 2; i++)
+            Expect(Main.RtPressModalButton("Fit_tyre"), $"fit tyre {i} after relaunch");
+        Expect(Main.RtPressModalButton("Fit_lamp"), "fit lamp after relaunch");
+        Expect(Main.RtPressModalButton("Fit_battery"), "fit battery after relaunch");
+        await Wait(0.45f);
+        Expect(Main.RtMissionCompleted("M18"), "M18 completes after the partial reload");
+        Expect(Main.RtCoins == 124, "M18 still pays its 24-coin reward once");
+        foreach (string partId in FinaleRules.RepairPickupIds)
+            Expect(Main.RtCollectedPickup(partId), $"{partId} remains recorded after completion");
+        return false;
     }
 
     // -------------------------------------------------- chapter-two finale

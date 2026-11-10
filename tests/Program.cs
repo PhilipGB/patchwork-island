@@ -739,9 +739,14 @@ internal static class Program
             Check(s.StartMission("M18").Success, "start M18");
             Check(s.InspectVehicle().Success, "inspect succeeds");
             Check(!s.FitRepairPart("tyre").Success, "cannot fit an uncollected tyre");
-            Check(s.CollectRepairPart("tyre").Success, "tyre 1 collected");
-            Check(s.CollectRepairPart("tyre").Success, "tyre 2 collected");
-            Check(!s.CollectRepairPart("tyre").Success, "third tyre refused");
+            Check(s.CollectRepairPart("tyre", "part_tyre_0").Success, "tyre 1 collected");
+            Check(s.Data.HasCollected("part_tyre_0"), "tyre 1 pickup recorded");
+            Check(!s.CollectRepairPart("tyre", "part_tyre_0").Success,
+                "same tyre pickup cannot be collected twice");
+            Check(!s.CollectRepairPart("lamp", "part_tyre_0").Success,
+                "pickup must match its part type");
+            Check(s.CollectRepairPart("tyre", "part_tyre_1").Success, "tyre 2 collected");
+            Check(!s.CollectRepairPart("tyre", "part_tyre_1").Success, "second tyre not duplicated");
             Equal(2, FinaleRules.HasPart(s.Data, "tyre"), "two tyres carried");
 
             Check(s.FitRepairPart("tyre").Success, "tyre 1 fitted");
@@ -750,9 +755,9 @@ internal static class Program
             Check(s.FitRepairPart("tyre").Success, "tyre 2 fitted");
             Check(!s.FitRepairPart("battery").Success, "battery before lamp refused");
             Equal(0, FinaleRules.HasPart(s.Data, "battery"), "battery not lost");
-            Check(s.CollectRepairPart("lamp").Success, "lamp collected");
+            Check(s.CollectRepairPart("lamp", "part_lamp_0").Success, "lamp collected");
             Check(s.FitRepairPart("lamp").Success, "lamp fitted");
-            Check(s.CollectRepairPart("battery").Success, "battery collected");
+            Check(s.CollectRepairPart("battery", "part_battery_0").Success, "battery collected");
             var completion = s.FitRepairPart("battery");
             Check(completion.Success && completion.Completion != null, "battery completes M18");
             Equal(24, completion.Completion.CoinsAwarded, "M18 reward");
@@ -761,6 +766,65 @@ internal static class Program
             Check(FinaleRules.M18Complete(s.Data), "Pip's car recorded repaired");
             Check(!s.FitRepairPart("battery").Success, "repeat repair refused");
             Equal(wallet + 24, s.Data.Coins, "repeat repair pays nothing");
+        });
+
+        Run("M18 partial pickup survives save and cannot respawn", () =>
+        {
+            var s = CompleteM17(CompleteM16(CompleteFirstHalf(Fresh(catalog))));
+            Check(s.StartMission("M18").Success, "start M18 before partial save");
+            Check(s.CollectRepairPart("tyre", "part_tyre_0").Success, "collect first tyre");
+            Equal(1, FinaleRules.HasPart(s.Data, "tyre"), "one tyre carried before save");
+
+            string dir = TempDirectory("m18-partial");
+            try
+            {
+                string path = Path.Combine(dir, "save.json");
+                SaveService.Save(s.Data, path, catalog);
+                var loaded = SaveService.Load(path, catalog);
+                Check(loaded.Success, loaded.Message);
+                Equal("M18", loaded.Data.ActiveMission, "active M18 preserved");
+                Equal(1, FinaleRules.HasPart(loaded.Data, "tyre"), "carried tyre preserved");
+                Check(loaded.Data.HasCollected("part_tyre_0"), "collected tyre pickup preserved");
+
+                // v1.2.0 wrote the count but not the pickup ID. Normalise must
+                // infer exactly one tyre pickup so the same part cannot respawn.
+                loaded.Data.CollectedPickups.Remove("part_tyre_0");
+                string legacyPath = Path.Combine(dir, "legacy.json");
+                SaveService.Save(loaded.Data, legacyPath, catalog);
+                var legacy = SaveService.Load(legacyPath, catalog);
+                Check(legacy.Success, legacy.Message);
+                Equal(1, legacy.Data.CollectedPickups.Count(id =>
+                        FinaleRules.RepairPickupPart(id) == "tyre"),
+                    "legacy partial save infers one acquired tyre pickup");
+                Check(legacy.Data.HasCollected("part_tyre_0"),
+                    "legacy partial save records the first tyre pickup");
+
+                // If the fixed game already recorded the second tyre, the
+                // normaliser must not add the first one as well.
+                loaded.Data.CollectedPickups.Remove("part_tyre_0");
+                loaded.Data.CollectedPickups.Add("part_tyre_1");
+                string recordedPath = Path.Combine(dir, "recorded.json");
+                SaveService.Save(loaded.Data, recordedPath, catalog);
+                var recorded = SaveService.Load(recordedPath, catalog);
+                Check(recorded.Success, recorded.Message);
+                Check(!recorded.Data.HasCollected("part_tyre_0") &&
+                      recorded.Data.HasCollected("part_tyre_1"),
+                    "normaliser keeps an already recorded second tyre only");
+                Equal(1, recorded.Data.CollectedPickups.Count(id =>
+                        FinaleRules.RepairPickupPart(id) == "tyre"),
+                    "normaliser never invents an extra tyre pickup");
+
+                var resumed = new MissionService(legacy.Data, catalog);
+                Check(!resumed.CollectRepairPart("tyre", "part_tyre_0").Success,
+                    "reloaded tyre pickup cannot be collected again");
+                Check(resumed.CollectRepairPart("tyre", "part_tyre_1").Success,
+                    "the second real tyre is still available");
+                Equal(2, FinaleRules.HasPart(resumed.Data, "tyre"), "both tyres carried after resume");
+            }
+            finally
+            {
+                Directory.Delete(dir, true);
+            }
         });
 
         Run("M19 has six ordered gates and a 155-second optional medal", () =>
@@ -2714,14 +2778,16 @@ internal static class Program
         var started = service.StartMission("M18");
         if (!started.Success) throw new Exception("M18 setup start failed: " + started.Message);
         if (!service.InspectVehicle().Success) throw new Exception("M18 setup inspect failed");
-        foreach (var pair in new[] { ("tyre", 2), ("lamp", 1), ("battery", 1) })
+        foreach (var pair in new[]
+                 {
+                     ("tyre", "part_tyre_0"), ("tyre", "part_tyre_1"),
+                     ("lamp", "part_lamp_0"), ("battery", "part_battery_0"),
+                 })
         {
-            for (int i = 0; i < pair.Item2; i++)
-                if (!service.CollectRepairPart(pair.Item1).Success)
-                    throw new Exception($"M18 setup collect {pair.Item1} failed");
-            for (int i = 0; i < pair.Item2; i++)
-                if (!service.FitRepairPart(pair.Item1).Success)
-                    throw new Exception($"M18 setup fit {pair.Item1} failed");
+            if (!service.CollectRepairPart(pair.Item1, pair.Item2).Success)
+                throw new Exception($"M18 setup collect {pair.Item1} failed");
+            if (!service.FitRepairPart(pair.Item1).Success)
+                throw new Exception($"M18 setup fit {pair.Item1} failed");
         }
         if (!service.Data.IsCompleted("M18")) throw new Exception("M18 setup did not complete");
         return service;

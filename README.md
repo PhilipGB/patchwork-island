@@ -1,4 +1,4 @@
-# Patchwork Island — v1.2.0 Living Village Update
+# Patchwork Island — v1.2.1 M18 Persistence Hotfix
 
 A happy little 3D village adventure for players aged roughly 5–10. A storm has
 scattered the village's supplies. Deliver parcels, repair the bridge, drive the
@@ -10,18 +10,19 @@ tests, real-input GUI evidence and release build instructions.
 
 ## Current status
 
-**Complete v1.2.0 Living Village Update — tagged and published.** The original
-ten jobs, optional race, free practice racing, first celebration, character
-customisation and save recovery remain. v1.2 adds six named villagers, two safe
-NPC drivers, original music/SFX with persisted settings, a larger continuous
-rally circuit, and ten new jobs M11–M20 ending in a separate village-festival
-finale.
+**Complete v1.2.1 hotfix for the Living Village Update.** The original ten jobs,
+optional race, free practice racing, first celebration, character customisation
+and save recovery remain. v1.2 adds six named villagers, two safe NPC drivers,
+original music/SFX with persisted settings, a larger continuous rally circuit,
+and ten new jobs M11–M20 ending in a separate village-festival finale. v1.2.1
+fixes M18 repair-part persistence across save/reload and makes off-island NPC
+traffic stop permanently.
 
 - Save schema **3** adds `FestivalSeen`; `CelebrationSeen` keeps its original
   M10 meaning. Schema 1/2 saves migrate with coins, outfits, world state and
   progression intact; a completed v1.1.0 village unlocks M11 immediately.
 - Packaged Linux x64 export booted headlessly and passed all runtime phases.
-- Windows x64 export is PE32+ with file/product version `1.2.0.0`.
+- Windows x64 export is PE32+ with file/product version `1.2.1.0`.
   **Windows startup was not tested** (no Windows runtime or Wine) and was
   explicitly waived for the Linux-first release.
 - Real AMD Radeon 890M: 720p mean **16.69 ms** / p95 17.35 ms; 1080p mean
@@ -29,22 +30,23 @@ finale.
   exists, so a baseline comparison is **NOT TESTED**.
 - Packaged audio reached the real PipeWire sink monitor (nonzero PCM capture)
   and **human listening is PASS** — the product owner verified the packaged
-  build on 2026-11-09. See
-  [docs/RELEASE_NOTES_v1.2.0.md](docs/RELEASE_NOTES_v1.2.0.md).
+  build on 2026-11-09. v1.2.1 changes no audio code or assets. See
+  [docs/RELEASE_NOTES_v1.2.1.md](docs/RELEASE_NOTES_v1.2.1.md).
 
 ## Download / install
 
-Published v1.2.0 downloads:
+v1.2.0 downloads remain available as the previous release. The v1.2.1 archives
+are built locally and are the release candidate for the focused hotfix:
 [GitHub release v1.2.0](https://github.com/PhilipGB/patchwork-island/releases/tag/v1.2.0)
 (Linux/Windows ZIPs, `README.txt`, `SHA256SUMS`).
 
 The same artifacts are also present locally under `dist/`:
 
 ```text
-dist/windows/PatchworkIsland.exe        Windows x64, single executable (v1.2.0)
-dist/linux/PatchworkIsland.x86_64       Linux x86_64, single executable (v1.2.0)
-dist/PatchworkIsland-1.2.0-Windows-x86_64.zip
-dist/PatchworkIsland-1.2.0-Linux-x86_64.zip
+dist/windows/PatchworkIsland.exe        Windows x64, single executable (v1.2.1)
+dist/linux/PatchworkIsland.x86_64       Linux x86_64, single executable (v1.2.1)
+dist/PatchworkIsland-1.2.1-Windows-x86_64.zip
+dist/PatchworkIsland-1.2.1-Linux-x86_64.zip
 dist/PatchworkIsland-1.1.0-Windows-x86_64.zip   previous release archive
 dist/PatchworkIsland-1.1.0-Linux-x86_64.zip     previous release archive
 dist/SHA256SUMS
@@ -57,7 +59,7 @@ The Windows build is unsigned, so Windows SmartScreen may ask for confirmation.
 ### Windows export verification
 
 `Godot_v4.7.2-stable_mono_export_templates` produced a valid PE32+ x86-64
-executable with file/product version `1.2.0.0`. The embedded pack contains
+executable with file/product version `1.2.1.0`. The embedded pack contains
 `data/missions.json`, the P9 customisation code and the .NET assemblies, and
 the executable references the self-contained
 `Microsoft.NETCore.App.Runtime.win-x64` runtime pack. It was **not launched**
@@ -217,7 +219,7 @@ Writes are atomic (temporary file, flush, move). A structurally invalid or
 unreadable main save is renamed `save.json.corrupt-<timestamp>` and the backup
 is loaded if possible.
 
-Save schema versions are separate from game release versions. v1.2.0 writes
+Save schema versions are separate from game release versions. v1.2.1 writes
 schema **3** and loads supported older schemas:
 
 - **Schema 1** (v1.0.x) saves migrate in memory through schema 2 to schema 3.
@@ -270,7 +272,7 @@ and SFX settings; the game remains fully playable with sound off.
 
 - **Windows startup is NOT TESTED.** The PE32+ export compiles and packages,
   but no Windows runtime was available. This was explicitly waived for the
-  Linux-first v1.2.0 release.
+  Linux-first v1.2.1 release.
 - **No v1.1.0 real-GPU baseline probe exists**, so the Radeon frame times are
   absolute measurements rather than a before/after comparison.
 - **Child usability testing was not possible.** No children participated; the
@@ -284,10 +286,10 @@ and SFX settings; the game remains fully playable with sound off.
 ## Verification summary
 
 - `dotnet build PatchworkIsland.sln`: 0 errors, 0 warnings.
-- Pure tests: **106 passed, 0 failed**.
-- Runtime: **161 + 21 + 101 + 238 + 10 + 217 + 140 + 18 + 22** passed,
-  0 failed (pause/modal, resume, recovery, living village, rally, chapter two,
-  finale, traversal, v1.1 migration).
+- Pure tests: **107 passed, 0 failed**.
+- Runtime: **161 + 21 + 101 + 238 + 10 + 217 + 48 + 140 + 18 + 22 = 976**
+  passed, 0 failed (pause/modal, resume, recovery, living village, rally,
+  chapter two, M18 relaunch hotfix, finale, traversal, v1.1 migration).
 - Packaged Linux x64 booted headlessly and passed selftest, rally, finale,
   traversal and v1.1-migration phases with exit 0 and zero leaked unsafe
   references.
@@ -295,11 +297,13 @@ and SFX settings; the game remains fully playable with sound off.
   p95 17.35 ms; 1080p mean **16.67 ms** / p95 17.28 ms over 600 frames each.
 - Packaged audio reached the real PipeWire sink monitor (nonzero PCM), and the
   product owner verified audible playback on 2026-11-09.
-- v1.2.0 exports: Linux ELF x86-64; Windows PE32+ x86-64 with file/product
-  version `1.2.0.0`.
+- v1.2.1 exports: Linux ELF x86-64; Windows PE32+ x86-64 with file/product
+  version `1.2.1.0`.
 - Save schema 3 migration, M05/M09 four-gate timing, the original M10
   celebration and the separate M20 festival are covered by pure and runtime
   tests.
+- The v1.2.1 hotfix adds a real partial-M18 save/relaunch phase, a legacy-save
+  normalisation test, and a one-shot off-island traffic stop check.
 - The P15.1 bridge hotfix adds the seam/junction/cap captures
   (`evidence/p14_720_15..17_*.png`, `evidence/p14_1080_15..17_*.png`) and an
   18-check traversal phase covering both road edges, westbound travel, no
