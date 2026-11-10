@@ -161,7 +161,7 @@ public partial class WorldSceneAdapter : WorldBuilder
         AppleCrate = AnchorPosition("AppleCrate");
         PostCounter = AnchorPosition("PostCounter");
         BridgeCenter = AnchorPosition("BridgeCenter");
-        PlaygroundCenter = AnchorPosition("PlaygroundCenter");
+        PlaygroundCenter = RequireNode<Node3D>("Playground").GlobalPosition;
         ParkCenter = AnchorPosition("ParkCenter");
         VillageGreenSign = AnchorPosition("VillageGreenSign");
         GroveCenter = AnchorPosition("GroveCenter");

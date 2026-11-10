@@ -96,6 +96,17 @@ public partial class TrafficCar : CharacterBody3D
         VisualTemplate.ApplyVertexColours(template, VisualTemplate.VertexColourMaterial());
         _wheels.Clear();
         _wheels.AddRange(VisualTemplate.BuildWheelPivots(template));
+
+        // Same missing-normal self-shadow fix as the player van.
+        VisualTemplate.DisableSelfShadow(template);
+        bool scooter = _route.VehicleKind == "scooter";
+        var groundShadow = Geo.Disc(this, new Vector3(0, 0.015f, 0), 1.0f,
+            new Color(0.06f, 0.10f, 0.16f), 0.15f);
+        groundShadow.Name = "GroundShadow";
+        groundShadow.Scale = scooter
+            ? new Vector3(0.62f, 1f, 0.95f)
+            : new Vector3(1.05f, 1f, 1.55f);
+        groundShadow.CastShadow = GeometryInstance3D.ShadowCastingSetting.Off;
     }
 
     private void SetYawToward(NpcPoint target)

@@ -49,11 +49,13 @@ mesh = SubResource("BoxMesh_3")
 material_override = SubResource("StandardMaterial3D_4")
 
 [node name="BrokenLabel" type="Label3D" parent="."]
-position = Vector3(0, 3.75, 0.9)
+position = Vector3(0, 3.58, 0.9)
 text = "BROKEN"
-font_size = 36
-pixel_size = 0.006
+font_size = 46
+pixel_size = 0.0075
 modulate = Color(0.094, 0.204, 0.353, 1)
+outline_size = 6
+outline_modulate = Color(1, 0.976, 0.9, 0.95)
 billboard = 1
 
 [node name="SwingSeatSocket" type="Marker3D" parent="."]

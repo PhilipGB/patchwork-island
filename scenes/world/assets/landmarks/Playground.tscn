@@ -1,7 +1,7 @@
 [gd_scene load_steps=9 format=3]
 
 [sub_resource type="BoxMesh" id="BoxMesh_1"]
-size = Vector3(18, 0.03, 13)
+size = Vector3(18, 0.03, 12.4)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2"]
 albedo_color = Color(0.847059, 0.815686, 0.607843, 1)
@@ -45,12 +45,12 @@ mesh = SubResource("BoxMesh_3")
 material_override = SubResource("StandardMaterial3D_4")
 
 [node name="SignPanel" type="MeshInstance3D" parent="."]
-position = Vector3(-6, 2.1, 1.2)
+position = Vector3(0, 2.1, 6.0)
 mesh = SubResource("BoxMesh_5")
 material_override = SubResource("StandardMaterial3D_6")
 
 [node name="Name" type="Label3D" parent="."]
-position = Vector3(-6, 2.1, 1.32)
+position = Vector3(0, 2.1, 6.12)
 text = "PLAYGROUND"
 font_size = 40
 pixel_size = 0.007
@@ -59,17 +59,17 @@ billboard = 0
 double_sided = false
 
 [node name="SignPostLeft" type="MeshInstance3D" parent="."]
-position = Vector3(-7.9, 0.875, 1.08)
+position = Vector3(-1.7, 0.875, 5.85)
 mesh = SubResource("AuditPostMesh")
 material_override = SubResource("AuditPostMat")
 
 [node name="SignPostRight" type="MeshInstance3D" parent="."]
-position = Vector3(-4.1, 0.875, 1.08)
+position = Vector3(1.7, 0.875, 5.85)
 mesh = SubResource("AuditPostMesh")
 material_override = SubResource("AuditPostMat")
 
 [node name="NameBack" type="Label3D" parent="."]
-position = Vector3(-6, 2.1, 1.08)
+position = Vector3(0, 2.1, 5.88)
 text = "PLAYGROUND"
 font_size = 40
 pixel_size = 0.007

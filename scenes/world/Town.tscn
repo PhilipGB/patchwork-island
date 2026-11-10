@@ -355,13 +355,13 @@ rotation = Vector3(0, 3.14159, 0)
 position = Vector3(-9.8, 0, 4.2)
 
 [node name="Playground" parent="." instance=ExtResource("ext_12")]
-position = Vector3(-38, 0, -5)
+position = Vector3(-38, 0, -9.5)
 
 [node name="SwingFrame1" parent="." instance=ExtResource("ext_13")]
-position = Vector3(-41, 0, -5)
+position = Vector3(-41, 0, -11.5)
 
 [node name="SwingFrame2" parent="." instance=ExtResource("ext_14")]
-position = Vector3(-35, 0, -5)
+position = Vector3(-35, 0, -11.5)
 
 [node name="VillageGreen" parent="." instance=ExtResource("ext_15")]
 position = Vector3(15, 0, 16)
@@ -496,10 +496,10 @@ position = Vector3(91, 0, 47)
 position = Vector3(78, 0, -14)
 
 [node name="Lamp_0" parent="." instance=ExtResource("ext_53")]
-position = Vector3(-30, 0, 3.3)
+position = Vector3(-34.8, 0, 8.0)
 
 [node name="Lamp_2" parent="." instance=ExtResource("ext_55")]
-position = Vector3(2.2, 0, 4.0)
+position = Vector3(2.2, 0, -6.0)
 
 [node name="Lamp_3" parent="." instance=ExtResource("ext_56")]
 position = Vector3(18, 0, -4.2)
@@ -754,7 +754,7 @@ position = Vector3(13.5, 0, 24)
 rotation = Vector3(0, 0, 0)
 
 [node name="Bench_1" parent="." instance=ExtResource("legacy_extra_5")]
-position = Vector3(-45, 0, -4)
+position = Vector3(-31.5, 0, -5.5)
 rotation = Vector3(0, 1.5708, 0)
 
 [node name="Bench_2" parent="." instance=ExtResource("legacy_extra_6")]
@@ -774,7 +774,7 @@ position = Vector3(61.5, 0, -8.5)
 position = Vector3(64.5, 0, -12)
 
 [node name="PlaygroundFixSign" parent="." instance=ExtResource("canonical_5")]
-position = Vector3(-38, 0, -9.6)
+position = Vector3(-38, 0, -14.5)
 
 [node name="DeliveryBoard" parent="." instance=ExtResource("canonical_6")]
 position = Vector3(-2.5, 0, 4.2)

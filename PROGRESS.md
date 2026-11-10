@@ -2171,3 +2171,67 @@ ignored `evidence/v13_canonical_visual/` directory.
 - Windows startup remains **NOT TESTED**.
 - Celebration bunting intentionally renders as stylised floating flags; no
   text or collision issue was observed.
+
+## P19 — v1.3.0 gameplay-height visual defect pass (V25–V35) — PASS
+
+**Branch:** `v1.3.0-canonical-town`. No tag, merge or release created.
+
+A second manual tour at ordinary gameplay height found eleven remaining visual
+defects that fixed inspection cameras had missed. Each was corrected and
+re-rendered from the same viewpoint.
+
+### Defects corrected
+
+| # | Defect | Correction |
+|---|---|---|
+| V25 | `BRIDGE WORKS` clipped inside its panel, with a second tiny fragment above. | Two single-sided labels outside each face; posts moved behind the panel. |
+| V26 | Open gable ends on RedHouse and other gabled buildings. | Two wall-coloured gables added to RedHouse, PlayerHouse, Workshop, Market, ClothesShop and TownHall. |
+| V27 | Playground swings/sign/interaction marker encroached on the road. | Playground moved to z=-9.5, sand shortened, swings at z=-11.5, marker at z=-5.0 on sand; fix sign and bench moved. |
+| V28 | Playground sign intersected the swing structure. | Entrance sign centred 8 m clear of the swings. |
+| V29 | Rally gate numbers partly hidden by the crossbeam. | Panel raised/shortened to 2.4×1.45 m at y=5.95 on all six gates; dual-faced numbers. |
+| V30 | Van cargo roof moiré; postal label detached. | Self-shadow cast disabled on the missing-normal vehicle GLBs, contact shadow added, label flush on rear door. Applied to all NPC/rival cars too. |
+| V31 | Pip car label floated against the workshop wall. | Lowered to 1.82 m, font 40 with cream outline; repaired-car label matched. |
+| V32 | Jobs Board junction had overlapping road patches, dark joins and lane lines across mouths. | Three stray patches removed, side roads trimmed to ±3.2, all slab tops flush at y=0.0175, junction dashes removed. |
+| V33 | Crossing stripes overhung the side road. | Crossing narrowed from 4.2 m to 3.2 m. |
+| V34 | Lamps in the carriageway/awning. | In-road lamp moved to a verge; Market lamp moved south of the awning. |
+| V35 | World labels too small at gameplay distance. | Swing `BROKEN` 46 px outlined, car labels 40 px outlined, start flag enlarged to 2.8×1.5 m with two 54 px faces, postal label repositioned. |
+
+The blue traffic car was also found to have the van's missing-normal roof moiré
+during the P12 re-check; the fix now covers every `TrafficCar` visual.
+
+### Verification
+
+```text
+dotnet run --project tests/PatchworkIsland.Tests.csproj   111 passed, 0 failed
+--selftest                281 passed, 0 failed
+--selftest-resume          21 passed, 0 failed
+--selftest-recovery       101 passed, 0 failed
+--selftest-living         238 passed, 0 failed
+--selftest-rally           10 passed, 0 failed
+--selftest-chapter        217 passed, 0 failed
+--selftest-hotfix          48 passed, 0 failed
+--selftest-finale         140 passed, 0 failed
+--selftest-traversal       18 passed, 0 failed
+--selftest-release         40 passed, 0 failed
+--selftest-restore         54 passed, 0 failed
+```
+
+Source runtime total: **1168 passed, 0 failed**, every phase exit 0.
+
+Packaged Linux (`dist/linux/PatchworkIsland.x86_64`): boot **PASS**; all 11
+phases **1168 passed, 0 failed**; `--selftest` repeated **3/3 green**. The
+extracted ZIP binary booted and passed `--selftest` (281/281). Windows binaries
+were rebuilt but startup remains **NOT TESTED**.
+
+### Evidence
+
+Ignored `evidence/v13_canonical_visual/v13.1_recheck/`: 31 gameplay-height
+probe views plus final 1920×1080 P12/P13/P14 tours. Defect table is in
+`docs/VISUAL_QA.md` (V25–V35) and the acceptance gate in `ACCEPTANCE.md`.
+
+### Remaining gaps
+
+- Human visual sign-off and one continuous M01–M20 sitting remain **NOT TESTED**.
+- Windows startup remains **NOT TESTED**.
+- The Market gable is visually closed; at very oblique angles the blue roof
+  slope remains visible beside the gable, which is normal roof geometry.

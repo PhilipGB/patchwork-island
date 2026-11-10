@@ -694,3 +694,28 @@ P13 and P14 1080p tours). No generated images are committed.
 
 **Remaining severity:** no visual blocker known. Human sign-off, one continuous
 M01–M20 sitting and Windows startup remain **NOT TESTED**. No tag or release.
+
+## v1.3.0 — gameplay-height defect re-check (V25–V35)
+
+| # | Visual check | Result |
+|---|---|---|
+| 1 | Bridge Works sign readable from both sides, with no clipped text | **PASS** — two single-sided labels, posts behind the panel. |
+| 2 | Gabled buildings closed at both ends | **PASS** — two wall-coloured gables added to RedHouse, PlayerHouse, Workshop, Market, ClothesShop and TownHall. |
+| 3 | Playground, swings, sign and interaction marker clear of the road | **PASS** — playground moved south, marker on sand, swings 8 m from the road. |
+| 4 | Playground sign clear of the swing structure | **PASS** — entrance sign centred, no intersection. |
+| 5 | All six rally gate numbers readable from both approaches | **PASS** — panels raised above the beam and dual-faced. |
+| 6 | No vehicle roof moiré or detached postal label | **PASS** — van and all traffic/rival cars use a contact shadow instead of self-shadowing; label flush on the rear door. |
+| 7 | Pip car label reads as attached to the vehicle | **PASS** — lowered, enlarged, outlined. |
+| 8 | Road junctions continuous with no stray patches or crossing lane lines | **PASS** — slabs trimmed and levelled, markings cleared at mouths. |
+| 9 | Crossing stripes stay inside the side road | **PASS** — crossing narrowed to 3.2 m. |
+| 10 | Lamps clear of carriageway and awnings | **PASS** — two lamps relocated. |
+| 11 | World labels readable at gameplay distance | **PASS** — swing, car, flag and postal labels enlarged/outlined. |
+
+**Gates:** pure **111 passed**; source runtime **1168 passed, 0 failed** across
+all 11 phases. Packaged Linux verification is recorded in `PROGRESS.md`.
+
+**Evidence:** ignored `evidence/v13_canonical_visual/v13.1_recheck/` (31
+gameplay-height probe views plus final 1080p P12/P13/P14 tours).
+
+**Remaining severity:** no visual blocker known. Human sign-off, one continuous
+M01–M20 sitting and Windows startup remain **NOT TESTED**. No tag or release.

@@ -131,3 +131,14 @@ normal play. The full before/after defect log is in `docs/VISUAL_QA.md`; the
 ignored `evidence/v13_canonical_visual/` directory holds the 39 audit views and
 the 1080p P12/P13/P14 tours. Source runtime after the correction: **1168
 passed, 0 failed**.
+
+### Follow-up at gameplay distance (V25–V35)
+
+A second audit used ordinary player-height cameras and found defects that the
+fixed inspection cameras had missed: bridge-sign clipping, open gable ends,
+playground/road overlap, rally-gate numbers behind the beam, vehicle roof
+self-shadow moiré, a floating Pip-car label, stray road patches and
+junction-crossing markings, an over-wide crossing, misplaced lamps and
+undersized world labels. All were corrected in the authored scenes; the full
+table is in `docs/VISUAL_QA.md`. Vehicle visuals now use a contact shadow
+because the supplied GLBs carry no face normals.

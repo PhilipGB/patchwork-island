@@ -87,6 +87,18 @@ public static class VisualTemplate
     }
 
     /// <summary>
+    /// The authored vehicle GLBs have no NORMAL data, so their large flat
+    /// panels self-shadow into a moire pattern. They still receive world
+    /// shadows; a lightweight contact disc provides the grounded shadow.
+    /// </summary>
+    public static void DisableSelfShadow(Node root)
+    {
+        foreach (Node node in Descendants(root))
+            if (node is GeometryInstance3D geometry)
+                geometry.CastShadow = GeometryInstance3D.ShadowCastingSetting.Off;
+    }
+
+    /// <summary>
     /// Splits an unrigged character mesh into animation pivots. The authored
     /// parts are baked in model space, so each mesh is reparented with its
     /// global transform preserved before its pivot rotates.

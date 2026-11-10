@@ -43,8 +43,8 @@ public partial class SwingBuilder : Node3D, IBuildMode
         BuildSockets();
         _buildCamera = new Camera3D { Name = "SwingBuildCamera", Fov = 58, Current = false };
         AddChild(_buildCamera);
-        _buildCamera.GlobalPosition = new Vector3(-38f, 6.2f, 6.0f);
-        _buildCamera.LookAt(new Vector3(-38f, 1.8f, -4.0f), Vector3.Up);
+        _buildCamera.GlobalPosition = new Vector3(-38f, 6.2f, -3.5f);
+        _buildCamera.LookAt(new Vector3(-38f, 1.8f, -11.5f), Vector3.Up);
 
         RestorePieces();
         SetProcess(true);

@@ -12,7 +12,7 @@ metallic = 0.0
 size = Vector3(11.2, 0.8, 0.8)
 
 [sub_resource type="BoxMesh" id="BoxMesh_4"]
-size = Vector3(3.2, 2.3, 0.3)
+size = Vector3(2.4, 1.45, 0.3)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5"]
 albedo_color = Color(1.000000, 0.960784, 0.898039, 1)
@@ -44,12 +44,12 @@ mesh = SubResource("BoxMesh_3")
 material_override = SubResource("StandardMaterial3D_2")
 
 [node name="NumberPanel" type="MeshInstance3D" parent="."]
-position = Vector3(0, 5.45, 0)
+position = Vector3(0, 5.95, 0)
 mesh = SubResource("BoxMesh_4")
 material_override = SubResource("StandardMaterial3D_5")
 
 [node name="Number" type="Label3D" parent="."]
-position = Vector3(0, 5.45, -0.2)
+position = Vector3(0, 5.95, -0.2)
 text = "6"
 font_size = 150
 pixel_size = 0.007
@@ -79,7 +79,7 @@ position = Vector3(0, 4.75, 0)
 shape = SubResource("BoxShape3D_7")
 
 [node name="NumberBack" type="Label3D" parent="."]
-position = Vector3(0, 5.45, 0.2)
+position = Vector3(0, 5.95, 0.2)
 text = "6"
 font_size = 150
 pixel_size = 0.007

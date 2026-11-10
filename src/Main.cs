@@ -193,7 +193,7 @@ public partial class Main : Node3D
         }
         if (HasUserArg("--scenario-m07"))
         {
-            BeginScenario(new Vector3(-38f, 0.2f, 3.0f), 0f,
+            BeginScenario(new Vector3(-38f, 0.2f, -4.0f), Mathf.Pi,
                 "SCENARIO: M07 active. Press E by the broken swings.", 5f);
             return;
         }
@@ -768,7 +768,7 @@ public partial class Main : Node3D
             "E: Call van to parking", ResetVanAtSign, () => !_driving, true, 3.2f, "VanParkingStation");
         _parkingStation.SetPrompt(() => _driving ? "E: Parking sign" : "E: Call van to parking");
 
-        _playgroundStation = Interactable.Create(this, new Vector3(-38f, 0.1f, -1.5f),
+        _playgroundStation = Interactable.Create(this, new Vector3(-38f, 0.1f, -5.0f),
             "E: Playground worksite", InteractPlayground, null, true, 4.0f, "PlaygroundStation");
         _playgroundStation.SetPrompt(PlaygroundPrompt);
 

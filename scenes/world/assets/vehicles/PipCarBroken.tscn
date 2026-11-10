@@ -124,9 +124,11 @@ mesh = SubResource("BoxMesh_17")
 material_override = SubResource("StandardMaterial_18")
 
 [node name="Status" type="Label3D" parent="."]
-position = Vector3(0, 2.28, 0)
+position = Vector3(0, 1.82, 0)
 text = "PIP'S CAR — BROKEN"
-font_size = 30
-pixel_size = 0.005
+font_size = 40
+pixel_size = 0.006
+outline_size = 7
+outline_modulate = Color(1, 0.976, 0.9, 0.95)
 modulate = Color(0.8078431, 0.2666667, 0.2666667, 1)
 billboard = 1

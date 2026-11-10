@@ -157,3 +157,28 @@ with every static `Label3D` rendered from both sides, plus the 18-shot P14,
 | V22 | Bench on the rally start road. | Legacy decoration placement. | Removed the misplaced bench. | `p12_1080_02_start_line.png` |
 | V23 | Gate number panels blank/edge-on from the approach. | Single small number face was on the far side of the panel. | Added larger numbers on both faces of all six gate panels. | `22_gate_one_front.png`, `23_gate_one_back.png`, `35_gate_two_front.png`, `36_gate_two_back.png` |
 | V24 | `SUPPORT`/`ROPE`/`SEAT` ghost labels visible during normal play. | Build ghosts stayed visible when their build mode was closed. | `BuildSocket` now hides ghost mesh/icon/label outside build mode; runtime regression added. | `p12_1080_02_start_line.png` |
+
+## v1.3.0 manual defect pass (V25–V35)
+
+This pass used ordinary gameplay-height cameras and distances rather than only
+fixed inspection cameras. Each item was re-rendered from the same viewpoint
+after correction. Evidence is in the ignored
+`evidence/v13_canonical_visual/v13.1_recheck/` directory.
+
+| ID | Defect | Root cause | Fix | Evidence |
+|---|---|---|---|---|
+| V25 | `BRIDGE WORKS` text embedded in the sign panel; a second tiny fragment above it. | One billboard label was anchored behind the panel, so it clipped through both faces. | Replaced it with two single-sided labels just outside each panel face and moved the support posts behind the sign. | `V25_bridge_works_close.png` |
+| V26 | Red House (and the other gabled buildings) had open gable ends with sky visible under the roof. | The reusable buildings had roof slabs and walls but no triangular end walls. | Added a wall-coloured `PrismMesh` gable to both ends of RedHouse, PlayerHouse, Workshop, Market, ClothesShop and TownHall, sized to the roof ridge and width. | `V26_red_house_corner.png`, `V26_player_house_corner.png`, `V26_workshop_corner.png`, `V26_market_corner.png`, `V26_clothes_corner.png`, `V26_townhall_north.png` |
+| V27 | Playground swings, sign and yellow interaction marker encroached on the carriageway. | The playground sand overlapped the road and the interaction station was at the old road edge. | Moved the playground centre to z=-9.5, shortened the sand to 12.4 m, moved the swings to z=-11.5, moved the station to z=-5.0 on the sand, and moved the fix sign and bench with it. | `V27_playground_road.png`, `V27_playground_marker.png` |
+| V28 | Playground sign intersected/obscured the nearest swing frame. | The sign sat between the swing frames at the old centre. | Centred the sign at the playground entrance (local 0,2.1,6.0), 8 m clear of the swings, with new posts. | `V27_playground_road.png` |
+| V29 | Rally gate number was partly behind the crossbeam. | The number panel was centred at y=5.45 while the beam top is y=5.15. | Raised and shortened the panel to 2.4×1.45 m at y=5.95, with matching numbers on both faces of all six gates. | `V29_gate4_approach.png` |
+| V30 | Delivery-van cargo roof showed black/yellow moiré, and `PATCHWORK POST` floated above the body. | The authored vehicle GLBs have no normal data; their flat panels self-shadowed. The rear label sat inside/above the cargo box. | Disabled self-shadow casting for the van and all NPC/rival cars, added a soft contact shadow, and placed the postal label flush on the rear door. | `V30_van_isolated_rear_high.png`, `p12_1080_02_start_line.png`, `p14_1080_01_post_counter.png` |
+| V31 | Pip's broken-car label floated against the workshop wall. | The billboard label was high above the roofline and low contrast. | Lowered it to 1.82 m, raised the font to 40 with a cream outline, and applied the same treatment to the repaired-car label. | `V31_pip_car.png`, `p14_1080_06_broken_pip_car.png` |
+| V32 | Jobs Board junction showed overlapping rectangular road patches, dark joins and lane lines crossing side-road mouths. | Road slabs overlapped at different heights, three stray patches did not connect to anything, and centre/edge dashes ran across junctions. | Removed the three stray patches, trimmed side roads to butt against the main carriageway at z=±3.2, unified every slab top at y=0.0175, and removed centre/edge dashes inside junction mouths. | `V32_jobs_overhead.png`, `V32_road_west_top.png` |
+| V33 | Crossing stripes extended past the side-road boundary. | The crosswalk was 4.2 m wide over a 3.6 m mouth. | Narrowed the crossing to 3.2 m, centred in the mouth. | `V33_crosswalk_top.png`, `p14_1080_01_post_counter.png` |
+| V34 | Lamps stood in the carriageway or against an awning near the Jobs Board. | Legacy lamp coordinates were not checked against the authored road rectangles. | Moved the in-road lamp to the verge between the two north roads and moved the Market lamp to the south verge, clear of the awning. | `V32_jobs_overhead.png`, `V34_lamp_jobs.png`, `V26_market_corner.png` |
+| V35 | `BROKEN`, car-status and `START / FINISH` labels were hard to read at gameplay distance. | Small font sizes and billboard labels that could clip into their backing panels. | Raised the swing label to 46 px with outline, raised the car label to 40 px with outline, enlarged the start flag to 2.8×1.5 m with two 54 px single-sided faces, and moved the postal label to a readable rear position. | `V35_swing_labels.png`, `V35_start_flag.png`, `V35_start_flag_back.png`, `p12_1080_02_start_line.png` |
+
+The blue traffic car in `p12_1080_02_start_line.png` showed the same missing-normal
+roof moiré found on the van. The fix was applied to every `TrafficCar` visual
+(including the rally rival), not just the player van.

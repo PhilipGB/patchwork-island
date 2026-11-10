@@ -1,4 +1,4 @@
-[gd_scene load_steps=41 format=3]
+[gd_scene load_steps=42 format=3]
 
 [sub_resource type="BoxMesh" id="BoxMesh_1"]
 size = Vector3(15.6, 0.4, 10.6)
@@ -142,6 +142,9 @@ metallic = 0.0
 [sub_resource type="BoxMesh" id="BoxMesh_40"]
 size = Vector3(0.28, 0.06, 0.06)
 
+[sub_resource type="PrismMesh" id="GableMesh"]
+size = Vector3(16.2, 2.76, 0.3)
+
 [node name="TownHall" type="Node3D"]
 
 
@@ -224,6 +227,16 @@ material_override = SubResource("StandardMaterial3D_5")
 position = Vector3(0, 0.08, -5.8)
 mesh = SubResource("BoxMesh_12")
 material_override = SubResource("StandardMaterial3D_2")
+
+[node name="GableFront" type="MeshInstance3D" parent="."]
+position = Vector3(0, 5.63, 5.33)
+mesh = SubResource("GableMesh")
+material_override = SubResource("StandardMaterial3D_5")
+
+[node name="GableBack" type="MeshInstance3D" parent="."]
+position = Vector3(0, 5.63, -5.33)
+mesh = SubResource("GableMesh")
+material_override = SubResource("StandardMaterial3D_5")
 
 [node name="RoofNorth" type="MeshInstance3D" parent="."]
 position = Vector3(0, 5.55, -2.5)

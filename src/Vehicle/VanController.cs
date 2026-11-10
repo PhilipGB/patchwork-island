@@ -102,11 +102,21 @@ public partial class VanController : CharacterBody3D
         _wheelPivots.Clear();
         _wheelPivots.AddRange(VisualTemplate.BuildWheelPivots(template));
 
-        // Postal identity stays readable on top of the authored silhouette.
+        // The authored van has no face normals, so its large flat panels
+        // self-shadow into a moire pattern. Let the body receive shadows but
+        // not cast them, and ground it with a soft blob shadow instead.
+        VisualTemplate.DisableSelfShadow(template);
+        var groundShadow = Geo.Disc(this, new Vector3(0, 0.015f, 0), 1.0f,
+            new Color(0.06f, 0.10f, 0.16f), 0.15f);
+        groundShadow.Name = "GroundShadow";
+        groundShadow.Scale = new Vector3(1.05f, 1f, 1.55f);
+        groundShadow.CastShadow = GeometryInstance3D.ShadowCastingSetting.Off;
+
+        // Postal identity sits flush on the rear cargo door.
         AddEnvelopeMark(_visual, -1.105f, 1.3f, 0.25f, -1);
         AddEnvelopeMark(_visual, 1.105f, 1.3f, 0.25f, 1);
-        Geo.Label(_visual, new Vector3(0, 1.55f, 1.71f), "PATCHWORK POST", 34, Palette.Navy,
-            false, 0.004f, 0, null, "VanRearText");
+        Geo.Label(_visual, new Vector3(0, 0.95f, 1.83f), "PATCHWORK POST", 30, Palette.Navy,
+            false, 0.005f, 4, null, "VanRearText");
 
         // The authored van has a closed cabin, so the driver figure is kept as
         // an optional hidden node rather than rebuilt from boxes.

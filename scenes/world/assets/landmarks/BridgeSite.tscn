@@ -33,20 +33,36 @@ position = Vector3(0, 2.2, 0)
 mesh = SubResource("BoxMesh_1")
 material_override = SubResource("StandardMaterial_2")
 
-[node name="WorksiteText" type="Label3D" parent="."]
-position = Vector3(0, 2.2, -0.1)
+[node name="WorksiteTextFront" type="Label3D" parent="."]
+position = Vector3(0, 2.2, 0.13)
 text = "BRIDGE WORKS"
 font_size = 44
 pixel_size = 0.005
 modulate = Color(0.1019608, 0.1882353, 0.3254902, 1)
-billboard = 1
+billboard = 0
+double_sided = false
+
+[node name="WorksiteTextBack" type="Label3D" parent="."]
+position = Vector3(0, 2.2, -0.13)
+text = "BRIDGE WORKS"
+font_size = 44
+pixel_size = 0.005
+modulate = Color(0.1019608, 0.1882353, 0.3254902, 1)
+billboard = 0
+rotation = Vector3(0, 3.14159, 0)
+double_sided = false
 
 [node name="SupplyCrate" type="MeshInstance3D" parent="."]
 position = Vector3(1, 0.45, 0.5)
 mesh = SubResource("BoxMesh_3")
 material_override = SubResource("StandardMaterial_4")
 
-[node name="SignPost" type="MeshInstance3D" parent="."]
-position = Vector3(0, 0.95, 0.12)
+[node name="SignPostLeft" type="MeshInstance3D" parent="."]
+position = Vector3(-1.7, 0.95, -0.12)
+mesh = SubResource("AuditPostMesh")
+material_override = SubResource("AuditPostMat")
+
+[node name="SignPostRight" type="MeshInstance3D" parent="."]
+position = Vector3(1.7, 0.95, -0.12)
 mesh = SubResource("AuditPostMesh")
 material_override = SubResource("AuditPostMat")
