@@ -1,4 +1,6 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/world/assets/landmarks/ShelfBookSlot.tscn" id="slot"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_1"]
 size = Vector3(4.1, 2.1, 0.55)
@@ -69,3 +71,15 @@ billboard = 0
 [node name="Interaction" type="Marker3D" parent="."]
 position = Vector3(0, 0, -1)
 metadata/gameplay_id = "library-shelf"
+
+[node name="ShelfBook_sun" parent="." instance=ExtResource("slot")]
+position = Vector3(-1.35, 1, 0.34)
+
+[node name="ShelfBook_moon" parent="." instance=ExtResource("slot")]
+position = Vector3(-0.45, 1, 0.34)
+
+[node name="ShelfBook_tree" parent="." instance=ExtResource("slot")]
+position = Vector3(0.45, 1, 0.34)
+
+[node name="ShelfBook_star" parent="." instance=ExtResource("slot")]
+position = Vector3(1.35, 1, 0.34)

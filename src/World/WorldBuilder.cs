@@ -12,35 +12,35 @@ namespace PatchworkIsland;
 public partial class WorldBuilder : Node3D
 {
     // ---- Landmark anchors (also used by mission markers) ----
-    public Vector3 PlayerSpawn { get; } = new(-38.0f, 0.15f, 9.5f);
-    public Vector3 VanSpawn { get; } = new(-30.0f, 0.15f, 14.5f);
-    public Vector3 JobBoard { get; } = new(-22.0f, 0.0f, 5.0f);
-    public Vector3 PlayerHouseDoor { get; } = new(-38.0f, 0.0f, 18.3f);
-    public Vector3 PlayerHouseCenter { get; } = new(-38.0f, 0.0f, 24.0f);
-    public Vector3 TownHallDoor { get; } = new(-14.0f, 0.0f, 8.4f);
-    public Vector3 TownHallCenter { get; } = new(-14.0f, 0.0f, 14.0f);
-    public Vector3 RedHouseDoor { get; } = new(-20.0f, 0.0f, -18.7f);
-    public Vector3 RedHouseCenter { get; } = new(-20.0f, 0.0f, -24.0f);
-    public Vector3 ShopDoor { get; } = new(5.0f, 0.0f, 3.8f);
-    public Vector3 ShopCenter { get; } = new(5.0f, 0.0f, 9.0f);
-    public Vector3 ClothesShopDoor { get; } = new(24.0f, 0.0f, 3.5f);
-    public Vector3 ClothesShopCenter { get; } = new(24.0f, 0.0f, 7.0f);
-    public Vector3 WorkshopDoor { get; } = new(25.0f, 0.0f, -10.3f);
-    public Vector3 WorkshopCenter { get; } = new(25.0f, 0.0f, -16.0f);
-    public Vector3 AppleCrate { get; } = new(-2.5f, 0.0f, 3.6f);
-    public Vector3 PostCounter { get; } = new(-9.0f, 0.0f, 8.0f);
-    public Vector3 BridgeSite { get; } = new(36.5f, 0.0f, 4.5f);
-    public Vector3 BridgeCenter { get; } = new(45.0f, 0.0f, 0.0f);
-    public Vector3 PlaygroundCenter { get; } = new(-38.0f, 0.0f, -5.0f);
-    public Vector3 ParkCenter { get; } = new(15.0f, 0.0f, 16.0f);
-    public Vector3 VillageGreenSign { get; } = new(10.0f, 0.0f, 10.7f);
-    public Vector3 GroveCenter { get; } = new(-40.0f, 0.0f, -32.0f);
-    public Vector3 StonePatchCenter { get; } = new(18.0f, 0.0f, -34.0f);
+    public Vector3 PlayerSpawn { get; protected set; } = new(-38.0f, 0.15f, 9.5f);
+    public Vector3 VanSpawn { get; protected set; } = new(-30.0f, 0.15f, 14.5f);
+    public Vector3 JobBoard { get; protected set; } = new(-22.0f, 0.0f, 5.0f);
+    public Vector3 PlayerHouseDoor { get; protected set; } = new(-38.0f, 0.0f, 18.3f);
+    public Vector3 PlayerHouseCenter { get; protected set; } = new(-38.0f, 0.0f, 24.0f);
+    public Vector3 TownHallDoor { get; protected set; } = new(-14.0f, 0.0f, 8.4f);
+    public Vector3 TownHallCenter { get; protected set; } = new(-14.0f, 0.0f, 14.0f);
+    public Vector3 RedHouseDoor { get; protected set; } = new(-20.0f, 0.0f, -18.7f);
+    public Vector3 RedHouseCenter { get; protected set; } = new(-20.0f, 0.0f, -24.0f);
+    public Vector3 ShopDoor { get; protected set; } = new(5.0f, 0.0f, 3.8f);
+    public Vector3 ShopCenter { get; protected set; } = new(5.0f, 0.0f, 9.0f);
+    public Vector3 ClothesShopDoor { get; protected set; } = new(24.0f, 0.0f, 3.5f);
+    public Vector3 ClothesShopCenter { get; protected set; } = new(24.0f, 0.0f, 7.0f);
+    public Vector3 WorkshopDoor { get; protected set; } = new(25.0f, 0.0f, -10.3f);
+    public Vector3 WorkshopCenter { get; protected set; } = new(25.0f, 0.0f, -16.0f);
+    public Vector3 AppleCrate { get; protected set; } = new(-2.5f, 0.0f, 3.6f);
+    public Vector3 PostCounter { get; protected set; } = new(-9.0f, 0.0f, 8.0f);
+    public Vector3 BridgeSite { get; protected set; } = new(36.5f, 0.0f, 4.5f);
+    public Vector3 BridgeCenter { get; protected set; } = new(45.0f, 0.0f, 0.0f);
+    public Vector3 PlaygroundCenter { get; protected set; } = new(-38.0f, 0.0f, -5.0f);
+    public Vector3 ParkCenter { get; protected set; } = new(15.0f, 0.0f, 16.0f);
+    public Vector3 VillageGreenSign { get; protected set; } = new(10.0f, 0.0f, 10.7f);
+    public Vector3 GroveCenter { get; protected set; } = new(-40.0f, 0.0f, -32.0f);
+    public Vector3 StonePatchCenter { get; protected set; } = new(18.0f, 0.0f, -34.0f);
     public Vector3 RaceStart { get; protected set; } = new(56.0f, 0.0f, -6.0f);
-    public Vector3 ParkingSign { get; } = new(-33.0f, 0.0f, 12.5f);
-    public Vector3 FurnitureStation { get; } = new(-40.5f, 0.0f, 20.5f);
+    public Vector3 ParkingSign { get; protected set; } = new(-33.0f, 0.0f, 12.5f);
+    public Vector3 FurnitureStation { get; protected set; } = new(-40.5f, 0.0f, 20.5f);
 
-    public Vector3[] SwingFrames { get; } = { new(-41.0f, 0.0f, -5.0f), new(-35.0f, 0.0f, -5.0f) };
+    public Vector3[] SwingFrames { get; protected set; } = { new(-41.0f, 0.0f, -5.0f), new(-35.0f, 0.0f, -5.0f) };
     public (Vector3 Position, float Yaw)[] RaceGates { get; protected set; } = System.Array.Empty<(Vector3, float)>();
     public (Vector3 Position, float Yaw)[] M19RaceGates { get; protected set; } = System.Array.Empty<(Vector3, float)>();
     public Node3D RallyRoad { get; protected set; }
@@ -68,11 +68,11 @@ public partial class WorldBuilder : Node3D
     public List<Node3D> LibraryShelfSlots { get; } = new();
     public List<Node3D> BakeryDisplaySlots { get; } = new();
     public List<(string Book, Vector3 Position)> BookSpawnPoints { get; } = new();
-    public Vector3 BakeryStall { get; } = new(15.2f, 0f, 5.2f);
-    public Vector3 LibraryShelf { get; } = new(-20.8f, 0f, 8.2f);
+    public Vector3 BakeryStall { get; protected set; } = new(15.2f, 0f, 5.2f);
+    public Vector3 LibraryShelf { get; protected set; } = new(-20.8f, 0f, 8.2f);
 
     // ---- P14 finale anchors and visuals ----
-    public Vector3 RepairCarPosition { get; } = new(35.2f, 0f, -7.8f);
+    public Vector3 RepairCarPosition { get; protected set; } = new(35.2f, 0f, -7.8f);
     public List<Vector3> RepairPartSpawnPoints { get; } = new();
     public List<Vector3> FestivalTablePads { get; } = new();
     public List<Vector3> FestivalLanternPads { get; } = new();

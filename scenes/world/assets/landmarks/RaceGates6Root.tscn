@@ -1,0 +1,65 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/world/assets/landmarks/RallyGate1.tscn" id="ext_1"]
+
+[ext_resource type="PackedScene" path="res://scenes/world/assets/landmarks/RallyGate2.tscn" id="ext_2"]
+
+[ext_resource type="PackedScene" path="res://scenes/world/assets/landmarks/RallyGate3.tscn" id="ext_3"]
+
+[ext_resource type="PackedScene" path="res://scenes/world/assets/landmarks/RallyGate4.tscn" id="ext_4"]
+
+[ext_resource type="PackedScene" path="res://scenes/world/assets/landmarks/RallyGate5.tscn" id="ext_5"]
+
+[ext_resource type="PackedScene" path="res://scenes/world/assets/landmarks/RallyGate6.tscn" id="ext_6"]
+
+
+[node name="RaceGates6Root" type="Node3D"]
+visible = false
+
+[node name="M19Gate1" parent="." instance=ExtResource("ext_1")]
+position = Vector3(55.6654, 0, -19.2909)
+rotation = Vector3(0, 3.10462, 0)
+
+[node name="GateArrow1" type="Marker3D" parent="."]
+position = Vector3(55.7275, 0.066, -13.0582)
+metadata/gameplay_id = "M19.arrow.1"
+
+[node name="M19Gate2" parent="." instance=ExtResource("ext_2")]
+position = Vector3(69.184, 0, -43.24)
+rotation = Vector3(0, 2.04412, 0)
+
+[node name="GateArrow2" type="Marker3D" parent="."]
+position = Vector3(64.1019, 0.066, -39.9294)
+metadata/gameplay_id = "M19.arrow.2"
+
+[node name="M19Gate3" parent="." instance=ExtResource("ext_3")]
+position = Vector3(87.2288, 0, -30.9562)
+rotation = Vector3(0, 0.0341985, 0)
+
+[node name="GateArrow3" type="Marker3D" parent="."]
+position = Vector3(86.4337, 0.066, -35.9447)
+metadata/gameplay_id = "M19.arrow.3"
+
+[node name="M19Gate4" parent="." instance=ExtResource("ext_4")]
+position = Vector3(84.5, 0, 17.3125)
+rotation = Vector3(0, -0.173674, 0)
+
+[node name="GateArrow4" type="Marker3D" parent="."]
+position = Vector3(85.5776, 0.066, 9.77438)
+metadata/gameplay_id = "M19.arrow.4"
+
+[node name="M19Gate5" parent="." instance=ExtResource("ext_5")]
+position = Vector3(66.3338, 0, 43.0993)
+rotation = Vector3(0, -1.37293, 0)
+
+[node name="GateArrow5" type="Marker3D" parent="."]
+position = Vector3(70.355, 0.066, 41.6876)
+metadata/gameplay_id = "M19.arrow.5"
+
+[node name="M19Gate6" parent="." instance=ExtResource("ext_6")]
+position = Vector3(55.9422, 0, 23.707)
+rotation = Vector3(0, 3.12239, 0)
+
+[node name="GateArrow6" type="Marker3D" parent="."]
+position = Vector3(55.9514, 0.066, 29.3661)
+metadata/gameplay_id = "M19.arrow.6"

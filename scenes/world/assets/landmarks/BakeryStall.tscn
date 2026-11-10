@@ -1,4 +1,6 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/world/assets/landmarks/BakeryOrderSlot.tscn" id="slot"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_1"]
 size = Vector3(3.2, 1.1, 1.8)
@@ -104,3 +106,12 @@ billboard = 0
 [node name="Interaction" type="Marker3D" parent="."]
 position = Vector3(0, 0, -1.8)
 metadata/gameplay_id = "bakery-stall"
+
+[node name="BakeryOrder_milo" parent="." instance=ExtResource("slot")]
+position = Vector3(-1.05, 1.2, 0.3)
+
+[node name="BakeryOrder_fern" parent="." instance=ExtResource("slot")]
+position = Vector3(0, 1.2, 0.3)
+
+[node name="BakeryOrder_ivy" parent="." instance=ExtResource("slot")]
+position = Vector3(1.05, 1.2, 0.3)

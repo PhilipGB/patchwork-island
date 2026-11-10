@@ -1,0 +1,79 @@
+[gd_scene format=3]
+
+
+[sub_resource type="BoxMesh" id="BoxMesh_1"]
+size = Vector3(3.4, 0.7, 2.2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_2"]
+albedo_color = Color(0.545098, 0.6, 0.6509804, 1)
+roughness = 0.94
+
+[sub_resource type="BoxMesh" id="BoxMesh_3"]
+size = Vector3(3.6, 0.12, 2.4)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_4"]
+albedo_color = Color(1, 0.945098, 0.8313725, 1)
+roughness = 0.94
+
+[sub_resource type="BoxMesh" id="BoxMesh_5"]
+size = Vector3(1, 0.8, 0.8)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_6"]
+albedo_color = Color(0.972549, 0.8235294, 0.2352941, 1)
+roughness = 0.94
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_7"]
+top_radius = 0.22
+bottom_radius = 0.28
+height = 0.5
+radial_segments = 8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_8"]
+albedo_color = Color(0.9568627, 0.772549, 0.2588235, 1)
+roughness = 0.94
+
+[sub_resource type="SphereMesh" id="SphereMesh_9"]
+radius = 0.32
+height = 0.64
+radial_segments = 8
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_10"]
+albedo_color = Color(0.9568627, 0.772549, 0.2588235, 1)
+roughness = 0.94
+
+[node name="RallyPodium" type="Node3D"]
+visible = false
+
+[node name="Platform" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.35, 0)
+mesh = SubResource("BoxMesh_1")
+material_override = SubResource("StandardMaterial_2")
+
+[node name="Trim" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.72, 0)
+mesh = SubResource("BoxMesh_3")
+material_override = SubResource("StandardMaterial_4")
+
+[node name="TopStep" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.1, 0)
+mesh = SubResource("BoxMesh_5")
+material_override = SubResource("StandardMaterial_6")
+
+[node name="TrophyStem" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.8, 0)
+mesh = SubResource("CylinderMesh_7")
+material_override = SubResource("StandardMaterial_8")
+
+[node name="TrophyCup" type="MeshInstance3D" parent="."]
+position = Vector3(0, 2.25, 0)
+mesh = SubResource("SphereMesh_9")
+material_override = SubResource("StandardMaterial_10")
+
+[node name="Headline" type="Label3D" parent="."]
+position = Vector3(0, 2.9, 0)
+text = "GRAND RALLY"
+font_size = 42
+pixel_size = 0.005
+modulate = Color(0.1019608, 0.1882353, 0.3254902, 1)
+billboard = 1

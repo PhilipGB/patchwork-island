@@ -60,3 +60,15 @@ flat-shaded style as the P9 player and existing yellow van, with correct limb
 and wheel pivots. The supplied PNG portraits, mission icons and all audio are
 used as runtime assets. This is an intentional consistency decision, not a
 silent omission; replacement provenance remains the original handoff generator.
+
+## v1.3.0 implementation note: GLB template integration
+
+The canonical-town migration supersedes the v1.2.0 presentation choice. The
+supplied GLB characters, vehicles and pickup meshes are now the runtime visual
+templates, while all controllers, collision, camera and save logic remain in
+C#. Because the GLBs are unrigged and authored in shared model space, the
+integration reparents body parts under head/arm/leg pivots and the four vehicle
+wheels under their own centre pivots, preserving each part's transform before
+animation. `COLOR_0` is enabled as albedo so the authored palettes render
+correctly. Details and the full template mapping are in
+`docs/CANONICAL_TOWN.md` and `docs/scene_bindings.json`.

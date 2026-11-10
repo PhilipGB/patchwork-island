@@ -415,3 +415,7 @@ material_override = SubResource("StandardMaterial3D_33")
 [node name="Entrance" type="Marker3D" parent="."]
 position = Vector3(0, 0, -5.35)
 metadata/gameplay_id = "Market.door"
+
+[node name="DoorMarker" type="Marker3D" parent="."]
+position = Vector3(0, 0, -5.2)
+metadata/scene_binding_id = "ShopDoor"

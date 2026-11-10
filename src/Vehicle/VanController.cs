@@ -90,67 +90,35 @@ public partial class VanController : CharacterBody3D
         _engineDrive?.Stop();
     }
 
+    public string VisualTemplatePath { get; private set; } = "";
+
     private void BuildVisual()
     {
         _visual = new Node3D { Name = "VanVisual" };
         AddChild(_visual);
+        Node3D template = VisualTemplate.Instantiate(_visual, "Visual", VisualTemplate.VanPath);
+        VisualTemplatePath = VisualTemplate.VanPath;
+        VisualTemplate.ApplyVertexColours(template, VisualTemplate.VertexColourMaterial());
+        _wheelPivots.Clear();
+        _wheelPivots.AddRange(VisualTemplate.BuildWheelPivots(template));
 
-        // Chassis and boxy cargo body.
-        Geo.Box(_visual, new Vector3(0, 0.68f, 0), new Vector3(1.9f, 0.6f, 3.5f), Color.FromHtml("E8B92F"));
-        Geo.Box(_visual, new Vector3(0, 1.25f, 0.45f), new Vector3(1.86f, 0.95f, 2.25f), Palette.Yellow);
-        Geo.Box(_visual, new Vector3(0, 1.35f, -1.15f), new Vector3(1.78f, 1.1f, 1.05f), Palette.Yellow);
-        Geo.Box(_visual, new Vector3(0, 2.0f, 0.2f), new Vector3(1.8f, 0.16f, 3.15f), Color.FromHtml("D9A521"));
-        Geo.Box(_visual, new Vector3(0, 0.45f, -1.78f), new Vector3(2.0f, 0.25f, 0.24f), Palette.Navy);
-        Geo.Box(_visual, new Vector3(0, 0.45f, 1.78f), new Vector3(2.0f, 0.25f, 0.24f), Palette.Navy);
-        Geo.Box(_visual, new Vector3(0, 0.76f, -1.82f), new Vector3(1.95f, 0.35f, 0.14f), Palette.Navy);
-
-        // Windscreen and side windows.
-        Geo.Box(_visual, new Vector3(0, 1.48f, -1.68f), new Vector3(1.55f, 0.74f, 0.08f), Color.FromHtml("8FD7FF"));
-        Geo.Box(_visual, new Vector3(0, 1.48f, -1.63f), new Vector3(0.08f, 0.8f, 0.12f), Palette.Cream);
-        Geo.Box(_visual, new Vector3(-0.92f, 1.42f, -1.05f), new Vector3(0.05f, 0.62f, 0.7f), Color.FromHtml("8FD7FF"));
-        Geo.Box(_visual, new Vector3(0.92f, 1.42f, -1.05f), new Vector3(0.05f, 0.62f, 0.7f), Color.FromHtml("8FD7FF"));
-        // Headlights and rear lamps.
-        Geo.Box(_visual, new Vector3(-0.65f, 0.98f, -1.8f), new Vector3(0.38f, 0.24f, 0.08f), Color.FromHtml("FFF3C9"));
-        Geo.Box(_visual, new Vector3(0.65f, 0.98f, -1.8f), new Vector3(0.38f, 0.24f, 0.08f), Color.FromHtml("FFF3C9"));
-        Geo.Box(_visual, new Vector3(-0.7f, 1.0f, 1.79f), new Vector3(0.3f, 0.22f, 0.06f), Palette.Red);
-        Geo.Box(_visual, new Vector3(0.7f, 1.0f, 1.79f), new Vector3(0.3f, 0.22f, 0.06f), Palette.Red);
-
-        // White envelope mark on both flanks.
-        AddEnvelopeMark(_visual, -0.936f, 1.3f, 0.25f, -1);
-        AddEnvelopeMark(_visual, 0.936f, 1.3f, 0.25f, 1);
-        Geo.Label(_visual, new Vector3(0, 1.55f, 1.82f), "PATCHWORK POST", 34, Palette.Navy,
+        // Postal identity stays readable on top of the authored silhouette.
+        AddEnvelopeMark(_visual, -1.105f, 1.3f, 0.25f, -1);
+        AddEnvelopeMark(_visual, 1.105f, 1.3f, 0.25f, 1);
+        Geo.Label(_visual, new Vector3(0, 1.55f, 1.71f), "PATCHWORK POST", 34, Palette.Navy,
             false, 0.004f, 0, null, "VanRearText");
 
-        // Wheels as axle pivots so they can spin visually.
-        foreach (float side in new[] { -1f, 1f })
-        {
-            foreach (float front in new[] { -1f, 1f })
-            {
-                var pivot = new Node3D
-                {
-                    Name = "WheelPivot",
-                    Position = new Vector3(side * 0.94f, 0.46f, front * 1.05f),
-                };
-                _visual.AddChild(pivot);
-                Geo.Cylinder(pivot, Vector3.Zero, 0.43f, 0.43f, 0.28f, Color.FromHtml("343A46"), 12,
-                    new Vector3(0, 0, 90));
-                Geo.Cylinder(pivot, new Vector3(side * 0.15f, 0, 0), 0.18f, 0.18f, 0.06f,
-                    Color.FromHtml("AEB6C2"), 10, new Vector3(0, 0, 90));
-                _wheelPivots.Add(pivot);
-            }
-        }
-
-        // Occupant silhouette visible while driving.
+        // The authored van has a closed cabin, so the driver figure is kept as
+        // an optional hidden node rather than rebuilt from boxes.
         _driverFigure = new Node3D { Name = "DriverFigure", Position = new Vector3(-0.42f, 1.5f, -1.0f) };
         _visual.AddChild(_driverFigure);
-        Geo.Box(_driverFigure, Vector3.Zero, new Vector3(0.42f, 0.4f, 0.36f), Palette.Skin);
-        Geo.Box(_driverFigure, new Vector3(0, 0.26f, 0), new Vector3(0.5f, 0.16f, 0.44f), Palette.Red);
-        Geo.Box(_driverFigure, new Vector3(0, 0.18f, -0.26f), new Vector3(0.5f, 0.08f, 0.22f), Palette.Red);
         _driverFigure.Visible = false;
 
         // A small friendly antenna flag so the van reads from a distance.
-        Geo.Cylinder(_visual, new Vector3(0.74f, 2.25f, 0.7f), 0.03f, 0.03f, 0.6f, Palette.Navy, 5);
-        Geo.Box(_visual, new Vector3(0.74f, 2.55f, 0.7f), new Vector3(0.42f, 0.26f, 0.04f), Palette.Red);
+        Geo.Cylinder(_visual, new Vector3(0.78f, 2.12f, 0.68f), 0.03f, 0.03f, 0.6f,
+            Palette.Navy, 5);
+        Geo.Box(_visual, new Vector3(0.78f, 2.42f, 0.68f), new Vector3(0.42f, 0.26f, 0.04f),
+            Palette.Red);
     }
 
     private static void AddEnvelopeMark(Node parent, float x, float y, float z, int side)

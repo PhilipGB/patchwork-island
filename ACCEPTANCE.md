@@ -633,3 +633,39 @@ unsafe references; packaged boot exit 0.
 **Remaining severity:** no migration blocker known. Visual polish, Windows
 startup and one continuous human M01–M20 sitting remain untested/deferred; they
 are not claimed. No tag or release has been created.
+
+## v1.3.0 — canonical editor-authoritative town (P17 gate)
+
+Scope: replace the baked/procedural runtime town with the supplied canonical
+scene kit while preserving schema-3 saves, M01–M20 and existing controllers.
+Baseline remains `2d6647b` (v1.2.1); branch `v1.3.0-canonical-town` stacks on
+PR #27. No tag, merge or release created.
+
+| # | Canonical handoff requirement | Result |
+|---|---|---|
+| 1 | Import every authored scene without errors | **PASS** — editor import exit 0; every new `.tscn` loaded headlessly with no failures. |
+| 2 | Create canonical `Town.tscn` from `Town_Assets.tscn`; keep bake as reference | **PASS** — runtime loads `Town.tscn`; `Town_Assets.tscn` and `Town_Baked.tscn` are reference-only. No runtime `WorldBuilder.Build()` or `SceneBakeTool`. |
+| 3 | Scene-authoritative doors and markers; no C# position equality | **PASS** — 75 anchors, six building `DoorMarker`s, gate nodes and build/sign/festival markers are read from scene transforms. |
+| 4 | NPC/traffic routes bind to scene marker groups | **PASS** — all six NPC routes and both free-roam traffic routes resolve from `NpcPatrolMarkers`/`TrafficRouteMarkers`; M05/M09 and M19 gates resolve from authored roots. |
+| 5 | Keep dynamic actor controllers/collision; replace visual subtrees | **PASS** — GLB templates now render player, six NPCs, van, two town cars, rally rival and all pickups; animation pivots, wheel spin and save state are retained. |
+| 6 | Keep stateful roots, built pieces, display slots and recovery | **PASS** — bridge/swing/park/furniture ownership unchanged; bakery/library slots and sign sockets are authored scene nodes; restore phase is green. |
+| 7 | Collision: ground/roads/rally layer 1, camera blockers layer 16 | **PASS** — road roadbed is flush at `y=0`, removing junction/bridge lips; all traversal checks pass in both directions. |
+| 8 | Editor-move proof: ClothesShop +5 m, interaction follows, old save loads | **PASS** — door moved `3.5 → 8.5` with centre `7 → 12`; prompt, Sunny Day purchase, resume (21) and restore (54) all passed, then layout restored. |
+| 9 | Save schema 3, v1.2.1 full/partial saves, M18 pickups, celebrations | **PASS** — unchanged schema and all historical phases green. |
+| 10 | 11 Godot runtime phases including restore | **PASS** — source and packaged Linux: **1166 passed, 0 failed**, every exit 0. |
+| 11 | 720p/1080p screenshots and real-GPU frame time | **PASS** — P14 18/18 at 1280×720 and 1920×1080, P12 10/10 at 720p; canonical 16.68–17.08 ms vs baseline 16.70–16.71 ms with fewer draws/primitives. |
+| 12 | CI runs packaged restore; exact-head green | **PASS (local)** — CI updated to run packaged `--selftest-restore`; GitHub CI on the canonical commit is pending push. |
+
+**Build/test gates:** build 0/0; pure **111 passed**; source runtime **1166
+passed, 0 failed**; packaged Linux runtime **1166 passed, 0 failed**; packaged
+boot exit 0.
+
+**Deviations documented:** no scooter GLB (stable `town_scooter` route uses the
+green town car), four scene-authored `BROKEN` labels (two per swing frame), and
+authored sign-socket/display-slot scenes added where the candidate scene lacked
+existing gameplay IDs. See `docs/CANONICAL_TOWN.md` and
+`docs/scene_bindings.json`.
+
+**Remaining severity:** no canonical migration blocker known. Human visual and
+one continuous M01–M20 sitting remain **NOT TESTED**; Windows startup remains
+**NOT TESTED** and is not claimed. No tag or release created.

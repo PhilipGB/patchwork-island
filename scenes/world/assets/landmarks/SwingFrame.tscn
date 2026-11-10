@@ -55,3 +55,15 @@ font_size = 36
 pixel_size = 0.007
 modulate = Color(0.094118, 0.203922, 0.352941, 1)
 billboard = 0
+
+[node name="BrokenLabel" type="Label3D" parent="."]
+position = Vector3(0, 3.75, 0.9)
+text = "BROKEN"
+font_size = 36
+pixel_size = 0.006
+modulate = Color(0.094, 0.204, 0.353, 1)
+billboard = 1
+
+[node name="SwingSeatSocket" type="Marker3D" parent="."]
+position = Vector3(0, 1.5, 0.9)
+metadata/scene_binding_id = "swing.seat"

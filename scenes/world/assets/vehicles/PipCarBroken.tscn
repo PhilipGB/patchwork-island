@@ -1,0 +1,132 @@
+[gd_scene format=3]
+
+
+[sub_resource type="BoxMesh" id="BoxMesh_1"]
+size = Vector3(2.8, 0.55, 3.75)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_2"]
+albedo_color = Color(0.9098039, 0.627451, 0.2470588, 1)
+roughness = 0.94
+
+[sub_resource type="BoxMesh" id="BoxMesh_3"]
+size = Vector3(2.15, 0.75, 1.7)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_4"]
+albedo_color = Color(0.9764706, 0.8509804, 0.7176471, 1)
+roughness = 0.94
+
+[sub_resource type="BoxMesh" id="BoxMesh_5"]
+size = Vector3(1.7, 0.48, 0.08)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_6"]
+albedo_color = Color(0.5411765, 0.8470588, 0.9803922, 1)
+roughness = 0.94
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_7"]
+top_radius = 0.42
+bottom_radius = 0.42
+height = 0.2
+radial_segments = 8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_8"]
+albedo_color = Color(0.1294118, 0.2, 0.2705882, 1)
+roughness = 0.94
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_9"]
+top_radius = 0.42
+bottom_radius = 0.42
+height = 0.2
+radial_segments = 8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_10"]
+albedo_color = Color(0.1294118, 0.2, 0.2705882, 1)
+roughness = 0.94
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_11"]
+top_radius = 0.42
+bottom_radius = 0.42
+height = 0.2
+radial_segments = 8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_12"]
+albedo_color = Color(0.1294118, 0.2, 0.2705882, 1)
+roughness = 0.94
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_13"]
+top_radius = 0.42
+bottom_radius = 0.42
+height = 0.2
+radial_segments = 8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_14"]
+albedo_color = Color(0.1294118, 0.2, 0.2705882, 1)
+roughness = 0.94
+
+[sub_resource type="BoxMesh" id="BoxMesh_15"]
+size = Vector3(2.3, 0.2, 1.2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_16"]
+albedo_color = Color(0.6745098, 0.3647059, 0.1960784, 1)
+roughness = 0.94
+
+[sub_resource type="BoxMesh" id="BoxMesh_17"]
+size = Vector3(0.7, 0.45, 0.08)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_18"]
+albedo_color = Color(0.9137255, 0.3803922, 0.3137255, 1)
+roughness = 0.94
+
+[node name="PipCarBroken" type="Node3D"]
+
+[node name="Chassis" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.75, 0)
+mesh = SubResource("BoxMesh_1")
+material_override = SubResource("StandardMaterial_2")
+
+[node name="Cab" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.22, -0.35)
+mesh = SubResource("BoxMesh_3")
+material_override = SubResource("StandardMaterial_4")
+
+[node name="Windshield" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.28, -1.23)
+mesh = SubResource("BoxMesh_5")
+material_override = SubResource("StandardMaterial_6")
+
+[node name="Wheel_-1.3_-1.25" type="MeshInstance3D" parent="."]
+position = Vector3(-1.3, 0.43, -1.25)
+mesh = SubResource("CylinderMesh_7")
+material_override = SubResource("StandardMaterial_8")
+
+[node name="Wheel_-1.3_1.25" type="MeshInstance3D" parent="."]
+position = Vector3(-1.3, 0.43, 1.25)
+mesh = SubResource("CylinderMesh_9")
+material_override = SubResource("StandardMaterial_10")
+
+[node name="Wheel_1.3_-1.25" type="MeshInstance3D" parent="."]
+position = Vector3(1.3, 0.43, -1.25)
+mesh = SubResource("CylinderMesh_11")
+material_override = SubResource("StandardMaterial_12")
+
+[node name="Wheel_1.3_1.25" type="MeshInstance3D" parent="."]
+position = Vector3(1.3, 0.43, 1.25)
+mesh = SubResource("CylinderMesh_13")
+material_override = SubResource("StandardMaterial_14")
+
+[node name="OpenBonnet" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.2, 1.2)
+mesh = SubResource("BoxMesh_15")
+material_override = SubResource("StandardMaterial_16")
+
+[node name="HazardBadge" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.5, 1.55)
+mesh = SubResource("BoxMesh_17")
+material_override = SubResource("StandardMaterial_18")
+
+[node name="Status" type="Label3D" parent="."]
+position = Vector3(0, 2.28, 0)
+text = "PIP'S CAR — BROKEN"
+font_size = 30
+pixel_size = 0.005
+modulate = Color(0.8078431, 0.2666667, 0.2666667, 1)
+billboard = 1

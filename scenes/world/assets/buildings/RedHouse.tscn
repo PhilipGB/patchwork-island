@@ -333,3 +333,7 @@ billboard = 0
 [node name="Entrance" type="Marker3D" parent="."]
 position = Vector3(0, 0, 5.35)
 metadata/gameplay_id = "RedHouse.door"
+
+[node name="DoorMarker" type="Marker3D" parent="."]
+position = Vector3(0, 0, 5.3)
+metadata/scene_binding_id = "RedHouseDoor"

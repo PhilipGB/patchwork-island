@@ -1,0 +1,113 @@
+[gd_scene format=3]
+
+
+[sub_resource type="BoxMesh" id="BoxMesh_1"]
+size = Vector3(0.9, 0.5, 0.06)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_2"]
+albedo_color = Color(0.9568627, 0.6039216, 0.7411765, 1)
+roughness = 0.94
+
+[sub_resource type="BoxMesh" id="BoxMesh_3"]
+size = Vector3(0.9, 0.5, 0.06)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_4"]
+albedo_color = Color(0.972549, 0.8235294, 0.2352941, 1)
+roughness = 0.94
+
+[sub_resource type="BoxMesh" id="BoxMesh_5"]
+size = Vector3(0.9, 0.5, 0.06)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_6"]
+albedo_color = Color(0.1490196, 0.454902, 0.9254902, 1)
+roughness = 0.94
+
+[sub_resource type="BoxMesh" id="BoxMesh_7"]
+size = Vector3(0.9, 0.5, 0.06)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_8"]
+albedo_color = Color(0.9568627, 0.6039216, 0.7411765, 1)
+roughness = 0.94
+
+[sub_resource type="BoxMesh" id="BoxMesh_9"]
+size = Vector3(0.9, 0.5, 0.06)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_10"]
+albedo_color = Color(0.972549, 0.8235294, 0.2352941, 1)
+roughness = 0.94
+
+[sub_resource type="BoxMesh" id="BoxMesh_11"]
+size = Vector3(0.9, 0.5, 0.06)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_12"]
+albedo_color = Color(0.1490196, 0.454902, 0.9254902, 1)
+roughness = 0.94
+
+[sub_resource type="BoxMesh" id="BoxMesh_13"]
+size = Vector3(0.9, 0.5, 0.06)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_14"]
+albedo_color = Color(0.9568627, 0.6039216, 0.7411765, 1)
+roughness = 0.94
+
+[sub_resource type="BoxMesh" id="BoxMesh_15"]
+size = Vector3(0.9, 0.5, 0.06)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_16"]
+albedo_color = Color(0.972549, 0.8235294, 0.2352941, 1)
+roughness = 0.94
+
+[sub_resource type="BoxMesh" id="BoxMesh_17"]
+size = Vector3(13, 0.04, 0.3)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_18"]
+albedo_color = Color(0.6705882, 0.5176471, 0.8509804, 1)
+roughness = 0.94
+
+[node name="FestivalDecor" type="Node3D"]
+visible = false
+
+[node name="Bunting_0" type="MeshInstance3D" parent="."]
+position = Vector3(9, 2.2, 21.2)
+mesh = SubResource("BoxMesh_1")
+material_override = SubResource("StandardMaterial_2")
+
+[node name="Bunting_1" type="MeshInstance3D" parent="."]
+position = Vector3(10.7, 2.2, 21.2)
+mesh = SubResource("BoxMesh_3")
+material_override = SubResource("StandardMaterial_4")
+
+[node name="Bunting_2" type="MeshInstance3D" parent="."]
+position = Vector3(12.4, 2.2, 21.2)
+mesh = SubResource("BoxMesh_5")
+material_override = SubResource("StandardMaterial_6")
+
+[node name="Bunting_3" type="MeshInstance3D" parent="."]
+position = Vector3(14.1, 2.2, 21.2)
+mesh = SubResource("BoxMesh_7")
+material_override = SubResource("StandardMaterial_8")
+
+[node name="Bunting_4" type="MeshInstance3D" parent="."]
+position = Vector3(15.8, 2.2, 21.2)
+mesh = SubResource("BoxMesh_9")
+material_override = SubResource("StandardMaterial_10")
+
+[node name="Bunting_5" type="MeshInstance3D" parent="."]
+position = Vector3(17.5, 2.2, 21.2)
+mesh = SubResource("BoxMesh_11")
+material_override = SubResource("StandardMaterial_12")
+
+[node name="Bunting_6" type="MeshInstance3D" parent="."]
+position = Vector3(19.2, 2.2, 21.2)
+mesh = SubResource("BoxMesh_13")
+material_override = SubResource("StandardMaterial_14")
+
+[node name="Bunting_7" type="MeshInstance3D" parent="."]
+position = Vector3(20.9, 2.2, 21.2)
+mesh = SubResource("BoxMesh_15")
+material_override = SubResource("StandardMaterial_16")
+
+[node name="FestivalCarpet" type="MeshInstance3D" parent="."]
+position = Vector3(15, 0.06, 21.4)
+mesh = SubResource("BoxMesh_17")
+material_override = SubResource("StandardMaterial_18")

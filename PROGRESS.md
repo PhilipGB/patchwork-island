@@ -2007,3 +2007,112 @@ llvmpipe runs were also compared (same draw calls/primitives; ~5% mean delta at
   real-UI walkthrough and all mission rules remain green.
 - GitHub CI has not run on a pushed commit; the exact CI command list was run
   locally, including the new `--selftest-restore` phase.
+
+## P17 — v1.3.0 canonical editor-authoritative town — PASS
+
+**Branch:** `v1.3.0-canonical-town`, stacked on `v1.3.0-scene-town` (`1b63c13`,
+PR #27). Source version remains `1.3.0`; save schema remains **3**. No tag,
+merge or release created.
+
+### What changed
+
+- Installed the canonical handoff assets with `install_assets.sh
+  --replace-assets`. Every authored scene imports headlessly with exit 0.
+- Added `scenes/world/Town.tscn` as the runtime copy of `Town_Assets.tscn`.
+  It adds the three M14 sign sockets, a scene-owned `RaceStart` marker, and
+  authored bakery/library display-slot instances. The candidate scene and baked
+  snapshot remain reference-only.
+- `WorldSceneAdapter` now instantiates `Town.tscn`, derives all gameplay
+  transforms from scene markers, building `DoorMarker` children and gate nodes,
+  and validates usability rather than former coordinates. It never calls
+  `WorldBuilder.Build()` and never runs `SceneBakeTool`.
+- NPC patrols and both free-roam traffic routes bind to
+  `NpcPatrolMarkers` / `TrafficRouteMarkers`; M05/M09 and M19 checkpoints bind to
+  the authored four- and six-gate roots.
+- Player, six NPCs, van, two town traffic cars, the rally rival and all pickups
+  now use the supplied GLB template scenes. Controllers, collision, camera,
+  audio, save restoration and mission logic are unchanged. Character head/arm/leg
+  parts and vehicle wheels are reparented under pivots with preserved global
+  transforms, so existing walk/wave/jump and rolling animation still works.
+- Fixed a canonical collision discontinuity: town-road collision sat 2–3.4 cm
+  above terrain/bridge deck, creating vertical lips at junctions. The collision
+  roadbed is now flush at `y=0`; visual slabs are unchanged. Bridge traversal
+  passes fast, slow, both lateral offsets and both directions.
+
+### Editor-move proof — ClothesShop +5 m
+
+No C# coordinate constants were edited.
+
+```text
+original: centre=(24, 0, 7)  door=(24, 0, 3.5)  prompt PASS  outfit PASS
+moved:    centre=(24, 0, 12) door=(24, 0, 8.5)  prompt PASS  outfit PASS
+```
+
+The moved scene also passed `--selftest-resume` (21) and `--selftest-restore`
+(54), loading existing v1.2.1 saves. The scene was then restored to
+`(24, 0, 7)` and the base suite re-ran green.
+
+### Verification — source
+
+```text
+dotnet build PatchworkIsland.sln                          0 warnings, 0 errors
+dotnet run --project tests/PatchworkIsland.Tests.csproj   111 passed, 0 failed
+godot --headless --path . --editor --quit                 exit 0
+godot --headless --path . --quit-after 120                exit 0
+
+--selftest                279 passed, 0 failed
+--selftest-resume          21 passed, 0 failed
+--selftest-recovery       101 passed, 0 failed
+--selftest-living         238 passed, 0 failed
+--selftest-rally           10 passed, 0 failed
+--selftest-chapter        217 passed, 0 failed
+--selftest-hotfix          48 passed, 0 failed
+--selftest-finale         140 passed, 0 failed
+--selftest-traversal       18 passed, 0 failed
+--selftest-release         40 passed, 0 failed
+--selftest-restore         54 passed, 0 failed
+```
+
+Source runtime total: **1166 passed, 0 failed**, every process exit 0.
+
+### Verification — packaged Linux
+
+```text
+dist export: /home/philip/.cache/tmp/opencode/patchwork-export/PatchworkIsland.x86_64
+size:        164,086,056 bytes
+sha256:      f9e12b56d7c6db7e86d2c8e97d83337e7ba4e2c4e5d9a21a23d3610e9b514850
+```
+
+All 11 packaged phases passed with the same counts as source
+(279 + 21 + 101 + 238 + 10 + 217 + 48 + 140 + 18 + 40 + 54 = **1166**),
+including `--selftest-restore`; `--quit-after 120` boot exited 0. CI now runs the
+packaged restore phase explicitly.
+
+### Performance and visuals — real AMD Radeon 880M/890M
+
+600-frame vsync probes, warm runs:
+
+| Build | Resolution | Mean | p95 | Draw calls | Primitives | Nodes |
+|---|---|---|---|---|---|---|
+| v1.2.1 baseline | 1280×720 | 16.70–16.71 ms | 17.16–17.21 ms | 3394 | 66069 | 2944 |
+| canonical | 1280×720 | 16.68–17.00 ms | 17.20–18.57 ms | 2403 | 49100 | 2458 |
+| v1.2.1 baseline | 1920×1080 | 16.70 ms | 17.29–17.31 ms | 3394 | 66069 | 2944 |
+| canonical | 1920×1080 | 16.70–17.08 ms | 17.29–19.22 ms | 2403 | 49142 | 2458 |
+
+No measurable regression; the canonical scene renders fewer draw calls and
+primitives. First-run shader compilation was excluded by the warm repeats.
+
+- Full 18-shot P14 tour captured at exact 1280×720 and 1920×1080 (18/18 each).
+- 10-shot P12 rally/road/shop tour captured at 1280×720 on the real GPU.
+- Visual checks cover the bridge seam, junction, player silhouette, NPCs, van,
+  traffic, pickups, festivals, rally gates and repaired Pip car.
+
+### Remaining gaps / not claimed
+
+- No tag, merge or release. Human visual/gameplay sign-off is still required.
+- Windows export/startup remains **NOT TESTED**.
+- One continuous human M01–M20 sitting remains **NOT TESTED**; automated real-UI
+  coverage remains green.
+- GitHub CI has not run on the canonical commit yet; the exact local CI command
+  list was executed, including packaged `--selftest-restore`.
+- Captures and logs stay in ignored `evidence/`/`references/` paths.

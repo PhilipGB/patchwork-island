@@ -1,0 +1,28 @@
+[gd_scene load_steps=5 format=3]
+
+[sub_resource type="BoxMesh" id="BoxMesh_book"]
+size = Vector3(0.3, 0.56, 0.12)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_cover"]
+albedo_color = Color(0.921569, 0.827451, 0.247059, 1)
+roughness = 0.95
+
+[sub_resource type="BoxMesh" id="BoxMesh_page"]
+size = Vector3(0.22, 0.08, 0.02)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_page"]
+albedo_color = Color(1, 0.972549, 0.909804, 1)
+roughness = 0.95
+
+[node name="ShelfBookSlot" type="Node3D"]
+visible = false
+
+[node name="Cover" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.28, 0)
+mesh = SubResource("BoxMesh_book")
+material_override = SubResource("StandardMaterial3D_cover")
+
+[node name="Pages" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.28, 0.07)
+mesh = SubResource("BoxMesh_page")
+material_override = SubResource("StandardMaterial3D_page")

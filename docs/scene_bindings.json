@@ -1,0 +1,257 @@
+{
+  "schema_version": 3,
+  "baseline_game": "v1.2.1",
+  "candidate_scene": "scenes/world/Town_Assets.tscn",
+  "runtime_scene": "scenes/world/Town.tscn",
+  "existing_baked_scene_in_repo": "scenes/world/baked/Town_Baked.tscn",
+  "runtime_status": "canonical_scene_wired",
+  "static_roots": [
+    {
+      "scene_root": "BridgeBarrier",
+      "asset": "scenes/world/assets/landmarks/BridgeBarrier.tscn",
+      "position": [
+        38.2,
+        0,
+        0
+      ],
+      "visible_on_fresh_game": true
+    },
+    {
+      "scene_root": "CelebrationDecor",
+      "asset": "scenes/world/assets/landmarks/CelebrationDecor.tscn",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "visible_on_fresh_game": false
+    },
+    {
+      "scene_root": "RaceStartFlag",
+      "asset": "scenes/world/assets/landmarks/RaceStartFlag.tscn",
+      "position": [
+        61.5,
+        0,
+        -8.5
+      ],
+      "visible_on_fresh_game": true
+    },
+    {
+      "scene_root": "GoldCourseFlag",
+      "asset": "scenes/world/assets/landmarks/GoldCourseFlag.tscn",
+      "position": [
+        64.5,
+        0,
+        -12
+      ],
+      "visible_on_fresh_game": false
+    },
+    {
+      "scene_root": "PlaygroundFixSign",
+      "asset": "scenes/world/assets/landmarks/PlaygroundFixSign.tscn",
+      "position": [
+        -38,
+        0,
+        -9.6
+      ],
+      "visible_on_fresh_game": true
+    },
+    {
+      "scene_root": "DeliveryBoard",
+      "asset": "scenes/world/assets/landmarks/DeliveryBoard.tscn",
+      "position": [
+        -2.5,
+        0,
+        4.2
+      ],
+      "visible_on_fresh_game": false
+    },
+    {
+      "scene_root": "MarketStock",
+      "asset": "scenes/world/assets/landmarks/MarketStock.tscn",
+      "position": [
+        -2,
+        0,
+        4.8
+      ],
+      "visible_on_fresh_game": false
+    },
+    {
+      "scene_root": "PipCarBroken",
+      "asset": "scenes/world/assets/vehicles/PipCarBroken.tscn",
+      "position": [
+        35.2,
+        0,
+        -7.8
+      ],
+      "visible_on_fresh_game": true
+    },
+    {
+      "scene_root": "PipCarFixed",
+      "asset": "scenes/world/assets/vehicles/PipCarFixed.tscn",
+      "position": [
+        35.2,
+        0,
+        -7.8
+      ],
+      "visible_on_fresh_game": false
+    },
+    {
+      "scene_root": "RallyPodium",
+      "asset": "scenes/world/assets/landmarks/RallyPodium.tscn",
+      "position": [
+        60.5,
+        0,
+        -13.5
+      ],
+      "visible_on_fresh_game": false
+    },
+    {
+      "scene_root": "FestivalDecor",
+      "asset": "scenes/world/assets/landmarks/FestivalDecor.tscn",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "visible_on_fresh_game": false
+    },
+    {
+      "scene_root": "RaceGates4Root",
+      "asset": "scenes/world/assets/landmarks/RaceGates4Root.tscn",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "visible_on_fresh_game": true
+    },
+    {
+      "scene_root": "RaceGates6Root",
+      "asset": "scenes/world/assets/landmarks/RaceGates6Root.tscn",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "visible_on_fresh_game": false
+    },
+    {
+      "scene_root": "BridgeSite",
+      "asset": "scenes/world/assets/landmarks/BridgeSite.tscn",
+      "position": [
+        36.5,
+        0,
+        4.5
+      ],
+      "visible_on_fresh_game": true
+    },
+    {
+      "scene_root": "Clouds",
+      "asset": "scenes/world/assets/environment/Clouds.tscn",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "visible_on_fresh_game": true
+    },
+    {
+      "scene_root": "FestivalTable_0",
+      "asset": "scenes/world/assets/landmarks/FestivalTable_0.tscn",
+      "position": [
+        12,
+        0.09,
+        22.4
+      ],
+      "visible_on_fresh_game": false
+    },
+    {
+      "scene_root": "FestivalTable_1",
+      "asset": "scenes/world/assets/landmarks/FestivalTable_1.tscn",
+      "position": [
+        18,
+        0.09,
+        22.4
+      ],
+      "visible_on_fresh_game": false
+    },
+    {
+      "scene_root": "FestivalLantern_0",
+      "asset": "scenes/world/assets/landmarks/FestivalLantern_0.tscn",
+      "position": [
+        9,
+        0.09,
+        22.4
+      ],
+      "visible_on_fresh_game": false
+    },
+    {
+      "scene_root": "FestivalLantern_1",
+      "asset": "scenes/world/assets/landmarks/FestivalLantern_1.tscn",
+      "position": [
+        21,
+        0.09,
+        22.4
+      ],
+      "visible_on_fresh_game": false
+    },
+    {
+      "scene_root": "FestivalLantern_2",
+      "asset": "scenes/world/assets/landmarks/FestivalLantern_2.tscn",
+      "position": [
+        15,
+        0.09,
+        24.2
+      ],
+      "visible_on_fresh_game": false
+    }
+  ],
+  "dynamic_templates": {
+    "player_boy": "scenes/world/assets/characters/Player_Boy_Visual.tscn",
+    "player_girl": "scenes/world/assets/characters/Player_Girl_Visual.tscn",
+    "van": "scenes/world/assets/vehicles/Van_Visual.tscn",
+    "npcs": {
+      "milo": "scenes/world/assets/characters/Milo_Visual.tscn",
+      "ada": "scenes/world/assets/characters/Ada_Visual.tscn",
+      "pip": "scenes/world/assets/characters/Pip_Visual.tscn",
+      "fern": "scenes/world/assets/characters/Fern_Visual.tscn",
+      "ollie": "scenes/world/assets/characters/Ollie_Visual.tscn",
+      "ivy": "scenes/world/assets/characters/Ivy_Visual.tscn"
+    },
+    "pickups": {
+      "apple": "scenes/world/assets/pickups/Pickup_Apple.tscn",
+      "wood": "scenes/world/assets/pickups/Pickup_Wood.tscn",
+      "stone": "scenes/world/assets/pickups/Pickup_Stone.tscn",
+      "parcel": "scenes/world/assets/pickups/Pickup_Parcel.tscn",
+      "book": "scenes/world/assets/pickups/Pickup_Book.tscn",
+      "repairtyre": "scenes/world/assets/pickups/Pickup_RepairTyre.tscn",
+      "repairlamp": "scenes/world/assets/pickups/Pickup_RepairLamp.tscn",
+      "repairbattery": "scenes/world/assets/pickups/Pickup_RepairBattery.tscn",
+      "coin": "scenes/world/assets/pickups/Pickup_Coin.tscn"
+    }
+  },
+  "collision_contract": {
+    "TownRoadCollision": "scenes/world/assets/environment/TownRoads_Collidable.tscn",
+    "RallyRoadCollision": "scenes/world/assets/environment/RallyRoad_Collidable.tscn",
+    "road_layer": 1,
+    "gate_camera_layer": 16,
+    "rally_triangles": 2184
+  },
+  "scene_authority_rules": [
+    "Resolve world positions from Node3D.GlobalTransform and child Marker3D",
+    "Stable IDs are separate from world coordinates",
+    "Use scene-authored NPC and traffic route markers, not catalogue coordinates",
+    "Never copy/bake dynamic bridge/swing/furniture states into Town_Assets",
+    "Do not call WorldBuilder.Build in runtime",
+    "Do not rerun SceneBakeTool on authored scene"
+  ],
+  "runtime_deviations": [
+    "Town.tscn is the runtime copy of Town_Assets.tscn; it adds three SignSocket instances and a scene-owned RaceStart marker required by existing gameplay IDs.",
+    "BakeryOrderSlot.tscn and ShelfBookSlot.tscn are authored slot scenes added under BakeryStall and LibraryShelf because the candidate scene did not expose those stable gameplay paths.",
+    "Town-road collision is a flat y=0 roadbed while the visual slabs stay 2-3.4 cm proud, removing vertical lips at road junctions and the bridge deck without changing the authored road surfaces.",
+    "The swing frame assets contain four BROKEN labels (two per frame), so restoration counts every scene-authored label rather than assuming two.",
+    "No scooter GLB is supplied; the town_scooter route keeps its stable route ID and uses the green town-car visual template."
+  ],
+  "migration_acceptance_test": "Move ClothesShop and its DoorMarker 5 m in Godot: interaction follows without editing C#; v1.2.1 saves still restore."
+}

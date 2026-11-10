@@ -1,0 +1,27 @@
+[gd_scene format=3]
+
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_1"]
+top_radius = 0.29
+bottom_radius = 0.29
+height = 0.18
+radial_segments = 8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_2"]
+albedo_color = Color(0.1960784, 0.2666667, 0.3372549, 1)
+roughness = 0.94
+
+[node name="Pickup_RepairTyre" type="Node3D"]
+
+[node name="Collectible" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.35, 0)
+mesh = SubResource("CylinderMesh_1")
+material_override = SubResource("StandardMaterial_2")
+
+[node name="PickupOrigin" type="Marker3D" parent="."]
+position = Vector3(0, 0, 0)
+metadata/scene_binding_id = "pickup.repairtyre"
+
+[node name="PickupRange" type="Marker3D" parent="."]
+position = Vector3(0, 0, 0)
+metadata/radius = 3.9
