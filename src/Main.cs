@@ -108,6 +108,7 @@ public partial class Main : Node3D
             return;
         }
         if (HasUserArg("--selftest") || IsFinaleTest || IsTraversalTest ||
+            (IsHotfixTest && RuntimeSelfTest.HotfixPhase == 0) ||
             (IsChapterTest && RuntimeSelfTest.ChapterPhase == 0) ||
             (IsReleaseTest && RuntimeSelfTest.ReleasePhase == 0))
             DeleteSelfTestSaves("selftest-save.json");
@@ -377,18 +378,20 @@ public partial class Main : Node3D
     private static bool IsFinaleTest => HasUserArg("--selftest-finale");
     private static bool IsTraversalTest => HasUserArg("--selftest-traversal");
     private static bool IsReleaseTest => HasUserArg("--selftest-release");
+    private static bool IsHotfixTest => HasUserArg("--selftest-hotfix");
 
     private static bool IsSelfTest =>
         HasUserArg("--selftest") || HasUserArg("--selftest-resume") || IsRecoveryTest ||
         IsLivingTest || IsRallyTest || IsChapterTest || IsFinaleTest || IsTraversalTest ||
-        IsReleaseTest;
+        IsReleaseTest || IsHotfixTest;
 
     private static bool IsSelfTestResume => HasUserArg("--selftest-resume");
 
     private static bool LoadSelfTestSave =>
         IsSelfTestResume || IsRecoveryTest ||
         (IsChapterTest && RuntimeSelfTest.ChapterPhase > 0) ||
-        (IsReleaseTest && RuntimeSelfTest.ReleasePhase > 0);
+        (IsReleaseTest && RuntimeSelfTest.ReleasePhase > 0) ||
+        (IsHotfixTest && RuntimeSelfTest.HotfixPhase > 0);
 
     /// <summary>
     /// F12, screenshot tours and scenario helpers are development tools. They
@@ -1430,11 +1433,12 @@ public partial class Main : Node3D
     private void SpawnRepairParts()
     {
         if (_data.IsCompleted("M18")) return;
-        string[] partTypes = { "tyre", "tyre", "lamp", "battery" };
-        for (int i = 0; i < partTypes.Length && i < _world.RepairPartSpawnPoints.Count; i++)
+        for (int i = 0; i < FinaleRules.RepairPickupIds.Length &&
+                        i < _world.RepairPartSpawnPoints.Count; i++)
         {
-            string part = partTypes[i];
-            string pickupId = part == "tyre" ? $"part_tyre_{i}" : $"part_{part}_0";
+            string pickupId = FinaleRules.RepairPickupIds[i];
+            string part = FinaleRules.RepairPickupPart(pickupId);
+            if (string.IsNullOrEmpty(part)) continue;
             if (_data.HasCollected(pickupId)) continue;
             var pickup = Pickup.Create(this, _world.RepairPartSpawnPoints[i], pickupId, part,
                 "M18", 1, TakeRepairPart,
@@ -1454,7 +1458,7 @@ public partial class Main : Node3D
             _hud.ShowHint("Start Mechanic's Toolbox at the yellow JOBS board first.");
             return;
         }
-        var result = _missions.CollectRepairPart(pickup.ItemType);
+        var result = _missions.CollectRepairPart(pickup.ItemType, pickup.PickupId);
         if (!result.Success)
         {
             _hud.ShowHint(result.Message);
@@ -3737,6 +3741,23 @@ public partial class Main : Node3D
         _trafficCars.FirstOrDefault(c => c.RouteId == id)?.CurrentWaypoint ?? -1;
     internal bool RtTrafficHasEngineAudio(string id) =>
         _trafficCars.FirstOrDefault(c => c.RouteId == id)?.HasEngineAudio == true;
+    internal bool RtTrafficStopped(string id) =>
+        _trafficCars.FirstOrDefault(c => c.RouteId == id)?.Stopped == true;
+    internal int RtTrafficStopEvents(string id) =>
+        _trafficCars.FirstOrDefault(c => c.RouteId == id)?.StopEvents ?? -1;
+
+    internal void RtDropTrafficOffIsland(string id)
+    {
+        var car = _trafficCars.FirstOrDefault(c => c.RouteId == id);
+        if (car == null) return;
+        car.GlobalPosition = new Vector3(car.GlobalPosition.X, -6f, car.GlobalPosition.Z);
+        car.Velocity = Vector3.Zero;
+    }
+
+    internal bool RtPickupPresent(string pickupId) =>
+        _pickups.Any(p => p.PickupId == pickupId);
+    internal int RtRepairPickupCount => _pickups.Count(p => p.MissionId == "M18");
+    internal bool RtCollectedPickup(string pickupId) => _data.HasCollected(pickupId);
 
     internal void RtTeleportPlayerAheadOfTraffic(string id, float distance)
     {
@@ -3849,6 +3870,26 @@ public partial class Main : Node3D
             _data.SetMissionCounter("M15", $"pad{i}",
                 ChapterTwoRules.GardenCode(ChapterTwoRules.GardenPattern[i]));
 
+        _data.ActiveMission = "";
+        RefreshMissionState();
+    }
+
+    /// <summary>
+    /// Prepares a valid post-M17 village so the v1.2.1 regression can start the
+    /// real M18 job and exercise a partial save/reload without replaying M16-M17.
+    /// </summary>
+    internal void RtPrepareMechanicJob()
+    {
+        RtPrepareFinale();
+        foreach (string id in new[] { "M16", "M17" })
+            if (!_data.CompletedMissions.Contains(id)) _data.CompletedMissions.Add(id);
+        _data.SetMissionCounter("M16", "loaded", 1);
+        foreach (string npc in FinaleRules.DeliveryRecipients)
+        {
+            _data.SetMissionCounter("M16", FinaleRules.CarryingKey(npc), 0);
+            _data.SetMissionCounter("M16", FinaleRules.DeliveredKey(npc), 1);
+        }
+        _data.SetMissionCounter("M17", "finalised", 1);
         _data.ActiveMission = "";
         RefreshMissionState();
     }

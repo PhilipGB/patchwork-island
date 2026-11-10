@@ -1,0 +1,96 @@
+Patchwork Island v1.2.1 — hotfix verification
+=============================================
+Date: 2026-11-10
+Source head: focused M18 persistence branch (exact commit/CI in PROGRESS.md)
+Godot: 4.7.2.stable.mono.official.ed1daf0bf
+.NET SDK: 10.0.114 (target net8.0)
+
+Scope
+-----
+No save-schema, content, audio or rendering changes. Fixes:
+- M18 physical repair-part IDs are persisted and cannot be re-collected.
+- v1.2.0 partial M18 saves are normalized by inferring acquired pickup IDs.
+- Off-island NPC traffic stops permanently and logs exactly once.
+
+Automated gates (source, sequential)
+------------------------------------
+dotnet build                                       0 warnings, 0 errors
+pure tests                                         107 passed, 0 failed
+--selftest                                         161 passed, 0 failed
+--selftest-resume                                   21 passed, 0 failed
+--selftest-recovery                                101 passed, 0 failed
+--selftest-living                                  238 passed, 0 failed
+--selftest-rally                                    10 passed, 0 failed
+  M05 18.97 s +5, M09 18.98 s +5
+--selftest-chapter                                 217 passed, 0 failed
+--selftest-hotfix                                   48 passed, 0 failed
+--selftest-finale                                  140 passed, 0 failed
+  M19 22.32 s +5
+--selftest-traversal                                18 passed, 0 failed
+--selftest-release                                  22 passed, 0 failed
+editor import                                      exit 0
+headless boot                                      exit 0
+
+Runtime total 976 passed, 0 failed.
+Every runtime process exited 0 with zero leaked unsafe references.
+
+Hotfix regression coverage
+--------------------------
+The new --selftest-hotfix phase:
+- starts M18 through the real job board after a valid post-M17 setup;
+- collects part_tyre_0 through its world pickup and checks the ID is recorded;
+- saves, reloads the real scene, Continues, and proves part_tyre_0 is absent
+  while the other three parts remain;
+- collects part_tyre_1, part_lamp_0 and part_battery_0 through their pickups;
+- completes M18 through the real repair bench and checks the 24-coin reward;
+- checks all four pickup IDs remain recorded after completion;
+- drops town_scooter below the island and checks one stop event, no repeated
+  failure and a stable resting position.
+
+Pure coverage also writes a legacy partial M18 save without pickup IDs,
+normalizes it on load, proves exactly one tyre pickup is inferred, and proves an
+already-recorded second tyre is never over-marked.
+
+Packaged Linux build
+--------------------
+ELF 64-bit LSB executable, x86-64, dynamically linked, stripped
+--headless --quit-after 120                         exit 0
+--selftest                                         161 passed, 0 failed
+--selftest-resume                                   21 passed, 0 failed
+--selftest-recovery                                101 passed, 0 failed
+--selftest-living                                  238 passed, 0 failed
+--selftest-rally                                    10 passed, 0 failed
+  M05 18.97 s +5, M09 19.03 s +5
+--selftest-chapter                                 217 passed, 0 failed
+--selftest-hotfix                                   48 passed, 0 failed
+--selftest-finale                                  140 passed, 0 failed
+  M19 22.32 s +5
+--selftest-traversal                                18 passed, 0 failed
+--selftest-release                                  22 passed, 0 failed
+
+Every packaged phase exited 0 with zero leaked unsafe references.
+
+Windows build
+-------------
+PE32+ executable, MS Windows 5.02 (GUI), x86-64, stripped
+file/product version 1.2.1.0
+Export succeeded. Windows startup NOT TESTED (no Windows runtime/Wine) and
+explicitly waived by the product owner for the Linux-first release.
+
+Audio
+-----
+Audio code and assets are unchanged from v1.2.0. Packaged human listening was
+PASS on 2026-11-09. v1.2.1 was not separately auditioned.
+
+Hashes (dist/)
+--------------
+610e29c12067e8df90fba576e21c5ce941a41a88bdb1cdeaa31262f5c14ba6c1  linux/PatchworkIsland.x86_64
+1421e456ce90dd5dadbb6451d536b34ecc71e2e1649fdee1f1b420c589308aba  windows/PatchworkIsland.exe
+cb04e909db41ba19bb74199653c7c6018356e2904d4f6b092f8358aa1408fdf6  PatchworkIsland-1.2.1-Linux-x86_64.zip
+ae40a90dfbb640b0cf61941831ce69b83800f2cade768668c4f93c34377d0ac5  PatchworkIsland-1.2.1-Windows-x86_64.zip
+
+Publication status
+------------------
+- v1.2.0 remains published.
+- v1.2.1 tag pending the green focused PR merge head.
+- Windows startup NOT TESTED; explicitly waived.

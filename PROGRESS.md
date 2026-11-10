@@ -1785,3 +1785,89 @@ New hashes:
   passed.
 - Published: [v1.2.0 release](https://github.com/PhilipGB/patchwork-island/releases/tag/v1.2.0)
   with Linux/Windows ZIPs, `README.txt` and `SHA256SUMS`.
+
+## P15.2 — M18 pickup persistence and traffic stop hotfix (v1.2.1)
+
+**Branch:** `fix-m18-pickup-persistence`, based on main `c2b2e44`.
+
+A post-release review found one P2 gameplay-state defect and one P3 hardening
+gap.
+
+### P2 — M18 parts respawned after save/reload
+
+`TakeRepairPart` called `MissionService.CollectRepairPart(part)`, which only
+incremented `has_<part>` and never recorded the physical pickup ID. A partial
+M18 save therefore respawned the same tyre on Continue, allowing the same
+pickup to supply both required tyres.
+
+Fixes:
+
+- `CollectRepairPart(part, pickupId)` now validates the ID against the part,
+  refuses an already-collected ID and records it in `CollectedPickups` before
+  incrementing the carried count. The real pickup passes `pickup.PickupId`.
+- `FinaleRules.RepairPickupIds` / `RepairPickupPart` are the single source for
+  the four IDs; `SpawnRepairParts` no longer builds IDs by string concatenation.
+- `GameData.Normalise` repairs v1.2.0 partial saves by inferring acquired IDs
+  from `has_* + *_fitted`. Already-recorded IDs win; the normaliser never
+  over-marks and never invents more parts than were earned. Schema remains 3.
+
+### P3 — off-island traffic kept processing
+
+`TrafficCar` now has a terminal `Stopped` state and `StopEvents` counter. When a
+vehicle falls below Y=-2 it zeroes speed/velocity, stops engine loops, disables
+physics processing and logs once.
+
+### Verification
+
+```text
+dotnet build PatchworkIsland.sln                         -> 0 warnings, 0 errors
+dotnet run --project tests/PatchworkIsland.Tests.csproj  -> 107 passed, 0 failed
+--selftest                                               -> 161 passed, 0 failed
+--selftest-resume                                        -> 21 passed, 0 failed
+--selftest-recovery                                      -> 101 passed, 0 failed
+--selftest-living                                        -> 238 passed, 0 failed
+--selftest-rally                                         -> 10 passed, 0 failed
+--selftest-chapter                                       -> 217 passed, 0 failed
+--selftest-hotfix                                        -> 48 passed, 0 failed
+--selftest-finale                                        -> 140 passed, 0 failed
+--selftest-traversal                                     -> 18 passed, 0 failed
+--selftest-release                                       -> 22 passed, 0 failed
+```
+
+Runtime total **976**, every process exit 0 with zero leaked unsafe references.
+Rally: M05 18.97 s, M09 18.98 s, M19 22.32 s, each +5. The new hotfix phase
+saves mid-M18, reloads the real scene, proves the collected tyre is absent,
+collects the remaining parts, completes the repair and checks the exactly-once
+24-coin reward. It also drops a traffic car off-island and proves one stop event
+and a stable resting position.
+
+### Packaged v1.2.1
+
+Linux and Windows exports were rebuilt with file/product version `1.2.1.0`.
+Every packaged Linux phase passed, including `--selftest-hotfix` 48:
+
+```text
+boot 0, selftest 161, resume 21, recovery 101, living 238,
+rally 10 (M05 18.97 s, M09 19.03 s), chapter 217, hotfix 48,
+finale 140 (M19 22.32 s), traversal 18, release 22
+```
+
+All exit 0 with zero leaked unsafe references.
+
+Hashes:
+
+- `linux/PatchworkIsland.x86_64` `610e29c12067e8df90fba576e21c5ce941a41a88bdb1cdeaa31262f5c14ba6c1`
+- `windows/PatchworkIsland.exe` `1421e456ce90dd5dadbb6451d536b34ecc71e2e1649fdee1f1b420c589308aba`
+- `PatchworkIsland-1.2.1-Linux-x86_64.zip` `cb04e909db41ba19bb74199653c7c6018356e2904d4f6b092f8358aa1408fdf6`
+- `PatchworkIsland-1.2.1-Windows-x86_64.zip` `ae40a90dfbb640b0cf61941831ce69b83800f2cade768668c4f93c34377d0ac5`
+
+### Release-gate status
+
+- M18 persistence defect fixed and covered by a real relaunch test.
+- Off-island traffic stop covered by a one-shot terminal-state test.
+- No save-schema, content, audio or rendering changes.
+- Audio human listening remains PASS from v1.2.0; v1.2.1 was not separately
+  auditioned.
+- Windows startup remains NOT TESTED and waived for the Linux-first release.
+- v1.2.0 remains published. v1.2.1 is the tagging candidate after the focused
+  PR is green.

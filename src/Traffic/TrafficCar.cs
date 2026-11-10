@@ -20,6 +20,8 @@ public partial class TrafficCar : CharacterBody3D
     public float DistanceTravelled { get; private set; }
     public int YieldEvents { get; private set; }
     public bool RallyOnly { get; private set; }
+    public bool Stopped { get; private set; }
+    public int StopEvents { get; private set; }
 
     private TrafficRouteDefinition _route;
     private Func<Vector3> _playerPosition;
@@ -196,7 +198,7 @@ public partial class TrafficCar : CharacterBody3D
     public override void _PhysicsProcess(double delta)
     {
         float dt = (float)delta;
-        if (_route == null) return;
+        if (_route == null || Stopped) return;
         _hornCooldown = Mathf.Max(0f, _hornCooldown - dt);
 
         var target = _route.Points[CurrentWaypoint];
@@ -256,9 +258,18 @@ public partial class TrafficCar : CharacterBody3D
         UpdateEngineAudio();
         if (GlobalPosition.Y < -2f)
         {
-            // Never teleport into view. Stop the route instead of popping.
+            // Never teleport into view. Stop the route permanently instead of
+            // re-entering movement every physics frame, which used to emit the
+            // same error repeatedly.
+            Stopped = true;
+            StopEvents++;
             _speed = 0f;
+            PlanarSpeed = 0f;
             Velocity = Vector3.Zero;
+            Yielding = false;
+            _engineIdle?.Stop();
+            _engineDrive?.Stop();
+            SetPhysicsProcess(false);
             GD.PushError($"Traffic '{RouteId}' left the island at {GlobalPosition}; route stopped.");
         }
     }

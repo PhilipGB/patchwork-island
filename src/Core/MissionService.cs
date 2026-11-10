@@ -755,7 +755,7 @@ public sealed class MissionService
     }
 
     // ------------------------------------------------------------ M18 mechanic
-    public GameplayOutcome CollectRepairPart(string part)
+    public GameplayOutcome CollectRepairPart(string part, string pickupId)
     {
         if (Data.ActiveMission != "M18")
             return FailGame("Start Mechanic's Toolbox at the JOBS board first.");
@@ -764,9 +764,17 @@ public sealed class MissionService
         int required = FinaleRules.PartRequired(part);
         if (required <= 0)
             return FailGame("That is not one of the repair parts.");
+        if (FinaleRules.RepairPickupPart(pickupId) != part)
+            return FailGame("That is not the right repair part.");
+        if (Data.HasCollected(pickupId))
+            return FailGame("You already collected that part.");
         int have = FinaleRules.HasPart(Data, part);
         if (have >= required)
             return FailGame($"You already have enough {FinaleRules.PartLabel(part).ToLowerInvariant()}s.");
+
+        // Record the physical pickup so a partial M18 save cannot respawn it and
+        // hand out a second copy of the same tyre after Continue.
+        Data.CollectedPickups.Add(pickupId);
         Data.SetMissionCounter("M18", "has_" + part, have + 1);
         return new GameplayOutcome
         {

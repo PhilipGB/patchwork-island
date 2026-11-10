@@ -548,6 +548,48 @@ passed. Release:
 with Linux/Windows ZIPs, `README.txt` and `SHA256SUMS`. Package hashes and
 verification logs are in `PROGRESS.md` and `evidence/p15_verification.txt`.
 
+### v1.2.1 M18 persistence and traffic hotfix
+
+A focused follow-up to the v1.2.0 review. No save-schema, content or rendering
+changes.
+
+- **P2 fixed:** `CollectRepairPart` now requires the physical pickup ID, records
+  it in `CollectedPickups`, refuses a repeat collection and rejects a pickup
+  whose part type does not match. The real M18 pickup path passes the ID, and
+  `SpawnRepairParts` uses the shared `FinaleRules.RepairPickupIds` list.
+- **Legacy saves repaired:** `GameData.Normalise` infers acquired M18 pickup IDs
+  from `has_* + *_fitted` counts for saves written by v1.2.0. Already-recorded
+  IDs win; the normaliser never over-marks and never adds more than were
+  earned. Save schema remains 3.
+- **P3 fixed:** `TrafficCar` gains a terminal `Stopped` state. Off-island
+  vehicles zero their speed/velocity, stop engine loops, disable physics
+  processing and log once. `StopEvents` proves the failure is not repeated.
+- **Real relaunch regression:** new `--selftest-hotfix` (48 assertions) starts
+  M18 through the real board, collects one tyre, saves, reloads the scene,
+  confirms the pickup is absent, collects the other three parts, completes the
+  repair and checks the 24-coin reward. It also drops a traffic car off the
+  island and verifies one stop event and a stable resting position.
+- **Pure gates:** build 0/0; pure **107** (new partial-save/legacy tests).
+- **Source runtime:** 161 + 21 + 101 + 238 + 10 + 217 + 48 + 140 + 18 + 22 =
+  **976 passed, 0 failed**, every process exit 0 with zero leaked unsafe
+  references.
+- **Packaged Linux:** all ten phases passed (including hotfix 48), exit 0 and
+  zero leaked references. Rally M05 18.97 s, M09 19.03 s, M19 22.32 s (+5).
+- **Exports:** Linux ELF x86-64; Windows PE32+ with file/product version
+  `1.2.1.0`. Windows startup remains **NOT TESTED** and waived.
+- **Audio:** unchanged from v1.2.0; packaged human listening remains **PASS**
+  from the v1.2.0 verification. v1.2.1 was not separately auditioned.
+- **Package hashes:**
+  - `linux/PatchworkIsland.x86_64` `610e29c12067e8df90fba576e21c5ce941a41a88bdb1cdeaa31262f5c14ba6c1`
+  - `windows/PatchworkIsland.exe` `1421e456ce90dd5dadbb6451d536b34ecc71e2e1649fdee1f1b420c589308aba`
+  - `PatchworkIsland-1.2.1-Linux-x86_64.zip` `cb04e909db41ba19bb74199653c7c6018356e2904d4f6b092f8358aa1408fdf6`
+  - `PatchworkIsland-1.2.1-Windows-x86_64.zip` `ae40a90dfbb640b0cf61941831ce69b83800f2cade768668c4f93c34377d0ac5`
+
+**Tag/publish status:** v1.2.0 remains published. The v1.2.1 tag will point at
+the green merge head of the focused persistence PR; the exact commit and
+release URL are recorded in `PROGRESS.md` and
+`docs/RELEASE_NOTES_v1.2.1.md`.
+
 ### Manual walkthrough status
 
 The complete M01–M20 domain walkthrough is automated and green. The real-UI
