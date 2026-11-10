@@ -25,5 +25,6 @@ tests/**/.godot/
 # PROGRESS.md.
 /references/
 /evidence/v13_scene_world/
+/evidence/v13_canonical_visual/
 /docs/layout_top_down.png
 /handoffs/

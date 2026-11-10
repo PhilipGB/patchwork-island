@@ -139,3 +139,21 @@ mean 16.67 ms / p95 17.28 ms over 600 frames. Windows rendering remains
 - Roof gable wedges are part of the flat-shaded toy style, not z-fighting.
 - Real-Radeon captures are recorded; Windows rendering and player-eye comfort
   remain **NOT TESTED** in this environment.
+
+## v1.3.0 canonical visual audit (P18)
+
+The canonical scene was audited from 39 fixed district cameras at 1280×720,
+with every static `Label3D` rendered from both sides, plus the 18-shot P14,
+10-shot P12 and 14-shot P13 tours at true 1920×1080.
+
+| ID | Defect | Root cause | Fix | Evidence |
+|---|---|---|---|---|
+| V16 | Freestanding sign text mirrored from the viewer side (bakery, library, jobs, playground, community garden, stone patch, race meadow, bridge works, sign sockets, direction post). | Labels were left facing away from the intended viewer; several were on the wrong side of their panel. | Added a correctly rotated front label and back label to each sign, made each label single-sided, and moved the stone-patch label to the town-facing side. | `evidence/v13_canonical_visual/07_bakery_front.png`, `09_library_front.png`, `11_job_board_front.png`, `05_playground_sign_front.png`, `20_community_garden.png`, `19_stone_patch.png`, `21_rally_signs.png`, `24_bridge_site.png`, `37_market_sign_socket.png` |
+| V17 | Sign panels floated without posts (playground, community garden, stone patch, race meadow, bridge works). | Authored panels had no support geometry. | Added two wooden posts behind each wide panel and one post behind the bridge-works panel. | same set plus `13_direction_post_front.png` |
+| V18 | Two overlapping BROKEN labels per swing frame; rear view mirrored. | One fixed and one billboard label occupied the same spot. | Removed the fixed duplicate; one billboard label remains per frame. | `33_swing_front.png`, `34_swing_back.png` |
+| V19 | Duplicate BRIDGE WORKS sign and cones overlapped the canonical bridge site. | Legacy worksite instance remained beside the canonical `BridgeSite`. | Removed the legacy instance; kept the canonical anchor/sign/crate. | `24_bridge_site.png` |
+| V20 | Lamps inside the town hall, playground sandpit, road, and across sign sightlines. | Legacy lamp coordinates were not adjusted for the authored scene collision. | Moved lamps to verges, moved the playground lamp outside the sand, moved the town-hall lamp to its front verge, removed the redundant direction-post lamp. | `31_west_top_down.png`, `32_east_top_down.png`, `13_direction_post_front.png` |
+| V21 | Playground sign, direction post and bench stood in the main road. | Source coordinates came from the older, narrower road layout. | Moved the sign to the playground entrance, moved the post/bench off the carriageway, removed the redundant lamp. | `05_playground_sign_front.png`, `13_direction_post_front.png`, `30_top_down.png` |
+| V22 | Bench on the rally start road. | Legacy decoration placement. | Removed the misplaced bench. | `p12_1080_02_start_line.png` |
+| V23 | Gate number panels blank/edge-on from the approach. | Single small number face was on the far side of the panel. | Added larger numbers on both faces of all six gate panels. | `22_gate_one_front.png`, `23_gate_one_back.png`, `35_gate_two_front.png`, `36_gate_two_back.png` |
+| V24 | `SUPPORT`/`ROPE`/`SEAT` ghost labels visible during normal play. | Build ghosts stayed visible when their build mode was closed. | `BuildSocket` now hides ghost mesh/icon/label outside build mode; runtime regression added. | `p12_1080_02_start_line.png` |

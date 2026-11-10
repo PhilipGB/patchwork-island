@@ -669,3 +669,28 @@ existing gameplay IDs. See `docs/CANONICAL_TOWN.md` and
 **Remaining severity:** no canonical migration blocker known. Human visual and
 one continuous M01–M20 sitting remain **NOT TESTED**; Windows startup remains
 **NOT TESTED** and is not claimed. No tag or release created.
+
+## v1.3.0 — canonical visual audit (P18 gate)
+
+A full 1080p audit covered every district, all static signs from both sides,
+the rally gates, celebration/festival state and build-mode previews.
+
+| # | Visual check | Result |
+|---|---|---|
+| 1 | No mirrored static text from viewer-facing sides | **PASS** — Bakery, Library, Job Board, Playground, Community Garden, Stone Patch, Race Meadow, Bridge Works, Sign Socket and Directional Sign labels corrected and re-captured. |
+| 2 | Freestanding signs have visible supports | **PASS** — posts added to Playground, Community Garden, Stone Patch, Race Meadow and Bridge Works. |
+| 3 | No duplicated BROKEN or BRIDGE WORKS assets | **PASS** — duplicate fixed BROKEN label and legacy BridgeWorksite instance removed. |
+| 4 | No lamps inside buildings, sandpits or sign sightlines | **PASS** — road-edge lamps moved to verges; town-hall and playground lamps relocated; redundant direction-post lamp removed. |
+| 5 | No signs or benches standing in roads | **PASS** — Playground sign moved to its entrance verge; direction post/bench moved off the carriageway; rally-start bench removed. |
+| 6 | Rally gate numbers readable from both approaches | **PASS** — both faces of all six gate panels carry correctly rotated numbers. |
+| 7 | Build ghosts hidden outside build mode | **PASS** — SUPPORT/PLANK/ROPE/SEAT ghosts stay hidden until the matching build mode opens; regression added. |
+| 8 | Physics/traversal unchanged | **PASS** — all 18 traversal assertions pass, including bridge crossings in both directions. |
+
+**Gates:** pure **111 passed**; source runtime **1168 passed, 0 failed** across
+all 11 phases. Packaged Linux is rebuilt and verified in `PROGRESS.md`.
+
+**Evidence:** ignored `evidence/v13_canonical_visual/` (39 audit views plus P12,
+P13 and P14 1080p tours). No generated images are committed.
+
+**Remaining severity:** no visual blocker known. Human sign-off, one continuous
+M01–M20 sitting and Windows startup remain **NOT TESTED**. No tag or release.

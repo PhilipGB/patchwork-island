@@ -126,6 +126,7 @@ public partial class SwingBuilder : Node3D, IBuildMode
         _buildCamera.Current = false;
         _camera.Current = true;
         _camera.Snap();
+        foreach (var socket in _sockets.Values) socket.SetGhostVisible(false);
         _onBuildModeChanged?.Invoke(false);
         _hud.HideBuildBar();
     }
@@ -189,6 +190,7 @@ public partial class SwingBuilder : Node3D, IBuildMode
         {
             if (socket.Placed) continue;
             socket.SetEnabled(true);
+            socket.SetGhostVisible(Active);
             bool valid = BuildRules.ValidateSwingPlacement(_selected, socket.SocketId, _data.SwingPieces, out _);
             socket.SetValid(valid);
         }

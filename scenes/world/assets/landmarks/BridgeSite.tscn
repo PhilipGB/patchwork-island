@@ -15,6 +15,13 @@ size = Vector3(2.2, 0.9, 1)
 albedo_color = Color(0.6823529, 0.4784314, 0.2901961, 1)
 roughness = 0.94
 
+[sub_resource type="BoxMesh" id="AuditPostMesh"]
+size = Vector3(0.16, 1.9, 0.16)
+
+[sub_resource type="StandardMaterial3D" id="AuditPostMat"]
+albedo_color = Color(0.439216, 0.258824, 0.121569, 1)
+roughness = 1.0
+
 [node name="BridgeSite" type="Node3D"]
 
 [node name="WorksiteAnchor" type="Marker3D" parent="."]
@@ -38,3 +45,8 @@ billboard = 1
 position = Vector3(1, 0.45, 0.5)
 mesh = SubResource("BoxMesh_3")
 material_override = SubResource("StandardMaterial_4")
+
+[node name="SignPost" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.95, 0.12)
+mesh = SubResource("AuditPostMesh")
+material_override = SubResource("AuditPostMat")

@@ -48,14 +48,6 @@ position = Vector3(0, 3.26, 0.9)
 mesh = SubResource("BoxMesh_3")
 material_override = SubResource("StandardMaterial3D_4")
 
-[node name="BrokenTag" type="Label3D" parent="."]
-position = Vector3(0, 3.74, 0.93)
-text = "BROKEN"
-font_size = 36
-pixel_size = 0.007
-modulate = Color(0.094118, 0.203922, 0.352941, 1)
-billboard = 0
-
 [node name="BrokenLabel" type="Label3D" parent="."]
 position = Vector3(0, 3.75, 0.9)
 text = "BROKEN"

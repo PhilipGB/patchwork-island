@@ -67,6 +67,8 @@ font_size = 33
 pixel_size = 0.007
 modulate = Color(0.094118, 0.203922, 0.352941, 1)
 billboard = 0
+rotation = Vector3(0, 3.14159, 0)
+double_sided = false
 
 [node name="Interaction" type="Marker3D" parent="."]
 position = Vector3(0, 0, -1)
@@ -83,3 +85,12 @@ position = Vector3(0.45, 1, 0.34)
 
 [node name="ShelfBook_star" parent="." instance=ExtResource("slot")]
 position = Vector3(1.35, 1, 0.34)
+
+[node name="LabelBack" type="Label3D" parent="."]
+position = Vector3(0, 2.5, 0.13)
+text = "LIBRARY"
+font_size = 33
+pixel_size = 0.007
+modulate = Color(0.094118, 0.203922, 0.352941, 1)
+billboard = 0
+double_sided = false

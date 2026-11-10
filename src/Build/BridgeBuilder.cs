@@ -147,6 +147,7 @@ public partial class BridgeBuilder : Node3D, IBuildMode
         if (_buildCamera != null) _buildCamera.Current = false;
         if (_camera != null) { _camera.Current = true; _camera.Snap(); }
         if (!IsBuilt && _world.BridgeBarrier != null) _world.BridgeBarrier.Visible = true;
+        foreach (var socket in _sockets.Values) socket.SetGhostVisible(false);
         _onBuildModeChanged?.Invoke(false);
         _hud.HideBuildBar();
     }
@@ -234,6 +235,7 @@ public partial class BridgeBuilder : Node3D, IBuildMode
                 socket.SetEnabled(supports >= 3 && planks < 4);
                 socket.SetValid(_selectedType == "plank");
             }
+            socket.SetGhostVisible(Active && socket.SocketEnabled);
         }
     }
 

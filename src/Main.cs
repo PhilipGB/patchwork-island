@@ -3618,6 +3618,19 @@ public partial class Main : Node3D
     internal int RtBrokenSwingLabelsVisible =>
         _world?.BrokenSwingLabels.Count(label => label.Visible) ?? 0;
     internal bool RtBridgeBarrierVisible => _world?.BridgeBarrier?.Visible == true;
+    internal bool RtBuildGhostLabelsHidden =>
+        !HasVisibleBuildGhostLabel(_bridgeBuilder) && !HasVisibleBuildGhostLabel(_swingBuilder);
+
+    private static bool HasVisibleBuildGhostLabel(Node root)
+    {
+        if (root == null || !GodotObject.IsInstanceValid(root)) return false;
+        foreach (Node node in root.FindChildren("*", "Label3D", true, false))
+        {
+            if (node is not Label3D label || !label.IsVisibleInTree()) continue;
+            if (label.Text is "SUPPORT" or "PLANK" or "ROPE" or "SEAT") return true;
+        }
+        return false;
+    }
     internal bool RtPlaygroundFixHidden => _world?.PlaygroundFixSign?.Visible == false;
     internal int RtParkPlacementCount => _data.ParkPlacements.Count;
     internal int RtParkVisualCount => _parkBuilder?.PlacedVisualCount ?? 0;

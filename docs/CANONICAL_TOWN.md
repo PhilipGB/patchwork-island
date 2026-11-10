@@ -120,3 +120,14 @@ suite was re-run (279 passed).
 
 Captured images and generated logs are kept outside version control under the
 existing ignored `evidence/` and `references/` paths.
+
+## Visual audit corrections (P18)
+
+A full two-sided audit of every static sign and fixed district views found and
+corrected mirrored sign text, unsupported floating sign panels, duplicate
+BROKEN/BRIDGE WORKS assets, lamps inside buildings or sightlines, signs and a
+bench standing in roads, blank rally-gate numbers, and build ghosts leaking into
+normal play. The full before/after defect log is in `docs/VISUAL_QA.md`; the
+ignored `evidence/v13_canonical_visual/` directory holds the 39 audit views and
+the 1080p P12/P13/P14 tours. Source runtime after the correction: **1168
+passed, 0 failed**.

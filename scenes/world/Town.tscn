@@ -1,4 +1,4 @@
-[gd_scene load_steps=162 format=3]
+[gd_scene load_steps=159 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/world/assets/environment/Terrain.tscn" id="ext_1"]
 
@@ -105,8 +105,6 @@
 [ext_resource type="PackedScene" path="res://scenes/world/assets/props/FirTree.tscn" id="ext_52"]
 
 [ext_resource type="PackedScene" path="res://scenes/world/assets/props/StreetLamp.tscn" id="ext_53"]
-
-[ext_resource type="PackedScene" path="res://scenes/world/assets/props/StreetLamp.tscn" id="ext_54"]
 
 [ext_resource type="PackedScene" path="res://scenes/world/assets/props/StreetLamp.tscn" id="ext_55"]
 
@@ -260,8 +258,6 @@
 
 [ext_resource type="PackedScene" path="res://scenes/world/assets/landmarks/BridgeBuilt.tscn" id="legacy_extra_1"]
 
-[ext_resource type="PackedScene" path="res://scenes/world/assets/landmarks/BridgeWorksite.tscn" id="legacy_extra_2"]
-
 [ext_resource type="PackedScene" path="res://scenes/world/assets/landmarks/RallySigns.tscn" id="legacy_extra_3"]
 
 [ext_resource type="PackedScene" path="res://scenes/world/assets/props/Bench.tscn" id="legacy_extra_4"]
@@ -269,8 +265,6 @@
 [ext_resource type="PackedScene" path="res://scenes/world/assets/props/Bench.tscn" id="legacy_extra_5"]
 
 [ext_resource type="PackedScene" path="res://scenes/world/assets/props/Bench.tscn" id="legacy_extra_6"]
-
-[ext_resource type="PackedScene" path="res://scenes/world/assets/props/Bench.tscn" id="legacy_extra_7"]
 
 [ext_resource type="PackedScene" path="res://scenes/world/assets/landmarks/RallyGate1.tscn" id="legacy_extra_8"]
 
@@ -358,7 +352,7 @@ position = Vector3(-22, 0, 5)
 rotation = Vector3(0, 3.14159, 0)
 
 [node name="DirectionPost" parent="." instance=ExtResource("ext_11")]
-position = Vector3(-10.8, 0, 2.8)
+position = Vector3(-9.8, 0, 4.2)
 
 [node name="Playground" parent="." instance=ExtResource("ext_12")]
 position = Vector3(-38, 0, -5)
@@ -504,32 +498,29 @@ position = Vector3(78, 0, -14)
 [node name="Lamp_0" parent="." instance=ExtResource("ext_53")]
 position = Vector3(-30, 0, 3.3)
 
-[node name="Lamp_1" parent="." instance=ExtResource("ext_54")]
-position = Vector3(-12, 0, 2.5)
-
 [node name="Lamp_2" parent="." instance=ExtResource("ext_55")]
-position = Vector3(6, 0, 2.5)
+position = Vector3(2.2, 0, 4.0)
 
 [node name="Lamp_3" parent="." instance=ExtResource("ext_56")]
-position = Vector3(18, 0, 2.5)
+position = Vector3(18, 0, -4.2)
 
 [node name="Lamp_4" parent="." instance=ExtResource("ext_57")]
-position = Vector3(28, 0, -2.9)
+position = Vector3(28, 0, -4.2)
 
 [node name="Lamp_5" parent="." instance=ExtResource("ext_58")]
-position = Vector3(37, 0, 4.2)
+position = Vector3(32.5, 0, 4.2)
 
 [node name="Lamp_6" parent="." instance=ExtResource("ext_59")]
 position = Vector3(-44, 0, 15)
 
 [node name="Lamp_7" parent="." instance=ExtResource("ext_60")]
-position = Vector3(-38, 0, -9)
+position = Vector3(-49, 0, -9)
 
 [node name="Lamp_8" parent="." instance=ExtResource("ext_61")]
-position = Vector3(-14, 0, 11)
+position = Vector3(-19.5, 0, 8.2)
 
 [node name="Lamp_9" parent="." instance=ExtResource("ext_62")]
-position = Vector3(14, 0, 7)
+position = Vector3(12.5, 0, 7.0)
 
 [node name="Bush_0" parent="." instance=ExtResource("ext_63")]
 position = Vector3(0.12, 0, -11.49)
@@ -755,9 +746,6 @@ position = Vector3(0, 0, 0)
 [node name="NpcPatrolMarkers" parent="." instance=ExtResource("ext_npcs")]
 
 [node name="TrafficRouteMarkers" parent="." instance=ExtResource("ext_traffic")]
-[node name="BridgeWorksite" parent="." instance=ExtResource("legacy_extra_2")]
-position = Vector3(35.2, 0, 5.2)
-
 [node name="RallySigns" parent="." instance=ExtResource("legacy_extra_3")]
 position = Vector3(50.4, 0, 8)
 
@@ -770,14 +758,8 @@ position = Vector3(-45, 0, -4)
 rotation = Vector3(0, 1.5708, 0)
 
 [node name="Bench_2" parent="." instance=ExtResource("legacy_extra_6")]
-position = Vector3(-9, 0, 4.5)
+position = Vector3(-8.5, 0, 6.2)
 rotation = Vector3(0, 3.14159, 0)
-
-[node name="Bench_3" parent="." instance=ExtResource("legacy_extra_7")]
-position = Vector3(57, 0, -8)
-rotation = Vector3(0, 0, 0)
-
-
 
 [node name="BridgeBarrier" parent="." instance=ExtResource("canonical_1")]
 position = Vector3(38.2, 0, 0)
@@ -840,7 +822,7 @@ position = Vector3(21, 0.09, 22.4)
 position = Vector3(15, 0.09, 24.2)
 
 [node name="SignSocket_market" parent="." instance=ExtResource("canonical_sign_socket")]
-position = Vector3(16.2, 0, 9.6)
+position = Vector3(18.0, 0, 9.6)
 
 [node name="SignSocket_workshop" parent="." instance=ExtResource("canonical_sign_socket")]
 position = Vector3(22, 0, -4.2)

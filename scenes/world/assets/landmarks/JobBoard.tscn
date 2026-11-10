@@ -62,6 +62,8 @@ font_size = 72
 pixel_size = 0.007
 modulate = Color(0.094118, 0.203922, 0.352941, 1)
 billboard = 0
+rotation = Vector3(0, 3.14159, 0)
+double_sided = false
 
 [node name="Subtitle" type="Label3D" parent="."]
 position = Vector3(0, 1.75, -0.12)
@@ -70,7 +72,27 @@ font_size = 32
 pixel_size = 0.007
 modulate = Color(0.094118, 0.203922, 0.352941, 1)
 billboard = 0
+rotation = Vector3(0, 3.14159, 0)
+double_sided = false
 
 [node name="Interaction" type="Marker3D" parent="."]
 position = Vector3(0, 0, -1.4)
 metadata/gameplay_id = "job-board"
+
+[node name="TitleBack" type="Label3D" parent="."]
+position = Vector3(0, 2.27, 0.12)
+text = "JOBS"
+font_size = 72
+pixel_size = 0.007
+modulate = Color(0.094118, 0.203922, 0.352941, 1)
+billboard = 0
+double_sided = false
+
+[node name="SubtitleBack" type="Label3D" parent="."]
+position = Vector3(0, 1.75, 0.12)
+text = "Pick a job here"
+font_size = 32
+pixel_size = 0.007
+modulate = Color(0.094118, 0.203922, 0.352941, 1)
+billboard = 0
+double_sided = false

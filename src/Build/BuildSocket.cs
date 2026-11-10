@@ -123,4 +123,15 @@ public partial class BuildSocket : StaticBody3D
         if (_ghostLabel != null) _ghostLabel.Visible = false;
         CollisionLayer = 0;
     }
+
+    /// <summary>Shows or hides the translucent build preview and its floating
+    /// label without touching a placed piece. Ghosts are only visible while the
+    /// matching build mode is open.</summary>
+    public void SetGhostVisible(bool visible)
+    {
+        bool show = visible && !Placed;
+        if (_ghost != null) _ghost.Visible = show;
+        if (_ghostIcon != null) _ghostIcon.Visible = show;
+        if (_ghostLabel != null) _ghostLabel.Visible = show;
+    }
 }

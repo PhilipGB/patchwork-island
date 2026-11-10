@@ -2118,3 +2118,56 @@ primitives. First-run shader compilation was excluded by the warm repeats.
   (`build-test` 6m25s, `windows-tests` 2m13s), including packaged
   `--selftest-restore` (54 passed).
 - Captures and logs stay in ignored `evidence/`/`references/` paths.
+
+## P18 — v1.3.0 canonical visual audit and correction — PASS
+
+**Branch:** `v1.3.0-canonical-town`. No tag, merge or release created.
+
+A full 1080p visual audit of the canonical town was run from fixed district
+cameras and gameplay tours. Every static `Label3D` was rendered from both sides,
+and every district was inspected from the road, from behind, and from above.
+
+### Defects found and corrected
+
+| # | Defect | Fix | Visual confirmation |
+|---|---|---|---|
+| 1 | Bakery, Library, Job Board, Playground, Community Garden, Stone Patch, Race Meadow, Bridge Works, Sign Socket and Directional Sign text was mirrored from the viewer side. | Each sign now has a correctly rotated front label on the viewer side and a correctly rotated back label, both single-sided. Stone Patch's label was moved to the town-facing side of its panel. | `evidence/v13_canonical_visual/07_bakery_front.png`, `09_library_front.png`, `11_job_board_front.png`, `05_playground_sign_front.png`, `20_community_garden.png`, `19_stone_patch.png`, `21_rally_signs.png`, `24_bridge_site.png`, `37_market_sign_socket.png` |
+| 2 | Playground, Community Garden, Stone Patch, Race Meadow and Bridge Works sign panels floated with no supports. | Added two wooden posts to the four wide signs and one post to the Bridge Works sign, positioned behind the panel. | `05_playground_sign_front.png`, `20_community_garden.png`, `19_stone_patch.png`, `21_rally_signs.png`, `24_bridge_site.png` |
+| 3 | Both swing frames showed two overlapping BROKEN labels; the fixed one mirrored from the rear. | Removed the duplicate fixed label and kept one billboard-readable BROKEN label per frame. | `33_swing_front.png`, `34_swing_back.png` |
+| 4 | A second legacy BRIDGE WORKS sign and its cones overlapped the canonical `BridgeSite`. | Removed the `BridgeWorksite` instance; kept the canonical `BridgeSite` anchor, sign and crate. | `24_bridge_site.png` |
+| 5 | Street lamps stood inside the Town Hall, inside the playground sandpit, in the road, and across several sign sightlines. | Moved the road-edge lamps onto verges, moved the playground lamp outside the sand, moved the town-hall lamp to the front verge, and removed the redundant lamp at the direction post. | `31_west_top_down.png`, `32_east_top_down.png`, `13_direction_post_front.png` |
+| 6 | The Playground sign stood in the main road; the direction post and a bench crowded the same crossing. | Moved the Playground sign to the playground entrance verge, moved the direction post and bench off the carriageway, and removed the redundant lamp. | `05_playground_sign_front.png`, `13_direction_post_front.png`, `30_top_down.png` |
+| 7 | A bench stood on the rally start road. | Removed the misplaced bench. | `p12_1080_02_start_line.png` |
+| 8 | Rally gate number panels were blank or edge-on from the approach. | Added larger, correctly rotated numbers on both faces of every gate panel. | `22_gate_one_front.png`, `23_gate_one_back.png`, `35_gate_two_front.png`, `36_gate_two_back.png` |
+| 9 | Empty bridge/swing build ghosts and their `SUPPORT`/`ROPE`/`SEAT` labels were visible outside build mode. | Build sockets now hide ghost mesh/icon/label when their build mode is closed; a runtime regression asserts the clean state. | `p12_1080_02_start_line.png` |
+
+### Verification
+
+```text
+dotnet run --project tests/PatchworkIsland.Tests.csproj   111 passed, 0 failed
+--selftest                281 passed, 0 failed
+--selftest-resume          21 passed, 0 failed
+--selftest-recovery       101 passed, 0 failed
+--selftest-living         238 passed, 0 failed
+--selftest-rally           10 passed, 0 failed
+--selftest-chapter        217 passed, 0 failed
+--selftest-hotfix          48 passed, 0 failed
+--selftest-finale         140 passed, 0 failed
+--selftest-traversal       18 passed, 0 failed
+--selftest-release         40 passed, 0 failed
+--selftest-restore         54 passed, 0 failed
+```
+
+Source runtime total: **1168 passed, 0 failed**, every phase exit 0.
+
+Visual evidence: 39 fixed audit views, 18/18 P14 finale/festival/bridge views,
+10/10 P12 rally/road/shop views and 14/14 P13 chapter-two views, all at true
+1920×1080 except the audit set at 1280×720. The full set is copied to the
+ignored `evidence/v13_canonical_visual/` directory.
+
+### Remaining gaps
+
+- Human visual sign-off and one continuous M01–M20 sitting remain **NOT TESTED**.
+- Windows startup remains **NOT TESTED**.
+- Celebration bunting intentionally renders as stylised floating flags; no
+  text or collision issue was observed.

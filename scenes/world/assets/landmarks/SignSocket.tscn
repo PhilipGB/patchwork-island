@@ -45,3 +45,14 @@ font_size = 64
 pixel_size = 0.007
 modulate = Color(0.094118, 0.203922, 0.352941, 1)
 billboard = 0
+double_sided = false
+
+[node name="SlotLabelBack" type="Label3D" parent="."]
+position = Vector3(0, 1.95, -0.1)
+text = "?"
+font_size = 64
+pixel_size = 0.007
+modulate = Color(0.094118, 0.203922, 0.352941, 1)
+billboard = 0
+rotation = Vector3(0, 3.14159, 0)
+double_sided = false

@@ -195,6 +195,8 @@ public partial class RuntimeSelfTest : Node
         Expect(!Main.RtWorldNodeVisible("GoldCourseFlag"), "gold lap flag starts hidden");
         Expect(Main.RtWorldNodeVisible("RaceGates4Root"), "four-gate rally starts visible");
         Expect(!Main.RtWorldNodeVisible("RaceGates6Root"), "six-gate rally starts hidden");
+        Expect(Main.RtBuildGhostLabelsHidden,
+            "empty build ghosts and their labels stay hidden outside build mode");
         Expect(Main.RtWorldNodeVisible("BridgeBarrier"), "broken-bridge barrier starts visible");
         Expect(Main.RtWorldNodeVisible("PlaygroundFixSign"),
             "playground repair sign starts visible");
@@ -598,8 +600,14 @@ public partial class RuntimeSelfTest : Node
         Expect(Main.RtMode == "Driving" && Main.RtVanControlled && !Main.RtPlayerControlled,
             "entering the van switches control");
         Expect(!Main.RtPlayerVisible, "player is hidden while driving");
-        Expect(Main.RtVanHasEngineAudio && Main.RtVanEngineIdlePlaying,
-            "van engine audio starts with the vehicle");
+        bool vanAudioStarted = Main.RtVanHasEngineAudio && Main.RtVanEngineIdlePlaying;
+        for (int attempt = 0; attempt < 20 && !vanAudioStarted; attempt++)
+        {
+            await Wait(0.1f);
+            vanAudioStarted = Main.RtVanHasEngineAudio && Main.RtVanEngineIdlePlaying;
+        }
+        Expect(Main.RtVanHasEngineAudio, "van has engine audio players");
+        Expect(vanAudioStarted, "van engine audio starts with the vehicle");
         Expect(Main.RtPrepareRace(), "race state prepared for timer test");
 
         Main.RtPause();
