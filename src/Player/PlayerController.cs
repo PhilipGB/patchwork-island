@@ -103,19 +103,19 @@ public partial class PlayerController : CharacterBody3D
         if (_longHair)
         {
             // Long hair silhouette and side locks, behind the face.
-            Geo.Box(_head, new Vector3(0, -0.24f, 0.3f), new Vector3(0.6f, 0.72f, 0.18f), hair,
+            Geo.Box(_head, new Vector3(0, -0.18f, 0.3f), new Vector3(0.6f, 0.84f, 0.18f), hair,
                 null, false, "LongHairBack");
             Geo.Box(_head, new Vector3(-0.32f, -0.16f, 0.02f), new Vector3(0.09f, 0.56f, 0.4f), darkHair,
                 null, false, "LongHairLeft");
             Geo.Box(_head, new Vector3(0.32f, -0.16f, 0.02f), new Vector3(0.09f, 0.56f, 0.4f), darkHair,
                 null, false, "LongHairRight");
-            Geo.Box(_head, new Vector3(0, 0.2f, 0.04f), new Vector3(0.62f, 0.18f, 0.46f), hair,
+            Geo.Box(_head, new Vector3(0, 0.16f, 0.04f), new Vector3(0.6f, 0.12f, 0.44f), hair,
                 null, false, "LongHairTop");
         }
         else
         {
             // Short, tidy hair with a small front fringe.
-            Geo.Box(_head, new Vector3(0, 0.2f, 0.03f), new Vector3(0.58f, 0.16f, 0.44f), hair,
+            Geo.Box(_head, new Vector3(0, 0.17f, 0.03f), new Vector3(0.58f, 0.14f, 0.44f), hair,
                 null, false, "ShortHairTop");
             Geo.Box(_head, new Vector3(0, 0.1f, 0.24f), new Vector3(0.5f, 0.2f, 0.12f), darkHair,
                 null, false, "ShortHairBack");
@@ -144,9 +144,9 @@ public partial class PlayerController : CharacterBody3D
         }
 
         // Cap (recoloured by the M01 reward).
-        _capTop = Geo.Cylinder(_head, new Vector3(0, 0.32f, 0), 0.34f, 0.34f, 0.18f, Palette.Blue, 12);
-        _capBrim = Geo.Box(_head, new Vector3(0, 0.25f, -0.32f), new Vector3(0.52f, 0.07f, 0.3f), Palette.Blue);
-        Geo.Box(_head, new Vector3(0, 0.43f, 0.2f), new Vector3(0.14f, 0.06f, 0.14f), Palette.Cream);
+        _capTop = Geo.Cylinder(_head, new Vector3(0, 0.29f, 0), 0.32f, 0.32f, 0.16f, Palette.Blue, 12);
+        _capBrim = Geo.Box(_head, new Vector3(0, 0.235f, -0.31f), new Vector3(0.5f, 0.06f, 0.3f), Palette.Blue);
+        Geo.Box(_head, new Vector3(0, 0.39f, 0.2f), new Vector3(0.14f, 0.06f, 0.14f), Palette.Cream);
 
         // Arms with pivots at the shoulders.
         _leftArm = new Node3D { Position = new Vector3(-0.44f, 1.28f, 0) };

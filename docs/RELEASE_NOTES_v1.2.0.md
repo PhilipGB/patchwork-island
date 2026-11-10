@@ -43,25 +43,32 @@ place build pieces.
 
 - Pure logic: **106 passed, 0 failed**.
 - Runtime: pause/modal 161, resume 21, recovery 101, living village 238,
-  rally 10, chapter two 217, finale 140, traversal 12, v1.1 migration 22.
+  rally 10, chapter two 217, finale 140, traversal **18**, v1.1 migration 22.
 - Packaged Linux build passed the same selftest, rally, finale, traversal and
   v1.1-migration phases, with every process exit code 0.
 - Real AMD Radeon 890M (Mesa 26.0.8, OpenGL 4.6): 1280×720 mean 16.69 ms /
   p95 17.35 ms; 1920×1080 mean 16.67 ms / p95 17.28 ms over 600 frames.
 - Real-device audio: packaged Linux ran with PipeWire/PulseAudio and a 20-second
   monitor capture contained nonzero PCM from the title music/UI cues
-  (peak 19777, RMS 944.8). **Human listening was not possible in this
-  environment.**
+  (peak 20165, RMS 944.0). **Human listening: PASS** — the product owner
+  verified the packaged build on the target Linux/PipeWire system on
+  2026-11-09.
 - Linux x86-64 export: `ELF 64-bit LSB executable`, booted headlessly and
   passed every packaged runtime phase.
 - Windows x86-64 export: `PE32+` GUI executable, file/product version
-  `1.2.0.0`. **Windows startup was not tested** (no Windows runtime or Wine).
+  `1.2.0.0`. **Windows startup was not tested** (no Windows runtime or Wine);
+  the product owner waived this for the Linux-first release.
+
+The P15.1 bridge hotfix moved the east road and connector off the bridge deck,
+made road/shoulder collision nearly flush, removed the overlay discs and
+on-deck boulder, pulled the side rails back to the water span, added connector
+shoulders and closed the plank gaps. Traversal now covers both road edges,
+westbound travel, no vertical step, and the from-rest lip walk.
 
 ## Known verification gaps
 
-- Subjective audible playback by a person is **NOT TESTED**; physical output to
-  the real sink monitor was captured.
-- Windows startup is **NOT TESTED**.
+- Windows startup is **NOT TESTED**; it was explicitly waived for this
+  Linux-first release.
 - Real-Radeon frames are measured; no v1.1.0 real-GPU baseline probe exists.
 - Child playtesting and accessibility review remain manual follow-ups.
 

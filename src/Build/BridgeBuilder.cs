@@ -294,31 +294,34 @@ public partial class BridgeBuilder : Node3D, IBuildMode
         if (_world.BridgeBarrier != null)
             _world.BridgeBarrier.Visible = false;
 
+        // Dark underlay closes the 20 cm gaps between planks so the grass or
+        // water underneath cannot read as neon seams.
+        Geo.Box(this, new Vector3(45f, -0.035f, 0f),
+            new Vector3(10.9f, 0.08f, 8.2f), Palette.WoodDark, null, false, "BridgeDeckUnderlay");
+
         // Real walk/drive collider flush with the road.
         var body = new StaticBody3D { Name = "BridgeDeckCollider", CollisionLayer = 1, CollisionMask = 0 };
         body.Position = new Vector3(45f, -0.15f, 0f);
         body.AddChild(new CollisionShape3D { Shape = new BoxShape3D { Size = new Vector3(11.4f, 0.3f, 8.6f) } });
         AddChild(body);
 
-        // Safe side rails with colliders so nobody accidentally slips off.
+        // Safe side rails with colliders. They stop at the water span (x=49)
+        // so the road entrance is visibly open and the last rail/posts cannot
+        // read as a barrier across the bridge exit.
         for (int side = -1; side <= 1; side += 2)
         {
             float z = side * 4.35f;
             for (int i = 0; i < 5; i++)
             {
-                float x = 40.5f + i * 2.25f;
+                float x = 40.5f + i * 2.1f;
                 Geo.Box(this, new Vector3(x, 0.5f, z), new Vector3(0.16f, 1.0f, 0.16f), Palette.WoodDark);
             }
-            Geo.Box(this, new Vector3(45f, 1.0f, z), new Vector3(10.8f, 0.15f, 0.16f), Palette.Wood);
-            Geo.Box(this, new Vector3(45f, 0.62f, z), new Vector3(10.8f, 0.12f, 0.16f), Palette.WoodDark);
-            var rail = new StaticBody3D { CollisionLayer = 1, CollisionMask = 0, Position = new Vector3(45f, 0.5f, z) };
-            rail.AddChild(new CollisionShape3D { Shape = new BoxShape3D { Size = new Vector3(10.8f, 0.85f, 0.18f) } });
+            Geo.Box(this, new Vector3(44.3f, 1.0f, z), new Vector3(9.4f, 0.15f, 0.16f), Palette.Wood);
+            Geo.Box(this, new Vector3(44.3f, 0.62f, z), new Vector3(9.4f, 0.12f, 0.16f), Palette.WoodDark);
+            var rail = new StaticBody3D { CollisionLayer = 1, CollisionMask = 0, Position = new Vector3(44.3f, 0.5f, z) };
+            rail.AddChild(new CollisionShape3D { Shape = new BoxShape3D { Size = new Vector3(9.4f, 0.85f, 0.18f) } });
             AddChild(rail);
         }
-
-        // Warm plank glow at the entrances.
-        Geo.Disc(this, new Vector3(39.9f, 0.03f, 0f), 1.4f, Palette.Yellow, 0.25f, true);
-        Geo.Disc(this, new Vector3(50.1f, 0.03f, 0f), 1.4f, Palette.Yellow, 0.25f, true);
 
         if (playFeedback)
         {

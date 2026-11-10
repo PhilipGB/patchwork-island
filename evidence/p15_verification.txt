@@ -1,7 +1,7 @@
 Patchwork Island v1.2.0 — release verification
 ================================================
 Date: 2026-11-09
-Source head: recorded in PROGRESS.md (P15 exact-head commit)
+Source head: P15.1 hotfix tree (exact commit/CI recorded in PROGRESS.md)
 Godot: 4.7.2.stable.mono.official.ed1daf0bf
 .NET SDK: 10.0.114 (target net8.0)
 
@@ -23,9 +23,10 @@ Audio
 Packaged Linux build, real PipeWire/PulseAudio sink:
 device: alsa_output.pci-0000_c4_00.6.analog-stereo.monitor
 Capture: parecord, 20.14 s, 48 kHz, 16-bit stereo
-Peak 19777, RMS 944.8, nonzero per-second PCM from 2 s onward.
+Peak 20165, RMS 944.0, nonzero per-second PCM from 2 s onward.
 A 6-second excerpt is evidence/p15_packaged_audio_monitor_6s.wav.
-Human listening/subjective audition: NOT TESTED (no listener in environment).
+Human listening/subjective audition: PASS — product owner verified the
+packaged build on the target Linux/PipeWire system on 2026-11-09.
 
 Automated gates (source, sequential)
 ------------------------------------
@@ -36,15 +37,24 @@ pure tests                                         106 passed, 0 failed
 --selftest-recovery                                101 passed, 0 failed
 --selftest-living                                  238 passed, 0 failed
 --selftest-rally                                    10 passed, 0 failed
-  M05 18.97 s +5 medal, M09 18.98 s +5 medal
+  M05 18.99 s +5 medal, M09 18.97 s +5 medal
 --selftest-chapter                                 217 passed, 0 failed
 --selftest-finale                                  140 passed, 0 failed
-  M19 22.38 s +5 medal
---selftest-traversal                                12 passed, 0 failed
+  M19 22.32 s +5 medal
+--selftest-traversal                                18 passed, 0 failed
 --selftest-release                                  22 passed, 0 failed
 editor import                                      exit 0
 headless boot                                      exit 0
 Every runtime process exited 0 with zero leaked unsafe references.
+
+P15.1 bridge hotfix coverage
+----------------------------
+The traversal phase now checks fast and slow centre crossings, both lateral
+road edges (z=-2.2 / +2.2), westbound travel, a no-vertical-step assertion,
+walking/jumping at both number-1 arches, and walking from rest at the road lip.
+The east road starts at the bridge edge (x=50.5); the connector starts at
+x=50.4 with no plank overlay; collision is 1 cm above the lawn; the
+RallyRoadCollision body is proven by name on all 52 loop samples.
 
 Packaged Linux build
 --------------------
@@ -52,8 +62,10 @@ ELF 64-bit LSB executable, x86-64, dynamically linked, stripped
 --headless --quit-after 120                         exit 0
 --selftest                                         161 passed, 0 failed
 --selftest-rally                                    10 passed, 0 failed
+  M05 18.97 s +5, M09 18.98 s +5
 --selftest-finale                                  140 passed, 0 failed
---selftest-traversal                                12 passed, 0 failed
+  M19 22.33 s +5
+--selftest-traversal                                18 passed, 0 failed
 --selftest-release                                  22 passed, 0 failed
 Every packaged phase exited 0 with zero leaked unsafe references.
 
@@ -61,18 +73,19 @@ Windows build
 -------------
 PE32+ executable, MS Windows 5.02 (GUI), x86-64, stripped
 file/product version 1.2.0.0
-Export succeeded. Windows startup NOT TESTED (no Windows runtime/Wine).
+Export succeeded. Windows startup NOT TESTED (no Windows runtime/Wine) and
+explicitly waived by the product owner for the Linux-first release.
 
 Hashes (dist/)
 --------------
-76611594db25a62d8964afcaf7579d630a241a3bf2999f38023b32d5756a05d0  linux/PatchworkIsland.x86_64
-28da892a43dbbf0dd443916c89ee0a6e51e0f40e9e8224745c25b365a96112f2  windows/PatchworkIsland.exe
-93682196484c97bd57ba846d3ab67e126bba29af8f12fc0e459956895d3814dd  PatchworkIsland-1.2.0-Linux-x86_64.zip
-005730ff679e19e9339ec84fc7e3a1c71fc9049bca9074ae4740e2bd7706f6a8  PatchworkIsland-1.2.0-Windows-x86_64.zip
+f15ee255725f4c05b7352c423891c18d2a6b51fa7a722652cf56b4ed2c6c00f8  linux/PatchworkIsland.x86_64
+24cea194d55ecb110216477f6a089a3455fad2876d0e6505e6a9ec4e48b00391  windows/PatchworkIsland.exe
+79efdfe70bf546b7100c59cb053084f6364a928fe0c1b5419b0af080dc84d35a  PatchworkIsland-1.2.0-Linux-x86_64.zip
+eeb111a520c4b15342e6d265f25e6e729b80bf0dc8e0365e6343df57b782e9a1  PatchworkIsland-1.2.0-Windows-x86_64.zip
 
-Publication blockers
---------------------
-1. Subjective human audio listening could not be performed; real-device output
-   was captured objectively.
-2. Windows startup was not tested.
-No v1.2.0 tag was created.
+Publication status
+------------------
+- Human audio listening: PASS (product owner, 2026-11-09).
+- Windows startup: NOT TESTED; waived for the Linux-first release.
+- No known code/save blockers remain after the P15.1 bridge hotfix.
+- No v1.2.0 tag has been created yet; tag from the green P15.1 merge head.

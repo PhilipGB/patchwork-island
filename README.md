@@ -21,12 +21,14 @@ new jobs M11–M20 ending in a separate village-festival finale.
   progression intact; a completed v1.1.0 village unlocks M11 immediately.
 - Packaged Linux x64 export booted headlessly and passed all runtime phases.
 - Windows x64 export is PE32+ with file/product version `1.2.0.0`.
-  **Windows startup was not tested** (no Windows runtime or Wine).
+  **Windows startup was not tested** (no Windows runtime or Wine) and was
+  explicitly waived for the Linux-first release.
 - Real AMD Radeon 890M: 720p mean **16.69 ms** / p95 17.35 ms; 1080p mean
   **16.67 ms** / p95 17.28 ms over 600 frames each. No v1.1.0 real-GPU probe
   exists, so a baseline comparison is **NOT TESTED**.
-- Packaged audio reached the real PipeWire sink monitor (nonzero PCM capture).
-  **Human listening was not possible** in this environment; see
+- Packaged audio reached the real PipeWire sink monitor (nonzero PCM capture)
+  and **human listening is PASS** — the product owner verified the packaged
+  build on 2026-11-09. See
   [docs/RELEASE_NOTES_v1.2.0.md](docs/RELEASE_NOTES_v1.2.0.md).
 
 ## Download / install
@@ -256,75 +258,47 @@ integer-millisecond persistence ceiling instead of invalidating the save.
 
 Music, sound-effects and reduced-motion toggles are persisted. Reduced motion
 stops marker bobbing and spinning. The UI is readable at 1280×720 and scales to
-1920×1080. There is currently no bundled audio, so all feedback is visual and
-the game is fully playable with sound off.
+1920×1080. Original music and sound effects are bundled with persisted Music
+and SFX settings; the game remains fully playable with sound off.
 
 ## Known limitations
 
-- **No audio assets are bundled.** Music/SFX toggles persist for a future audio
-  pass; visual feedback is complete.
+- **Windows startup is NOT TESTED.** The PE32+ export compiles and packages,
+  but no Windows runtime was available. This was explicitly waived for the
+  Linux-first v1.2.0 release.
+- **No v1.1.0 real-GPU baseline probe exists**, so the Radeon frame times are
+  absolute measurements rather than a before/after comparison.
+- **Child usability testing was not possible.** No children participated; the
+  age-appropriate design is based on specification, automated checks and adult
+  real-input playtests.
 - **Text scaling is fixed.** The layout scales, but there is no text-size
   setting.
-- **Windows startup not tested** in this environment (export succeeded).
-- **Performance is measured only on software rendering** (Mesa llvmpipe,
-  1280×720, observed 11–13 FPS). GPU performance was not measurable here.
-- **Child usability testing was not possible.** No children participated; the
-  age-appropriate design is based on specification and adult real-input checks.
 - Practice-race progress is deliberately not persisted; it is reward-free and
   restarts on reload.
 
 ## Verification summary
 
 - `dotnet build PatchworkIsland.sln`: 0 errors, 0 warnings.
-- Automated tests: **78 passed, 0 failed**.
-- Godot runtime self-tests: **103 + 19 + 101 assertions passed, 0 failed**.
-- P9 screenshots: character chooser, girl/boy world models, clothes shop,
-  purchase feedback and outfit change (`evidence/p9_*.png`).
-- Headless editor import and main-scene boot: exit 0.
-- Missing mission content: explicit FATAL and exit 1.
-- Full fresh-save walkthrough (v1.0.0): M01–M10 completed with real
-  keyboard/mouse input, final wallet 136, celebration once, practice race
-  rewarded nothing, save/quit/relaunch preserved the world.
-- v1.0.1 save scenarios: completed M10 → picked up a chair → manual save →
-  quit → Continue; the chair remained owned and unplaced, then was moved to a
-  new pad and persisted. A 66-minute race state (`elapsedMs=3,960,000`) was
-  completed, M06 was then played normally, saved, quit and reloaded with both
-  completions and the correct wallet.
-- v1.0.1 failure UI: write-denied manual saves showed **Save failed**, left the
-  previous file intact, and a retry succeeded. A failed New Game did not claim
-  persistence, and quitting without saving preserved the old save.
-- v1.0.2 recovery scenarios: a failed New Game followed by Return to title →
-  Return anyway → Continue reloaded the nine-mission/130-coin village; a
-  discarded movement change reloaded the persisted player position; a schema-99
-  newer save survived a failed replacement and was then replaced successfully
-  by Save Now with an exact preserved copy.
-- v1.0.2 settings: a failed settings write was shown inside the modal, the
-  following autosave failure still produced its first warning, and a successful
-  retry replaced the error message.
-- Linux v1.0.1 export: launched and played; mission catalogue and final save
-  loaded; the packaged binary also passed its runtime assertions headlessly.
-- v1.0.2 exports: Linux `62,221,666` bytes and Windows `72,595,458` bytes
-  (ZIPs), with version `1.0.2`. The Linux build launched under Xvfb, loaded the
-  existing nine-job/130-coin save and the job board, and passed **42 + 10 + 98**
-  runtime assertions from the packaged executable. The Windows executable is
-  PE32+ x86-64 with version `1.0.2.0`, embedded mission content, assemblies and
-  the self-contained .NET 8 runtime.
-- P9 v1.1.0: Boy/Girl choice, four purchasable outfits, clothes-shop building,
-  real Buy/Wear runtime tests, save/Continue persistence and new-game reset.
-  Project and export metadata report version `1.1.0`.
-- P9 review corrections: schema 1→2 migration with schema 3/99 refusal and
-  untouched-file checks; all outfits previewable through enabled Preview
-  controls; actual Boy/Girl/Cancel buttons exercised in runtime tests; a
-  successful clothes-shop retry clears the previous save error.
-- v1.1.0 Linux export: headless boot exit 0 and **103 + 19 + 101** runtime
-  assertions passed from the packaged binary.
-- v1.1.0 Windows export: PE32+ x86-64, file/product version `1.1.0.0`.
-- F12 is inactive in the normal export (screenshot count unchanged).
-- Windows startup: **NOT TESTED** (no Windows runtime or Wine).
-- SHA-256 checksums are recorded in `dist/SHA256SUMS`; the Linux ZIP is
-  `eab7138a3ab252012cd957245f855939f4074924af14a172f682d3a1077ced50` and the
-  Windows ZIP is
-  `58a372da15cd1010c25de7cdf7101f99f541ddee22c7fe087a895d249e098b50`.
+- Pure tests: **106 passed, 0 failed**.
+- Runtime: **161 + 21 + 101 + 238 + 10 + 217 + 140 + 18 + 22** passed,
+  0 failed (pause/modal, resume, recovery, living village, rally, chapter two,
+  finale, traversal, v1.1 migration).
+- Packaged Linux x64 booted headlessly and passed selftest, rally, finale,
+  traversal and v1.1-migration phases with exit 0 and zero leaked unsafe
+  references.
+- Real AMD Radeon 890M (Mesa 26.0.8, OpenGL 4.6): 720p mean **16.69 ms** /
+  p95 17.35 ms; 1080p mean **16.67 ms** / p95 17.28 ms over 600 frames each.
+- Packaged audio reached the real PipeWire sink monitor (nonzero PCM), and the
+  product owner verified audible playback on 2026-11-09.
+- v1.2.0 exports: Linux ELF x86-64; Windows PE32+ x86-64 with file/product
+  version `1.2.0.0`.
+- Save schema 3 migration, M05/M09 four-gate timing, the original M10
+  celebration and the separate M20 festival are covered by pure and runtime
+  tests.
+- The P15.1 bridge hotfix adds the seam/junction/cap captures
+  (`evidence/p14_720_15..17_*.png`, `evidence/p14_1080_15..17_*.png`) and an
+  18-check traversal phase covering both road edges, westbound travel, no
+  vertical step, and walking/jumping at both number-1 arches.
 
 Detailed evidence and commands are in `PROGRESS.md`, `ACCEPTANCE.md`,
 `evidence/p8_*.png`, `evidence/p81_*.png` and `evidence/p9_*.png`.

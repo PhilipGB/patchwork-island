@@ -1651,7 +1651,7 @@ with zero leaked unsafe references.
 - Real Radeon P14 captures: `evidence/p15_radeon_00..14_*.png`.
 - Audio: packaged Linux ran against PipeWire/PulseAudio
   (`alsa_output.pci-0000_c4_00.6.analog-stereo.monitor`). A 20.14 s
-  `parecord` capture had peak 19777 / RMS 944.8 with nonzero PCM from 2 s on;
+  `parecord` capture had peak 20165 / RMS 944.0 with nonzero PCM from 2 s on;
   6 s excerpt at `evidence/p15_packaged_audio_monitor_6s.wav`.
 - **Human listening was not possible in this environment.** Subjective audio
   audition remains **NOT TESTED**.
@@ -1690,3 +1690,93 @@ No `v1.2.0` tag was created.
 - P15 merged to `main` as `cd54d7a` (PR #21, merge commit).
 - Tag/publish decision: **not tagged**. The two publication blockers above
   remain untested, so v1.2.0 is not published as fully verified.
+
+## P15.1 — bridge seam and visual hotfix
+
+**Branch:** `fix-bridge-seam-visuals`, based on main `ed81e64` (post-P15).
+
+The 2026-11-09 playtest reported that the van crossed the bridge but still hit
+an invisible obstacle, with a grey slab/floating rail at the join and a cap
+that appeared to hover.
+
+### Root causes and fixes
+
+- The east road box began at `x=49`, 1.45 m inside the bridge deck, and the
+  rally connector's ramp started at `x=48.1`. Both painted a grey surface over
+  the wooden planks and left a raised collision edge. The east road now starts
+  at `x=50.5`; the connector starts at `x=50.4` with the ramp removed; road and
+  shoulder collision is 1 cm above the lawn (down from 6.5 cm).
+- The P12 collision-coverage proof now checks the actual `RallyRoadCollision`
+  body by name instead of assuming a raised hit (52/52 samples).
+- Bank rocks at `(40.1, 0.55, 0)` and near the east exit are skipped; a dark
+  deck underlay closes the 20 cm plank gaps; the side rails stop at the water
+  span (`x=49`); the connector gained 0.8 m sandy shoulders; the translucent
+  entrance glow discs were removed.
+- The long-hair back now meets the lowered cap underside, removing the exposed
+  skin strip that made the cap look detached.
+
+### Verification
+
+```text
+dotnet build PatchworkIsland.sln                         -> 0 warnings, 0 errors
+dotnet run --project tests/PatchworkIsland.Tests.csproj  -> 106 passed, 0 failed
+--selftest                                               -> 161 passed, 0 failed
+--selftest-resume                                        -> 21 passed, 0 failed
+--selftest-recovery                                      -> 101 passed, 0 failed
+--selftest-living                                        -> 238 passed, 0 failed
+--selftest-rally                                         -> 10 passed, 0 failed
+--selftest-chapter                                       -> 217 passed, 0 failed
+--selftest-finale                                        -> 140 passed, 0 failed
+--selftest-traversal                                     -> 18 passed, 0 failed
+--selftest-release                                       -> 22 passed, 0 failed
+```
+
+Rally: M05 18.99 s, M09 18.97 s, M19 22.32 s, each +5. Every runtime process
+exited 0 with zero leaked unsafe references. Traversal now covers a fast centre
+crossing, a slow pulsing crossing, both lateral road edges, westbound travel, a
+no-vertical-step assertion, walking/jumping at both gate-1 arches and a walk
+from rest at the road lip.
+
+### Evidence
+
+- `evidence/p14_720_15_bridge_seam.png` and
+  `evidence/p14_1080_15_bridge_seam.png` — driving viewpoint at the join.
+- `evidence/p14_720_16_bridge_junction.png` and
+  `evidence/p14_1080_16_bridge_junction.png` — overhead junction/deck.
+- `evidence/p14_720_17_player_cap.png` and
+  `evidence/p14_1080_17_player_cap.png` — seated cap from behind.
+- The full P14 720p/1080p set was re-captured after the fix.
+
+### Packaged rebuild
+
+The Linux and Windows exports were rebuilt from the fixed tree (not reused from
+P15):
+
+```text
+Linux  --headless --quit-after 120   -> exit 0
+Linux  --selftest                    -> 161 passed, 0 failed
+Linux  --selftest-rally              -> 10 passed, 0 failed
+  M05 18.97 s +5, M09 18.98 s +5
+Linux  --selftest-finale             -> 140 passed, 0 failed
+  M19 22.33 s +5
+Linux  --selftest-traversal          -> 18 passed, 0 failed
+Linux  --selftest-release            -> 22 passed, 0 failed
+```
+
+Every packaged phase exited 0 with zero leaked unsafe references. A fresh
+real-device monitor capture of the rebuilt Linux binary had peak 20165 / RMS
+944.0; the 6 s excerpt replaced the old one.
+
+New hashes:
+
+- `linux/PatchworkIsland.x86_64` `f15ee255725f4c05b7352c423891c18d2a6b51fa7a722652cf56b4ed2c6c00f8`
+- `windows/PatchworkIsland.exe` `24cea194d55ecb110216477f6a089a3455fad2876d0e6505e6a9ec4e48b00391`
+- `PatchworkIsland-1.2.0-Linux-x86_64.zip` `79efdfe70bf546b7100c59cb053084f6364a928fe0c1b5419b0af080dc84d35a`
+- `PatchworkIsland-1.2.0-Windows-x86_64.zip` `eeb111a520c4b15342e6d265f25e6e729b80bf0dc8e0365e6343df57b782e9a1`
+
+### Release-gate status
+
+- Packaged audio human listening: **PASS** (product-owner verified 2026-11-09).
+- Windows startup: **NOT TESTED**, explicitly waived for the Linux-first
+  release.
+- No v1.2.0 tag exists yet; the P15.1 merge head is the next tagging candidate.

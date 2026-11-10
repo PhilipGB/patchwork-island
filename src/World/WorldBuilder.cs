@@ -149,12 +149,14 @@ public partial class WorldBuilder : Node3D
             Geo.Box(this, new Vector3(41.2f, -1.02f, z), new Vector3(0.8f, 0.06f, 2.6f), Palette.White, null, true, "Foam");
             Geo.Box(this, new Vector3(48.8f, -1.02f, z + 2f), new Vector3(0.8f, 0.06f, 1.8f), Palette.White, null, true, "Foam");
         }
-        // Bank rocks.
+        // Bank rocks, kept clear of the bridge deck and its approaches.
         for (int i = 0; i < 7; i++)
         {
             float z = -42 + i * 14f;
-            Rock(new Vector3(40.1f, 0.55f, z), 1.3f + (i % 3) * 0.3f);
-            Rock(new Vector3(49.9f, 0.55f, z + 6f), 1.1f + (i % 2) * 0.4f);
+            if (Mathf.Abs(z) > 6f)
+                Rock(new Vector3(40.1f, 0.55f, z), 1.3f + (i % 3) * 0.3f);
+            if (Mathf.Abs(z + 6f) > 6f)
+                Rock(new Vector3(49.9f, 0.55f, z + 6f), 1.1f + (i % 2) * 0.4f);
         }
 
         // Bridge abutments and the (initially closed) barrier.
@@ -181,7 +183,10 @@ public partial class WorldBuilder : Node3D
     private void BuildRoads()
     {
         AddRoadRect(new Vector3(-4f, 0, 0), 88f, 6.4f);
-        AddRoadRect(new Vector3(68.5f, 0, 0), 39f, 6.4f);
+        // East road starts at the bridge's east edge (x=50.5), not under the
+        // last 1.5 m of wooden deck; the old overlap painted a grey slab
+        // across the planks.
+        AddRoadRect(new Vector3(69.25f, 0, 0), 37.5f, 6.4f);
         AddRoadRect(new Vector3(-30f, 0, 9.5f), 5.2f, 19f);
         AddRoadRect(new Vector3(-38f, 0, 9.5f), 3.4f, 19f);
         AddRoadRect(new Vector3(-20f, 0, -10f), 3.8f, 20f);

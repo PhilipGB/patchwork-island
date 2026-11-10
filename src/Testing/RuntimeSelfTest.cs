@@ -1087,6 +1087,36 @@ public partial class RuntimeSelfTest : Node
         await Wait(0.3f);
         Expect(Main.RtVanPosition.X > 51.5f,
             $"slow van crosses the bridge/connector seam (x={Main.RtVanPosition.X:0.0})");
+
+        // Check both road edges: a leftover shoulder lip or rail collider must
+        // not stop a van that is still inside the 6.4 m carriageway.
+        foreach (float offset in new[] { -2.2f, 2.2f })
+        {
+            Main.RtPrepareBridgeCrossingAt(47f, offset, -Mathf.Pi / 2f);
+            await Wait(0.4f);
+            Vector3 offsetStart = Main.RtVanPosition;
+            Input.ActionPress("move_forward");
+            await Wait(4.0f);
+            Input.ActionRelease("move_forward");
+            await Wait(0.3f);
+            Vector3 offsetEnd = Main.RtVanPosition;
+            Expect(offsetEnd.X > 58f,
+                $"van crosses the bridge at lateral offset z={offset:0.0} (x={offsetEnd.X:0.0})");
+            Expect(Mathf.Abs(offsetEnd.Y - offsetStart.Y) < 0.06f,
+                $"bridge seam has no vertical step at lateral offset z={offset:0.0}");
+        }
+
+        Main.RtPrepareBridgeCrossingAt(56f, 0f, Mathf.Pi / 2f);
+        await Wait(0.4f);
+        Vector3 westStart = Main.RtVanPosition;
+        Input.ActionPress("move_forward");
+        await Wait(2.5f);
+        Input.ActionRelease("move_forward");
+        await Wait(0.3f);
+        Expect(Main.RtVanPosition.X < 42f,
+            $"van crosses the bridge westbound (x={Main.RtVanPosition.X:0.0})");
+        Expect(Mathf.Abs(Main.RtVanPosition.Y - westStart.Y) < 0.06f,
+            "westbound bridge seam has no vertical step");
         Main.RtLeaveVanForTest();
         await Wait(0.35f);
         foreach (var gateTest in new[]
