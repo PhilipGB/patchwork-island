@@ -539,10 +539,14 @@ this release; it is recorded as an untested platform, not claimed working.
 **OPTIONAL:** child playtesting, accessibility review, a v1.1.0 real-GPU
 baseline probe, Windows startup when a Windows machine is available.
 
-**Tag/publish status:** no tag yet. After the P15.1 PR is green, the exact merge
-head is the only candidate for the v1.2.0 tag. The package hashes and
-verification logs are recorded in `PROGRESS.md` and
-`evidence/p15_verification.txt`.
+**Tag/publish status:** **v1.2.0 tagged and published.** Tag `v1.2.0` points at
+`d0eff9d` (merge of PR #23), whose tree is identical to green PR head
+`b7d3bb9`. Main CI run
+[42726477501](https://github.com/PhilipGB/patchwork-island/actions/runs/42726477501)
+passed. Release:
+[v1.2.0](https://github.com/PhilipGB/patchwork-island/releases/tag/v1.2.0)
+with Linux/Windows ZIPs, `README.txt` and `SHA256SUMS`. Package hashes and
+verification logs are in `PROGRESS.md` and `evidence/p15_verification.txt`.
 
 ### Manual walkthrough status
 
