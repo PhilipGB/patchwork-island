@@ -113,6 +113,10 @@ suite was re-run (279 passed).
 - Frame time (Radeon 880M/890M, 600 frames): canonical 16.68–17.08 ms vs v1.2.1
   baseline 16.70–16.71 ms; draw calls fall from 3394 to 2403 and primitives from
   66069 to 49142
+- GitHub CI
+  [run 42850939120](https://github.com/PhilipGB/patchwork-island/actions/runs/42850939120)
+  passed the Linux job (including packaged `--selftest-restore`) and Windows
+  build/pure-test job
 
 Captured images and generated logs are kept outside version control under the
 existing ignored `evidence/` and `references/` paths.

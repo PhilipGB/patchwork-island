@@ -654,7 +654,7 @@ PR #27. No tag, merge or release created.
 | 9 | Save schema 3, v1.2.1 full/partial saves, M18 pickups, celebrations | **PASS** — unchanged schema and all historical phases green. |
 | 10 | 11 Godot runtime phases including restore | **PASS** — source and packaged Linux: **1166 passed, 0 failed**, every exit 0. |
 | 11 | 720p/1080p screenshots and real-GPU frame time | **PASS** — P14 18/18 at 1280×720 and 1920×1080, P12 10/10 at 720p; canonical 16.68–17.08 ms vs baseline 16.70–16.71 ms with fewer draws/primitives. |
-| 12 | CI runs packaged restore; exact-head green | **PASS (local)** — CI updated to run packaged `--selftest-restore`; GitHub CI on the canonical commit is pending push. |
+| 12 | CI runs packaged restore; exact-head green | **PASS** — [run 42850939120](https://github.com/PhilipGB/patchwork-island/actions/runs/42850939120) passed `build-test` (6m25s) and `windows-tests` (2m13s), including packaged `--selftest-restore` (54 passed). |
 
 **Build/test gates:** build 0/0; pure **111 passed**; source runtime **1166
 passed, 0 failed**; packaged Linux runtime **1166 passed, 0 failed**; packaged

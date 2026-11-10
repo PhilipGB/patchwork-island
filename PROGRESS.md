@@ -2113,6 +2113,8 @@ primitives. First-run shader compilation was excluded by the warm repeats.
 - Windows export/startup remains **NOT TESTED**.
 - One continuous human M01–M20 sitting remains **NOT TESTED**; automated real-UI
   coverage remains green.
-- GitHub CI has not run on the canonical commit yet; the exact local CI command
-  list was executed, including packaged `--selftest-restore`.
+- GitHub CI passed on the canonical commit:
+  [run 42850939120](https://github.com/PhilipGB/patchwork-island/actions/runs/42850939120)
+  (`build-test` 6m25s, `windows-tests` 2m13s), including packaged
+  `--selftest-restore` (54 passed).
 - Captures and logs stay in ignored `evidence/`/`references/` paths.
