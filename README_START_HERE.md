@@ -79,7 +79,9 @@ The first merged version must retain schema **3**, mission M01–M20 state,
 pickup IDs, build sockets, NPC/traffic locations, driving, cosmetics and the
 original save recovery behaviours. Compare the source world and new scene
 with the screenshots in `references/` and the numeric data in
-`docs/layout_manifest_v1.2.1.json`.
+`docs/layout_manifest_v1.2.1.json`. The canonical v1.3.0 town is described by
+`docs/layout_manifest_v1.3.0.json`; the v1.2.1 file is retained as the
+immutable historical source baseline.
 
 ## Scene folder contents
 

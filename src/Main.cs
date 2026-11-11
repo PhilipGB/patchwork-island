@@ -1693,7 +1693,8 @@ public partial class Main : Node3D
             car.Initialize(route, _world.GetTrafficPoints(route.Id),
                 () => _player?.GlobalPosition ?? Vector3.Zero,
                 () => _van?.GlobalPosition ?? Vector3.Zero,
-                () => _driving);
+                () => _driving,
+                () => _trafficCars);
             AddChild(car);
             _trafficCars.Add(car);
         }

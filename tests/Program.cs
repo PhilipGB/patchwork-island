@@ -2542,6 +2542,121 @@ internal static class Program
         Check(rival.SpeedMetresPerSecond <= 8f, "rival speed cap");
     });
 
+    Run("free-roam traffic follows one shared village loop", () =>
+    {
+        var freeRoam = TrafficCatalog.Routes.Where(r => !r.RallyOnly).ToList();
+        Equal(2, freeRoam.Count, "free-roam traffic count");
+        Check(TrafficCatalog.VillageLoopLength > 100f,
+            $"village loop is only {TrafficCatalog.VillageLoopLength:0.0}m");
+        foreach (var route in freeRoam)
+        {
+            foreach (var point in route.Points)
+            {
+                Check(TrafficCatalog.DistanceToVillageLoop(point.X, point.Z) <= 0.01f,
+                    $"{route.Id} leaves the shared loop at {point.X},{point.Z}");
+            }
+        }
+    });
+
+    Run("traffic following rule has a single deterministic right of way", () =>
+    {
+        Check(TrafficCatalog.ShouldYieldToTraffic(
+                10f, "town_scooter", 12f, "delivery_car"),
+            "the car behind must give way");
+        Check(!TrafficCatalog.ShouldYieldToTraffic(
+                12f, "delivery_car", 10f, "town_scooter"),
+            "the car ahead must proceed");
+        Check(TrafficCatalog.ShouldYieldToTraffic(
+                10f, "town_scooter", 10f, "delivery_car"),
+            "equal progress: only the larger id gives way");
+        Check(!TrafficCatalog.ShouldYieldToTraffic(
+                10f, "delivery_car", 10f, "town_scooter"),
+            "equal progress: exactly one car gives way");
+    });
+
+    Run("traffic keeps a safe gap over six complete loops", () =>
+    {
+        var freeRoam = TrafficCatalog.Routes.Where(r => !r.RallyOnly)
+            .OrderBy(r => r.Id, StringComparer.Ordinal).ToList();
+        Equal(2, freeRoam.Count, "free-roam vehicles");
+        float length = TrafficCatalog.VillageLoopLength;
+        float[] progress =
+        {
+            TrafficCatalog.ProgressOnVillageLoop(
+                freeRoam[0].Points[0].X, freeRoam[0].Points[0].Z),
+            TrafficCatalog.ProgressOnVillageLoop(
+                freeRoam[1].Points[0].X, freeRoam[1].Points[0].Z),
+        };
+        float[] speeds = freeRoam.Select(r => r.SpeedMetresPerSecond).ToArray();
+        string[] ids = freeRoam.Select(r => r.Id).ToArray();
+        float[] travelled = new float[2];
+        const float dt = 1f / 60f;
+        int steps = (int)MathF.Ceiling(6f * length / speeds.Min() / dt);
+        float minGap = float.MaxValue;
+        int deadlocks = 0;
+        for (int step = 0; step < steps; step++)
+        {
+            bool[] yields = new bool[2];
+            for (int i = 0; i < 2; i++)
+            {
+                yields[i] = TrafficCatalog.ShouldYieldToTraffic(
+                    progress[i], ids[i], progress[1 - i], ids[1 - i]);
+            }
+            if (yields[0] && yields[1]) deadlocks++;
+            for (int i = 0; i < 2; i++)
+            {
+                if (yields[i]) continue;
+                progress[i] += speeds[i] * dt;
+                travelled[i] += speeds[i] * dt;
+                if (progress[i] >= length) progress[i] -= length;
+            }
+            float raw = MathF.Abs(progress[0] - progress[1]);
+            float gap = MathF.Min(raw, length - raw);
+            if (step > 0) minGap = MathF.Min(minGap, gap);
+        }
+        Equal(0, deadlocks, "traffic following deadlocks");
+        Check(minGap >= TrafficCatalog.MinimumTrafficGap - 0.1f,
+            $"traffic cars closed to {minGap:0.00}m");
+        Check(travelled[0] > 3f * length && travelled[1] > 3f * length,
+            $"traffic cars did not complete three loops " +
+            $"({travelled[0]:0.0}/{travelled[1]:0.0}m)");
+    });
+
+    Run("historical v1.2.1 manifest stays separate from v1.3.0", () =>
+    {
+        string root = FindRepoRoot();
+        using var historical = JsonDocument.Parse(File.ReadAllText(
+            Path.Combine(root, "docs", "layout_manifest_v1.2.1.json")));
+        using var current = JsonDocument.Parse(File.ReadAllText(
+            Path.Combine(root, "docs", "layout_manifest_v1.3.0.json")));
+        var oldDelivery = historical.RootElement.GetProperty("traffic_routes")
+            .GetProperty("delivery_car");
+        var newDelivery = current.RootElement.GetProperty("traffic_routes")
+            .GetProperty("delivery_car");
+        Equal(12, oldDelivery.GetArrayLength(), "historical delivery waypoint count");
+        Equal(20, newDelivery.GetArrayLength(), "v1.3.0 delivery waypoint count");
+        Check(MathF.Abs(oldDelivery[0][0].GetSingle() - 66f) < 0.01f &&
+              MathF.Abs(oldDelivery[0][2].GetSingle() + 1.5f) < 0.01f,
+            "historical delivery route was rewritten");
+        Check(MathF.Abs(newDelivery[0][0].GetSingle() - 34f) < 0.01f &&
+              MathF.Abs(newDelivery[0][2].GetSingle() - 0.5f) < 0.01f,
+            "v1.3.0 delivery route is not current");
+        Check((historical.RootElement.GetProperty("source").GetString() ?? "")
+            .Contains("v1.2.1", StringComparison.Ordinal),
+            "historical manifest source changed");
+        Check((current.RootElement.GetProperty("source").GetString() ?? "")
+            .Contains("v1.3.0", StringComparison.Ordinal),
+            "v1.3.0 manifest source missing");
+        Equal(7, current.RootElement.GetProperty("street_roads").GetArrayLength(),
+            "v1.3.0 street road count");
+        var sceneDelivery = ParseMarkersByParent(Path.Combine(root, "scenes", "world",
+            "TrafficRouteMarkers.tscn"))["delivery_car"];
+        Equal(newDelivery.GetArrayLength(), sceneDelivery.Count,
+            "v1.3.0 manifest does not match the scene");
+        Check(sceneDelivery.Count != oldDelivery.GetArrayLength(),
+            "historical manifest still matches the new scene");
+    });
+
     Run("rally centreline does not self-overlap its own road width", () =>
     {
         var samples = RallyCourse.SampleClosed(20);
@@ -2653,7 +2768,7 @@ internal static class Program
         {
             string root = FindRepoRoot();
             using var manifest = JsonDocument.Parse(File.ReadAllText(
-                Path.Combine(root, "docs", "layout_manifest_v1.2.1.json")));
+                Path.Combine(root, "docs", "layout_manifest_v1.3.0.json")));
             int checkedBuildings = 0;
             foreach (var building in manifest.RootElement
                          .GetProperty("building_instances").EnumerateArray())
@@ -2752,7 +2867,7 @@ internal static class Program
             string town = File.ReadAllText(Path.Combine(root, "scenes", "world", "Town.tscn"));
             var direction = ParseInstancePosition(town, "DirectionPost");
             using var manifest = JsonDocument.Parse(File.ReadAllText(
-                Path.Combine(root, "docs", "layout_manifest_v1.2.1.json")));
+                Path.Combine(root, "docs", "layout_manifest_v1.3.0.json")));
             float nearest = float.MaxValue;
             foreach (var point in manifest.RootElement
                          .GetProperty("npc_patrol_routes").GetProperty("milo").EnumerateArray())
@@ -2913,7 +3028,7 @@ internal static class Program
         {
             string root = FindRepoRoot();
             using var manifest = JsonDocument.Parse(File.ReadAllText(
-                Path.Combine(root, "docs", "layout_manifest_v1.2.1.json")));
+                Path.Combine(root, "docs", "layout_manifest_v1.3.0.json")));
             string town = File.ReadAllText(Path.Combine(root, "scenes", "world", "baked",
                 "Town_Baked.tscn"));
             foreach (var building in manifest.RootElement.GetProperty("building_instances")
@@ -2967,7 +3082,7 @@ internal static class Program
         {
             string root = FindRepoRoot();
             using var manifest = JsonDocument.Parse(File.ReadAllText(
-                Path.Combine(root, "docs", "layout_manifest_v1.2.1.json")));
+                Path.Combine(root, "docs", "layout_manifest_v1.3.0.json")));
             var npcRoutes = ParseMarkersByParent(Path.Combine(root, "scenes", "world",
                 "NpcPatrolMarkers.tscn"));
             foreach (var route in manifest.RootElement.GetProperty("npc_patrol_routes").EnumerateObject())

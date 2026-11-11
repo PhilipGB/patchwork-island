@@ -798,3 +798,25 @@ perimeter corners and both tree groups).
 
 **Remaining severity:** no known visual blocker. Human visual sign-off, one
 continuous M01–M20 sitting and Windows startup remain **NOT TESTED**.
+
+## v1.3.0 — review follow-up: traffic separation and manifest history (P2/P3)
+
+| # | Check | Result |
+|---|---|---|
+| 1 | P2 free-roam cars keep a safe following gap over several loops | **PASS** — the shared route-progress rule holds a 7 m minimum gap; the pure simulation runs six loops at 60 Hz and asserts the gap stays ≥6.9 m. |
+| 2 | P2 following rule is deterministic with a single right of way | **PASS** — only the car behind yields; at equal progress the lexicographically larger route id yields. Both directions are tested. |
+| 3 | P2 no deadlock | **PASS** — the leader always proceeds, so two cars cannot yield to each other; the simulation records zero mutual-yield steps and both cars complete more than three loops. |
+| 4 | P2 runtime integration | **PASS** — `Main.SpawnTraffic` supplies the live `_trafficCars` list; `TrafficCar.ShouldYield()` checks traffic after the player/van checks; all 11 source and packaged phases pass. |
+| 5 | P3 historical v1.2.1 manifest preserved | **PASS** — restored to the original `1b63c13` content: 12-point delivery route starting at `(66,-1.5)`, old scooter lanes. A pure test guards the endpoints and source string. |
+| 6 | P3 separate v1.3.0 manifest | **PASS** — `docs/layout_manifest_v1.3.0.json` carries the canonical town and round-4 20-point routes; `source` is tag v1.3.0. |
+| 7 | P3 tests use the correct manifest | **PASS** — current-scene tests read v1.3.0; the historical anchor-baseline test intentionally reads v1.2.1. |
+
+**Gates:** pure **123 passed**; source runtime **1171 passed, 0 failed** across
+all 11 phases; headless import and boot exit 0; packaged Linux boot plus all 11
+phases **1171 passed, 0 failed**, 3× `--selftest` green, ZIP-extracted
+`--selftest` 284/284. Windows rebuilt, startup **NOT TESTED**.
+
+**Remaining severity:** no known gameplay blocker. The long-horizon traffic
+check is a pure fixed-step simulation; the runtime 24 s living phase remains
+green. Human sign-off, one continuous M01–M20 sitting and Windows startup
+remain **NOT TESTED**.

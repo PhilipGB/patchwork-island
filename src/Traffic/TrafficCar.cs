@@ -29,6 +29,7 @@ public partial class TrafficCar : CharacterBody3D
     private Func<Vector3> _playerPosition;
     private Func<Vector3> _vanPosition;
     private Func<bool> _playerDriving;
+    private Func<IReadOnlyList<TrafficCar>> _otherTraffic;
     private Node3D _visual;
     private readonly System.Collections.Generic.List<Node3D> _wheels = new();
     private float _yaw;
@@ -41,7 +42,8 @@ public partial class TrafficCar : CharacterBody3D
 
     public void Initialize(TrafficRouteDefinition route,
         IReadOnlyList<NpcPoint> points, Func<Vector3> playerPosition,
-        Func<Vector3> vanPosition, Func<bool> playerDriving)
+        Func<Vector3> vanPosition, Func<bool> playerDriving,
+        Func<IReadOnlyList<TrafficCar>> otherTraffic = null)
     {
         _route = route ?? throw new ArgumentNullException(nameof(route));
         _points = points ?? route.Points;
@@ -50,6 +52,7 @@ public partial class TrafficCar : CharacterBody3D
         _playerPosition = playerPosition;
         _vanPosition = vanPosition;
         _playerDriving = playerDriving;
+        _otherTraffic = otherTraffic;
         RouteId = route.Id;
         DriverId = route.DriverId;
         RallyOnly = route.RallyOnly;
@@ -243,6 +246,30 @@ public partial class TrafficCar : CharacterBody3D
             float vanDistance = toVan.Length();
             if (vanDistance < 4.2f) return true;
             if (vanDistance < 7.5f && toVan.Normalized().Dot(forward) > 0.1f) return true;
+        }
+        return ShouldYieldToOtherTraffic();
+    }
+
+    /// <summary>
+    /// Keep a following gap on the shared one-way village loop. Only the car
+    /// behind gives way; the leader always proceeds, so two cars can queue
+    /// without either one blocking the other indefinitely.
+    /// </summary>
+    private bool ShouldYieldToOtherTraffic()
+    {
+        if (_otherTraffic == null) return false;
+        float progress = TrafficCatalog.ProgressOnVillageLoop(
+            GlobalPosition.X, GlobalPosition.Z);
+        foreach (TrafficCar other in _otherTraffic())
+        {
+            if (other == null || ReferenceEquals(other, this) ||
+                !GodotObject.IsInstanceValid(other) || other.RallyOnly || other.Stopped)
+                continue;
+            float otherProgress = TrafficCatalog.ProgressOnVillageLoop(
+                other.GlobalPosition.X, other.GlobalPosition.Z);
+            if (TrafficCatalog.ShouldYieldToTraffic(
+                    progress, RouteId, otherProgress, other.RouteId))
+                return true;
         }
         return false;
     }

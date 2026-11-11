@@ -2463,7 +2463,7 @@ river. Both free-roam routes now stay on the main street, with lanes at
 waypoint at least 1.8 m from the critical stations and every sampled runtime
 position at least 1.7 m away; the old `z=±1.5` lanes passed 1.0–1.2 m from the
 shop and clothes-shop doors. The 20-point `TrafficRouteMarkers.tscn` routes,
-`TrafficCatalog` and `layout_manifest_v1.2.1.json` were regenerated together.
+`TrafficCatalog` and the v1.3.0 layout manifest were regenerated together.
 While validating this, `TrafficCar` was changed to freeze its steering while
 yielding: previously a stopped car kept swivelling toward its next waypoint and
 could turn away from a waiting player, falsely resuming.
@@ -2500,3 +2500,81 @@ could turn away from a waiting player, falsely resuming.
   crossbar and `BROKEN` labels.
 - The library's street face sits behind the JOBS board from some approach
   angles; this is the existing town layout, not a shelf orientation fault.
+
+## P22 — Review follow-up: traffic separation and manifest history — PASS
+
+**Branch:** `v1.3.0-canonical-town`.
+
+Two review findings were addressed: long-term overlap between the two
+free-roam traffic cars, and the accidental rewriting of the historical v1.2.1
+layout manifest.
+
+### P2 — car-to-car separation
+
+Both free-roam vehicles traverse the same closed village loop in the same
+direction, starting at different authored waypoints. The missing behaviour was
+a following rule, so the faster scooter could eventually catch the delivery
+car.
+
+- Added a shared loop metric and following rule to `TrafficCatalog`:
+  `VillageLoop`, `VillageLoopLength`, `ProgressOnVillageLoop`,
+  `DistanceToVillageLoop`, `MinimumTrafficGap = 7 m`, and
+  `ShouldYieldToTraffic`.
+- A car yields only when another car is ahead by less than `MinimumTrafficGap`
+  on the one-way loop. The leader always proceeds; at exactly equal progress
+  the lexicographically larger route id yields. That makes the rule
+  deterministic and deadlock-free: only the following car can ever stop.
+- `TrafficCar.Initialize` now accepts the live traffic list,
+  `Main.SpawnTraffic` passes `_trafficCars`, and `ShouldYield()` checks traffic
+  after the player/van checks. `TrafficCatalog.Validate` rejects any free-roam
+  waypoint that leaves the shared loop.
+- Because progress is measured along the route rather than by a forward cone,
+  the spacing remains correct through the U-turns and corners.
+- Validation runs the same rule at 60 Hz for **six complete loops** at the
+  authored 3.2/2.8 m/s speeds. The pure test asserts no deadlock, both cars
+  travel more than three loops, and the minimum following gap stays at least
+  `MinimumTrafficGap - 0.1 m`. A second test checks the equal-progress
+  right-of-way rule in both directions.
+
+### P3 — manifest history
+
+- Restored `docs/layout_manifest_v1.2.1.json` to its original content from
+  `1b63c13`: the delivery car has 12 points starting at `(66, -1.5)` and the
+  scooter still uses the old `z=±1.5` lanes. This file is now an immutable
+  historical baseline.
+- Added `docs/layout_manifest_v1.3.0.json` for the canonical town, with the
+  round-4 20-point routes, the current seven-slab `street_roads` layout and
+  `source` set to tag v1.3.0.
+- Current-scene tests (gables, signpost, baked buildings, NPC/traffic markers)
+  now read the v1.3.0 manifest. The historical anchor-baseline test
+  intentionally keeps reading v1.2.1.
+- Added a pure test that guards the historical delivery endpoints and source,
+  and that the v1.3.0 manifest matches the authored marker scene.
+
+### Verification status
+
+- Pure tests: **123 passed, 0 failed** (119 previous + four traffic/manifest
+  checks).
+- Source runtime: **1171 passed, 0 failed**, all 11 phases exit 0
+  (`284/21/101/238/10/217/48/140/18/40/54`).
+- Headless import and boot: exit 0.
+- Packaged Linux (`dist/linux/PatchworkIsland.x86_64`, exported from this
+  tree): boot **PASS**; all 11 phases **1171 passed, 0 failed**, every phase
+  exit 0; `--selftest` repeated **3/3 green** (284 each). The extracted
+  v1.3.0 ZIP binary booted and passed `--selftest` (284/284).
+- Windows binary rebuilt (PE32+ x86-64) but startup remains **NOT TESTED**.
+- Final package hashes:
+  - `linux/PatchworkIsland.x86_64` `b0ab55eba61619bde6e59ab9e8674862b99f87523c7af61449a6b90244a663fc`
+  - `windows/PatchworkIsland.exe` `01e8e88cae3e6b91fd5466bebd09046a1ae6b065f9290df98380ae51143e8cf1`
+  - `PatchworkIsland-1.3.0-Linux-x86_64.zip` `37c7330bdb76ae323aad56cd5aa542d5a94cb289375f3256e5c51cd3e9ae4dff`
+  - `PatchworkIsland-1.3.0-Windows-x86_64.zip` `63724b9197ef0536c6bcfebd2adb55ee13709bf48b24fd073bc3aa6ea4d2147d`
+  - `sha256sum -c dist/SHA256SUMS` passes for all four files.
+
+### Remaining gaps
+
+- Human visual sign-off, one continuous M01–M20 sitting and Windows startup
+  remain **NOT TESTED**.
+- The long-horizon traffic check is an idealised pure simulation at a fixed
+  60 Hz; it does not model acceleration or corner speed scaling. The 7 m gap
+  is larger than the worst braking distance, and the 24 s runtime living test
+  still passes.

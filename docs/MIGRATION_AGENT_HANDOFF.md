@@ -48,6 +48,9 @@ Keep these contracts while migrating. Recommended pattern:
 1. `Town_Baked` imports and opens in Godot 4.7.2 .NET with no missing resources.
 2. Source-instance placement, yaw, wall dimensions and doors match the
    `layout_manifest_v1.2.1.json` values, with at most 0.01 m tolerance.
+   The canonical v1.3.0 scene is checked against
+   `layout_manifest_v1.3.0.json`; v1.2.1 remains the historical source
+   baseline.
 3. All critical world anchors in `GameplayAnchors.tscn` resolve once.
 4. Doors, road/bridge approaches, river, rally gates and other reachable
    geometry have equivalent collision; camera-only blockers remain layer 16.

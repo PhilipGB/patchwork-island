@@ -89,6 +89,108 @@ public static class TrafficCatalog
         return points;
     }
 
+    /// <summary>
+    /// Minimum centre-to-centre following gap along the shared village loop.
+    /// The longest free-roam vehicle is 2.75 m, so 7 m leaves a clear bumper
+    /// gap even after a braking step.
+    /// </summary>
+    public const float MinimumTrafficGap = 7f;
+
+    /// <summary>
+    /// Both free-roam vehicles follow the same closed loop, just starting at
+    /// different authored waypoints. Progress is measured on this canonical
+    /// order so the two routes stay comparable through every corner.
+    /// </summary>
+    public static readonly IReadOnlyList<NpcPoint> VillageLoop =
+        Routes.First(route => !route.RallyOnly).Points;
+
+    private static readonly float[] VillageLoopCumulative = BuildCumulative(VillageLoop);
+
+    public static float VillageLoopLength { get; } =
+        VillageLoopCumulative[VillageLoopCumulative.Length - 1] +
+        FlatDistance(VillageLoop[VillageLoop.Count - 1], VillageLoop[0]);
+
+    private static float[] BuildCumulative(IReadOnlyList<NpcPoint> loop)
+    {
+        var cumulative = new float[loop.Count];
+        for (int i = 1; i < loop.Count; i++)
+            cumulative[i] = cumulative[i - 1] + FlatDistance(loop[i - 1], loop[i]);
+        return cumulative;
+    }
+
+    private static float FlatDistance(NpcPoint a, NpcPoint b)
+    {
+        float dx = a.X - b.X;
+        float dz = a.Z - b.Z;
+        return MathF.Sqrt(dx * dx + dz * dz);
+    }
+
+    /// <summary>Distance along the canonical village loop, in metres.</summary>
+    public static float ProgressOnVillageLoop(float x, float z)
+    {
+        var loop = VillageLoop;
+        float bestDistanceSq = float.MaxValue;
+        float bestProgress = 0f;
+        for (int i = 0; i < loop.Count; i++)
+        {
+            NpcPoint a = loop[i];
+            NpcPoint b = loop[(i + 1) % loop.Count];
+            float dx = b.X - a.X;
+            float dz = b.Z - a.Z;
+            float lengthSq = dx * dx + dz * dz;
+            float t = lengthSq > 1e-8f
+                ? Math.Clamp(((x - a.X) * dx + (z - a.Z) * dz) / lengthSq, 0f, 1f)
+                : 0f;
+            float px = a.X + dx * t;
+            float pz = a.Z + dz * t;
+            float distanceSq = (x - px) * (x - px) + (z - pz) * (z - pz);
+            if (distanceSq < bestDistanceSq)
+            {
+                bestDistanceSq = distanceSq;
+                bestProgress = VillageLoopCumulative[i] + MathF.Sqrt(lengthSq) * t;
+            }
+        }
+        return bestProgress;
+    }
+
+    public static float DistanceToVillageLoop(float x, float z)
+    {
+        var loop = VillageLoop;
+        float bestDistanceSq = float.MaxValue;
+        for (int i = 0; i < loop.Count; i++)
+        {
+            NpcPoint a = loop[i];
+            NpcPoint b = loop[(i + 1) % loop.Count];
+            float dx = b.X - a.X;
+            float dz = b.Z - a.Z;
+            float lengthSq = dx * dx + dz * dz;
+            float t = lengthSq > 1e-8f
+                ? Math.Clamp(((x - a.X) * dx + (z - a.Z) * dz) / lengthSq, 0f, 1f)
+                : 0f;
+            float px = a.X + dx * t;
+            float pz = a.Z + dz * t;
+            float distanceSq = (x - px) * (x - px) + (z - pz) * (z - pz);
+            if (distanceSq < bestDistanceSq) bestDistanceSq = distanceSq;
+        }
+        return MathF.Sqrt(bestDistanceSq);
+    }
+
+    /// <summary>
+    /// True when <paramref name="selfId"/> is the following vehicle and the
+    /// other vehicle is less than <see cref="MinimumTrafficGap"/> ahead on the
+    /// one-way loop. At exactly equal progress the lexicographically larger id
+    /// gives way, so only one car can ever yield and the loop cannot deadlock.
+    /// </summary>
+    public static bool ShouldYieldToTraffic(float selfProgress, string selfId,
+        float otherProgress, string otherId)
+    {
+        float gap = otherProgress - selfProgress;
+        if (gap < 0f) gap += VillageLoopLength;
+        if (gap < 0.001f)
+            return string.CompareOrdinal(selfId, otherId) > 0;
+        return gap < MinimumTrafficGap;
+    }
+
     public static TrafficRouteDefinition Find(string id) =>
         Routes.FirstOrDefault(route => string.Equals(route.Id, id, StringComparison.Ordinal));
 
@@ -134,6 +236,12 @@ public static class TrafficCatalog
                 if (!RoadNetwork.Contains(point.X, point.Z))
                 {
                     error = $"Traffic route '{route.Id}' leaves the road at {point.X:0.0},{point.Z:0.0}.";
+                    return false;
+                }
+                if (DistanceToVillageLoop(point.X, point.Z) > 0.01f)
+                {
+                    error = $"Traffic route '{route.Id}' leaves the shared village loop at " +
+                            $"{point.X:0.0},{point.Z:0.0}.";
                     return false;
                 }
                 var next = route.Points[(i + 1) % route.Points.Count];
