@@ -1,0 +1,43 @@
+[gd_scene load_steps=7 format=3]
+
+[sub_resource type="BoxMesh" id="BoxMesh_tray"]
+size = Vector3(0.6, 0.3, 0.45)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wood"]
+albedo_color = Color(0.533333, 0.345098, 0.184314, 1)
+roughness = 0.95
+
+[sub_resource type="SphereMesh" id="SphereMesh_bread"]
+radius = 0.15
+height = 0.3
+radial_segments = 6
+rings = 3
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bread"]
+albedo_color = Color(0.85098, 0.635294, 0.352941, 1)
+roughness = 0.95
+
+[sub_resource type="BoxMesh" id="BoxMesh_cake"]
+size = Vector3(0.22, 0.18, 0.22)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_cake"]
+albedo_color = Color(0.94902, 0.560784, 0.698039, 1)
+roughness = 0.95
+
+[node name="BakeryOrderSlot" type="Node3D"]
+visible = false
+
+[node name="Tray" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.18, 0)
+mesh = SubResource("BoxMesh_tray")
+material_override = SubResource("StandardMaterial3D_wood")
+
+[node name="Bread" type="MeshInstance3D" parent="."]
+position = Vector3(-0.12, 0.4, 0)
+mesh = SubResource("SphereMesh_bread")
+material_override = SubResource("StandardMaterial3D_bread")
+
+[node name="Cake" type="MeshInstance3D" parent="."]
+position = Vector3(0.16, 0.38, 0)
+mesh = SubResource("BoxMesh_cake")
+material_override = SubResource("StandardMaterial3D_cake")

@@ -1,0 +1,969 @@
+{
+  "source": "PhilipGB/patchwork-island tag v1.3.0",
+  "coordinates": "Godot units, x east-west, y up, z north-south; sourced from WorldBuilder.cs",
+  "town_bounds": {
+    "west": -55,
+    "east": 95,
+    "north_z": -55,
+    "south_z": 55,
+    "river_x_min": 41,
+    "river_x_max": 49
+  },
+  "building_instances": [
+    {
+      "id": "PlayerHouse",
+      "position": [
+        -38,
+        0,
+        24
+      ],
+      "width": 13,
+      "depth": 10,
+      "wall_height": 3.4,
+      "front_sign": -1,
+      "enterable": true,
+      "scene": "scenes/world/assets/buildings/PlayerHouse.tscn"
+    },
+    {
+      "id": "TownHall",
+      "position": [
+        -14,
+        0,
+        14
+      ],
+      "width": 15,
+      "depth": 10,
+      "wall_height": 4.0,
+      "front_sign": -1,
+      "enterable": false,
+      "scene": "scenes/world/assets/buildings/TownHall.tscn"
+    },
+    {
+      "id": "RedHouse",
+      "position": [
+        -20,
+        0,
+        -24
+      ],
+      "width": 11,
+      "depth": 9,
+      "wall_height": 3.4,
+      "front_sign": 1,
+      "enterable": false,
+      "scene": "scenes/world/assets/buildings/RedHouse.tscn"
+    },
+    {
+      "id": "Market",
+      "position": [
+        5,
+        0,
+        9
+      ],
+      "width": 12,
+      "depth": 9,
+      "wall_height": 3.4,
+      "front_sign": -1,
+      "enterable": false,
+      "scene": "scenes/world/assets/buildings/Market.tscn"
+    },
+    {
+      "id": "ClothesShop",
+      "position": [
+        24,
+        0,
+        7
+      ],
+      "width": 9,
+      "depth": 7,
+      "wall_height": 3.2,
+      "front_sign": -1,
+      "enterable": false,
+      "scene": "scenes/world/assets/buildings/ClothesShop.tscn"
+    },
+    {
+      "id": "Workshop",
+      "position": [
+        25,
+        0,
+        -16
+      ],
+      "width": 13,
+      "depth": 10,
+      "wall_height": 3.7,
+      "front_sign": 1,
+      "enterable": false,
+      "scene": "scenes/world/assets/buildings/Workshop.tscn"
+    }
+  ],
+  "street_roads": [
+    {
+      "center": [
+        -4,
+        0,
+        0
+      ],
+      "width_x": 88,
+      "length_z": 6.4
+    },
+    {
+      "center": [
+        -30,
+        0,
+        11.1
+      ],
+      "width_x": 5.2,
+      "length_z": 15.8
+    },
+    {
+      "center": [
+        -38,
+        0,
+        11.1
+      ],
+      "width_x": 3.4,
+      "length_z": 15.8
+    },
+    {
+      "center": [
+        -20,
+        0,
+        -11.6
+      ],
+      "width_x": 3.8,
+      "length_z": 16.8
+    },
+    {
+      "center": [
+        25,
+        0,
+        -7.1
+      ],
+      "width_x": 4.8,
+      "length_z": 7.8
+    },
+    {
+      "center": [
+        -14,
+        0,
+        6.1
+      ],
+      "width_x": 3.6,
+      "length_z": 5.8
+    },
+    {
+      "center": [
+        15,
+        0,
+        11.4
+      ],
+      "width_x": 3.2,
+      "length_z": 16.4
+    }
+  ],
+  "rally": {
+    "control_points": [
+      [
+        56,
+        -6
+      ],
+      [
+        56,
+        -23
+      ],
+      [
+        61,
+        -37
+      ],
+      [
+        75,
+        -45
+      ],
+      [
+        86,
+        -37
+      ],
+      [
+        87,
+        -20
+      ],
+      [
+        86,
+        6
+      ],
+      [
+        82,
+        27
+      ],
+      [
+        73,
+        40
+      ],
+      [
+        62,
+        43
+      ],
+      [
+        56.5,
+        34
+      ],
+      [
+        56,
+        18
+      ],
+      [
+        56,
+        2
+      ]
+    ],
+    "road_width": 8,
+    "shoulder_width": 1.5,
+    "four_gate_fractions": [
+      0.1,
+      0.3,
+      0.52,
+      0.74
+    ],
+    "six_gate_fractions": [
+      0.06,
+      0.2,
+      0.34,
+      0.5,
+      0.66,
+      0.82
+    ]
+  },
+  "anchors": {
+    "PlayerSpawn": [
+      -38,
+      0.15,
+      9.5
+    ],
+    "VanSpawn": [
+      -30,
+      0.15,
+      14.5
+    ],
+    "JobBoard": [
+      -22,
+      0,
+      5
+    ],
+    "PlayerHouseDoor": [
+      -38,
+      0,
+      18.3
+    ],
+    "TownHallDoor": [
+      -14,
+      0,
+      8.4
+    ],
+    "RedHouseDoor": [
+      -20,
+      0,
+      -18.7
+    ],
+    "ShopDoor": [
+      5,
+      0,
+      3.8
+    ],
+    "ClothesShopDoor": [
+      24,
+      0,
+      3.5
+    ],
+    "WorkshopDoor": [
+      25,
+      0,
+      -10.3
+    ],
+    "AppleCrate": [
+      -2.5,
+      0,
+      3.6
+    ],
+    "PostCounter": [
+      -9,
+      0,
+      8
+    ],
+    "BridgeSite": [
+      36.5,
+      0,
+      4.5
+    ],
+    "BridgeCenter": [
+      45,
+      0,
+      0
+    ],
+    "PlaygroundCenter": [
+      -38,
+      0,
+      -5
+    ],
+    "ParkCenter": [
+      15,
+      0,
+      16
+    ],
+    "VillageGreenSign": [
+      10,
+      0,
+      10.7
+    ],
+    "GroveCenter": [
+      -40,
+      0,
+      -32
+    ],
+    "StonePatchCenter": [
+      18,
+      0,
+      -34
+    ],
+    "ParkingSign": [
+      -33,
+      0,
+      12.5
+    ],
+    "FurnitureStation": [
+      -40.5,
+      0,
+      20.5
+    ],
+    "BakeryStall": [
+      15.2,
+      0,
+      5.2
+    ],
+    "LibraryShelf": [
+      -20.8,
+      0,
+      8.2
+    ],
+    "RepairCarPosition": [
+      35.2,
+      0,
+      -7.8
+    ],
+    "RepairStation": [
+      35.2,
+      0,
+      -5.4
+    ],
+    "HousePad_0": [
+      -40.8,
+      0.08,
+      23.3
+    ],
+    "ParkPad_0": [
+      11.3,
+      0.09,
+      14.5
+    ],
+    "GardenPad_0": [
+      26,
+      0.09,
+      20.8
+    ],
+    "HousePad_1": [
+      -38.0,
+      0.08,
+      23.3
+    ],
+    "ParkPad_1": [
+      15.0,
+      0.09,
+      14.5
+    ],
+    "GardenPad_1": [
+      29,
+      0.09,
+      20.8
+    ],
+    "HousePad_2": [
+      -35.2,
+      0.08,
+      23.3
+    ],
+    "ParkPad_2": [
+      18.7,
+      0.09,
+      14.5
+    ],
+    "GardenPad_2": [
+      32,
+      0.09,
+      20.8
+    ],
+    "HousePad_3": [
+      -40.8,
+      0.08,
+      26.6
+    ],
+    "ParkPad_3": [
+      11.3,
+      0.09,
+      17.7
+    ],
+    "GardenPad_3": [
+      26,
+      0.09,
+      23.400000000000002
+    ],
+    "HousePad_4": [
+      -38.0,
+      0.08,
+      26.6
+    ],
+    "ParkPad_4": [
+      15.0,
+      0.09,
+      17.7
+    ],
+    "GardenPad_4": [
+      29,
+      0.09,
+      23.400000000000002
+    ],
+    "HousePad_5": [
+      -35.2,
+      0.08,
+      26.6
+    ],
+    "ParkPad_5": [
+      18.7,
+      0.09,
+      17.7
+    ],
+    "GardenPad_5": [
+      32,
+      0.09,
+      23.400000000000002
+    ],
+    "WoodPickup_0": [
+      -46.0,
+      0,
+      -34.3
+    ],
+    "WoodPickup_1": [
+      -43.8,
+      0,
+      -33.3
+    ],
+    "WoodPickup_2": [
+      -41.6,
+      0,
+      -34.3
+    ],
+    "WoodPickup_3": [
+      -39.4,
+      0,
+      -33.3
+    ],
+    "WoodPickup_4": [
+      -37.2,
+      0,
+      -34.3
+    ],
+    "StonePickup_0": [
+      14.6,
+      0,
+      -34.8
+    ],
+    "StonePickup_1": [
+      17.8,
+      0,
+      -32.8
+    ],
+    "StonePickup_2": [
+      21.0,
+      0,
+      -34.8
+    ],
+    "ApplePickup_0": [
+      -3.2,
+      1.15,
+      3.7
+    ],
+    "ApplePickup_1": [
+      -2.5,
+      1.15,
+      3.7
+    ],
+    "ApplePickup_2": [
+      -1.8000000000000003,
+      1.15,
+      3.7
+    ],
+    "ParcelPickup_0": [
+      -9.8,
+      1.3,
+      7.9
+    ],
+    "ParcelPickup_1": [
+      -9.0,
+      1.3,
+      7.9
+    ],
+    "ParcelPickup_2": [
+      -8.200000000000001,
+      1.3,
+      7.9
+    ],
+    "SignSocket_0": [
+      16.2,
+      0,
+      9.6
+    ],
+    "SignSocket_1": [
+      22,
+      0,
+      -4.2
+    ],
+    "SignSocket_2": [
+      -2.5,
+      0,
+      10.5
+    ],
+    "BookPickup_0": [
+      9.4,
+      0.15,
+      3.75
+    ],
+    "BookPickup_1": [
+      -4.2,
+      0.15,
+      7
+    ],
+    "BookPickup_2": [
+      -30.8,
+      0.15,
+      -8.8
+    ],
+    "BookPickup_3": [
+      13.6,
+      0.15,
+      13.1
+    ],
+    "FestivalTable_0": [
+      12,
+      0.09,
+      22.4
+    ],
+    "FestivalTable_1": [
+      18,
+      0.09,
+      22.4
+    ],
+    "FestivalLantern_0": [
+      9,
+      0.09,
+      22.4
+    ],
+    "FestivalLantern_1": [
+      21,
+      0.09,
+      22.4
+    ],
+    "FestivalLantern_2": [
+      15,
+      0.09,
+      24.2
+    ],
+    "RepairPickup_0": [
+      37.4,
+      0.15,
+      -9
+    ],
+    "RepairPickup_1": [
+      37.4,
+      0.15,
+      -12
+    ],
+    "RepairPickup_2": [
+      37.4,
+      0.15,
+      -15
+    ],
+    "RepairPickup_3": [
+      37.4,
+      0.15,
+      -18
+    ],
+    "DeliveryBoard": [
+      -2.5,
+      0,
+      4.2
+    ],
+    "MarketStock": [
+      -2,
+      0,
+      4.8
+    ],
+    "RallyPodium": [
+      60.5,
+      0,
+      -13.5
+    ]
+  },
+  "exact_baking": "tools/SceneBakeTool.cs + scenes/tools/SceneBakeTool.tscn produce the authoritative scene content using the original WorldBuilder in the target source checkout",
+  "limitations": [
+    "Town_Preview is a static starter; attach no gameplay scripts and do not add it to Main while the old world is also rendered",
+    "Only the bake tool regenerates exact legacy procedural foliage, mesh content and full landmark visuals",
+    "Some finale interaction anchors/props are runtime-owned by Main or world build systems and must be migrated through an adapter, not replaced by decorative preview nodes",
+    "RallyRoad.obj is editor-preview-only with NO collision; use baked RallyRoad or retain original RallyRoadBuilder at runtime",
+    "Procedural buildings carry text and decorative approximations; exact bake restores native Geo.Triangle gables, correct collision and font/label style"
+  ],
+  "visual_glitches_from_screenshots": [
+    "Extremely close third-person camera inside player house can obscure the avatar and clip against interior geometry",
+    "Large trees in the foreground obscure the player and large parts of the screen in several views",
+    "Road junctions and rally/through-road crossings show visible rectangular overlays and hard seams",
+    "Bridge approach, road and gate areas need collision/visual alignment checks",
+    "Close-range signs and roof edges cover a substantial part of the gameplay view",
+    "Some sign text and labels are visually occluded or difficult to read behind other geometry"
+  ],
+  "npc_patrol_routes": {
+    "milo": [
+      [
+        -11,
+        0,
+        4
+      ],
+      [
+        -9.4,
+        0,
+        3.8
+      ],
+      [
+        -7.8,
+        0,
+        4.4
+      ],
+      [
+        -9.4,
+        0,
+        5.2
+      ]
+    ],
+    "ada": [
+      [
+        12.6,
+        0,
+        4.5
+      ],
+      [
+        13.2,
+        0,
+        5.6
+      ],
+      [
+        12.4,
+        0,
+        6.4
+      ],
+      [
+        11.8,
+        0,
+        5.2
+      ]
+    ],
+    "pip": [
+      [
+        28.8,
+        0,
+        -8.6
+      ],
+      [
+        30.4,
+        0,
+        -7.6
+      ],
+      [
+        29.8,
+        0,
+        -6
+      ],
+      [
+        28,
+        0,
+        -6.6
+      ]
+    ],
+    "fern": [
+      [
+        8.9,
+        0,
+        15.2
+      ],
+      [
+        9.8,
+        0,
+        16.4
+      ],
+      [
+        9,
+        0,
+        17.6
+      ],
+      [
+        8.4,
+        0,
+        16
+      ]
+    ],
+    "ollie": [
+      [
+        -18.4,
+        0,
+        8.4
+      ],
+      [
+        -17.6,
+        0,
+        7.2
+      ],
+      [
+        -17.8,
+        0,
+        6.2
+      ],
+      [
+        -18.6,
+        0,
+        7.4
+      ]
+    ],
+    "ivy": [
+      [
+        19.2,
+        0,
+        12.4
+      ],
+      [
+        20.6,
+        0,
+        13
+      ],
+      [
+        20,
+        0,
+        14
+      ],
+      [
+        18.6,
+        0,
+        13.2
+      ]
+    ]
+  },
+  "traffic_routes": {
+    "town_scooter": [
+      [
+        -42,
+        0,
+        -2.0
+      ],
+      [
+        -32,
+        0,
+        -2.0
+      ],
+      [
+        -24,
+        0,
+        -2.0
+      ],
+      [
+        -14,
+        0,
+        -2.0
+      ],
+      [
+        -4,
+        0,
+        -2.0
+      ],
+      [
+        8,
+        0,
+        -2.0
+      ],
+      [
+        18,
+        0,
+        -2.0
+      ],
+      [
+        28,
+        0,
+        -2.0
+      ],
+      [
+        34,
+        0,
+        -2.0
+      ],
+      [
+        36,
+        0,
+        0
+      ],
+      [
+        34,
+        0,
+        0.5
+      ],
+      [
+        28,
+        0,
+        0.5
+      ],
+      [
+        18,
+        0,
+        0.5
+      ],
+      [
+        8,
+        0,
+        0.5
+      ],
+      [
+        -4,
+        0,
+        0.5
+      ],
+      [
+        -14,
+        0,
+        0.5
+      ],
+      [
+        -24,
+        0,
+        0.5
+      ],
+      [
+        -32,
+        0,
+        0.5
+      ],
+      [
+        -42,
+        0,
+        0.5
+      ],
+      [
+        -44,
+        0,
+        0
+      ]
+    ],
+    "delivery_car": [
+      [
+        34,
+        0,
+        0.5
+      ],
+      [
+        28,
+        0,
+        0.5
+      ],
+      [
+        18,
+        0,
+        0.5
+      ],
+      [
+        8,
+        0,
+        0.5
+      ],
+      [
+        -4,
+        0,
+        0.5
+      ],
+      [
+        -14,
+        0,
+        0.5
+      ],
+      [
+        -24,
+        0,
+        0.5
+      ],
+      [
+        -32,
+        0,
+        0.5
+      ],
+      [
+        -42,
+        0,
+        0.5
+      ],
+      [
+        -44,
+        0,
+        0
+      ],
+      [
+        -42,
+        0,
+        -2.0
+      ],
+      [
+        -32,
+        0,
+        -2.0
+      ],
+      [
+        -24,
+        0,
+        -2.0
+      ],
+      [
+        -14,
+        0,
+        -2.0
+      ],
+      [
+        -4,
+        0,
+        -2.0
+      ],
+      [
+        8,
+        0,
+        -2.0
+      ],
+      [
+        18,
+        0,
+        -2.0
+      ],
+      [
+        28,
+        0,
+        -2.0
+      ],
+      [
+        34,
+        0,
+        -2.0
+      ],
+      [
+        36,
+        0,
+        0
+      ]
+    ]
+  },
+  "rally_rival_route_generated_from": "RallyCourse.Sample(i / 32f), i=0..31"
+}

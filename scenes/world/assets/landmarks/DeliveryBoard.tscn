@@ -1,0 +1,67 @@
+[gd_scene format=3]
+
+
+[sub_resource type="BoxMesh" id="BoxMesh_1"]
+size = Vector3(0.16, 2.2, 0.16)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_2"]
+albedo_color = Color(0.4313725, 0.2862745, 0.1921569, 1)
+roughness = 0.94
+
+[sub_resource type="BoxMesh" id="BoxMesh_3"]
+size = Vector3(4.8, 0.8, 0.16)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_4"]
+albedo_color = Color(0.9647059, 0.6196078, 0.2627451, 1)
+roughness = 0.94
+
+[node name="DeliveryBoard" type="Node3D"]
+visible = false
+
+[node name="Post" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.1, 0)
+mesh = SubResource("BoxMesh_1")
+material_override = SubResource("StandardMaterial_2")
+
+[node name="Board" type="MeshInstance3D" parent="."]
+position = Vector3(0, 2.2, 0)
+mesh = SubResource("BoxMesh_3")
+material_override = SubResource("StandardMaterial_4")
+
+[node name="Heading" type="Label3D" parent="."]
+position = Vector3(0, 2.30, -0.1)
+text = "DELIVERY ROUTE"
+font_size = 42
+pixel_size = 0.005
+modulate = Color(0.1019608, 0.1882353, 0.3254902, 1)
+billboard = 0
+double_sided = false
+rotation = Vector3(0, 3.14159, 0)
+
+[node name="Heading_Back" type="Label3D" parent="."]
+position = Vector3(0, 2.30, 0.1)
+text = "DELIVERY ROUTE"
+font_size = 42
+pixel_size = 0.005
+modulate = Color(0.1019608, 0.1882353, 0.3254902, 1)
+billboard = 0
+double_sided = false
+
+[node name="Addresses" type="Label3D" parent="."]
+position = Vector3(0, 1.98, -0.1)
+text = "ADA  •  PIP  •  IVY"
+font_size = 34
+pixel_size = 0.005
+modulate = Color(0.1019608, 0.1882353, 0.3254902, 1)
+billboard = 0
+double_sided = false
+rotation = Vector3(0, 3.14159, 0)
+
+[node name="Addresses_Back" type="Label3D" parent="."]
+position = Vector3(0, 1.98, 0.1)
+text = "ADA  •  PIP  •  IVY"
+font_size = 34
+pixel_size = 0.005
+modulate = Color(0.1019608, 0.1882353, 0.3254902, 1)
+billboard = 0
+double_sided = false

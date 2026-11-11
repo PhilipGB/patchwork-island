@@ -25,6 +25,7 @@ public partial class RuntimeSelfTest : Node
     internal static int ChapterPhase { get; set; }
     internal static int HotfixPhase { get; set; }
     internal static int ReleasePhase { get; set; }
+    internal static int RestorePhase { get; set; }
 
     private static int _passed;
     private static int _failed;
@@ -62,6 +63,8 @@ public partial class RuntimeSelfTest : Node
                 await TraversalChecks();
             else if (HasArg("--selftest-release"))
                 reloading = await ReleaseChecks();
+            else if (HasArg("--selftest-restore"))
+                reloading = await RestoreChecks();
             else
                 await FreshSessionChecks();
         }
@@ -77,8 +80,163 @@ public partial class RuntimeSelfTest : Node
         GetTree().Quit(_failed == 0 ? 0 : 1);
     }
 
+    private void WorldSceneParityChecks()
+    {
+        Expect(Main.RtWorldIsCanonicalScene, "world is the canonical Town.tscn scene");
+        Expect(Main.RtWorldAnchorCount == 75, "all 75 authored gameplay anchors resolve");
+        Expect(Main.RtWorldTopLevelRootCount >= 140,
+            "canonical town keeps its authored top-level roots");
+        Expect(Main.RtBrokenSwingLabelCount >= 2,
+            "scene-owned BROKEN swing labels resolve");
+
+        Vector3 playground = Main.RtWorldNodeGlobalPosition("Playground");
+        Vector3 playgroundAnchor = Main.RtWorldAnchorPosition("PlaygroundCenter");
+        Vector3 playgroundWorksite =
+            Main.RtWorldNodeGlobalPosition("Playground/WorksiteMarker");
+        Expect(playgroundAnchor.DistanceTo(playground) < 0.01f,
+            "PlaygroundCenter anchor follows the authored playground root");
+        Expect(playgroundWorksite.DistanceTo(
+                playground + new Vector3(0f, 0.1f, 4.5f)) < 0.01f,
+            "playground worksite marker stays inside the authored sand");
+        Expect(Main.RtPlaygroundStationPosition.DistanceTo(playgroundWorksite) < 0.01f,
+            "playground interaction station follows the scene-owned worksite marker");
+
+        foreach (string id in new[]
+                 {
+                     "PlayerSpawn", "VanSpawn", "JobBoard", "PlayerHouseDoor",
+                     "TownHallDoor", "RedHouseDoor", "ShopDoor", "ClothesShopDoor",
+                     "WorkshopDoor", "BridgeSite", "BridgeCenter", "RepairCarPosition",
+                     "HousePad_0", "ParkPad_0", "GardenPad_0", "FestivalTable_0",
+                     "DeliveryBoard", "MarketStock", "RallyPodium",
+                 })
+        {
+            Vector3 position = Main.RtWorldAnchorPosition(id);
+            Expect(Mathf.Abs(position.X) < 1000f && Mathf.Abs(position.Y) < 1000f &&
+                   Mathf.Abs(position.Z) < 1000f, $"anchor '{id}' has a usable transform");
+        }
+
+        foreach (string building in new[]
+                 {
+                     "PlayerHouse", "TownHall", "RedHouse", "Market", "ClothesShop", "Workshop",
+                 })
+        {
+            Expect(Main.RtWorldNodeExists(building), $"{building} scene root exists");
+            Vector3 centre = Main.RtWorldNodeGlobalPosition(building);
+            Vector3 door = Main.RtWorldNodeGlobalPosition($"{building}/DoorMarker");
+            Expect(Mathf.Abs(door.X) < 1000f && Mathf.Abs(door.Y) < 1000f &&
+                   Mathf.Abs(door.Z) < 1000f, $"{building} DoorMarker resolves");
+            Expect(door.DistanceTo(centre) < 20f,
+                $"{building} DoorMarker travels with its building");
+            if (building == "ClothesShop")
+            {
+                GD.Print($"[SCENE BINDING] ClothesShop centre={centre} door={door}");
+            }
+        }
+
+        Expect(Main.RtWorldNodeExists("SignSocket_market"), "market sign socket is scene-owned");
+        Expect(Main.RtWorldNodeExists("SignSocket_workshop"), "workshop sign socket is scene-owned");
+        Expect(Main.RtWorldNodeExists("SignSocket_green"), "green sign socket is scene-owned");
+        Expect(Main.RtWorldNodeExists("NpcPatrolMarkers/milo/Waypoint_00"),
+            "NPC patrol markers are scene-owned");
+        Expect(Main.RtWorldNodeExists("TrafficRouteMarkers/delivery_car/Waypoint_11"),
+            "free-roam traffic markers are scene-owned");
+        foreach (string npc in new[] { "milo", "ada", "pip", "fern", "ollie", "ivy" })
+            Expect(Main.RtNpcRoutePointCount(npc) >= 2, $"scene NPC route '{npc}' resolves");
+        Expect(Main.RtTrafficRoutePointCount("town_scooter") >= 4 &&
+               Main.RtTrafficRoutePointCount("delivery_car") >= 4,
+            "both free-roam traffic routes resolve from scene markers");
+
+        Expect(Main.RtPlayerVisualTemplate.EndsWith("Player_Boy_Visual.tscn",
+                   StringComparison.Ordinal),
+            "player visual comes from the authored boy template");
+        Expect(Main.RtVanVisualTemplate.EndsWith("Van_Visual.tscn", StringComparison.Ordinal),
+            "delivery van visual comes from the authored van template");
+        foreach (string npc in new[] { "milo", "ada", "pip", "fern", "ollie", "ivy" })
+        {
+            string visual = Main.RtNpcVisualTemplate(npc);
+            Expect(visual.EndsWith($"{char.ToUpperInvariant(npc[0])}{npc.Substring(1)}_Visual.tscn",
+                       StringComparison.Ordinal),
+                $"NPC '{npc}' uses its authored GLB template");
+        }
+        Expect(Main.RtTrafficVisualTemplate("town_scooter")
+                   .EndsWith("TownCar_Green_Visual.tscn", StringComparison.Ordinal),
+            "town traffic uses the authored green town-car template");
+        Expect(Main.RtTrafficVisualTemplate("delivery_car")
+                   .EndsWith("TownCar_Blue_Visual.tscn", StringComparison.Ordinal),
+            "delivery traffic uses the authored blue town-car template");
+        string pickupTemplates = Main.RtPickupVisualTemplates;
+        foreach (string expected in new[]
+                 {
+                     "apple=Pickup_Apple.tscn", "wood=Pickup_Wood.tscn",
+                     "stone=Pickup_Stone.tscn", "blue_parcel=Pickup_Parcel.tscn",
+                     "orange_parcel=Pickup_Parcel.tscn", "book_sun=Pickup_Book.tscn",
+                     "tyre=Pickup_RepairTyre.tscn", "lamp=Pickup_RepairLamp.tscn",
+                     "battery=Pickup_RepairBattery.tscn",
+                 })
+        {
+            Expect(pickupTemplates.Contains(expected, StringComparison.Ordinal),
+                $"pickup template '{expected}' is active");
+        }
+
+        Expect(Main.RtRaceGateCount(false) == 4, "four-gate rally root resolves");
+        Expect(Main.RtRaceGateCount(true) == 6, "six-gate M19 root resolves");
+        for (int i = 0; i < 4; i++)
+        {
+            Vector3 gate = Main.RtRaceGatePosition(false, i);
+            Expect(Mathf.Abs(gate.X) < 1000f && Mathf.Abs(gate.Z) < 1000f,
+                $"four-gate checkpoint {i + 1} has a usable position");
+            Expect(Mathf.Abs(Main.RtRaceGateYaw(false, i)) < 1000f,
+                $"four-gate checkpoint {i + 1} has a usable yaw");
+        }
+        for (int i = 0; i < 6; i++)
+        {
+            Vector3 gate = Main.RtRaceGatePosition(true, i);
+            Expect(Mathf.Abs(gate.X) < 1000f && Mathf.Abs(gate.Z) < 1000f,
+                $"M19 checkpoint {i + 1} has a usable position");
+            Expect(Mathf.Abs(Main.RtRaceGateYaw(true, i)) < 1000f,
+                $"M19 checkpoint {i + 1} has a usable yaw");
+        }
+
+        Expect(Main.RtWorldNodeVisible("PipCarBroken"), "broken Pip car starts visible");
+        Expect(!Main.RtWorldNodeVisible("PipCarFixed"), "fixed Pip car starts hidden");
+        Expect(!Main.RtWorldNodeVisible("DeliveryBoard"), "delivery board starts hidden");
+        Expect(!Main.RtWorldNodeVisible("MarketStock"), "market stock starts hidden");
+        Expect(!Main.RtWorldNodeVisible("RallyPodium"), "rally podium starts hidden");
+        Expect(!Main.RtWorldNodeVisible("FestivalDecor"), "festival bunting starts hidden");
+        Expect(!Main.RtWorldNodeVisible("CelebrationDecor"), "celebration bunting starts hidden");
+        Expect(!Main.RtWorldNodeVisible("GoldCourseFlag"), "gold lap flag starts hidden");
+        Expect(Main.RtWorldNodeVisible("RaceGates4Root"), "four-gate rally starts visible");
+        Expect(!Main.RtWorldNodeVisible("RaceGates6Root"), "six-gate rally starts hidden");
+        Expect(Main.RtBuildGhostLabelsHidden,
+            "empty build ghosts and their labels stay hidden outside build mode");
+        Expect(Main.RtWorldNodeVisible("BridgeBarrier"), "broken-bridge barrier starts visible");
+        Expect(Main.RtWorldNodeVisible("PlaygroundFixSign"),
+            "playground repair sign starts visible");
+        foreach (string customer in new[] { "milo", "fern", "ivy" })
+            Expect(Main.RtWorldNodeExists($"BakeryStall/BakeryOrder_{customer}"),
+                $"bakery display slot '{customer}' is scene-owned");
+        foreach (string book in new[] { "sun", "moon", "tree", "star" })
+            Expect(Main.RtWorldNodeExists($"LibraryShelf/ShelfBook_{book}"),
+                $"library slot '{book}' is scene-owned");
+
+        Expect(Main.RtWorldRayHit(new Vector3(-4f, 2f, 0f), new Vector3(-4f, -1f, 0f), 1u) != "",
+            "main road has layer-1 collision");
+        Expect(Main.RtWorldRayHit(new Vector3(45f, 2f, 0f), new Vector3(45f, -1f, 0f), 1u) == "",
+            "river remains an open collision gap before the bridge is built");
+        string wallHit = Main.RtWorldRayHit(new Vector3(-44.8f, 1.5f, 24f),
+            new Vector3(-37f, 1.5f, 24f), 1u);
+        Expect(wallHit.StartsWith("WallWest", StringComparison.Ordinal),
+            "player-house wall retains layer-1 collision");
+        string doorRay = Main.RtWorldRayHit(new Vector3(-38f, 2.4f, 20f),
+            new Vector3(-38f, 2.4f, 17f), 16u);
+        Expect(doorRay == "DoorCameraBlocker",
+            "player-house doorway keeps its layer-16 camera blocker");
+    }
+
     private async Task FreshSessionChecks()
     {
+        WorldSceneParityChecks();
+
         // Title + processing modes.
         Expect(!Main.RtStarted, "starts on the title screen");
         Expect(Main.RtPaused, "title screen keeps the world paused");
@@ -362,10 +520,17 @@ public partial class RuntimeSelfTest : Node
         await Wait(0.25f);
         Expect(!Main.RtPaused && Main.RtMode == "Walking", "closing completion resumes walking");
 
-        // Clothes shop: buy with real earned coins, wear, and enforce ownership.
+        // Clothes shop: the prompt must come from the building's scene-owned
+        // DoorMarker, so moving the shop in the editor also moves this stop.
         Expect(Main.RtCoins == 10 && Main.RtCoinText == "10", "M01 coins are visible and available to spend");
         int beforeShopLook = Main.RtPlayerAppearanceRevision;
-        Main.RtOpenClothesShop();
+        Main.RtTeleportPlayerToClothesDoor();
+        await Wait(0.3f);
+        Expect(Main.RtNearestInteractableName == "ClothesShopStation",
+            "clothes-shop prompt follows its scene-owned door");
+        Input.ActionPress("interact");
+        await Wait(0.25f);
+        Input.ActionRelease("interact");
         await Wait(0.25f);
         Expect(Main.RtModalOpen && Main.RtModalTitle == "Clothes Shop", "clothes shop opens");
         Expect(Main.RtPaused && Main.RtMode == "Modal", "clothes shop pauses the village");
@@ -447,8 +612,14 @@ public partial class RuntimeSelfTest : Node
         Expect(Main.RtMode == "Driving" && Main.RtVanControlled && !Main.RtPlayerControlled,
             "entering the van switches control");
         Expect(!Main.RtPlayerVisible, "player is hidden while driving");
-        Expect(Main.RtVanHasEngineAudio && Main.RtVanEngineIdlePlaying,
-            "van engine audio starts with the vehicle");
+        bool vanAudioStarted = Main.RtVanHasEngineAudio && Main.RtVanEngineIdlePlaying;
+        for (int attempt = 0; attempt < 20 && !vanAudioStarted; attempt++)
+        {
+            await Wait(0.1f);
+            vanAudioStarted = Main.RtVanHasEngineAudio && Main.RtVanEngineIdlePlaying;
+        }
+        Expect(Main.RtVanHasEngineAudio, "van has engine audio players");
+        Expect(vanAudioStarted, "van engine audio starts with the vehicle");
         Expect(Main.RtPrepareRace(), "race state prepared for timer test");
 
         Main.RtPause();
@@ -973,46 +1144,92 @@ public partial class RuntimeSelfTest : Node
             return true;
         }
 
-        Expect(!Main.RtStarted, "release test starts at the title after the v1.1 save load");
-        Expect(Main.RtCanContinue, "v1.1 save offers Continue");
-        Main.RtContinue();
-        await Wait(0.6f);
-        Expect(Main.RtStarted, "v1.1 save continues");
-        Expect(Main.RtCoins == 137, "v1.1 coins preserved");
-        Expect(Main.RtCharacterPreset == CharacterCustomisation.Girl, "v1.1 girl preset preserved");
-        Expect(Main.RtEquippedOutfit == "berry" && Main.RtOwnsOutfit("berry"),
-            "v1.1 outfit preserved");
-        Expect(Main.RtCelebrationSeen && !Main.RtFestivalSeen,
-            "original celebration is preserved and the new finale starts unseen");
-        Expect(Main.RtBridgeBuilt, "v1.1 bridge world state restored");
-        Expect(Main.RtMissionCompleted("M10"), "M10 remains complete");
-        Expect(Main.RtMissionStatus("M11") == MissionStatus.Available,
-            "M11 unlocks immediately on the v1.1 save");
-        Expect(Main.RtMissionStatus("M12") == MissionStatus.Locked,
-            "M12 still waits for M11");
-        Expect(Main.RtModalTitle != "VILLAGE FIXED!",
-            "original ten-job celebration does not repeat");
+        if (ReleasePhase == 1)
+        {
+            Expect(!Main.RtStarted, "release test starts at the title after the v1.1 save load");
+            Expect(Main.RtCanContinue, "v1.1 save offers Continue");
+            Main.RtContinue();
+            await Wait(0.6f);
+            Expect(Main.RtStarted, "v1.1 save continues");
+            Expect(Main.RtCoins == 137, "v1.1 coins preserved");
+            Expect(Main.RtCharacterPreset == CharacterCustomisation.Girl, "v1.1 girl preset preserved");
+            Expect(Main.RtEquippedOutfit == "berry" && Main.RtOwnsOutfit("berry"),
+                "v1.1 outfit preserved");
+            Expect(Main.RtCelebrationSeen && !Main.RtFestivalSeen,
+                "original celebration is preserved and the new finale starts unseen");
+            Expect(Main.RtBridgeBuilt, "v1.1 bridge world state restored");
+            Expect(Main.RtMissionCompleted("M10"), "M10 remains complete");
+            Expect(Main.RtMissionStatus("M11") == MissionStatus.Available,
+                "M11 unlocks immediately on the v1.1 save");
+            Expect(Main.RtMissionStatus("M12") == MissionStatus.Locked,
+                "M12 still waits for M11");
+            Expect(Main.RtModalTitle != "VILLAGE FIXED!",
+                "original ten-job celebration does not repeat");
 
-        Main.RtTeleportNearJobBoard();
-        await Wait(0.3f);
-        Expect(Main.RtNearestInteractableName == "JobBoardStation",
-            "migrated save reaches the job board");
-        await PressInteract();
-        Expect(Main.RtModalTitle == "Patchwork Jobs", "migrated save opens the job board");
-        Expect(Main.RtPressModalButton("Start_M11"), "M11 Start is offered on the migrated save");
-        await Wait(0.4f);
-        Expect(Main.RtActiveMission == "M11", "M11 starts from the migrated save");
-        Expect(Main.RtMissionCounter("M11", "stock_granted") == 1,
-            "M11 stock is granted on the migrated save");
-        Expect(Main.RtSaveNow(), "migrated save writes at schema 3");
-        var migrated = SaveService.Load(Main.RtSavePath, Main.RtCatalog);
-        Expect(migrated.Success, migrated.Message);
-        Expect(migrated.Success && migrated.Data.SchemaVersion == SaveService.CurrentVersion,
-            "migrated save is schema 3");
-        Expect(migrated.Success && migrated.Data.Coins == 137,
-            "migrated save keeps the wallet");
-        Expect(migrated.Success && migrated.Data.ActiveMission == "M11",
-            "migrated save keeps active M11");
+            Main.RtTeleportNearJobBoard();
+            await Wait(0.3f);
+            Expect(Main.RtNearestInteractableName == "JobBoardStation",
+                "migrated save reaches the job board");
+            await PressInteract();
+            Expect(Main.RtModalTitle == "Patchwork Jobs", "migrated save opens the job board");
+            Expect(Main.RtPressModalButton("Start_M11"), "M11 Start is offered on the migrated save");
+            await Wait(0.4f);
+            Expect(Main.RtActiveMission == "M11", "M11 starts from the migrated save");
+            Expect(Main.RtMissionCounter("M11", "stock_granted") == 1,
+                "M11 stock is granted on the migrated save");
+            Expect(Main.RtSaveNow(), "migrated save writes at schema 3");
+            var migrated = SaveService.Load(Main.RtSavePath, Main.RtCatalog);
+            Expect(migrated.Success, migrated.Message);
+            Expect(migrated.Success && migrated.Data.SchemaVersion == SaveService.CurrentVersion,
+                "migrated save is schema 3");
+            Expect(migrated.Success && migrated.Data.Coins == 137,
+                "migrated save keeps the wallet");
+            Expect(migrated.Success && migrated.Data.ActiveMission == "M11",
+                "migrated save keeps active M11");
+
+            Main.RtReturnToTitle();
+            await Wait(0.4f);
+            var current = BuildV121ReleaseSave();
+            File.WriteAllText(Main.RtSavePath,
+                JsonSerializer.Serialize(current, new JsonSerializerOptions { WriteIndented = true }));
+            ReleasePhase = 2;
+            Main.RtReloadScene();
+            return true;
+        }
+
+        Expect(!Main.RtStarted, "v1.2.1 fixture starts at the title");
+        Expect(Main.RtCanContinue, "v1.2.1 save offers Continue");
+        Main.RtContinue();
+        await Wait(0.7f);
+        Expect(Main.RtStarted, "v1.2.1 save continues");
+        Expect(Main.RtCoins == 158, "v1.2.1 wallet restores at exactly 158 coins");
+        Expect(Main.RtCharacterPreset == CharacterCustomisation.Girl,
+            "v1.2.1 girl preset restores");
+        Expect(Main.RtEquippedOutfit == "sunny" && Main.RtOwnsOutfit("sunny") &&
+               Main.RtOwnsOutfit("berry"), "v1.2.1 owned and equipped outfits restore");
+        Expect(Main.RtCelebrationSeen && !Main.RtFestivalSeen,
+            "v1.2.1 celebration state restores without replaying the finale");
+        Expect(Main.RtBridgeBuilt && !Main.RtBridgeBarrierVisible,
+            "v1.2.1 bridge pieces restore the built crossing and hide the barrier");
+        Expect(Main.RtSwingBuilt && Main.RtSwingPieceCount == BuildRules.SwingSockets.Length &&
+               Main.RtPlaygroundFixHidden,
+            "v1.2.1 swing pieces restore the fixed playground");
+        Expect(Main.RtParkPlacementCount == 3 && Main.RtParkVisualCount == 3,
+            "v1.2.1 village-green placements restore visually");
+        Expect(Main.RtFurniturePlacementCount == 4 && Main.RtFurnitureVisualCount == 4,
+            "v1.2.1 house furniture placements restore visually");
+        Expect(Main.RtMissionCompleted("M01") && Main.RtMissionCompleted("M10") &&
+               Main.RtMissionStatus("M11") == MissionStatus.Available,
+            "v1.2.1 mission state restores and opens chapter two");
+        Expect(Main.RtActiveMission == "", "v1.2.1 idle session restores without an active job");
+        Expect(Main.RtPlayerPosition.DistanceTo(new Vector3(-38.8f, -0.04f, 21.4f)) < 0.2f,
+            "v1.2.1 player transform restores");
+        Expect(Main.RtVanPosition.DistanceTo(new Vector3(-30f, -0.05f, 14.5f)) < 0.2f,
+            "v1.2.1 van transform restores");
+        Expect(Main.RtMode != "Driving", "v1.2.1 walking session restores out of the van");
+        Expect(Main.RtWorldNodeVisible("PipCarBroken"), "unfinished M18 car stays broken");
+        Expect(Main.RtModalTitle != "VILLAGE FIXED!",
+            "the original ten-job celebration does not replay on Continue");
         return false;
     }
 
@@ -1046,6 +1263,309 @@ public partial class RuntimeSelfTest : Node
         {
             X = -30f, Y = -0.05f, Z = 14.5f, RotationY = 0f, Valid = true,
         };
+        return data;
+    }
+
+    /// <summary>
+    /// A schema-3 save in the exact shape v1.2.1 wrote, with the handoff's
+    /// 158-coin wallet and fully built world objects. This is a recovery test,
+    /// not a screenshot-derived gameplay fixture.
+    /// </summary>
+    private static GameData BuildV121ReleaseSave()
+    {
+        var data = new GameData
+        {
+            SchemaVersion = 3,
+            Coins = 158,
+            CelebrationSeen = true,
+            CharacterPreset = CharacterCustomisation.Girl,
+            EquippedOutfit = "sunny",
+        };
+        foreach (string id in MissionRules.OriginalMissionIds)
+            data.CompletedMissions.Add(id);
+        data.OwnedOutfits.AddRange(new[] { "sunny", "berry" });
+        data.UnlockedCosmetics.Add("red_cap");
+        data.TutorialsSeen.AddRange(new[] { "walk", "drive", "build" });
+        data.BridgePieces.AddRange(BuildRules.BridgeSockets);
+        data.SwingPieces.AddRange(BuildRules.SwingSockets);
+        data.ParkPlacements.Add(new PlacedItem("bench", "park0"));
+        data.ParkPlacements.Add(new PlacedItem("flowerbed", "park1"));
+        data.ParkPlacements.Add(new PlacedItem("lamp", "park2"));
+        foreach (var pair in FurnitureRules.Required)
+            data.FurnitureOwned[pair.Key] = pair.Value;
+        data.FurniturePlacements.Add(new PlacedItem("table", "house0"));
+        data.FurniturePlacements.Add(new PlacedItem("chair", "house1"));
+        data.FurniturePlacements.Add(new PlacedItem("chair", "house2"));
+        data.FurniturePlacements.Add(new PlacedItem("plant", "house3"));
+        data.Player = new PlayerSnapshot
+        {
+            X = -38.8f, Y = -0.04f, Z = 21.4f, RotationY = 3.14f, Valid = true,
+        };
+        data.Van = new VehicleSnapshot
+        {
+            X = -30f, Y = -0.05f, Z = 14.5f, RotationY = 0f, Valid = true,
+        };
+        return data;
+    }
+
+    // ------------------------------------------- partial-save world restoration
+    // Each phase instantiates the real v1.2.1-shaped save, relaunches the scene
+    // and verifies that the authored static world plus the restored dynamic
+    // construction/finale state is visible. Scripts are not faked in the save.
+    private async Task<bool> RestoreChecks()
+    {
+        if (RestorePhase == 0)
+        {
+            WriteRestoreSave(BuildM03RestoreSave());
+            RestorePhase = 1;
+            Main.RtReloadScene();
+            return true;
+        }
+
+        Expect(!Main.RtStarted, $"restore phase {RestorePhase} starts at the title");
+        Expect(Main.RtCanContinue, $"restore phase {RestorePhase} offers Continue");
+        Main.RtContinue();
+        await Wait(0.7f);
+        Expect(Main.RtStarted, $"restore phase {RestorePhase} continues into the town");
+
+        switch (RestorePhase)
+        {
+            case 1:
+                Expect(Main.RtActiveMission == "M03", "partial M03 active job restores");
+                Expect(Main.RtBridgePieceCount == 5 && Main.RtBridgePlacedSocketCount == 5,
+                    "partial M03 bridge pieces restore as visible placed parts");
+                Expect(!Main.RtBridgeBuilt && Main.RtBridgeBarrierVisible,
+                    "partial M03 bridge is still visibly under construction");
+                Expect(Main.RtWorldNodeVisible("BridgeBarrier"),
+                    "partial M03 keeps the scene-owned barrier visible");
+                return await NextRestoreSave(BuildM07RestoreSave(), 2);
+
+            case 2:
+                Expect(Main.RtActiveMission == "M07", "partial M07 active job restores");
+                Expect(Main.RtBridgeBuilt && !Main.RtBridgeBarrierVisible,
+                    "completed M03 bridge restores in the same save");
+                Expect(Main.RtSwingPieceCount == 3 && Main.RtSwingPlacedSocketCount == 3,
+                    "partial M07 swing pieces restore as visible placed parts");
+                Expect(!Main.RtSwingBuilt && !Main.RtPlaygroundFixHidden,
+                    "partial M07 playground still shows its repair sign");
+                Expect(Main.RtBrokenSwingLabelsVisible == Main.RtBrokenSwingLabelCount,
+                    "partial M07 keeps every scene-authored BROKEN label visible");
+                return await NextRestoreSave(BuildM08RestoreSave(), 3);
+
+            case 3:
+                Expect(Main.RtActiveMission == "M08", "partial M08 active job restores");
+                Expect(Main.RtSwingBuilt && Main.RtPlaygroundFixHidden,
+                    "completed M07 swing state restores visually");
+                Expect(Main.RtParkPlacementCount == 1 && Main.RtParkVisualCount == 1,
+                    "partial M08 village-green placement restores visually");
+                return await NextRestoreSave(BuildM10RestoreSave(), 4);
+
+            case 4:
+                Expect(Main.RtActiveMission == "M10", "partial M10 active job restores");
+                Expect(Main.RtFurniturePlacementCount == 2 && Main.RtFurnitureVisualCount == 2,
+                    "partial M10 furniture placements restore inside the house");
+                Expect(Main.RtParkPlacementCount == 3 && Main.RtParkVisualCount == 3,
+                    "completed M08 park placements stay restored");
+                return await NextRestoreSave(BuildM15RestoreSave(), 5);
+
+            case 5:
+                Expect(Main.RtActiveMission == "M15", "partial M15 active job restores");
+                Expect(Main.RtMissionCounter("M15", "pad0") == 1 &&
+                       Main.RtMissionCounter("M15", "pad1") == 2,
+                    "partial M15 garden counters restore");
+                Expect(Main.RtGardenFlowerVisible(0) && Main.RtGardenFlowerVisible(1) &&
+                       !Main.RtGardenFlowerVisible(2),
+                    "partial M15 flowers restore exactly where planted");
+                Expect(Main.RtSignVisualVisible(0) && Main.RtSignVisualVisible(1) &&
+                       Main.RtSignVisualVisible(2), "completed M14 sign visuals stay restored");
+                Expect(Main.RtBakerySlotVisible(0) && Main.RtBakerySlotVisible(1) &&
+                       Main.RtBakerySlotVisible(2), "completed M12 bakery slots stay restored");
+                Expect(Main.RtLibrarySlotVisible(0) && Main.RtLibrarySlotVisible(1) &&
+                       Main.RtLibrarySlotVisible(2) && Main.RtLibrarySlotVisible(3),
+                    "completed M13 library slots stay restored");
+                return await NextRestoreSave(BuildM18RestoreSave(), 6);
+
+            case 6:
+                Expect(Main.RtActiveMission == "M18", "partial M18 active job restores");
+                Expect(Main.RtMissionCounter("M18", "has_tyre") == 1,
+                    "partial M18 tyre progress restores");
+                Expect(!Main.RtPickupPresent("part_tyre_0") && Main.RtRepairPickupCount == 3,
+                    "partial M18 collected pickup does not respawn");
+                Expect(Main.RtWorldNodeVisible("PipCarBroken") &&
+                       !Main.RtWorldNodeVisible("PipCarFixed"),
+                    "partial M18 keeps the broken car visible");
+                Expect(Main.RtDeliveryBoardVisible && Main.RtMarketStockVisible,
+                    "completed M16/M17 visuals stay restored");
+                return await NextRestoreSave(BuildM20RestoreSave(), 7);
+
+            case 7:
+                Expect(Main.RtActiveMission == "M20", "partial M20 active job restores");
+                Expect(Main.RtMissionCounter("M20", "invited_ada") == 1 &&
+                       Main.RtMissionCounter("M20", "invited_pip") == 1 &&
+                       Main.RtMissionCounter("M20", "invited_ivy") == 1,
+                    "partial M20 invitations restore");
+                Expect(Main.RtFestivalTableVisible(0) && !Main.RtFestivalTableVisible(1),
+                    "partial M20 table placement restores exactly");
+                Expect(Main.RtFestivalLanternVisible(0) && !Main.RtFestivalLanternVisible(1) &&
+                       !Main.RtFestivalLanternVisible(2),
+                    "partial M20 lantern placement restores exactly");
+                Expect(!Main.RtFestivalDecorVisible,
+                    "partial M20 does not show the finished festival bunting");
+                Expect(Main.RtDeliveryBoardVisible && Main.RtMarketStockVisible &&
+                       Main.RtPipCarFixedVisible && Main.RtRallyPodiumVisible,
+                    "completed M16-M19 finale visuals stay restored");
+                Expect(Main.RtCoins == 320, "partial M20 wallet restores exactly");
+                return false;
+        }
+
+        throw new InvalidOperationException($"Unknown restore phase {RestorePhase}.");
+    }
+
+    private async Task<bool> NextRestoreSave(GameData data, int phase)
+    {
+        Main.RtReturnToTitle();
+        await Wait(0.35f);
+        WriteRestoreSave(data);
+        RestorePhase = phase;
+        Main.RtReloadScene();
+        return true;
+    }
+
+    private void WriteRestoreSave(GameData data)
+    {
+        File.WriteAllText(Main.RtSavePath,
+            JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true }));
+    }
+
+    private static GameData BuildRestoreSave(string activeMission, int coins, int completedThrough)
+    {
+        var data = new GameData
+        {
+            SchemaVersion = 3,
+            ActiveMission = activeMission,
+            Coins = coins,
+            CharacterPreset = CharacterCustomisation.Boy,
+        };
+        for (int i = 1; i <= completedThrough; i++)
+            data.CompletedMissions.Add($"M{i:00}");
+        data.CelebrationSeen = completedThrough >= 10;
+        data.TutorialsSeen.AddRange(new[] { "walk", "drive", "build" });
+        data.Player = new PlayerSnapshot
+        {
+            X = -38.8f, Y = -0.04f, Z = 21.4f, RotationY = 3.14f, Valid = true,
+        };
+        data.Van = new VehicleSnapshot
+        {
+            X = -30f, Y = -0.05f, Z = 14.5f, RotationY = 0f, Valid = true,
+        };
+        return data;
+    }
+
+    private static GameData BuildM03RestoreSave()
+    {
+        var data = BuildRestoreSave("M03", 22, 2);
+        data.BridgePieces.AddRange(new[]
+        {
+            "support_0", "support_1", "support_2", "plank_0", "plank_1",
+        });
+        return data;
+    }
+
+    private static GameData BuildM07RestoreSave()
+    {
+        var data = BuildRestoreSave("M07", 84, 6);
+        data.BridgePieces.AddRange(BuildRules.BridgeSockets);
+        data.SwingPieces.AddRange(new[] { "s1_rope_l", "s1_rope_r", "s1_seat" });
+        return data;
+    }
+
+    private static GameData BuildM08RestoreSave()
+    {
+        var data = BuildRestoreSave("M08", 102, 7);
+        data.BridgePieces.AddRange(BuildRules.BridgeSockets);
+        data.SwingPieces.AddRange(BuildRules.SwingSockets);
+        data.ParkPlacements.Add(new PlacedItem("bench", "park0"));
+        return data;
+    }
+
+    private static void AddCompletedChapterTwoState(GameData data, int completedThrough)
+    {
+        if (completedThrough >= 11)
+            foreach (string npc in ChapterTwoRules.CardNpcIds)
+                data.SetMissionCounter("M11", $"delivered_{npc}", 1);
+        if (completedThrough >= 12)
+            foreach (var order in ChapterTwoRules.BakeryOrders)
+                data.SetMissionCounter("M12", $"order_{order.CustomerId}", 1);
+        if (completedThrough >= 13)
+            foreach (string book in ChapterTwoRules.BookIds)
+                data.SetMissionCounter("M13", ChapterTwoRules.ShelfKey(book), 1);
+        if (completedThrough >= 14)
+            foreach (var socket in ChapterTwoRules.SignSockets)
+                data.SetMissionCounter("M14", $"sign_{socket.SocketId}", 1);
+        if (completedThrough >= 15)
+            for (int i = 0; i < ChapterTwoRules.GardenPattern.Length; i++)
+                data.SetMissionCounter("M15", $"pad{i}",
+                    ChapterTwoRules.GardenCode(ChapterTwoRules.GardenPattern[i]));
+        if (completedThrough >= 16)
+            foreach (string npc in FinaleRules.DeliveryRecipients)
+                data.SetMissionCounter("M16", FinaleRules.DeliveredKey(npc), 1);
+        if (completedThrough >= 17)
+            data.SetMissionCounter("M17", "finalised", 1);
+        if (completedThrough >= 18)
+            data.SetMissionCounter("M18", "battery_fitted", 1);
+        if (completedThrough >= 19)
+            data.SetMissionCounter("M19", "checkpoint", FinaleRules.RallyGateCount);
+    }
+
+    private static void AddCompletedConstructionState(GameData data)
+    {
+        data.BridgePieces.AddRange(BuildRules.BridgeSockets);
+        data.SwingPieces.AddRange(BuildRules.SwingSockets);
+        data.ParkPlacements.Add(new PlacedItem("bench", "park0"));
+        data.ParkPlacements.Add(new PlacedItem("flowerbed", "park1"));
+        data.ParkPlacements.Add(new PlacedItem("lamp", "park2"));
+        foreach (var pair in FurnitureRules.Required)
+            data.FurnitureOwned[pair.Key] = pair.Value;
+    }
+
+    private static GameData BuildM10RestoreSave()
+    {
+        var data = BuildRestoreSave("M10", 122, 8);
+        AddCompletedConstructionState(data);
+        data.FurniturePlacements.Add(new PlacedItem("table", "house0"));
+        data.FurniturePlacements.Add(new PlacedItem("chair", "house1"));
+        return data;
+    }
+
+    private static GameData BuildM15RestoreSave()
+    {
+        var data = BuildRestoreSave("M15", 213, 14);
+        AddCompletedConstructionState(data);
+        AddCompletedChapterTwoState(data, 14);
+        data.SetMissionCounter("M15", "pad0", 1);
+        data.SetMissionCounter("M15", "pad1", 2);
+        return data;
+    }
+
+    private static GameData BuildM18RestoreSave()
+    {
+        var data = BuildRestoreSave("M18", 271, 17);
+        AddCompletedConstructionState(data);
+        AddCompletedChapterTwoState(data, 17);
+        data.SetMissionCounter("M18", "has_tyre", 1);
+        data.CollectedPickups.Add("part_tyre_0");
+        return data;
+    }
+
+    private static GameData BuildM20RestoreSave()
+    {
+        var data = BuildRestoreSave("M20", 320, 19);
+        AddCompletedConstructionState(data);
+        AddCompletedChapterTwoState(data, 19);
+        foreach (string npc in FinaleRules.FestivalInvitees)
+            data.SetMissionCounter("M20", FinaleRules.InvitedKey(npc), 1);
+        data.SetMissionCounter("M20", FinaleRules.TableKey(0), 1);
+        data.SetMissionCounter("M20", FinaleRules.LanternKey(0), 1);
         return data;
     }
 

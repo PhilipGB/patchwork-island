@@ -1876,3 +1876,705 @@ Hashes:
   passed.
 - Published: [v1.2.1 release](https://github.com/PhilipGB/patchwork-island/releases/tag/v1.2.1)
   with Linux/Windows ZIPs, `README.txt` and `SHA256SUMS`.
+
+## P16 — v1.3.0 scene-based town migration — PASS (parity migration)
+
+**Branch/worktree:** no branch created; the additive asset kit was already
+present in the v1.2.1 checkout. Runtime changes are uncommitted in this working
+tree. No tag or release was created.
+
+**Source baseline:** `2d6647b` (`v1.2.1` tree). **Source version:** `1.3.0`;
+save schema stays **3**.
+
+### Exact bake — executed successfully
+
+```text
+$ dotnet build PatchworkIsland.sln
+Build succeeded. 0 Warning(s), 0 Error(s)
+
+$ godot --headless --path . --editor --quit
+exit 0
+
+$ godot --headless --path . res://scenes/tools/SceneBakeTool.tscn
+[SCENE BAKE] 32 reusable roots saved; 488 town roots; version source: 1.2.1.
+[SCENE BAKE] OK: Town_Baked.tscn and reusable landmark parts written.
+exit 0
+```
+
+Generated output: `scenes/world/baked/Town_Baked.tscn` (488 top-level roots),
+32 reusable `parts/*.tscn`, 748 mesh instances, 59 static bodies and 59 collision
+shapes. The baked rally part contains `RallyRoadCollision`.
+
+### Runtime migration
+
+- New `src/World/WorldSceneAdapter.cs` subclasses the retained procedural
+  `WorldBuilder` data contract, instantiates `Town_Baked.tscn`, and exposes the
+  exact existing gameplay handles/arrays to `Main` and the build systems.
+- All **75** anchors in `GameplayAnchors.tscn` are cached and checked against the
+  v1.2.1 coordinates. The adapter also checks all six building centres, yaws,
+  wall heights/widths/depths, door anchors, swing frames, both race-gate sets,
+  rally sample count/length, and every NPC/traffic waypoint against the authored
+  catalogs.
+- Missing or moved nodes fail loudly at load; there is no zero-coordinate or
+  procedural fallback.
+- `Main` now constructs `WorldSceneAdapter`. `WorldBuilder.Build()` remains only
+  as the deterministic source passed to `SceneBakeTool`; it is not called at
+  runtime.
+- Dynamic bridge/swing/park/furniture/rally/finale state remains owned by the
+  existing scripts and save model. No completed or partial state is baked as a
+  permanent static duplicate.
+- New `--selftest-restore` reloads seven real partial saves: M03 (5/7 bridge
+  pieces), M07 (3 swing pieces), M08 (bench only), M10 (two furniture pieces),
+  M15 (two planted pads plus completed M11–M14 visuals), M18 (one tyre, one
+  collected pickup) and M20 (invites + one table + one lantern). It proves the
+  scene world and all restored visuals, not just in-memory counters.
+- `--selftest-release` now adds a real v1.2.1-shaped **158-coin** schema-3 save
+  with bridge, swings, park, furniture, outfits, mission state and player/van
+  transforms, reloads the scene and verifies exact restoration.
+
+### Verification — source
+
+```text
+dotnet build PatchworkIsland.sln                   0 warnings, 0 errors
+dotnet run --project tests/PatchworkIsland.Tests.csproj   111 passed, 0 failed
+godot --headless --path . --editor --quit          exit 0
+godot --headless --path . --quit-after 120         exit 0, 0 unsafe leaks
+
+--selftest                237 passed, 0 failed
+--selftest-resume          21 passed, 0 failed
+--selftest-recovery       101 passed, 0 failed
+--selftest-living         238 passed, 0 failed
+--selftest-rally           10 passed, 0 failed
+--selftest-chapter        217 passed, 0 failed
+--selftest-hotfix          48 passed, 0 failed
+--selftest-finale         140 passed, 0 failed
+--selftest-traversal       18 passed, 0 failed
+--selftest-release         40 passed, 0 failed
+--selftest-restore         54 passed, 0 failed
+```
+
+Source runtime total: **1124 passed, 0 failed**, every process exit 0 and zero
+leaked unsafe references. The pure runner includes new scene/manifest tests for
+all 75 anchors, all six building instances/wall dimensions, required dynamic
+roots, rally collision and all NPC/traffic markers.
+
+### Verification — packaged Linux
+
+Final export (Godot 4.7.2 .NET, version `1.3.0`):
+
+```text
+dist/linux/PatchworkIsland.x86_64   157 MB
+sha256 439083f34467e3bbfe7d1e93202745e246f2df68042ac903766e968096e2455a
+```
+
+Every packaged phase passed with the same counts as source (boot 0,
+237 + 21 + 101 + 238 + 10 + 217 + 48 + 140 + 18 + 40 + 54 = **1124**),
+exit 0, zero leaked unsafe references. `--quit-after 120` boot also exits 0.
+
+### Performance — real AMD Radeon 890M, vsync 600 frames
+
+v1.2.1 procedural baseline vs scene-backed build, same environment:
+
+| Run | Resolution | Mean | p95 | Draw calls | Primitives |
+|---|---|---|---|---|---|
+| baseline | 1280×720 | 16.67–16.70 ms | 17.17–17.19 ms | 3394 | 66069 |
+| scene | 1280×720 | 16.68–16.71 ms | 17.21–17.26 ms | 3394 | 66069 |
+| baseline | 1920×1080 | 16.71 ms | 17.26 ms | 3394 | 66069 |
+| scene | 1920×1080 | 16.68 ms | 17.21 ms | 3394 | 66069 |
+
+Runtime node count rises from 2944 to 3087 (+143 marker/group nodes); rendered
+draw calls and primitives are identical. No measurable GPU regression. Software
+llvmpipe runs were also compared (same draw calls/primitives; ~5% mean delta at
+1280×720 from the extra marker nodes).
+
+### Visual verification
+
+- 1280×720 tour: `p2_01_start`, `p2_02_village_overview` plus the full 18-shot
+  P14 tour captured successfully.
+- 1920×1080 P14 tour captured successfully (same 18 views).
+- Captures copied to `evidence/v13_scene_world/`. The scene looks and behaves
+  like v1.2.1; the known reference glitches (large foreground trees, close
+  camera caps, sign occlusion, rally/through-road seams) are still present
+  because this milestone intentionally preserves parity before polish.
+
+### Remaining gaps / not claimed
+
+- No automatic tag or release. Human visual/gameplay sign-off is still required.
+- The optional v1.3.0 visual-polish pass (camera canopy fade, junction surfacing,
+  sign occlusion) was deliberately **not** applied yet; parity came first.
+- Windows export/startup was not produced or tested.
+- One continuous human M01–M20 sitting remains **NOT TESTED**; the automated
+  real-UI walkthrough and all mission rules remain green.
+- GitHub CI has not run on a pushed commit; the exact CI command list was run
+  locally, including the new `--selftest-restore` phase.
+
+## P17 — v1.3.0 canonical editor-authoritative town — PASS
+
+**Branch:** `v1.3.0-canonical-town`, stacked on `v1.3.0-scene-town` (`1b63c13`,
+PR #27). Source version remains `1.3.0`; save schema remains **3**. No tag,
+merge or release created.
+
+### What changed
+
+- Installed the canonical handoff assets with `install_assets.sh
+  --replace-assets`. Every authored scene imports headlessly with exit 0.
+- Added `scenes/world/Town.tscn` as the runtime copy of `Town_Assets.tscn`.
+  It adds the three M14 sign sockets, a scene-owned `RaceStart` marker, and
+  authored bakery/library display-slot instances. The candidate scene and baked
+  snapshot remain reference-only.
+- `WorldSceneAdapter` now instantiates `Town.tscn`, derives all gameplay
+  transforms from scene markers, building `DoorMarker` children and gate nodes,
+  and validates usability rather than former coordinates. It never calls
+  `WorldBuilder.Build()` and never runs `SceneBakeTool`.
+- NPC patrols and both free-roam traffic routes bind to
+  `NpcPatrolMarkers` / `TrafficRouteMarkers`; M05/M09 and M19 checkpoints bind to
+  the authored four- and six-gate roots.
+- Player, six NPCs, van, two town traffic cars, the rally rival and all pickups
+  now use the supplied GLB template scenes. Controllers, collision, camera,
+  audio, save restoration and mission logic are unchanged. Character head/arm/leg
+  parts and vehicle wheels are reparented under pivots with preserved global
+  transforms, so existing walk/wave/jump and rolling animation still works.
+- Fixed a canonical collision discontinuity: town-road collision sat 2–3.4 cm
+  above terrain/bridge deck, creating vertical lips at junctions. The collision
+  roadbed is now flush at `y=0`; visual slabs are unchanged. Bridge traversal
+  passes fast, slow, both lateral offsets and both directions.
+
+### Editor-move proof — ClothesShop +5 m
+
+No C# coordinate constants were edited.
+
+```text
+original: centre=(24, 0, 7)  door=(24, 0, 3.5)  prompt PASS  outfit PASS
+moved:    centre=(24, 0, 12) door=(24, 0, 8.5)  prompt PASS  outfit PASS
+```
+
+The moved scene also passed `--selftest-resume` (21) and `--selftest-restore`
+(54), loading existing v1.2.1 saves. The scene was then restored to
+`(24, 0, 7)` and the base suite re-ran green.
+
+### Verification — source
+
+```text
+dotnet build PatchworkIsland.sln                          0 warnings, 0 errors
+dotnet run --project tests/PatchworkIsland.Tests.csproj   111 passed, 0 failed
+godot --headless --path . --editor --quit                 exit 0
+godot --headless --path . --quit-after 120                exit 0
+
+--selftest                279 passed, 0 failed
+--selftest-resume          21 passed, 0 failed
+--selftest-recovery       101 passed, 0 failed
+--selftest-living         238 passed, 0 failed
+--selftest-rally           10 passed, 0 failed
+--selftest-chapter        217 passed, 0 failed
+--selftest-hotfix          48 passed, 0 failed
+--selftest-finale         140 passed, 0 failed
+--selftest-traversal       18 passed, 0 failed
+--selftest-release         40 passed, 0 failed
+--selftest-restore         54 passed, 0 failed
+```
+
+Source runtime total: **1166 passed, 0 failed**, every process exit 0.
+
+### Verification — packaged Linux
+
+```text
+dist export: /home/philip/.cache/tmp/opencode/patchwork-export/PatchworkIsland.x86_64
+size:        164,086,056 bytes
+sha256:      f9e12b56d7c6db7e86d2c8e97d83337e7ba4e2c4e5d9a21a23d3610e9b514850
+```
+
+All 11 packaged phases passed with the same counts as source
+(279 + 21 + 101 + 238 + 10 + 217 + 48 + 140 + 18 + 40 + 54 = **1166**),
+including `--selftest-restore`; `--quit-after 120` boot exited 0. CI now runs the
+packaged restore phase explicitly.
+
+### Performance and visuals — real AMD Radeon 880M/890M
+
+600-frame vsync probes, warm runs:
+
+| Build | Resolution | Mean | p95 | Draw calls | Primitives | Nodes |
+|---|---|---|---|---|---|---|
+| v1.2.1 baseline | 1280×720 | 16.70–16.71 ms | 17.16–17.21 ms | 3394 | 66069 | 2944 |
+| canonical | 1280×720 | 16.68–17.00 ms | 17.20–18.57 ms | 2403 | 49100 | 2458 |
+| v1.2.1 baseline | 1920×1080 | 16.70 ms | 17.29–17.31 ms | 3394 | 66069 | 2944 |
+| canonical | 1920×1080 | 16.70–17.08 ms | 17.29–19.22 ms | 2403 | 49142 | 2458 |
+
+No measurable regression; the canonical scene renders fewer draw calls and
+primitives. First-run shader compilation was excluded by the warm repeats.
+
+- Full 18-shot P14 tour captured at exact 1280×720 and 1920×1080 (18/18 each).
+- 10-shot P12 rally/road/shop tour captured at 1280×720 on the real GPU.
+- Visual checks cover the bridge seam, junction, player silhouette, NPCs, van,
+  traffic, pickups, festivals, rally gates and repaired Pip car.
+
+### Remaining gaps / not claimed
+
+- No tag, merge or release. Human visual/gameplay sign-off is still required.
+- Windows export/startup remains **NOT TESTED**.
+- One continuous human M01–M20 sitting remains **NOT TESTED**; automated real-UI
+  coverage remains green.
+- GitHub CI passed on the canonical commit:
+  [run 42850939120](https://github.com/PhilipGB/patchwork-island/actions/runs/42850939120)
+  (`build-test` 6m25s, `windows-tests` 2m13s), including packaged
+  `--selftest-restore` (54 passed).
+- Captures and logs stay in ignored `evidence/`/`references/` paths.
+
+## P18 — v1.3.0 canonical visual audit and correction — PASS
+
+**Branch:** `v1.3.0-canonical-town`. No tag, merge or release created.
+
+A full 1080p visual audit of the canonical town was run from fixed district
+cameras and gameplay tours. Every static `Label3D` was rendered from both sides,
+and every district was inspected from the road, from behind, and from above.
+
+### Defects found and corrected
+
+| # | Defect | Fix | Visual confirmation |
+|---|---|---|---|
+| 1 | Bakery, Library, Job Board, Playground, Community Garden, Stone Patch, Race Meadow, Bridge Works, Sign Socket and Directional Sign text was mirrored from the viewer side. | Each sign now has a correctly rotated front label on the viewer side and a correctly rotated back label, both single-sided. Stone Patch's label was moved to the town-facing side of its panel. | `evidence/v13_canonical_visual/07_bakery_front.png`, `09_library_front.png`, `11_job_board_front.png`, `05_playground_sign_front.png`, `20_community_garden.png`, `19_stone_patch.png`, `21_rally_signs.png`, `24_bridge_site.png`, `37_market_sign_socket.png` |
+| 2 | Playground, Community Garden, Stone Patch, Race Meadow and Bridge Works sign panels floated with no supports. | Added two wooden posts to the four wide signs and one post to the Bridge Works sign, positioned behind the panel. | `05_playground_sign_front.png`, `20_community_garden.png`, `19_stone_patch.png`, `21_rally_signs.png`, `24_bridge_site.png` |
+| 3 | Both swing frames showed two overlapping BROKEN labels; the fixed one mirrored from the rear. | Removed the duplicate fixed label and kept one billboard-readable BROKEN label per frame. | `33_swing_front.png`, `34_swing_back.png` |
+| 4 | A second legacy BRIDGE WORKS sign and its cones overlapped the canonical `BridgeSite`. | Removed the `BridgeWorksite` instance; kept the canonical `BridgeSite` anchor, sign and crate. | `24_bridge_site.png` |
+| 5 | Street lamps stood inside the Town Hall, inside the playground sandpit, in the road, and across several sign sightlines. | Moved the road-edge lamps onto verges, moved the playground lamp outside the sand, moved the town-hall lamp to the front verge, and removed the redundant lamp at the direction post. | `31_west_top_down.png`, `32_east_top_down.png`, `13_direction_post_front.png` |
+| 6 | The Playground sign stood in the main road; the direction post and a bench crowded the same crossing. | Moved the Playground sign to the playground entrance verge, moved the direction post and bench off the carriageway, and removed the redundant lamp. | `05_playground_sign_front.png`, `13_direction_post_front.png`, `30_top_down.png` |
+| 7 | A bench stood on the rally start road. | Removed the misplaced bench. | `p12_1080_02_start_line.png` |
+| 8 | Rally gate number panels were blank or edge-on from the approach. | Added larger, correctly rotated numbers on both faces of every gate panel. | `22_gate_one_front.png`, `23_gate_one_back.png`, `35_gate_two_front.png`, `36_gate_two_back.png` |
+| 9 | Empty bridge/swing build ghosts and their `SUPPORT`/`ROPE`/`SEAT` labels were visible outside build mode. | Build sockets now hide ghost mesh/icon/label when their build mode is closed; a runtime regression asserts the clean state. | `p12_1080_02_start_line.png` |
+
+### Verification
+
+```text
+dotnet run --project tests/PatchworkIsland.Tests.csproj   111 passed, 0 failed
+--selftest                281 passed, 0 failed
+--selftest-resume          21 passed, 0 failed
+--selftest-recovery       101 passed, 0 failed
+--selftest-living         238 passed, 0 failed
+--selftest-rally           10 passed, 0 failed
+--selftest-chapter        217 passed, 0 failed
+--selftest-hotfix          48 passed, 0 failed
+--selftest-finale         140 passed, 0 failed
+--selftest-traversal       18 passed, 0 failed
+--selftest-release         40 passed, 0 failed
+--selftest-restore         54 passed, 0 failed
+```
+
+Source runtime total: **1168 passed, 0 failed**, every phase exit 0.
+
+Visual evidence: 39 fixed audit views, 18/18 P14 finale/festival/bridge views,
+10/10 P12 rally/road/shop views and 14/14 P13 chapter-two views, all at true
+1920×1080 except the audit set at 1280×720. The full set is copied to the
+ignored `evidence/v13_canonical_visual/` directory.
+
+### Remaining gaps
+
+- Human visual sign-off and one continuous M01–M20 sitting remain **NOT TESTED**.
+- Windows startup remains **NOT TESTED**.
+- Celebration bunting intentionally renders as stylised floating flags; no
+  text or collision issue was observed.
+
+## P19 — v1.3.0 gameplay-height visual defect pass (V25–V35) — PASS
+
+**Branch:** `v1.3.0-canonical-town`. No tag, merge or release created.
+
+A second manual tour at ordinary gameplay height found eleven remaining visual
+defects that fixed inspection cameras had missed. Each was corrected and
+re-rendered from the same viewpoint.
+
+### Defects corrected
+
+| # | Defect | Correction |
+|---|---|---|
+| V25 | `BRIDGE WORKS` clipped inside its panel, with a second tiny fragment above. | Two single-sided labels outside each face; posts moved behind the panel. |
+| V26 | Open gable ends on RedHouse and other gabled buildings. | Two wall-coloured gables added to RedHouse, PlayerHouse, Workshop, Market, ClothesShop and TownHall. |
+| V27 | Playground swings/sign/interaction marker encroached on the road. | Playground moved to z=-9.5, sand shortened, swings at z=-11.5, marker at z=-5.0 on sand; fix sign and bench moved. |
+| V28 | Playground sign intersected the swing structure. | Entrance sign centred 8 m clear of the swings. |
+| V29 | Rally gate numbers partly hidden by the crossbeam. | Panel raised/shortened to 2.4×1.45 m at y=5.95 on all six gates; dual-faced numbers. |
+| V30 | Van cargo roof moiré; postal label detached. | Self-shadow cast disabled on the missing-normal vehicle GLBs, contact shadow added, label flush on rear door. Applied to all NPC/rival cars too. |
+| V31 | Pip car label floated against the workshop wall. | Lowered to 1.82 m, font 40 with cream outline; repaired-car label matched. |
+| V32 | Jobs Board junction had overlapping road patches, dark joins and lane lines across mouths. | Three stray patches removed, side roads trimmed to ±3.2, all slab tops flush at y=0.0175, junction dashes removed. |
+| V33 | Crossing stripes overhung the side road. | Crossing narrowed from 4.2 m to 3.2 m. |
+| V34 | Lamps in the carriageway/awning. | In-road lamp moved to a verge; Market lamp moved south of the awning. |
+| V35 | World labels too small at gameplay distance. | Swing `BROKEN` 46 px outlined, car labels 40 px outlined, start flag enlarged to 2.8×1.5 m with two 54 px faces, postal label repositioned. |
+
+The blue traffic car was also found to have the van's missing-normal roof moiré
+during the P12 re-check; the fix now covers every `TrafficCar` visual.
+
+### Verification
+
+```text
+dotnet run --project tests/PatchworkIsland.Tests.csproj   111 passed, 0 failed
+--selftest                281 passed, 0 failed
+--selftest-resume          21 passed, 0 failed
+--selftest-recovery       101 passed, 0 failed
+--selftest-living         238 passed, 0 failed
+--selftest-rally           10 passed, 0 failed
+--selftest-chapter        217 passed, 0 failed
+--selftest-hotfix          48 passed, 0 failed
+--selftest-finale         140 passed, 0 failed
+--selftest-traversal       18 passed, 0 failed
+--selftest-release         40 passed, 0 failed
+--selftest-restore         54 passed, 0 failed
+```
+
+Source runtime total: **1168 passed, 0 failed**, every phase exit 0.
+
+Packaged Linux (`dist/linux/PatchworkIsland.x86_64`): boot **PASS**; all 11
+phases **1168 passed, 0 failed**; `--selftest` repeated **3/3 green**. The
+extracted ZIP binary booted and passed `--selftest` (281/281). Windows binaries
+were rebuilt but startup remains **NOT TESTED**.
+
+### Evidence
+
+Ignored `evidence/v13_canonical_visual/v13.1_recheck/`: 31 gameplay-height
+probe views plus final 1920×1080 P12/P13/P14 tours. Defect table is in
+`docs/VISUAL_QA.md` (V25–V35) and the acceptance gate in `ACCEPTANCE.md`.
+
+### Remaining gaps
+
+- Human visual sign-off and one continuous M01–M20 sitting remain **NOT TESTED**.
+- Windows startup remains **NOT TESTED**.
+- The Market gable is visually closed; at very oblique angles the blue roof
+  slope remains visible beside the gable, which is normal roof geometry.
+
+### P3 follow-up — road and playground scene consistency
+
+**Road collision and surface classification**
+
+- Removed the three stale `Collision_07/09/10` patches whose visible road
+  meshes no longer exist.
+- Repositioned and resized the five trimmed side-road colliders so all eight
+  collision boxes now match the eight visible `RoadSlab` meshes in
+  `TownRoads_Collidable.tscn` at the same X/Z centres and extents.
+- Replaced the old eleven-rectangle `RoadNetwork` with the same eight authored
+  rectangles. `SurfaceRules`, traffic validation and station checks now agree
+  with the asphalt the player can actually see; grass beside the removed
+  patches is no longer classified as road.
+- `WorldSceneAdapter.ValidateCollisionContract` now requires one layer-1
+  collider per visible `RoadSlab`, rather than accepting a fixed count.
+- Added a pure regression test that parses both road scenes plus
+  `RoadNetwork.Roads` and fails on any missing, extra or moved slab/collider.
+
+**Playground scene authority**
+
+- `Playground.tscn` now owns a `WorksiteMarker` at local `(0, 0.1, 4.5)`
+  (`scene_binding_id = "PlaygroundWorksite"`), on the sand at the old station
+  point.
+- `GameplayAnchors.tscn` `PlaygroundCenter` now synchronises to the authored
+  playground root at `(-38, 0, -9.5)`.
+- `WorldSceneAdapter` resolves the anchor, rejects any drift from the
+  `Playground` root, resolves the marker, and exposes that position to
+  `Main.CreateStations`; the station no longer uses a hard-coded coordinate.
+- Runtime parity checks prove the anchor follows the root, the marker stays on
+  the sand, and the interaction station follows the marker.
+
+### Verification
+
+```text
+dotnet run --project tests/PatchworkIsland.Tests.csproj   113 passed, 0 failed
+--selftest                284 passed, 0 failed
+--selftest-resume          21 passed, 0 failed
+--selftest-recovery       101 passed, 0 failed
+--selftest-living         238 passed, 0 failed
+--selftest-rally           10 passed, 0 failed
+--selftest-chapter        217 passed, 0 failed
+--selftest-hotfix          48 passed, 0 failed
+--selftest-finale         140 passed, 0 failed
+--selftest-traversal       18 passed, 0 failed
+--selftest-release         40 passed, 0 failed
+--selftest-restore         54 passed, 0 failed
+```
+
+Source runtime total: **1171 passed, 0 failed**, every phase exit 0.
+
+Packaged Linux (`dist/linux/PatchworkIsland.x86_64`): boot **PASS**; all 11
+phases **1171 passed, 0 failed**; `--selftest` repeated **3/3 green** (284 each).
+The extracted v1.3.0 ZIP binary booted and passed `--selftest` (284/284).
+Windows binaries were rebuilt but startup remains **NOT TESTED**.
+
+No visual pixel change is expected from this follow-up: the worksite marker
+resolves to the same global `(-38, 0.1, -5.0)` station already shown in the
+V27 evidence, and the road visuals themselves were not moved. The existing
+`evidence/v13_canonical_visual/v13.1_recheck/` captures remain representative.
+
+## P20 — Round-3 visual defect pass (V36–V48) — PASS
+
+**Branch:** `v1.3.0-canonical-town`.
+
+The third visual review found nine visible defects and four issues to verify.
+All geometry and text changes are in the authored scenes; the procedural
+`WorldBuilder` mirror was updated so a future bake cannot reintroduce them.
+
+### Geometry and composition
+
+- **V36 — gables.** The V26 gables were placed on the front/back eave walls
+  even though the roof ridge runs along X. From the side they appeared as two
+  white triangles outside the roof, with the actual pediment open. All six
+  buildings now have `GableEast` / `GableWest` on the ridge ends, rotated 90°,
+  sized to the building depth, and fitted under the ridge. A dedicated
+  `StandardMaterial3D_Gable` uses `disable_receive_shadows = true` so the roof
+  overhang no longer throws a dark triangle that reads like a hole. The pure
+  test checks end placement, rotation, depth and material on all six.
+- **V37/V38 — celebration banner.** The 8 m × 1.5 m floating panel that blocked
+  the Town Hall was replaced by a 4.72 m × 0.75 m free-standing banner on two
+  posts at the M20 festival entrance, `(15, 3.35, 19.8)`. The panel overlaps both
+  posts by 1 cm, has two correctly oriented, non-billboard text faces, and uses
+  a mild yellow emission so the shaded face still reads as celebration yellow.
+  It stands in front of the festival bunting line, so no flag can silhouette
+  across the panel from the village approach; the P14 festival camera sees the
+  panel above the tables. The centre festival lantern was moved from
+  `(15, 24.2)` to `(18.6, 24.2)` so its pole and lamp no longer cover the back
+  text from the festival-side centreline. The banner is clear of the Town Hall
+  frontage, the market alley and the benches.
+- **V39 — directional signs.** The four boards were spread left/right around
+  one post at `(-9.8, 4.2)` inside Milo's patrol area. They are now four
+  consistent arms stacked on the right of one post at `(-5.0, 0, -4.5)` on
+  the south verge, with front/back labels. The first independent render caught
+  that the arrow glyphs were inverted on both faces; they were swapped and the
+  pure test now asserts all eight strings. From each face the west destination
+  points left and the three east destinations point right. The M17
+  `MarketStock` moved from `(-2, 4.8)` to `(9.2, 3.8)` in front of the market,
+  so the M16 delivery board no longer hides it.
+- **V48 — GRAND RALLY podium.** The billboard label floated 0.3 m above the
+  trophy. It is now mounted on a 2.9 m × 0.5 m board on two posts above the
+  trophy, with front and back labels.
+
+### World-space text and vehicles
+
+- **V40 — GOLD LAP.** The single billboard label was replaced by two
+  single-sided labels offset just outside the flag faces; text is now 56 px
+  with a cream outline and stays attached at oblique angles. The independent
+  pass found the race start/finish pole crossing the flag from the southwest,
+  hiding `GO`; the flag moved from `(64.5, 0, -12)` to `(64.5, 0, -15.5)` and
+  the pole no longer intersects it. The pure test keeps the flag more than 6 m
+  from the race start pole.
+- **V41 — Pip's car.** Both car variants have a scene-owned `StatusAnchor`;
+  the status label is a child of that marker, lowered to 1.72 m and reduced to
+  36 px so it reads against the cab instead of floating over the body.
+- **V42/V47 — NPC labels and portraits.** Nameplates are 56 px instead of 68,
+  use a smaller pixel size, have a 34 m visibility range and scale with camera
+  distance (clamped 0.72–1.45×). Portraits are 0.0018 px/texel instead of
+  0.0034, have a 24 m range and scale 0.75–1.20×. Together with the signpost
+  move, NPC names no longer collide with the town-centre signage.
+- **V43 — delivery van.** `PATCHWORK POST` is now 42 px with a 6 px outline
+  at 1.05 m on the rear door; a glTF probe confirms it stays inside the door
+  silhouette.
+- **V44 — roadside dark dashes.** All 28 CelebrationDecor bunting meshes have
+  `cast_shadow = 0`; the repeated rectangular ground shadows are gone. The
+  independent pass found the same hard-shadow problem on the eight M20
+  FestivalDecor bunting flags, which were splitting the celebration banner
+  into a light and dark half; those eight flags also have `cast_shadow = 0`.
+
+### Verification status
+
+- Pure tests: **119 passed, 0 failed**.
+- Source runtime: **1171 passed, 0 failed**, all 11 phases exit 0
+  (`284/21/101/238/10/217/48/140/18/40/54`).
+- Headless import and boot: exit 0.
+- Packaged Linux (`dist/linux/PatchworkIsland.x86_64`, exported from this
+  tree): boot **PASS**; all 11 phases **1171 passed, 0 failed**;
+  `--selftest` repeated **3/3 green** (284 each); ZIP-extracted binary booted
+  and passed `--selftest` (284/284).
+- Windows binary rebuilt (PE32+ x86-64) but startup remains **NOT TESTED**.
+- Final package hashes:
+  - `linux/PatchworkIsland.x86_64` `ab31fa356372b4ba9607fe942370efba55956f83ff39bb889c0d7527fe8b4549`
+  - `windows/PatchworkIsland.exe` `e2f1bd7a1fd12cb7cc23730eb9e1b8331cf27540713d0babf24e5d9531e57b6e`
+  - `PatchworkIsland-1.3.0-Linux-x86_64.zip` `105bfc7753cfddf2adeba3b2caa68260e704f41538df8686a411211fff605ddb`
+  - `PatchworkIsland-1.3.0-Windows-x86_64.zip` `448d6ce5af5677017e184ea0f6a294831dfaf7d6731ec8013617e8359ed83ea7`
+- Visual probes: `evidence/v13_canonical_visual/v13.2_round3/` (24 gable
+  views across all six buildings, town-level front/back/side probes, P11 NPC
+  and P14 finale tours).
+- Independent visual passes, final verdict at `1e57711`: V36 PASS (all six
+  ends solid; the remaining eave band is the roof overhang shadow/underside,
+  not an opening), V37/V38 PASS from the village and festival approaches
+  (banner at the festival entrance, centre lantern off-axis), V39 PASS (all
+  eight arrow strings point at the real destinations), V40 PASS (full flag
+  text clear from the old southwest angle), V41 PASS, V42/V47 PASS, V44 PASS,
+  V45 PASS, V48 PASS. No remaining clipping, floating text, z-fighting,
+  protruding geometry or wrong-facing text in the reviewed angles.
+- Exact-head CI: commit `1e57711` — `build-test` **success** and
+  `windows-tests` **success**; PR #28 open and mergeable. An earlier
+  `b65fc02` Windows run failed only because the new bunting test assumed LF
+  line endings; the regex is now CRLF-safe and the rerun is green.
+
+### Remaining gaps
+
+- Human visual sign-off and one continuous M01–M20 sitting remain **NOT TESTED**.
+- Windows startup remains **NOT TESTED**.
+- V45 is confirmed intentional: the swing frame is the pre-M07 broken state,
+  with crossbar, `BROKEN` labels and the runtime broken-label assertion.
+- The celebration banner is free-standing at the festival entrance rather than
+  mounted on the Town Hall; both faces and the P14 festival camera were
+  re-rendered, but the final human composition sign-off is still **NOT TESTED**.
+
+## P21 — Round-4 visual defect pass (V49–V57) — PASS
+
+**Branch:** `v1.3.0-canonical-town`.
+
+The fourth visual review found nine remaining defects. All nine were fixed in
+the authored scenes and in the procedural `WorldBuilder` mirror, then captured
+from front/back/side and gameplay-height angles.
+
+### Geometry and composition
+
+- **V49 — swing posts.** The two swing frames now have true A-frames in both
+  planes: at each end the front leg tilts toward `+Z` and the back leg toward
+  `-Z` (rotation `±0.20944` about X), while the left/right pair still splays
+  inward about Z. The top corners now meet under the crossbar instead of
+  crossing or leaving one end vertical.
+- **V50 — van shadow.** The van keeps one soft contact shadow (`GroundShadow`,
+  radius 1.0, scaled `1.18 × 1.78`, alpha 0.18) that covers the full footprint.
+  The antenna, flag and every postal-mark piece stop casting shadows, so the
+  detached blob beside the van is gone.
+- **V51 — van side mark.** The white rectangle with three black lines is now a
+  readable postal mark: cream panel with a navy border, envelope flap, red
+  stamp and a `POST` label on both sides. It sits flush on the cargo body and
+  reads correctly from either side.
+- **V52 — Pip's car wheels.** All four cylinders on `PipCarFixed` and
+  `PipCarBroken` are rotated `(0, 0, 1.5708)` so the wheel axis runs across the
+  car; the wheels now read as vertical discs instead of horizontal pucks.
+- **V53 — player hair.** The player rig gains a hair shell on the head pivot:
+  back, left, right and fringe pieces, plus a longer bob for the girl preset.
+  It is visible from the chase camera and does not cover the face; the cap
+  still attaches above it.
+- **V54 — library shelves.** Both ledges and all four book slots moved from
+  local `+Z` to local `-Z`, the labelled street-facing side. Book slots are
+  rotated 180° so covers and page blocks face the reader. The blank back face
+  is now the side against the Town Hall.
+- **V55 — bridge to circuit.** The 37.5 m east-road chord (`x 50.5..88`) and its
+  short landing replacement are removed entirely: the grey slab no longer
+  overlays the rally circuit or stops inside the oval. The authored wooden
+  bridge deck (`x 39.55..50.45`) is the connector and lands on both the main
+  street and the circuit's west edge. Its centre-line and edge markings were
+  removed with the slab, `RoadNetwork` now has 7 rectangles and the pure test
+  expects 7 authored slabs.
+- **V56 — perimeter barrier.** The north/south sand strips and hedge walls are
+  centred at `x=20` with length `150.2`, matching the west/east walls at
+  `x=-54.5` and `x=94.5`. Both ends are now flush: no gap at one corner and no
+  overlap at the other. Wall colliders use the same dimensions.
+- **V57 — tree spacing.** `Tree_20` moved from `(68, -20)` to `(65.5, -23)` and
+  `Tree_25` from `(-33, -41)` to `(-37, -38)`. The closest remaining pair is
+  `Tree_11/Tree_22` at 4.47 m, so canopies no longer merge.
+
+### Traffic follow-up required by V55
+
+Removing the east road invalidated the delivery car's old loop across the
+river. Both free-roam routes now stay on the main street, with lanes at
+`z=+0.5` (westbound) and `z=-2.0` (eastbound). Those offsets keep every
+waypoint at least 1.8 m from the critical stations and every sampled runtime
+position at least 1.7 m away; the old `z=±1.5` lanes passed 1.0–1.2 m from the
+shop and clothes-shop doors. The 20-point `TrafficRouteMarkers.tscn` routes,
+`TrafficCatalog` and the v1.3.0 layout manifest were regenerated together.
+While validating this, `TrafficCar` was changed to freeze its steering while
+yielding: previously a stopped car kept swivelling toward its next waypoint and
+could turn away from a waiting player, falsely resuming.
+
+### Verification status
+
+- Pure tests: **119 passed, 0 failed**.
+- Source runtime after the final scene cleanup: **1171 passed, 0 failed**,
+  all 11 phases exit 0 (`284/21/101/238/10/217/48/140/18/40/54`).
+- Headless import and boot: exit 0.
+- Visual probes: ignored
+  `evidence/v13_canonical_visual/v13.3_round4/` — swing A-frames, bridge/circuit
+  top and oblique, van side/rear (postal mark and contact shadow), both Pip
+  cars, player hair front/back, library street/rear faces, all four perimeter
+  corners, and both tree groups.
+- Packaged Linux (`dist/linux/PatchworkIsland.x86_64`, exported from this
+  tree): boot **PASS**; all 11 phases **1171 passed, 0 failed**, every phase
+  exit 0; `--selftest` repeated **3/3 green** (284 each). The extracted
+  v1.3.0 ZIP binary booted and passed `--selftest` (284/284).
+- Windows binary rebuilt (PE32+ x86-64, file/product version `1.3.0.0`) but
+  startup remains **NOT TESTED**.
+- Final package hashes:
+  - `linux/PatchworkIsland.x86_64` `83320e594950e9b7cf7ffea28d888d06a868b946a30d37fd50ee4773dbf8c389`
+  - `windows/PatchworkIsland.exe` `0cd54018ac81cd09c751ac619f122381783b9183254ea6df467d47648b3f7695`
+  - `PatchworkIsland-1.3.0-Linux-x86_64.zip` `23c816e87e157c3379517d55edade22c8e8461e11b8072a278dcee2adc1a1b5d`
+  - `PatchworkIsland-1.3.0-Windows-x86_64.zip` `4c44ff4ccd478b24a680d69f9ddbc5ceed67614d4c3eea01dc751a3bdba72c2c`
+  - `sha256sum -c dist/SHA256SUMS` passes for all four files.
+
+### Remaining gaps
+
+- Human visual sign-off and one continuous M01–M20 sitting remain **NOT TESTED**.
+- Windows startup remains **NOT TESTED**.
+- V45 remains intentional: the swing frame is the pre-M07 broken state with
+  crossbar and `BROKEN` labels.
+- The library's street face sits behind the JOBS board from some approach
+  angles; this is the existing town layout, not a shelf orientation fault.
+
+## P22 — Review follow-up: traffic separation and manifest history — PASS
+
+**Branch:** `v1.3.0-canonical-town`.
+
+Two review findings were addressed: long-term overlap between the two
+free-roam traffic cars, and the accidental rewriting of the historical v1.2.1
+layout manifest.
+
+### P2 — car-to-car separation
+
+Both free-roam vehicles traverse the same closed village loop in the same
+direction, starting at different authored waypoints. The missing behaviour was
+a following rule, so the faster scooter could eventually catch the delivery
+car.
+
+- Added a shared loop metric and following rule to `TrafficCatalog`:
+  `VillageLoop`, `VillageLoopLength`, `ProgressOnVillageLoop`,
+  `DistanceToVillageLoop`, `MinimumTrafficGap = 7 m`, and
+  `ShouldYieldToTraffic`.
+- A car yields only when another car is ahead by less than `MinimumTrafficGap`
+  on the one-way loop. The leader always proceeds; at exactly equal progress
+  the lexicographically larger route id yields. That makes the rule
+  deterministic and deadlock-free: only the following car can ever stop.
+- `TrafficCar.Initialize` now accepts the live traffic list,
+  `Main.SpawnTraffic` passes `_trafficCars`, and `ShouldYield()` checks traffic
+  after the player/van checks. `TrafficCatalog.Validate` rejects any free-roam
+  waypoint that leaves the shared loop.
+- Because progress is measured along the route rather than by a forward cone,
+  the spacing remains correct through the U-turns and corners.
+- Validation runs the same rule at 60 Hz for **six complete loops** at the
+  authored 3.2/2.8 m/s speeds. The pure test asserts no deadlock, both cars
+  travel more than three loops, and the minimum following gap stays at least
+  `MinimumTrafficGap - 0.1 m`. A second test checks the equal-progress
+  right-of-way rule in both directions.
+
+### P3 — manifest history
+
+- Restored `docs/layout_manifest_v1.2.1.json` to its original content from
+  `1b63c13`: the delivery car has 12 points starting at `(66, -1.5)` and the
+  scooter still uses the old `z=±1.5` lanes. This file is now an immutable
+  historical baseline.
+- Added `docs/layout_manifest_v1.3.0.json` for the canonical town, with the
+  round-4 20-point routes, the current seven-slab `street_roads` layout and
+  `source` set to tag v1.3.0.
+- Current-scene tests (gables, signpost, baked buildings, NPC/traffic markers)
+  now read the v1.3.0 manifest. The historical anchor-baseline test
+  intentionally keeps reading v1.2.1.
+- Added a pure test that guards the historical delivery endpoints and source,
+  and that the v1.3.0 manifest matches the authored marker scene.
+
+### Verification status
+
+- Pure tests: **123 passed, 0 failed** (119 previous + four traffic/manifest
+  checks).
+- Source runtime: **1171 passed, 0 failed**, all 11 phases exit 0
+  (`284/21/101/238/10/217/48/140/18/40/54`).
+- Headless import and boot: exit 0.
+- Packaged Linux (`dist/linux/PatchworkIsland.x86_64`, exported from this
+  tree): boot **PASS**; all 11 phases **1171 passed, 0 failed**, every phase
+  exit 0; `--selftest` repeated **3/3 green** (284 each). The extracted
+  v1.3.0 ZIP binary booted and passed `--selftest` (284/284).
+- Windows binary rebuilt (PE32+ x86-64) but startup remains **NOT TESTED**.
+- Final package hashes:
+  - `linux/PatchworkIsland.x86_64` `b0ab55eba61619bde6e59ab9e8674862b99f87523c7af61449a6b90244a663fc`
+  - `windows/PatchworkIsland.exe` `01e8e88cae3e6b91fd5466bebd09046a1ae6b065f9290df98380ae51143e8cf1`
+  - `PatchworkIsland-1.3.0-Linux-x86_64.zip` `37c7330bdb76ae323aad56cd5aa542d5a94cb289375f3256e5c51cd3e9ae4dff`
+  - `PatchworkIsland-1.3.0-Windows-x86_64.zip` `63724b9197ef0536c6bcfebd2adb55ee13709bf48b24fd073bc3aa6ea4d2147d`
+  - `sha256sum -c dist/SHA256SUMS` passes for all four files.
+
+### Remaining gaps
+
+- Human visual sign-off, one continuous M01–M20 sitting and Windows startup
+  remain **NOT TESTED**.
+- The long-horizon traffic check is an idealised pure simulation at a fixed
+  60 Hz; it does not model acceleration or corner speed scaling. The 7 m gap
+  is larger than the worst braking distance, and the 24 s runtime living test
+  still passes.

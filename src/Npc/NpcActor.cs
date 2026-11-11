@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Godot;
 
 namespace PatchworkIsland;
@@ -12,6 +13,7 @@ namespace PatchworkIsland;
 public partial class NpcActor : CharacterBody3D
 {
     public NpcDefinition Definition { get; private set; }
+    public IReadOnlyList<NpcPoint> PatrolPoints { get; private set; } = Array.Empty<NpcPoint>();
     public bool Talking { get; private set; }
     public string NpcId => Definition?.Id ?? "";
     public event Action<NpcActor> TalkRequested;
@@ -31,12 +33,17 @@ public partial class NpcActor : CharacterBody3D
     private float _wave;
     private Vector3 _lastPosition;
     private Label3D _nameLabel;
+    private Sprite3D _portrait;
 
-    public void Initialize(NpcDefinition definition)
+    public void Initialize(NpcDefinition definition,
+        IReadOnlyList<NpcPoint> patrolPoints = null)
     {
         Definition = definition ?? throw new ArgumentNullException(nameof(definition));
+        PatrolPoints = patrolPoints ?? definition.PatrolPoints;
+        if (PatrolPoints.Count == 0)
+            throw new ArgumentException("An NPC needs at least one patrol point.", nameof(definition));
         Name = $"Npc_{definition.Id}";
-        Position = new Vector3(definition.Home.X, 0.05f, definition.Home.Z);
+        Position = new Vector3(PatrolPoints[0].X, 0.05f, PatrolPoints[0].Z);
         CollisionLayer = 0;   // never blocks the player or vehicles
         CollisionMask = 1;    // still rests on world geometry
         FloorSnapLength = 0.4f;
@@ -59,76 +66,35 @@ public partial class NpcActor : CharacterBody3D
             $"E: Talk to {Definition.Name} — {Definition.Role}",
             () => TalkRequested?.Invoke(this), null, true, 3.3f, $"NpcTalk_{Definition.Id}");
         _talk.SetPrompt(() => $"E: Talk to {Definition.Name} — {Definition.Role}");
-        _patrolIndex = 1 % Mathf.Max(1, Definition.PatrolPoints.Count);
+        _patrolIndex = 1 % Mathf.Max(1, PatrolPoints.Count);
         _lastPosition = GlobalPosition;
     }
 
     public override string ToString() => $"NpcActor({NpcId})";
 
+    public string VisualTemplatePath { get; private set; } = "";
+
     private void BuildModel()
     {
         _model = new Node3D { Name = "NpcModel", Scale = new Vector3(0.94f, 0.94f, 0.94f) };
         AddChild(_model);
+
+        if (!VisualTemplate.NpcPaths.TryGetValue(Definition.Id, out string templatePath))
+            throw new InvalidOperationException(
+                $"No authored visual template for NPC '{Definition.Id}'.");
+        Node3D template = VisualTemplate.Instantiate(_model, "Visual", templatePath);
+        VisualTemplatePath = templatePath;
+
+        CharacterRig rig = VisualTemplate.BuildCharacterRig(template);
+        _head = rig.Head;
+        _leftArm = rig.LeftArm;
+        _rightArm = rig.RightArm;
+        _leftLeg = rig.LeftLeg;
+        _rightLeg = rig.RightLeg;
+
         Color main = Color.FromHtml(Definition.MainHex);
         Color hair = Color.FromHtml(Definition.HairHex);
         Color accent = Color.FromHtml(Definition.AccentHex);
-        Color secondary = main.Darkened(0.18f);
-        Color shoes = Color.FromHtml("4A3B33");
-
-        if (Definition.Dress)
-        {
-            Geo.Box(_model, new Vector3(0, 1.08f, 0), new Vector3(0.62f, 0.46f, 0.4f), main);
-            Geo.Cylinder(_model, new Vector3(0, 0.79f, 0), 0.32f, 0.48f, 0.52f, main, 10,
-                null, false, "Dress");
-            Geo.Cylinder(_model, new Vector3(0, 0.55f, 0), 0.485f, 0.485f, 0.06f, accent, 10,
-                null, false, "Hem");
-            Geo.Box(_model, new Vector3(0, 1.26f, 0), new Vector3(0.66f, 0.09f, 0.44f), accent);
-        }
-        else
-        {
-            Geo.Box(_model, new Vector3(0, 1.06f, 0), new Vector3(0.7f, 0.55f, 0.44f), main);
-            Geo.Box(_model, new Vector3(0, 0.75f, 0), new Vector3(0.62f, 0.3f, 0.42f), secondary);
-            Geo.Box(_model, new Vector3(0, 1.27f, 0), new Vector3(0.76f, 0.1f, 0.48f), accent);
-        }
-
-        _head = new Node3D { Name = "Head", Position = new Vector3(0, 1.6f, 0) };
-        _model.AddChild(_head);
-        Geo.Box(_head, Vector3.Zero, new Vector3(0.58f, 0.53f, 0.5f), Palette.Skin);
-        Geo.Box(_head, new Vector3(0, 0.2f, 0.02f), new Vector3(0.6f, 0.18f, 0.54f), hair,
-            null, false, "HairTop");
-        Geo.Box(_head, new Vector3(0, 0.12f, 0.25f), new Vector3(0.52f, 0.3f, 0.12f), hair,
-            null, false, "HairBack");
-        if (Definition.LongHair)
-        {
-            Geo.Box(_head, new Vector3(-0.31f, -0.16f, 0.03f), new Vector3(0.1f, 0.66f, 0.42f), hair,
-                null, false, "LongHairL");
-            Geo.Box(_head, new Vector3(0.31f, -0.16f, 0.03f), new Vector3(0.1f, 0.66f, 0.42f), hair,
-                null, false, "LongHairR");
-            Geo.Box(_head, new Vector3(0, -0.24f, 0.27f), new Vector3(0.54f, 0.4f, 0.18f), hair,
-                null, false, "LongHairB");
-        }
-        Geo.Box(_head, new Vector3(-0.13f, 0.02f, -0.26f), new Vector3(0.07f, 0.09f, 0.03f), Palette.Navy);
-        Geo.Box(_head, new Vector3(0.13f, 0.02f, -0.26f), new Vector3(0.07f, 0.09f, 0.03f), Palette.Navy);
-        Geo.Box(_head, new Vector3(0, -0.12f, -0.27f), new Vector3(0.17f, 0.03f, 0.02f), Palette.Navy);
-        Geo.Box(_head, new Vector3(-0.21f, -0.03f, -0.26f), new Vector3(0.07f, 0.035f, 0.02f),
-            new Color("E99A86"));
-        Geo.Box(_head, new Vector3(0.21f, -0.03f, -0.26f), new Vector3(0.07f, 0.035f, 0.02f),
-            new Color("E99A86"));
-
-        _leftArm = new Node3D { Name = "LeftArm", Position = new Vector3(-0.42f, 1.26f, 0) };
-        _rightArm = new Node3D { Name = "RightArm", Position = new Vector3(0.42f, 1.26f, 0) };
-        _model.AddChild(_leftArm);
-        _model.AddChild(_rightArm);
-        BuildArm(_leftArm, main, accent);
-        BuildArm(_rightArm, main, accent);
-
-        _leftLeg = new Node3D { Name = "LeftLeg", Position = new Vector3(-0.17f, 0.64f, 0) };
-        _rightLeg = new Node3D { Name = "RightLeg", Position = new Vector3(0.17f, 0.64f, 0) };
-        _model.AddChild(_leftLeg);
-        _model.AddChild(_rightLeg);
-        Color legColor = Definition.Dress ? Palette.Skin : secondary;
-        BuildLeg(_leftLeg, legColor, shoes);
-        BuildLeg(_rightLeg, legColor, shoes);
         BuildRoleAccessory(main, accent, hair);
     }
 
@@ -185,35 +151,45 @@ public partial class NpcActor : CharacterBody3D
         }
     }
 
-    private static void BuildArm(Node3D arm, Color main, Color accent)
-    {
-        Geo.Box(arm, new Vector3(0, -0.18f, 0), new Vector3(0.18f, 0.34f, 0.19f), main);
-        Geo.Box(arm, new Vector3(0, -0.36f, 0), new Vector3(0.19f, 0.05f, 0.2f), accent);
-        Geo.Box(arm, new Vector3(0, -0.46f, 0), new Vector3(0.15f, 0.19f, 0.16f), Palette.Skin);
-        Geo.Sphere(arm, new Vector3(0, -0.58f, 0), 0.09f, Palette.Skin, 6, 3);
-    }
-
-    private static void BuildLeg(Node3D leg, Color color, Color shoes)
-    {
-        Geo.Box(leg, new Vector3(0, -0.27f, 0), new Vector3(0.2f, 0.52f, 0.23f), color);
-        Geo.Box(leg, new Vector3(0, -0.55f, -0.05f), new Vector3(0.24f, 0.12f, 0.35f), shoes);
-    }
-
     private void BuildMarker()
     {
-        var portrait = new Sprite3D
+        _portrait = new Sprite3D
         {
             Name = "Portrait",
             Texture = NpcPortrait.Load(Definition.Id),
-            PixelSize = 0.0034f,
-            Position = new Vector3(0, 2.3f, 0),
+            PixelSize = 0.0018f,
+            Position = new Vector3(0, 2.18f, 0),
             Billboard = BaseMaterial3D.BillboardModeEnum.Enabled,
             Shaded = false,
             DoubleSided = true,
+            VisibilityRangeEnd = 24f,
+            VisibilityRangeEndMargin = 2f,
+            VisibilityRangeFadeMode = GeometryInstance3D.VisibilityRangeFadeModeEnum.Self,
         };
-        AddChild(portrait);
-        _nameLabel = Geo.Label(this, new Vector3(0, 2.92f, 0), Definition.Name, 68, Palette.Navy,
-            true, 0.0058f, 10);
+        AddChild(_portrait);
+        _nameLabel = Geo.Label(this, new Vector3(0, 2.82f, 0), Definition.Name, 56, Palette.Navy,
+            true, 0.005f, 8);
+        _nameLabel.VisibilityRangeEnd = 34f;
+        _nameLabel.VisibilityRangeEndMargin = 2f;
+        _nameLabel.VisibilityRangeFadeMode = GeometryInstance3D.VisibilityRangeFadeModeEnum.Self;
+    }
+
+    /// <summary>
+    /// Keeps villager identity readable without letting a foreground portrait or
+    /// nameplate swallow the scene. World size grows with distance, then clamps
+    /// so labels neither dominate close-ups nor vanish at normal play range.
+    /// </summary>
+    public override void _Process(double delta)
+    {
+        if (_nameLabel == null)
+            return;
+        Camera3D camera = GetViewport()?.GetCamera3D();
+        if (camera == null)
+            return;
+        float distance = camera.GlobalPosition.DistanceTo(_nameLabel.GlobalPosition);
+        _nameLabel.Scale = Vector3.One * Mathf.Clamp(distance / 10f, 0.72f, 1.45f);
+        if (_portrait != null)
+            _portrait.Scale = Vector3.One * Mathf.Clamp(distance / 12f, 0.75f, 1.20f);
     }
 
     public override void _PhysicsProcess(double delta)
@@ -238,7 +214,7 @@ public partial class NpcActor : CharacterBody3D
             return;
         }
 
-        var target = Definition.PatrolPoints[_patrolIndex];
+        var target = PatrolPoints[_patrolIndex];
         Vector3 targetPos = new(target.X, GlobalPosition.Y, target.Z);
         Vector3 to = targetPos - GlobalPosition;
         to.Y = 0;
@@ -281,7 +257,7 @@ public partial class NpcActor : CharacterBody3D
 
     private void AdvancePatrol()
     {
-        _patrolIndex = (_patrolIndex + 1) % Mathf.Max(1, Definition.PatrolPoints.Count);
+        _patrolIndex = (_patrolIndex + 1) % Mathf.Max(1, PatrolPoints.Count);
         _wait = 0.7f + (_patrolIndex % 3) * 0.35f;
         Velocity = Vector3.Zero;
     }

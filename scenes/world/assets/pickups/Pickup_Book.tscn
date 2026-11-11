@@ -1,0 +1,24 @@
+[gd_scene format=3]
+
+
+[sub_resource type="BoxMesh" id="BoxMesh_1"]
+size = Vector3(0.5, 0.55, 0.4)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_2"]
+albedo_color = Color(0.2745098, 0.4588235, 0.8666667, 1)
+roughness = 0.94
+
+[node name="Pickup_Book" type="Node3D"]
+
+[node name="Collectible" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.35, 0)
+mesh = SubResource("BoxMesh_1")
+material_override = SubResource("StandardMaterial_2")
+
+[node name="PickupOrigin" type="Marker3D" parent="."]
+position = Vector3(0, 0, 0)
+metadata/scene_binding_id = "pickup.book"
+
+[node name="PickupRange" type="Marker3D" parent="."]
+position = Vector3(0, 0, 0)
+metadata/radius = 3.9

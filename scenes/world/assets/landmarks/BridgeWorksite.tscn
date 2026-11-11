@@ -1,0 +1,78 @@
+[gd_scene load_steps=7 format=3]
+
+[sub_resource type="BoxMesh" id="BoxMesh_1"]
+size = Vector3(5.1, 0.9, 0.12)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2"]
+albedo_color = Color(0.956863, 0.282353, 0.282353, 1)
+roughness = 1.0
+metallic = 0.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_3"]
+size = Vector3(0.8, 0.1, 0.8)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4"]
+albedo_color = Color(0.094118, 0.203922, 0.352941, 1)
+roughness = 1.0
+metallic = 0.0
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_5"]
+top_radius = 0.00000
+bottom_radius = 0.34000
+height = 0.90000
+radial_segments = 8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6"]
+albedo_color = Color(1.000000, 0.596078, 0.223529, 1)
+roughness = 1.0
+metallic = 0.0
+
+[node name="BridgeWorksite" type="Node3D"]
+
+
+[node name="Sign" type="MeshInstance3D" parent="."]
+position = Vector3(0, 2.2, 0)
+mesh = SubResource("BoxMesh_1")
+material_override = SubResource("StandardMaterial3D_2")
+
+[node name="Title" type="Label3D" parent="."]
+position = Vector3(0, 2.2, -0.16)
+text = "BRIDGE WORKS"
+font_size = 35
+pixel_size = 0.007
+modulate = Color(0.094118, 0.203922, 0.352941, 1)
+billboard = 0
+
+[node name="ConeBase" type="MeshInstance3D" parent="."]
+position = Vector3(2.2, 0.12, -4)
+mesh = SubResource("BoxMesh_3")
+material_override = SubResource("StandardMaterial3D_4")
+
+[node name="Cone" type="MeshInstance3D" parent="."]
+position = Vector3(2.2, 0.55, -4)
+mesh = SubResource("CylinderMesh_5")
+material_override = SubResource("StandardMaterial3D_6")
+
+[node name="ConeBase_2" type="MeshInstance3D" parent="."]
+position = Vector3(2.2, 0.12, 0)
+mesh = SubResource("BoxMesh_3")
+material_override = SubResource("StandardMaterial3D_4")
+
+[node name="Cone_2" type="MeshInstance3D" parent="."]
+position = Vector3(2.2, 0.55, 0)
+mesh = SubResource("CylinderMesh_5")
+material_override = SubResource("StandardMaterial3D_6")
+
+[node name="ConeBase_3" type="MeshInstance3D" parent="."]
+position = Vector3(2.2, 0.12, 4)
+mesh = SubResource("BoxMesh_3")
+material_override = SubResource("StandardMaterial3D_4")
+
+[node name="Cone_3" type="MeshInstance3D" parent="."]
+position = Vector3(2.2, 0.55, 4)
+mesh = SubResource("CylinderMesh_5")
+material_override = SubResource("StandardMaterial3D_6")
+
+[node name="BridgeMissionSite" type="Marker3D" parent="."]
+position = Vector3(1.3, 0, -0.7)
+metadata/gameplay_id = "M03.station"

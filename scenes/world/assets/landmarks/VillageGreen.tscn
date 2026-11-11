@@ -1,0 +1,110 @@
+[gd_scene load_steps=8 format=3]
+
+[sub_resource type="BoxMesh" id="BoxMesh_1"]
+size = Vector3(14, 0.03, 10)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2"]
+albedo_color = Color(0.607843, 0.866667, 0.431373, 1)
+roughness = 1.0
+metallic = 0.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_3"]
+size = Vector3(14.4, 0.12, 0.25)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4"]
+albedo_color = Color(0.670588, 0.458824, 0.921569, 1)
+roughness = 1.0
+metallic = 0.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_5"]
+size = Vector3(0.25, 0.12, 10.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_6"]
+size = Vector3(2.7, 0.04, 2.3)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7"]
+albedo_color = Color(0.839216, 0.811765, 0.647059, 1)
+roughness = 1.0
+metallic = 0.0
+
+[node name="VillageGreen" type="Node3D"]
+
+
+[node name="Green" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.015, 0)
+mesh = SubResource("BoxMesh_1")
+material_override = SubResource("StandardMaterial3D_2")
+
+[node name="PlotBorder" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.06, -5)
+mesh = SubResource("BoxMesh_3")
+material_override = SubResource("StandardMaterial3D_4")
+
+[node name="PlotBorder_2" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.06, 5)
+mesh = SubResource("BoxMesh_3")
+material_override = SubResource("StandardMaterial3D_4")
+
+[node name="PlotBorder_3" type="MeshInstance3D" parent="."]
+position = Vector3(-7, 0.06, 0)
+mesh = SubResource("BoxMesh_5")
+material_override = SubResource("StandardMaterial3D_4")
+
+[node name="PlotBorder_4" type="MeshInstance3D" parent="."]
+position = Vector3(7, 0.06, 0)
+mesh = SubResource("BoxMesh_5")
+material_override = SubResource("StandardMaterial3D_4")
+
+[node name="ParkPad" type="MeshInstance3D" parent="."]
+position = Vector3(-3.7, 0.07, -1.5)
+mesh = SubResource("BoxMesh_6")
+material_override = SubResource("StandardMaterial3D_7")
+
+[node name="ParkSocket" type="Marker3D" parent="."]
+position = Vector3(-3.7, 0.09, -1.5)
+metadata/gameplay_id = "M08.park.0"
+
+[node name="ParkPad_2" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.07, -1.5)
+mesh = SubResource("BoxMesh_6")
+material_override = SubResource("StandardMaterial3D_7")
+
+[node name="ParkSocket_2" type="Marker3D" parent="."]
+position = Vector3(0, 0.09, -1.5)
+metadata/gameplay_id = "M08.park.1"
+
+[node name="ParkPad_3" type="MeshInstance3D" parent="."]
+position = Vector3(3.7, 0.07, -1.5)
+mesh = SubResource("BoxMesh_6")
+material_override = SubResource("StandardMaterial3D_7")
+
+[node name="ParkSocket_3" type="Marker3D" parent="."]
+position = Vector3(3.7, 0.09, -1.5)
+metadata/gameplay_id = "M08.park.2"
+
+[node name="ParkPad_4" type="MeshInstance3D" parent="."]
+position = Vector3(-3.7, 0.07, 1.7)
+mesh = SubResource("BoxMesh_6")
+material_override = SubResource("StandardMaterial3D_7")
+
+[node name="ParkSocket_4" type="Marker3D" parent="."]
+position = Vector3(-3.7, 0.09, 1.7)
+metadata/gameplay_id = "M08.park.3"
+
+[node name="ParkPad_5" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.07, 1.7)
+mesh = SubResource("BoxMesh_6")
+material_override = SubResource("StandardMaterial3D_7")
+
+[node name="ParkSocket_5" type="Marker3D" parent="."]
+position = Vector3(0, 0.09, 1.7)
+metadata/gameplay_id = "M08.park.4"
+
+[node name="ParkPad_6" type="MeshInstance3D" parent="."]
+position = Vector3(3.7, 0.07, 1.7)
+mesh = SubResource("BoxMesh_6")
+material_override = SubResource("StandardMaterial3D_7")
+
+[node name="ParkSocket_6" type="Marker3D" parent="."]
+position = Vector3(3.7, 0.09, 1.7)
+metadata/gameplay_id = "M08.park.5"

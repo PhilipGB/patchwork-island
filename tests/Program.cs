@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using PatchworkIsland;
 
 namespace PatchworkIsland.Tests;
@@ -2540,6 +2542,121 @@ internal static class Program
         Check(rival.SpeedMetresPerSecond <= 8f, "rival speed cap");
     });
 
+    Run("free-roam traffic follows one shared village loop", () =>
+    {
+        var freeRoam = TrafficCatalog.Routes.Where(r => !r.RallyOnly).ToList();
+        Equal(2, freeRoam.Count, "free-roam traffic count");
+        Check(TrafficCatalog.VillageLoopLength > 100f,
+            $"village loop is only {TrafficCatalog.VillageLoopLength:0.0}m");
+        foreach (var route in freeRoam)
+        {
+            foreach (var point in route.Points)
+            {
+                Check(TrafficCatalog.DistanceToVillageLoop(point.X, point.Z) <= 0.01f,
+                    $"{route.Id} leaves the shared loop at {point.X},{point.Z}");
+            }
+        }
+    });
+
+    Run("traffic following rule has a single deterministic right of way", () =>
+    {
+        Check(TrafficCatalog.ShouldYieldToTraffic(
+                10f, "town_scooter", 12f, "delivery_car"),
+            "the car behind must give way");
+        Check(!TrafficCatalog.ShouldYieldToTraffic(
+                12f, "delivery_car", 10f, "town_scooter"),
+            "the car ahead must proceed");
+        Check(TrafficCatalog.ShouldYieldToTraffic(
+                10f, "town_scooter", 10f, "delivery_car"),
+            "equal progress: only the larger id gives way");
+        Check(!TrafficCatalog.ShouldYieldToTraffic(
+                10f, "delivery_car", 10f, "town_scooter"),
+            "equal progress: exactly one car gives way");
+    });
+
+    Run("traffic keeps a safe gap over six complete loops", () =>
+    {
+        var freeRoam = TrafficCatalog.Routes.Where(r => !r.RallyOnly)
+            .OrderBy(r => r.Id, StringComparer.Ordinal).ToList();
+        Equal(2, freeRoam.Count, "free-roam vehicles");
+        float length = TrafficCatalog.VillageLoopLength;
+        float[] progress =
+        {
+            TrafficCatalog.ProgressOnVillageLoop(
+                freeRoam[0].Points[0].X, freeRoam[0].Points[0].Z),
+            TrafficCatalog.ProgressOnVillageLoop(
+                freeRoam[1].Points[0].X, freeRoam[1].Points[0].Z),
+        };
+        float[] speeds = freeRoam.Select(r => r.SpeedMetresPerSecond).ToArray();
+        string[] ids = freeRoam.Select(r => r.Id).ToArray();
+        float[] travelled = new float[2];
+        const float dt = 1f / 60f;
+        int steps = (int)MathF.Ceiling(6f * length / speeds.Min() / dt);
+        float minGap = float.MaxValue;
+        int deadlocks = 0;
+        for (int step = 0; step < steps; step++)
+        {
+            bool[] yields = new bool[2];
+            for (int i = 0; i < 2; i++)
+            {
+                yields[i] = TrafficCatalog.ShouldYieldToTraffic(
+                    progress[i], ids[i], progress[1 - i], ids[1 - i]);
+            }
+            if (yields[0] && yields[1]) deadlocks++;
+            for (int i = 0; i < 2; i++)
+            {
+                if (yields[i]) continue;
+                progress[i] += speeds[i] * dt;
+                travelled[i] += speeds[i] * dt;
+                if (progress[i] >= length) progress[i] -= length;
+            }
+            float raw = MathF.Abs(progress[0] - progress[1]);
+            float gap = MathF.Min(raw, length - raw);
+            if (step > 0) minGap = MathF.Min(minGap, gap);
+        }
+        Equal(0, deadlocks, "traffic following deadlocks");
+        Check(minGap >= TrafficCatalog.MinimumTrafficGap - 0.1f,
+            $"traffic cars closed to {minGap:0.00}m");
+        Check(travelled[0] > 3f * length && travelled[1] > 3f * length,
+            $"traffic cars did not complete three loops " +
+            $"({travelled[0]:0.0}/{travelled[1]:0.0}m)");
+    });
+
+    Run("historical v1.2.1 manifest stays separate from v1.3.0", () =>
+    {
+        string root = FindRepoRoot();
+        using var historical = JsonDocument.Parse(File.ReadAllText(
+            Path.Combine(root, "docs", "layout_manifest_v1.2.1.json")));
+        using var current = JsonDocument.Parse(File.ReadAllText(
+            Path.Combine(root, "docs", "layout_manifest_v1.3.0.json")));
+        var oldDelivery = historical.RootElement.GetProperty("traffic_routes")
+            .GetProperty("delivery_car");
+        var newDelivery = current.RootElement.GetProperty("traffic_routes")
+            .GetProperty("delivery_car");
+        Equal(12, oldDelivery.GetArrayLength(), "historical delivery waypoint count");
+        Equal(20, newDelivery.GetArrayLength(), "v1.3.0 delivery waypoint count");
+        Check(MathF.Abs(oldDelivery[0][0].GetSingle() - 66f) < 0.01f &&
+              MathF.Abs(oldDelivery[0][2].GetSingle() + 1.5f) < 0.01f,
+            "historical delivery route was rewritten");
+        Check(MathF.Abs(newDelivery[0][0].GetSingle() - 34f) < 0.01f &&
+              MathF.Abs(newDelivery[0][2].GetSingle() - 0.5f) < 0.01f,
+            "v1.3.0 delivery route is not current");
+        Check((historical.RootElement.GetProperty("source").GetString() ?? "")
+            .Contains("v1.2.1", StringComparison.Ordinal),
+            "historical manifest source changed");
+        Check((current.RootElement.GetProperty("source").GetString() ?? "")
+            .Contains("v1.3.0", StringComparison.Ordinal),
+            "v1.3.0 manifest source missing");
+        Equal(7, current.RootElement.GetProperty("street_roads").GetArrayLength(),
+            "v1.3.0 street road count");
+        var sceneDelivery = ParseMarkersByParent(Path.Combine(root, "scenes", "world",
+            "TrafficRouteMarkers.tscn"))["delivery_car"];
+        Equal(newDelivery.GetArrayLength(), sceneDelivery.Count,
+            "v1.3.0 manifest does not match the scene");
+        Check(sceneDelivery.Count != oldDelivery.GetArrayLength(),
+            "historical manifest still matches the new scene");
+    });
+
     Run("rally centreline does not self-overlap its own road width", () =>
     {
         var samples = RallyCourse.SampleClosed(20);
@@ -2589,6 +2706,417 @@ internal static class Program
             Directory.Delete(dir, true);
         }
     });
+
+        Run("baked gameplay anchors match the v1.2.1 manifest with canonical overrides", () =>
+        {
+            string root = FindRepoRoot();
+            using var manifest = JsonDocument.Parse(File.ReadAllText(
+                Path.Combine(root, "docs", "layout_manifest_v1.2.1.json")));
+            var expected = manifest.RootElement.GetProperty("anchors");
+            var markers = ParseMarkers(Path.Combine(root, "scenes", "world", "GameplayAnchors.tscn"),
+                parent: ".");
+            Equal(75, markers.Count, "gameplay anchor count");
+
+            // v1.3.0 relocated the playground inside the canonical scene. The
+            // v1.2.1 manifest remains the historical baseline for every other
+            // anchor; PlaygroundCenter is deliberately scene-derived and has a
+            // dedicated consistency check below.
+            var canonicalOverrides = new Dictionary<string, (float X, float Y, float Z)>
+            {
+                ["PlaygroundCenter"] = ParseInstancePosition(
+                    File.ReadAllText(Path.Combine(root, "scenes", "world", "Town.tscn")),
+                    "Playground"),
+            };
+
+            int compared = 0;
+            foreach (var anchor in expected.EnumerateObject())
+            {
+                var value = anchor.Value;
+                var want = canonicalOverrides.TryGetValue(anchor.Name, out var canonical)
+                    ? canonical
+                    : (value[0].GetSingle(), value[1].GetSingle(), value[2].GetSingle());
+                Check(markers.TryGetValue(anchor.Name, out var got), $"missing anchor {anchor.Name}");
+                Check(Distance(got, want) <= 0.01f,
+                    $"anchor {anchor.Name} is {got} not {want}");
+                compared++;
+            }
+            Equal(markers.Count, compared, "every source anchor is represented");
+        });
+
+        Run("playground anchor and worksite follow the authored scene", () =>
+        {
+            string root = FindRepoRoot();
+            var centre = ParseInstancePosition(
+                File.ReadAllText(Path.Combine(root, "scenes", "world", "Town.tscn")),
+                "Playground");
+            var playgroundMarkers = ParseMarkers(
+                Path.Combine(root, "scenes", "world", "assets", "landmarks", "Playground.tscn"),
+                parent: ".");
+            Check(playgroundMarkers.TryGetValue("WorksiteMarker", out var worksite),
+                "Playground is missing its scene-owned WorksiteMarker");
+            var anchors = ParseMarkers(
+                Path.Combine(root, "scenes", "world", "GameplayAnchors.tscn"), parent: ".");
+            Check(anchors.TryGetValue("PlaygroundCenter", out var anchor),
+                "missing PlaygroundCenter anchor");
+            Check(Distance(anchor, centre) <= 0.01f,
+                $"PlaygroundCenter anchor {anchor} does not follow the playground root {centre}");
+            Check(MathF.Abs(worksite.Z - 4.5f) <= 0.01f && MathF.Abs(worksite.Y - 0.1f) <= 0.01f,
+                $"playground WorksiteMarker moved off the sand: {worksite}");
+        });
+
+        Run("all six building gables sit on the ridge ends", () =>
+        {
+            string root = FindRepoRoot();
+            using var manifest = JsonDocument.Parse(File.ReadAllText(
+                Path.Combine(root, "docs", "layout_manifest_v1.3.0.json")));
+            int checkedBuildings = 0;
+            foreach (var building in manifest.RootElement
+                         .GetProperty("building_instances").EnumerateArray())
+            {
+                string id = building.GetProperty("id").GetString();
+                float width = building.GetProperty("width").GetSingle();
+                float depth = building.GetProperty("depth").GetSingle();
+                string scene = Path.Combine(root, building.GetProperty("scene").GetString());
+                string text = File.ReadAllText(scene);
+                Check(!text.Contains("GableFront") && !text.Contains("GableBack"),
+                    $"{id} still places its gables on the eave walls");
+
+                var east = ParseNodePosition(text, "GableEast");
+                var west = ParseNodePosition(text, "GableWest");
+                var eastRotation = ParseNodeRotation(text, "GableEast");
+                var westRotation = ParseNodeRotation(text, "GableWest");
+                float expectedX = width * 0.5f;
+                Check(MathF.Abs(east.X - expectedX) <= 0.02f,
+                    $"{id} east gable is at x={east.X}, expected {expectedX}");
+                Check(MathF.Abs(west.X + expectedX) <= 0.02f,
+                    $"{id} west gable is at x={west.X}, expected {-expectedX}");
+                Check(MathF.Abs(east.Z) <= 0.02f && MathF.Abs(west.Z) <= 0.02f,
+                    $"{id} gables drifted onto an eave wall");
+                Check(MathF.Abs(MathF.Abs(eastRotation.Y) - MathF.PI / 2f) <= 0.01f &&
+                      MathF.Abs(MathF.Abs(westRotation.Y) - MathF.PI / 2f) <= 0.01f,
+                    $"{id} gables are not rotated onto the ridge ends");
+
+                var prisms = ParseBoxSizes(text, "PrismMesh");
+                Check(prisms.TryGetValue("GableMesh", out var gable),
+                    $"{id} has no GableMesh");
+                Check(MathF.Abs(gable.X - (depth + 0.3f)) <= 0.05f,
+                    $"{id} gable width {gable.X} does not span depth {depth}");
+                Check(gable.Y >= 1.8f && gable.Y <= 2.8f,
+                    $"{id} gable height {gable.Y} is outside the roof profile");
+                Check(Regex.IsMatch(text,
+                        "\\[sub_resource type=\"StandardMaterial3D\" id=\"StandardMaterial3D_Gable\"\\]" +
+                        "[\\s\\S]*?disable_receive_shadows = true"),
+                    $"{id} gable still receives the roof-overhang shadow");
+                Check(Regex.Matches(text,
+                        "material_override = SubResource\\(\"StandardMaterial3D_Gable\"\\)").Count == 2,
+                    $"{id} gable shadow-free material is not applied to both ends");
+                checkedBuildings++;
+            }
+            Equal(6, checkedBuildings, "all six authored buildings checked");
+        });
+
+        Run("celebration banner is compact, free-standing and double-faced", () =>
+        {
+            string root = FindRepoRoot();
+            string text = File.ReadAllText(Path.Combine(root, "scenes", "world",
+                "assets", "landmarks", "CelebrationDecor.tscn"));
+            Check(!text.Contains("billboard = 1"),
+                "celebration labels must not billboard through the panel");
+            var sizes = ParseBoxSizes(text, "BoxMesh");
+            Check(sizes.TryGetValue("BoxMesh_57", out var banner), "banner mesh missing");
+            Check(banner.X <= 5f && banner.Y <= 0.8f,
+                $"celebration banner is still oversized: {banner.X}x{banner.Y}");
+            Check(banner.X >= 4.7f,
+                $"celebration banner panel leaves a gap to its posts: {banner.X}");
+            var position = ParseNodePosition(text, "CelebrationSign");
+            Check(position.Z >= 19f && position.Z <= 21f && position.Y >= 3f && position.Y <= 4f,
+                $"celebration banner is not at the festival entrance: {position}");
+            Check(text.Contains("MessageFront") && text.Contains("MessageBack"),
+                "celebration banner needs front and back text faces");
+            Check(text.Contains("PostWest") && text.Contains("PostEast"),
+                "celebration banner is not free-standing on its own posts");
+            string town = File.ReadAllText(Path.Combine(root, "scenes", "world", "Town.tscn"));
+            var lantern = ParseInstancePosition(town, "FestivalLantern_2");
+            Check(MathF.Abs(lantern.X - 15f) >= 2.5f,
+                $"the centre festival lantern blocks the banner back face at x={lantern.X}");
+        });
+
+        Run("directional signpost is one clean stack away from Milo", () =>
+        {
+            string root = FindRepoRoot();
+            string signText = File.ReadAllText(Path.Combine(root, "scenes", "world",
+                "assets", "landmarks", "DirectionalSign.tscn"));
+            Check(!signText.Contains("billboard = 1"),
+                "directional labels must not billboard off their boards");
+            Equal(4, Regex.Matches(signText, "\\[node name=\"Sign_[0-9]+\"").Count,
+                "directional sign count");
+            Equal(4, Regex.Matches(signText, "\\[node name=\"Label_[0-9]+\"").Count,
+                "directional front label count");
+            Equal(4, Regex.Matches(signText, "\\[node name=\"Label_[0-9]+_Back\"").Count,
+                "directional back label count");
+            string[] frontArrows = { "RED HOUSE →", "← WORKSHOP", "← SHOP", "← BRIDGE" };
+            string[] backArrows = { "← RED HOUSE", "WORKSHOP →", "SHOP →", "BRIDGE →" };
+            for (int i = 0; i < 4; i++)
+            {
+                Equal(frontArrows[i], ParseNodeText(signText, $"Label_{i}"),
+                    $"directional front arrow {i} points the wrong way");
+                Equal(backArrows[i], ParseNodeText(signText, $"Label_{i}_Back"),
+                    $"directional back arrow {i} points the wrong way");
+            }
+
+            string town = File.ReadAllText(Path.Combine(root, "scenes", "world", "Town.tscn"));
+            var direction = ParseInstancePosition(town, "DirectionPost");
+            using var manifest = JsonDocument.Parse(File.ReadAllText(
+                Path.Combine(root, "docs", "layout_manifest_v1.3.0.json")));
+            float nearest = float.MaxValue;
+            foreach (var point in manifest.RootElement
+                         .GetProperty("npc_patrol_routes").GetProperty("milo").EnumerateArray())
+            {
+                float dx = direction.X - point[0].GetSingle();
+                float dz = direction.Z - point[2].GetSingle();
+                nearest = MathF.Min(nearest, MathF.Sqrt(dx * dx + dz * dz));
+            }
+            Check(nearest > 2.5f,
+                $"directional signpost is still inside Milo's patrol area ({nearest:0.0} m)");
+            foreach (string neighbour in new[] { "DeliveryBoard", "MarketStock" })
+            {
+                var other = ParseInstancePosition(town, neighbour);
+                float dx = direction.X - other.X;
+                float dz = direction.Z - other.Z;
+                float distance = MathF.Sqrt(dx * dx + dz * dz);
+                Check(distance > 4f,
+                    $"directional signpost still crowds {neighbour} ({distance:0.0} m)");
+            }
+            var delivery = ParseInstancePosition(town, "DeliveryBoard");
+            var stock = ParseInstancePosition(town, "MarketStock");
+            float propDx = delivery.X - stock.X;
+            float propDz = delivery.Z - stock.Z;
+            Check(MathF.Sqrt(propDx * propDx + propDz * propDz) > 5f,
+                "MarketStock is still hidden behind DeliveryBoard");
+        });
+
+        Run("world flags and vehicle status labels avoid billboard clipping", () =>
+        {
+            string root = FindRepoRoot();
+            foreach (string scene in new[] { "GoldCourseFlag.tscn", "RallyPodium.tscn" })
+            {
+                string text = File.ReadAllText(Path.Combine(root, "scenes", "world",
+                    "assets", "landmarks", scene));
+                Check(!text.Contains("billboard = 1"),
+                    $"{scene} still uses a billboard label");
+            }
+            string gold = File.ReadAllText(Path.Combine(root, "scenes", "world",
+                "assets", "landmarks", "GoldCourseFlag.tscn"));
+            Check(gold.Contains("FlagTextFront") && gold.Contains("FlagTextBack"),
+                "GOLD LAP needs two correctly oriented faces");
+            string town = File.ReadAllText(Path.Combine(root, "scenes", "world", "Town.tscn"));
+            var goldFlag = ParseInstancePosition(town, "GoldCourseFlag");
+            var raceStartFlag = ParseInstancePosition(town, "RaceStartFlag");
+            float poleDx = goldFlag.X - raceStartFlag.X;
+            float poleDz = goldFlag.Z - raceStartFlag.Z;
+            Check(MathF.Sqrt(poleDx * poleDx + poleDz * poleDz) > 6f,
+                "GOLD LAP flag is still behind the race start pole");
+            string podium = File.ReadAllText(Path.Combine(root, "scenes", "world",
+                "assets", "landmarks", "RallyPodium.tscn"));
+            Check(podium.Contains("HeadlineBoard") && podium.Contains("HeadlinePostWest") &&
+                  podium.Contains("HeadlinePostEast"),
+                "GRAND RALLY label is not attached to the podium");
+            foreach (string car in new[] { "PipCarBroken.tscn", "PipCarFixed.tscn" })
+            {
+                string text = File.ReadAllText(Path.Combine(root, "scenes", "world",
+                    "assets", "vehicles", car));
+                Check(text.Contains("[node name=\"StatusAnchor\" type=\"Marker3D\" parent=\".\"]"),
+                    $"{car} has no vehicle-relative status anchor");
+                Check(text.Contains("[node name=\"Status\" type=\"Label3D\" parent=\"StatusAnchor\"]"),
+                    $"{car} status label is not attached to its anchor");
+            }
+        });
+
+        Run("panel-mounted world signs use two fixed faces", () =>
+        {
+            string root = FindRepoRoot();
+            var scenes = new Dictionary<string, string[]>
+            {
+                ["DeliveryBoard.tscn"] = new[] { "Heading", "Addresses" },
+                ["MarketStock.tscn"] = new[] { "Text" },
+                ["PlaygroundFixSign.tscn"] = new[] { "Text" },
+            };
+            foreach (var (scene, fronts) in scenes)
+            {
+                string text = File.ReadAllText(Path.Combine(root, "scenes", "world",
+                    "assets", "landmarks", scene));
+                Check(!text.Contains("billboard = 1"),
+                    $"{scene} still has a billboard label that can clip its panel");
+                Check(Regex.Matches(text, "billboard = 0").Count >= 2,
+                    $"{scene} needs a fixed label on both panel faces");
+                foreach (string front in fronts)
+                {
+                    var frontRotation = ParseNodeRotation(text, front);
+                    var backRotation = ParseNodeRotation(text, front + "_Back");
+                    Check(MathF.Abs(MathF.Abs(frontRotation.Y) - MathF.PI) <= 0.01f,
+                        $"{scene}/{front} does not face the front of its panel");
+                    Check(MathF.Abs(backRotation.Y) <= 0.01f,
+                        $"{scene}/{front}_Back does not face the back of its panel");
+                }
+            }
+        });
+
+        Run("bunting never casts rectangular road shadows", () =>
+        {
+            string root = FindRepoRoot();
+            var expected = new Dictionary<string, int>
+            {
+                ["CelebrationDecor.tscn"] = 28,
+                ["FestivalDecor.tscn"] = 8,
+            };
+            foreach (var (scene, minimum) in expected)
+            {
+                string text = File.ReadAllText(Path.Combine(root, "scenes", "world",
+                    "assets", "landmarks", scene));
+                int bunting = Regex.Matches(text, "\\[node name=\"Bunting").Count;
+                int shadowOff = Regex.Matches(text,
+                    "\\[node name=\"Bunting[^\"]*\" type=\"MeshInstance3D\" parent=\"\\.\"\\]\r?\ncast_shadow = 0").Count;
+                Check(bunting >= minimum, $"{scene}: expected {minimum} bunting flags, found {bunting}");
+                Equal(bunting, shadowOff, $"{scene} bunting shadows disabled");
+            }
+        });
+
+        Run("authored road slabs, road colliders and RoadNetwork agree", () =>
+        {
+            string root = FindRepoRoot();
+            string environment = Path.Combine(root, "scenes", "world", "assets", "environment");
+            var slabs = ParseRoadSlabs(Path.Combine(environment, "TownRoads_Collidable.tscn"));
+            var reference = ParseRoadSlabs(Path.Combine(environment, "TownRoads.tscn"));
+            Equal(7, slabs.Count, "authored road slab count");
+            Equal(reference.Count, slabs.Count, "reference road slab count");
+            foreach (var slab in slabs)
+            {
+                var matches = reference.Where(candidate => candidate.Name == slab.Name).ToList();
+                Equal(1, matches.Count, $"reference road slab {slab.Name}");
+                Check(SameRoadRect(slab, matches[0]),
+                    $"reference slab {slab.Name} is {Describe(matches[0])}, not {Describe(slab)}");
+            }
+
+            var colliders = ParseRoadColliders(
+                Path.Combine(environment, "TownRoads_Collidable.tscn"));
+            Equal(slabs.Count, colliders.Count, "one collider per road slab");
+            var unmatched = new List<(string Name, float X, float Z, float HalfX, float HalfZ)>(colliders);
+            foreach (var slab in slabs)
+            {
+                int index = unmatched.FindIndex(candidate => SameRoadRect(slab, candidate));
+                Check(index >= 0, $"no collision shape matches road slab {slab.Name} " +
+                                  $"at {Describe(slab)}");
+                unmatched.RemoveAt(index);
+            }
+            Equal(0, unmatched.Count, "road colliders without a visible slab");
+
+            Equal(slabs.Count, RoadNetwork.Roads.Count, "RoadNetwork road rectangle count");
+            unmatched = RoadNetwork.Roads
+                .Select(road => ("RoadNetwork", road.X, road.Z, road.HalfX, road.HalfZ))
+                .ToList();
+            foreach (var slab in slabs)
+            {
+                int index = unmatched.FindIndex(candidate => SameRoadRect(slab, candidate));
+                Check(index >= 0, $"RoadNetwork has no rectangle for visible road slab " +
+                                  $"{slab.Name} at {Describe(slab)}");
+                unmatched.RemoveAt(index);
+            }
+            Equal(0, unmatched.Count, "RoadNetwork rectangles without a visible slab");
+        });
+
+        Run("baked buildings keep source centres and wall dimensions", () =>
+        {
+            string root = FindRepoRoot();
+            using var manifest = JsonDocument.Parse(File.ReadAllText(
+                Path.Combine(root, "docs", "layout_manifest_v1.3.0.json")));
+            string town = File.ReadAllText(Path.Combine(root, "scenes", "world", "baked",
+                "Town_Baked.tscn"));
+            foreach (var building in manifest.RootElement.GetProperty("building_instances")
+                         .EnumerateArray())
+            {
+                string id = building.GetProperty("id").GetString();
+                var position = building.GetProperty("position");
+                var actual = ParseInstanceOrigin(town, id);
+                var want = (position[0].GetSingle(), position[1].GetSingle(), position[2].GetSingle());
+                Check(Distance(actual, want) <= 0.01f,
+                    $"{id} instance moved to {actual}, expected {want}");
+
+                string part = File.ReadAllText(Path.Combine(root, "scenes", "world", "baked",
+                    "parts", id + ".tscn"));
+                var west = ParseWallSize(part, "WallWest");
+                Check(Math.Abs(west.Y - building.GetProperty("wall_height").GetSingle()) <= 0.01f,
+                    $"{id} wall height {west.Y}");
+                Check(Math.Abs(west.Z - building.GetProperty("depth").GetSingle()) <= 0.01f,
+                    $"{id} depth {west.Z}");
+                var back = ParseWallSize(part, "WallBack");
+                Check(Math.Abs(back.X - building.GetProperty("width").GetSingle()) <= 0.01f,
+                    $"{id} width {back.X}");
+            }
+        });
+
+        Run("baked town keeps static collision and dynamic finale roots", () =>
+        {
+            string root = FindRepoRoot();
+            string baked = Path.Combine(root, "scenes", "world", "baked");
+            string town = File.ReadAllText(Path.Combine(baked, "Town_Baked.tscn"));
+            var required = new[]
+            {
+                "BridgeBarrier", "PipCarBroken", "PipCarFixed", "DeliveryBoard",
+                "MarketStock", "RallyPodium", "FestivalDecor", "CelebrationDecor",
+                "RaceGates4Root", "RaceGates6Root", "GameplayAnchors",
+                "NpcPatrolMarkers", "TrafficRouteMarkers",
+            };
+            foreach (string id in required)
+                Check(town.Contains($"name=\"{id}\"", StringComparison.Ordinal),
+                    $"Town_Baked is missing {id}");
+            string rally = File.ReadAllText(Path.Combine(baked, "parts", "RallyRoad.tscn"));
+            Check(rally.Contains("RallyRoadCollision", StringComparison.Ordinal),
+                "rally road part has no collision body");
+            string house = File.ReadAllText(Path.Combine(baked, "parts", "PlayerHouse.tscn"));
+            Check(house.Contains("DoorCameraBlocker", StringComparison.Ordinal) &&
+                  house.Contains("collision_layer = 16", StringComparison.Ordinal),
+                "enterable house keeps its layer-16 camera blocker");
+        });
+
+        Run("scene NPC and traffic markers match the authored routes", () =>
+        {
+            string root = FindRepoRoot();
+            using var manifest = JsonDocument.Parse(File.ReadAllText(
+                Path.Combine(root, "docs", "layout_manifest_v1.3.0.json")));
+            var npcRoutes = ParseMarkersByParent(Path.Combine(root, "scenes", "world",
+                "NpcPatrolMarkers.tscn"));
+            foreach (var route in manifest.RootElement.GetProperty("npc_patrol_routes").EnumerateObject())
+            {
+                Check(npcRoutes.TryGetValue(route.Name, out var points),
+                    $"missing NPC route {route.Name}");
+                Equal(route.Value.GetArrayLength(), points.Count, $"{route.Name} waypoint count");
+                int i = 0;
+                foreach (var point in route.Value.EnumerateArray())
+                {
+                    var want = (point[0].GetSingle(), point[1].GetSingle(), point[2].GetSingle());
+                    Check(Distance(points[i], want) <= 0.01f,
+                        $"{route.Name} waypoint {i} moved");
+                    i++;
+                }
+            }
+
+            var traffic = ParseMarkersByParent(Path.Combine(root, "scenes", "world",
+                "TrafficRouteMarkers.tscn"));
+            foreach (var route in manifest.RootElement.GetProperty("traffic_routes").EnumerateObject())
+            {
+                Check(traffic.TryGetValue(route.Name, out var points),
+                    $"missing traffic route {route.Name}");
+                Equal(route.Value.GetArrayLength(), points.Count, $"{route.Name} waypoint count");
+                int i = 0;
+                foreach (var point in route.Value.EnumerateArray())
+                {
+                    var want = (point[0].GetSingle(), point[1].GetSingle(), point[2].GetSingle());
+                    Check(Distance(points[i], want) <= 0.01f,
+                        $"{route.Name} waypoint {i} moved");
+                    i++;
+                }
+            }
+        });
 
         Console.WriteLine();
         Console.WriteLine($"RESULT: {_passed} passed, {_failed} failed");
@@ -2969,6 +3497,219 @@ internal static class Program
     {
         if (!EqualityComparer<T>.Default.Equals(expected, actual))
             throw new Exception($"{message}: expected {expected}, got {actual}");
+    }
+
+    private static (float X, float Y, float Z) ParseInstancePosition(
+        string sceneText, string name)
+    {
+        string pattern = "\\[node name=\"" + Regex.Escape(name) + "\" parent=\"\\.\"" +
+                         "[^\\]]*\\](?<body>.*?)(?=\\n\\[node |\\z)";
+        var match = Regex.Match(sceneText, pattern, RegexOptions.Singleline);
+        if (!match.Success) throw new Exception($"Instance {name} missing");
+        return ParseVector(match.Groups["body"].Value);
+    }
+
+    private static string ParseNodeBody(string sceneText, string name)
+    {
+        string pattern = "\\[node name=\"" + Regex.Escape(name) + "\"[^\\]]*\\]" +
+                         "(?<body>.*?)(?=\\n\\[node |\\z)";
+        var match = Regex.Match(sceneText, pattern, RegexOptions.Singleline);
+        if (!match.Success) throw new Exception($"Node {name} missing");
+        return match.Groups["body"].Value;
+    }
+
+    private static (float X, float Y, float Z) ParseNodePosition(string sceneText, string name)
+    {
+        return ParseVector(ParseNodeBody(sceneText, name));
+    }
+
+    private static string ParseNodeText(string sceneText, string name)
+    {
+        var match = Regex.Match(ParseNodeBody(sceneText, name), "text = \"([^\"]*)\"");
+        if (!match.Success) throw new Exception($"Node {name} has no text");
+        return match.Groups[1].Value;
+    }
+
+    private static (float X, float Y, float Z) ParseNodeRotation(string sceneText, string name)
+    {
+        var match = Regex.Match(ParseNodeBody(sceneText, name),
+            "rotation = Vector3\\(([^)]+)\\)");
+        if (!match.Success) return (0f, 0f, 0f);
+        float[] values = match.Groups[1].Value.Split(',')
+            .Select(part => float.Parse(part.Trim(), CultureInfo.InvariantCulture))
+            .ToArray();
+        return (values[0], values[1], values[2]);
+    }
+
+    private static List<(string Name, float X, float Z, float HalfX, float HalfZ)> ParseRoadSlabs(
+        string path)
+    {
+        string text = File.ReadAllText(path);
+        var meshes = ParseBoxSizes(text, "BoxMesh");
+        const string pattern = "\\[node name=\"(?<name>RoadSlab[^\"]*)\" " +
+                               "type=\"MeshInstance3D\" parent=\"\\.\"\\]" +
+                               "(?<body>.*?)(?=\\n\\[node |\\z)";
+        var result = new List<(string, float, float, float, float)>();
+        foreach (Match match in Regex.Matches(text, pattern, RegexOptions.Singleline))
+        {
+            string name = match.Groups["name"].Value;
+            var (x, _, z) = ParseVector(match.Groups["body"].Value);
+            var reference = Regex.Match(match.Groups["body"].Value,
+                "mesh = SubResource\\(\"(?<id>[^\"]+)\"\\)");
+            if (!reference.Success || !meshes.TryGetValue(reference.Groups["id"].Value, out var size))
+                throw new Exception($"Road slab {name} has no BoxMesh");
+            result.Add((name, x, z, size.X / 2f, size.Z / 2f));
+        }
+        return result;
+    }
+
+    private static List<(string Name, float X, float Z, float HalfX, float HalfZ)> ParseRoadColliders(
+        string path)
+    {
+        string text = File.ReadAllText(path);
+        var shapes = ParseBoxSizes(text, "BoxShape3D");
+        const string pattern = "\\[node name=\"(?<name>Collision_[^\"]*)\" " +
+                               "type=\"CollisionShape3D\" parent=\"TownRoadCollision\"\\]" +
+                               "(?<body>.*?)(?=\\n\\[node |\\z)";
+        var result = new List<(string, float, float, float, float)>();
+        foreach (Match match in Regex.Matches(text, pattern, RegexOptions.Singleline))
+        {
+            string name = match.Groups["name"].Value;
+            var (x, _, z) = ParseVector(match.Groups["body"].Value);
+            var reference = Regex.Match(match.Groups["body"].Value,
+                "shape = SubResource\\(\"(?<id>[^\"]+)\"\\)");
+            if (!reference.Success || !shapes.TryGetValue(reference.Groups["id"].Value, out var size))
+                throw new Exception($"Road collider {name} has no BoxShape3D");
+            result.Add((name, x, z, size.X / 2f, size.Z / 2f));
+        }
+        return result;
+    }
+
+    private static Dictionary<string, (float X, float Y, float Z)> ParseBoxSizes(
+        string sceneText, string type)
+    {
+        var result = new Dictionary<string, (float, float, float)>(StringComparer.Ordinal);
+        string pattern = "\\[sub_resource type=\"" + type + "\" id=\"(?<id>[^\"]+)\"\\]" +
+                         "(?<body>.*?)(?=\\n\\[|\\z)";
+        foreach (Match match in Regex.Matches(sceneText, pattern, RegexOptions.Singleline))
+        {
+            var size = Regex.Match(match.Groups["body"].Value,
+                "size = Vector3\\(([^)]+)\\)");
+            if (!size.Success) continue;
+            float[] values = size.Groups[1].Value.Split(',')
+                .Select(part => float.Parse(part.Trim(), CultureInfo.InvariantCulture))
+                .ToArray();
+            result[match.Groups["id"].Value] = (values[0], values[1], values[2]);
+        }
+        return result;
+    }
+
+    private static bool SameRoadRect(
+        (string Name, float X, float Z, float HalfX, float HalfZ) a,
+        (string Name, float X, float Z, float HalfX, float HalfZ) b)
+    {
+        return MathF.Abs(a.X - b.X) <= 0.01f &&
+               MathF.Abs(a.Z - b.Z) <= 0.01f &&
+               MathF.Abs(a.HalfX - b.HalfX) <= 0.01f &&
+               MathF.Abs(a.HalfZ - b.HalfZ) <= 0.01f;
+    }
+
+    private static string Describe(
+        (string Name, float X, float Z, float HalfX, float HalfZ) rect)
+    {
+        return $"({rect.X:0.###}, {rect.Z:0.###}) " +
+               $"{rect.HalfX * 2f:0.###}x{rect.HalfZ * 2f:0.###}";
+    }
+
+    private static Dictionary<string, (float X, float Y, float Z)> ParseMarkers(
+        string path, string parent)
+    {
+        string text = File.ReadAllText(path);
+        string pattern = "\\[node name=\"(?<name>[^\"]+)\" type=\"Marker3D\" parent=\"" +
+                         Regex.Escape(parent) + "\"\\](?<body>.*?)(?=\\n\\[node |\\z)";
+        var result = new Dictionary<string, (float, float, float)>(StringComparer.Ordinal);
+        foreach (Match match in Regex.Matches(text, pattern, RegexOptions.Singleline))
+        {
+            result[match.Groups["name"].Value] = ParseVector(match.Groups["body"].Value);
+        }
+        return result;
+    }
+
+    private static Dictionary<string, List<(float X, float Y, float Z)>> ParseMarkersByParent(
+        string path)
+    {
+        string text = File.ReadAllText(path);
+        string pattern = "\\[node name=\"Waypoint_[0-9]+\" type=\"Marker3D\" " +
+                         "parent=\"(?<parent>[^\"]+)\"\\](?<body>.*?)(?=\\n\\[node |\\z)";
+        var result = new Dictionary<string, List<(float, float, float)>>(StringComparer.Ordinal);
+        foreach (Match match in Regex.Matches(text, pattern, RegexOptions.Singleline))
+        {
+            string parent = match.Groups["parent"].Value;
+            if (!result.TryGetValue(parent, out var list))
+            {
+                list = new List<(float, float, float)>();
+                result[parent] = list;
+            }
+            list.Add(ParseVector(match.Groups["body"].Value));
+        }
+        return result;
+    }
+
+    private static (float X, float Y, float Z) ParseVector(string text)
+    {
+        var match = Regex.Match(text, "position = Vector3\\(([^)]+)\\)");
+        if (!match.Success) throw new Exception("Vector3 position missing");
+        float[] values = match.Groups[1].Value.Split(',')
+            .Select(part => float.Parse(part.Trim(), CultureInfo.InvariantCulture))
+            .ToArray();
+        return (values[0], values[1], values[2]);
+    }
+
+    private static (float X, float Y, float Z) ParseInstanceOrigin(string sceneText, string name)
+    {
+        string pattern = "\\[node name=\"" + Regex.Escape(name) + "\" type=\"Node3D\" " +
+                         "parent=\"\\.\"[^\\]]*instance=ExtResource\\(\"[^\"]+\"\\)\\]" +
+                         "\\s*\\ntransform = Transform3D\\(([^)]+)\\)";
+        var match = Regex.Match(sceneText, pattern);
+        if (!match.Success) throw new Exception($"Instance {name} transform missing");
+        float[] values = match.Groups[1].Value.Split(',')
+            .Select(part => float.Parse(part.Trim(), CultureInfo.InvariantCulture))
+            .ToArray();
+        if (values.Length != 12) throw new Exception($"Instance {name} transform malformed");
+        return (values[9], values[10], values[11]);
+    }
+
+    private static (float X, float Y, float Z) ParseWallSize(string sceneText, string wallName)
+    {
+        var boxMeshes = new Dictionary<string, (float, float, float)>(StringComparer.Ordinal);
+        string boxPattern = "\\[sub_resource type=\"BoxMesh\" id=\"(?<id>[^\"]+)\"\\]" +
+                            "(?<body>.*?)(?=\\n\\[sub_resource |\\n\\[node |\\z)";
+        foreach (Match match in Regex.Matches(sceneText, boxPattern, RegexOptions.Singleline))
+        {
+            var size = Regex.Match(match.Groups["body"].Value, "size = Vector3\\(([^)]+)\\)");
+            if (!size.Success) continue;
+            float[] values = size.Groups[1].Value.Split(',')
+                .Select(part => float.Parse(part.Trim(), CultureInfo.InvariantCulture))
+                .ToArray();
+            boxMeshes[match.Groups["id"].Value] = (values[0], values[1], values[2]);
+        }
+
+        string meshPattern = "\\[node name=\"[^\"]+\" type=\"MeshInstance3D\" parent=\"" +
+                             Regex.Escape(wallName) + "\"[^\\]]*\\](?<body>.*?)(?=\\n\\[node |\\z)";
+        var meshNode = Regex.Match(sceneText, meshPattern, RegexOptions.Singleline);
+        if (!meshNode.Success) throw new Exception($"No mesh child under {wallName}");
+        var reference = Regex.Match(meshNode.Groups["body"].Value,
+            "mesh = SubResource\\(\"(?<id>[^\"]+)\"\\)");
+        if (!reference.Success) throw new Exception($"No BoxMesh on {wallName}");
+        return boxMeshes[reference.Groups["id"].Value];
+    }
+
+    private static float Distance((float X, float Y, float Z) a, (float X, float Y, float Z) b)
+    {
+        float dx = a.X - b.X;
+        float dy = a.Y - b.Y;
+        float dz = a.Z - b.Z;
+        return MathF.Sqrt(dx * dx + dy * dy + dz * dz);
     }
 
     private static string FindRepoRoot()

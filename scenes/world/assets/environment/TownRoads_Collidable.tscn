@@ -1,0 +1,401 @@
+[gd_scene load_steps=23 format=3]
+
+[sub_resource type="BoxMesh" id="BoxMesh_1"]
+size = Vector3(88, 0.035, 6.4)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2"]
+albedo_color = Color(0.533333, 0.533333, 0.600000, 1)
+roughness = 1.0
+metallic = 0.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_4"]
+size = Vector3(5.2, 0.035, 15.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_5"]
+size = Vector3(3.4, 0.035, 15.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_6"]
+size = Vector3(3.8, 0.035, 16.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_7"]
+size = Vector3(4.8, 0.035, 7.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_8"]
+size = Vector3(3.6, 0.035, 5.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_9"]
+size = Vector3(3.8, 0.035, 3.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_10"]
+size = Vector3(3.2, 0.035, 16.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_11"]
+size = Vector3(12, 0.035, 3.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_12"]
+size = Vector3(6.5, 0.035, 4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_13"]
+size = Vector3(2.5, 0.012, 0.16)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_14"]
+albedo_color = Color(0.980392, 0.980392, 0.960784, 1)
+roughness = 1.0
+metallic = 0.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_15"]
+size = Vector3(1.6, 0.01, 0.09)
+
+[sub_resource type="BoxMesh" id="BoxMesh_16"]
+size = Vector3(3.2, 0.01, 0.42)
+
+[sub_resource type="BoxShape3D" id="RoadColliderShape_0"]
+size = Vector3(88, 0.035, 6.4)
+
+[sub_resource type="BoxShape3D" id="RoadColliderShape_2"]
+size = Vector3(5.2, 0.035, 15.8)
+
+[sub_resource type="BoxShape3D" id="RoadColliderShape_3"]
+size = Vector3(3.4, 0.035, 15.8)
+
+[sub_resource type="BoxShape3D" id="RoadColliderShape_4"]
+size = Vector3(3.8, 0.035, 16.8)
+
+[sub_resource type="BoxShape3D" id="RoadColliderShape_5"]
+size = Vector3(4.8, 0.035, 7.8)
+
+[sub_resource type="BoxShape3D" id="RoadColliderShape_6"]
+size = Vector3(3.6, 0.035, 5.8)
+
+[sub_resource type="BoxShape3D" id="RoadColliderShape_7"]
+size = Vector3(3.2, 0.035, 16.4)
+
+[node name="TownRoads" type="Node3D"]
+
+
+[node name="RoadSlab" type="MeshInstance3D" parent="."]
+position = Vector3(-4, 0.0175, 0)
+mesh = SubResource("BoxMesh_1")
+material_override = SubResource("StandardMaterial3D_2")
+
+[node name="RoadSlab_3" type="MeshInstance3D" parent="."]
+position = Vector3(-30, 0.0175, 11.1)
+mesh = SubResource("BoxMesh_4")
+material_override = SubResource("StandardMaterial3D_2")
+
+[node name="RoadSlab_4" type="MeshInstance3D" parent="."]
+position = Vector3(-38, 0.0175, 11.1)
+mesh = SubResource("BoxMesh_5")
+material_override = SubResource("StandardMaterial3D_2")
+
+[node name="RoadSlab_5" type="MeshInstance3D" parent="."]
+position = Vector3(-20, 0.0175, -11.6)
+mesh = SubResource("BoxMesh_6")
+material_override = SubResource("StandardMaterial3D_2")
+
+[node name="RoadSlab_6" type="MeshInstance3D" parent="."]
+position = Vector3(25, 0.0175, -7.1)
+mesh = SubResource("BoxMesh_7")
+material_override = SubResource("StandardMaterial3D_2")
+
+[node name="RoadSlab_7" type="MeshInstance3D" parent="."]
+position = Vector3(-14, 0.0175, 6.1)
+mesh = SubResource("BoxMesh_8")
+material_override = SubResource("StandardMaterial3D_2")
+
+[node name="RoadSlab_9" type="MeshInstance3D" parent="."]
+position = Vector3(15, 0.0175, 11.4)
+mesh = SubResource("BoxMesh_10")
+material_override = SubResource("StandardMaterial3D_2")
+
+[node name="CentreLine" type="MeshInstance3D" parent="."]
+position = Vector3(-46, 0.058, 0)
+mesh = SubResource("BoxMesh_13")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="CentreLine_2" type="MeshInstance3D" parent="."]
+position = Vector3(-41, 0.058, 0)
+mesh = SubResource("BoxMesh_13")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="CentreLine_5" type="MeshInstance3D" parent="."]
+position = Vector3(-26, 0.058, 0)
+mesh = SubResource("BoxMesh_13")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="CentreLine_8" type="MeshInstance3D" parent="."]
+position = Vector3(-11, 0.058, 0)
+mesh = SubResource("BoxMesh_13")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="CentreLine_9" type="MeshInstance3D" parent="."]
+position = Vector3(-6, 0.058, 0)
+mesh = SubResource("BoxMesh_13")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="CentreLine_10" type="MeshInstance3D" parent="."]
+position = Vector3(-1, 0.058, 0)
+mesh = SubResource("BoxMesh_13")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="CentreLine_11" type="MeshInstance3D" parent="."]
+position = Vector3(4, 0.058, 0)
+mesh = SubResource("BoxMesh_13")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="CentreLine_12" type="MeshInstance3D" parent="."]
+position = Vector3(9, 0.058, 0)
+mesh = SubResource("BoxMesh_13")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="CentreLine_14" type="MeshInstance3D" parent="."]
+position = Vector3(19, 0.058, 0)
+mesh = SubResource("BoxMesh_13")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="CentreLine_16" type="MeshInstance3D" parent="."]
+position = Vector3(29, 0.058, 0)
+mesh = SubResource("BoxMesh_13")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="CentreLine_17" type="MeshInstance3D" parent="."]
+position = Vector3(34, 0.058, 0)
+mesh = SubResource("BoxMesh_13")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="EdgeMark" type="MeshInstance3D" parent="."]
+position = Vector3(-46, 0.06, -3.05)
+mesh = SubResource("BoxMesh_15")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="EdgeMark_2" type="MeshInstance3D" parent="."]
+position = Vector3(-46, 0.06, 3.05)
+mesh = SubResource("BoxMesh_15")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="EdgeMark_3" type="MeshInstance3D" parent="."]
+position = Vector3(-42, 0.06, -3.05)
+mesh = SubResource("BoxMesh_15")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="EdgeMark_4" type="MeshInstance3D" parent="."]
+position = Vector3(-42, 0.06, 3.05)
+mesh = SubResource("BoxMesh_15")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="EdgeMark_5" type="MeshInstance3D" parent="."]
+position = Vector3(-38, 0.06, -3.05)
+mesh = SubResource("BoxMesh_15")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="EdgeMark_7" type="MeshInstance3D" parent="."]
+position = Vector3(-34, 0.06, -3.05)
+mesh = SubResource("BoxMesh_15")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="EdgeMark_8" type="MeshInstance3D" parent="."]
+position = Vector3(-34, 0.06, 3.05)
+mesh = SubResource("BoxMesh_15")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="EdgeMark_9" type="MeshInstance3D" parent="."]
+position = Vector3(-30, 0.06, -3.05)
+mesh = SubResource("BoxMesh_15")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="EdgeMark_11" type="MeshInstance3D" parent="."]
+position = Vector3(-26, 0.06, -3.05)
+mesh = SubResource("BoxMesh_15")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="EdgeMark_12" type="MeshInstance3D" parent="."]
+position = Vector3(-26, 0.06, 3.05)
+mesh = SubResource("BoxMesh_15")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="EdgeMark_14" type="MeshInstance3D" parent="."]
+position = Vector3(-22, 0.06, 3.05)
+mesh = SubResource("BoxMesh_15")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="EdgeMark_16" type="MeshInstance3D" parent="."]
+position = Vector3(-18, 0.06, 3.05)
+mesh = SubResource("BoxMesh_15")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="EdgeMark_17" type="MeshInstance3D" parent="."]
+position = Vector3(-14, 0.06, -3.05)
+mesh = SubResource("BoxMesh_15")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="EdgeMark_19" type="MeshInstance3D" parent="."]
+position = Vector3(-10, 0.06, -3.05)
+mesh = SubResource("BoxMesh_15")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="EdgeMark_20" type="MeshInstance3D" parent="."]
+position = Vector3(-10, 0.06, 3.05)
+mesh = SubResource("BoxMesh_15")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="EdgeMark_21" type="MeshInstance3D" parent="."]
+position = Vector3(-6, 0.06, -3.05)
+mesh = SubResource("BoxMesh_15")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="EdgeMark_22" type="MeshInstance3D" parent="."]
+position = Vector3(-6, 0.06, 3.05)
+mesh = SubResource("BoxMesh_15")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="EdgeMark_23" type="MeshInstance3D" parent="."]
+position = Vector3(-2, 0.06, -3.05)
+mesh = SubResource("BoxMesh_15")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="EdgeMark_24" type="MeshInstance3D" parent="."]
+position = Vector3(-2, 0.06, 3.05)
+mesh = SubResource("BoxMesh_15")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="EdgeMark_25" type="MeshInstance3D" parent="."]
+position = Vector3(2, 0.06, -3.05)
+mesh = SubResource("BoxMesh_15")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="EdgeMark_26" type="MeshInstance3D" parent="."]
+position = Vector3(2, 0.06, 3.05)
+mesh = SubResource("BoxMesh_15")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="EdgeMark_27" type="MeshInstance3D" parent="."]
+position = Vector3(6, 0.06, -3.05)
+mesh = SubResource("BoxMesh_15")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="EdgeMark_28" type="MeshInstance3D" parent="."]
+position = Vector3(6, 0.06, 3.05)
+mesh = SubResource("BoxMesh_15")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="EdgeMark_29" type="MeshInstance3D" parent="."]
+position = Vector3(10, 0.06, -3.05)
+mesh = SubResource("BoxMesh_15")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="EdgeMark_30" type="MeshInstance3D" parent="."]
+position = Vector3(10, 0.06, 3.05)
+mesh = SubResource("BoxMesh_15")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="EdgeMark_31" type="MeshInstance3D" parent="."]
+position = Vector3(14, 0.06, -3.05)
+mesh = SubResource("BoxMesh_15")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="EdgeMark_33" type="MeshInstance3D" parent="."]
+position = Vector3(18, 0.06, -3.05)
+mesh = SubResource("BoxMesh_15")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="EdgeMark_34" type="MeshInstance3D" parent="."]
+position = Vector3(18, 0.06, 3.05)
+mesh = SubResource("BoxMesh_15")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="EdgeMark_39" type="MeshInstance3D" parent="."]
+position = Vector3(30, 0.06, -3.05)
+mesh = SubResource("BoxMesh_15")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="EdgeMark_40" type="MeshInstance3D" parent="."]
+position = Vector3(30, 0.06, 3.05)
+mesh = SubResource("BoxMesh_15")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="EdgeMark_41" type="MeshInstance3D" parent="."]
+position = Vector3(34, 0.06, -3.05)
+mesh = SubResource("BoxMesh_15")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="EdgeMark_42" type="MeshInstance3D" parent="."]
+position = Vector3(34, 0.06, 3.05)
+mesh = SubResource("BoxMesh_15")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="EdgeMark_43" type="MeshInstance3D" parent="."]
+position = Vector3(38, 0.06, -3.05)
+mesh = SubResource("BoxMesh_15")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="EdgeMark_44" type="MeshInstance3D" parent="."]
+position = Vector3(38, 0.06, 3.05)
+mesh = SubResource("BoxMesh_15")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="Crosswalk" type="MeshInstance3D" parent="."]
+position = Vector3(-14, 0.061, -2.6)
+mesh = SubResource("BoxMesh_16")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="Crosswalk_2" type="MeshInstance3D" parent="."]
+position = Vector3(-14, 0.061, -1.7)
+mesh = SubResource("BoxMesh_16")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="Crosswalk_3" type="MeshInstance3D" parent="."]
+position = Vector3(-14, 0.061, -0.8)
+mesh = SubResource("BoxMesh_16")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="Crosswalk_4" type="MeshInstance3D" parent="."]
+position = Vector3(-14, 0.061, 0.1)
+mesh = SubResource("BoxMesh_16")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="Crosswalk_5" type="MeshInstance3D" parent="."]
+position = Vector3(-14, 0.061, 1)
+mesh = SubResource("BoxMesh_16")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="Crosswalk_6" type="MeshInstance3D" parent="."]
+position = Vector3(-14, 0.061, 1.9)
+mesh = SubResource("BoxMesh_16")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="Crosswalk_7" type="MeshInstance3D" parent="."]
+position = Vector3(-14, 0.061, 2.8)
+mesh = SubResource("BoxMesh_16")
+material_override = SubResource("StandardMaterial3D_14")
+
+[node name="TownRoadCollision" type="StaticBody3D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="Collision_00" type="CollisionShape3D" parent="TownRoadCollision"]
+position = Vector3(-4, -0.0175, 0)
+shape = SubResource("RoadColliderShape_0")
+
+[node name="Collision_02" type="CollisionShape3D" parent="TownRoadCollision"]
+position = Vector3(-30, -0.0175, 11.1)
+shape = SubResource("RoadColliderShape_2")
+
+[node name="Collision_03" type="CollisionShape3D" parent="TownRoadCollision"]
+position = Vector3(-38, -0.0175, 11.1)
+shape = SubResource("RoadColliderShape_3")
+
+[node name="Collision_04" type="CollisionShape3D" parent="TownRoadCollision"]
+position = Vector3(-20, -0.0175, -11.6)
+shape = SubResource("RoadColliderShape_4")
+
+[node name="Collision_05" type="CollisionShape3D" parent="TownRoadCollision"]
+position = Vector3(25, -0.0175, -7.1)
+shape = SubResource("RoadColliderShape_5")
+
+[node name="Collision_06" type="CollisionShape3D" parent="TownRoadCollision"]
+position = Vector3(-14, -0.0175, 6.1)
+shape = SubResource("RoadColliderShape_6")
+
+[node name="Collision_07" type="CollisionShape3D" parent="TownRoadCollision"]
+position = Vector3(15, -0.0175, 11.4)
+shape = SubResource("RoadColliderShape_7")

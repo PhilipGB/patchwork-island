@@ -1,0 +1,304 @@
+[gd_scene load_steps=1 format=3]
+
+[node name="GameplayAnchors" type="Node3D"]
+
+
+[node name="PlayerSpawn" type="Marker3D" parent="."]
+position = Vector3(-38, 0.15, 9.5)
+metadata/gameplay_id = "PlayerSpawn"
+
+[node name="VanSpawn" type="Marker3D" parent="."]
+position = Vector3(-30, 0.15, 14.5)
+metadata/gameplay_id = "VanSpawn"
+
+[node name="JobBoard" type="Marker3D" parent="."]
+position = Vector3(-22, 0, 5)
+metadata/gameplay_id = "JobBoard"
+
+[node name="PlayerHouseDoor" type="Marker3D" parent="."]
+position = Vector3(-38, 0, 18.3)
+metadata/gameplay_id = "PlayerHouseDoor"
+
+[node name="TownHallDoor" type="Marker3D" parent="."]
+position = Vector3(-14, 0, 8.4)
+metadata/gameplay_id = "TownHallDoor"
+
+[node name="RedHouseDoor" type="Marker3D" parent="."]
+position = Vector3(-20, 0, -18.7)
+metadata/gameplay_id = "RedHouseDoor"
+
+[node name="ShopDoor" type="Marker3D" parent="."]
+position = Vector3(5, 0, 3.8)
+metadata/gameplay_id = "ShopDoor"
+
+[node name="ClothesShopDoor" type="Marker3D" parent="."]
+position = Vector3(24, 0, 3.5)
+metadata/gameplay_id = "ClothesShopDoor"
+
+[node name="WorkshopDoor" type="Marker3D" parent="."]
+position = Vector3(25, 0, -10.3)
+metadata/gameplay_id = "WorkshopDoor"
+
+[node name="AppleCrate" type="Marker3D" parent="."]
+position = Vector3(-2.5, 0, 3.6)
+metadata/gameplay_id = "AppleCrate"
+
+[node name="PostCounter" type="Marker3D" parent="."]
+position = Vector3(-9, 0, 8)
+metadata/gameplay_id = "PostCounter"
+
+[node name="BridgeSite" type="Marker3D" parent="."]
+position = Vector3(36.5, 0, 4.5)
+metadata/gameplay_id = "BridgeSite"
+
+[node name="BridgeCenter" type="Marker3D" parent="."]
+position = Vector3(45, 0, 0)
+metadata/gameplay_id = "BridgeCenter"
+
+[node name="PlaygroundCenter" type="Marker3D" parent="."]
+position = Vector3(-38, 0, -9.5)
+metadata/gameplay_id = "PlaygroundCenter"
+
+[node name="ParkCenter" type="Marker3D" parent="."]
+position = Vector3(15, 0, 16)
+metadata/gameplay_id = "ParkCenter"
+
+[node name="VillageGreenSign" type="Marker3D" parent="."]
+position = Vector3(10, 0, 10.7)
+metadata/gameplay_id = "VillageGreenSign"
+
+[node name="GroveCenter" type="Marker3D" parent="."]
+position = Vector3(-40, 0, -32)
+metadata/gameplay_id = "GroveCenter"
+
+[node name="StonePatchCenter" type="Marker3D" parent="."]
+position = Vector3(18, 0, -34)
+metadata/gameplay_id = "StonePatchCenter"
+
+[node name="ParkingSign" type="Marker3D" parent="."]
+position = Vector3(-33, 0, 12.5)
+metadata/gameplay_id = "ParkingSign"
+
+[node name="FurnitureStation" type="Marker3D" parent="."]
+position = Vector3(-40.5, 0, 20.5)
+metadata/gameplay_id = "FurnitureStation"
+
+[node name="BakeryStall" type="Marker3D" parent="."]
+position = Vector3(15.2, 0, 5.2)
+metadata/gameplay_id = "BakeryStall"
+
+[node name="LibraryShelf" type="Marker3D" parent="."]
+position = Vector3(-20.8, 0, 8.2)
+metadata/gameplay_id = "LibraryShelf"
+
+[node name="RepairCarPosition" type="Marker3D" parent="."]
+position = Vector3(35.2, 0, -7.8)
+metadata/gameplay_id = "RepairCarPosition"
+
+[node name="RepairStation" type="Marker3D" parent="."]
+position = Vector3(35.2, 0, -5.4)
+metadata/gameplay_id = "RepairStation"
+
+[node name="HousePad_0" type="Marker3D" parent="."]
+position = Vector3(-40.8, 0.08, 23.3)
+metadata/gameplay_id = "HousePad_0"
+
+[node name="ParkPad_0" type="Marker3D" parent="."]
+position = Vector3(11.3, 0.09, 14.5)
+metadata/gameplay_id = "ParkPad_0"
+
+[node name="GardenPad_0" type="Marker3D" parent="."]
+position = Vector3(26, 0.09, 20.8)
+metadata/gameplay_id = "GardenPad_0"
+
+[node name="HousePad_1" type="Marker3D" parent="."]
+position = Vector3(-38, 0.08, 23.3)
+metadata/gameplay_id = "HousePad_1"
+
+[node name="ParkPad_1" type="Marker3D" parent="."]
+position = Vector3(15, 0.09, 14.5)
+metadata/gameplay_id = "ParkPad_1"
+
+[node name="GardenPad_1" type="Marker3D" parent="."]
+position = Vector3(29, 0.09, 20.8)
+metadata/gameplay_id = "GardenPad_1"
+
+[node name="HousePad_2" type="Marker3D" parent="."]
+position = Vector3(-35.2, 0.08, 23.3)
+metadata/gameplay_id = "HousePad_2"
+
+[node name="ParkPad_2" type="Marker3D" parent="."]
+position = Vector3(18.7, 0.09, 14.5)
+metadata/gameplay_id = "ParkPad_2"
+
+[node name="GardenPad_2" type="Marker3D" parent="."]
+position = Vector3(32, 0.09, 20.8)
+metadata/gameplay_id = "GardenPad_2"
+
+[node name="HousePad_3" type="Marker3D" parent="."]
+position = Vector3(-40.8, 0.08, 26.6)
+metadata/gameplay_id = "HousePad_3"
+
+[node name="ParkPad_3" type="Marker3D" parent="."]
+position = Vector3(11.3, 0.09, 17.7)
+metadata/gameplay_id = "ParkPad_3"
+
+[node name="GardenPad_3" type="Marker3D" parent="."]
+position = Vector3(26, 0.09, 23.4)
+metadata/gameplay_id = "GardenPad_3"
+
+[node name="HousePad_4" type="Marker3D" parent="."]
+position = Vector3(-38, 0.08, 26.6)
+metadata/gameplay_id = "HousePad_4"
+
+[node name="ParkPad_4" type="Marker3D" parent="."]
+position = Vector3(15, 0.09, 17.7)
+metadata/gameplay_id = "ParkPad_4"
+
+[node name="GardenPad_4" type="Marker3D" parent="."]
+position = Vector3(29, 0.09, 23.4)
+metadata/gameplay_id = "GardenPad_4"
+
+[node name="HousePad_5" type="Marker3D" parent="."]
+position = Vector3(-35.2, 0.08, 26.6)
+metadata/gameplay_id = "HousePad_5"
+
+[node name="ParkPad_5" type="Marker3D" parent="."]
+position = Vector3(18.7, 0.09, 17.7)
+metadata/gameplay_id = "ParkPad_5"
+
+[node name="GardenPad_5" type="Marker3D" parent="."]
+position = Vector3(32, 0.09, 23.4)
+metadata/gameplay_id = "GardenPad_5"
+
+[node name="WoodPickup_0" type="Marker3D" parent="."]
+position = Vector3(-46, 0, -34.3)
+metadata/gameplay_id = "WoodPickup_0"
+
+[node name="WoodPickup_1" type="Marker3D" parent="."]
+position = Vector3(-43.8, 0, -33.3)
+metadata/gameplay_id = "WoodPickup_1"
+
+[node name="WoodPickup_2" type="Marker3D" parent="."]
+position = Vector3(-41.6, 0, -34.3)
+metadata/gameplay_id = "WoodPickup_2"
+
+[node name="WoodPickup_3" type="Marker3D" parent="."]
+position = Vector3(-39.4, 0, -33.3)
+metadata/gameplay_id = "WoodPickup_3"
+
+[node name="WoodPickup_4" type="Marker3D" parent="."]
+position = Vector3(-37.2, 0, -34.3)
+metadata/gameplay_id = "WoodPickup_4"
+
+[node name="StonePickup_0" type="Marker3D" parent="."]
+position = Vector3(14.6, 0, -34.8)
+metadata/gameplay_id = "StonePickup_0"
+
+[node name="StonePickup_1" type="Marker3D" parent="."]
+position = Vector3(17.8, 0, -32.8)
+metadata/gameplay_id = "StonePickup_1"
+
+[node name="StonePickup_2" type="Marker3D" parent="."]
+position = Vector3(21, 0, -34.8)
+metadata/gameplay_id = "StonePickup_2"
+
+[node name="ApplePickup_0" type="Marker3D" parent="."]
+position = Vector3(-3.2, 1.15, 3.7)
+metadata/gameplay_id = "ApplePickup_0"
+
+[node name="ApplePickup_1" type="Marker3D" parent="."]
+position = Vector3(-2.5, 1.15, 3.7)
+metadata/gameplay_id = "ApplePickup_1"
+
+[node name="ApplePickup_2" type="Marker3D" parent="."]
+position = Vector3(-1.8, 1.15, 3.7)
+metadata/gameplay_id = "ApplePickup_2"
+
+[node name="ParcelPickup_0" type="Marker3D" parent="."]
+position = Vector3(-9.8, 1.3, 7.9)
+metadata/gameplay_id = "ParcelPickup_0"
+
+[node name="ParcelPickup_1" type="Marker3D" parent="."]
+position = Vector3(-9, 1.3, 7.9)
+metadata/gameplay_id = "ParcelPickup_1"
+
+[node name="ParcelPickup_2" type="Marker3D" parent="."]
+position = Vector3(-8.2, 1.3, 7.9)
+metadata/gameplay_id = "ParcelPickup_2"
+
+[node name="SignSocket_0" type="Marker3D" parent="."]
+position = Vector3(16.2, 0, 9.6)
+metadata/gameplay_id = "SignSocket_0"
+
+[node name="SignSocket_1" type="Marker3D" parent="."]
+position = Vector3(22, 0, -4.2)
+metadata/gameplay_id = "SignSocket_1"
+
+[node name="SignSocket_2" type="Marker3D" parent="."]
+position = Vector3(-2.5, 0, 10.5)
+metadata/gameplay_id = "SignSocket_2"
+
+[node name="BookPickup_0" type="Marker3D" parent="."]
+position = Vector3(9.4, 0.15, 3.75)
+metadata/gameplay_id = "BookPickup_0"
+
+[node name="BookPickup_1" type="Marker3D" parent="."]
+position = Vector3(-4.2, 0.15, 7)
+metadata/gameplay_id = "BookPickup_1"
+
+[node name="BookPickup_2" type="Marker3D" parent="."]
+position = Vector3(-30.8, 0.15, -8.8)
+metadata/gameplay_id = "BookPickup_2"
+
+[node name="BookPickup_3" type="Marker3D" parent="."]
+position = Vector3(13.6, 0.15, 13.1)
+metadata/gameplay_id = "BookPickup_3"
+
+[node name="FestivalTable_0" type="Marker3D" parent="."]
+position = Vector3(12, 0.09, 22.4)
+metadata/gameplay_id = "FestivalTable_0"
+
+[node name="FestivalTable_1" type="Marker3D" parent="."]
+position = Vector3(18, 0.09, 22.4)
+metadata/gameplay_id = "FestivalTable_1"
+
+[node name="FestivalLantern_0" type="Marker3D" parent="."]
+position = Vector3(9, 0.09, 22.4)
+metadata/gameplay_id = "FestivalLantern_0"
+
+[node name="FestivalLantern_1" type="Marker3D" parent="."]
+position = Vector3(21, 0.09, 22.4)
+metadata/gameplay_id = "FestivalLantern_1"
+
+[node name="FestivalLantern_2" type="Marker3D" parent="."]
+position = Vector3(15, 0.09, 24.2)
+metadata/gameplay_id = "FestivalLantern_2"
+
+[node name="RepairPickup_0" type="Marker3D" parent="."]
+position = Vector3(37.4, 0.15, -9)
+metadata/gameplay_id = "RepairPickup_0"
+
+[node name="RepairPickup_1" type="Marker3D" parent="."]
+position = Vector3(37.4, 0.15, -12)
+metadata/gameplay_id = "RepairPickup_1"
+
+[node name="RepairPickup_2" type="Marker3D" parent="."]
+position = Vector3(37.4, 0.15, -15)
+metadata/gameplay_id = "RepairPickup_2"
+
+[node name="RepairPickup_3" type="Marker3D" parent="."]
+position = Vector3(37.4, 0.15, -18)
+metadata/gameplay_id = "RepairPickup_3"
+
+[node name="DeliveryBoard" type="Marker3D" parent="."]
+position = Vector3(-2.5, 0, 4.2)
+metadata/gameplay_id = "DeliveryBoard"
+
+[node name="MarketStock" type="Marker3D" parent="."]
+position = Vector3(-2, 0, 4.8)
+metadata/gameplay_id = "MarketStock"
+
+[node name="RallyPodium" type="Marker3D" parent="."]
+position = Vector3(60.5, 0, -13.5)
+metadata/gameplay_id = "RallyPodium"

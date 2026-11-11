@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 
 namespace PatchworkIsland;
@@ -9,6 +10,7 @@ public partial class SwingBuilder : Node3D, IBuildMode
 {
     public bool Active { get; private set; }
     public bool IsBuilt { get; private set; }
+    public int PlacedSocketCount => _sockets.Values.Count(socket => socket.Placed);
 
     private GameData _data;
     private MissionService _missions;
@@ -41,8 +43,8 @@ public partial class SwingBuilder : Node3D, IBuildMode
         BuildSockets();
         _buildCamera = new Camera3D { Name = "SwingBuildCamera", Fov = 58, Current = false };
         AddChild(_buildCamera);
-        _buildCamera.GlobalPosition = new Vector3(-38f, 6.2f, 6.0f);
-        _buildCamera.LookAt(new Vector3(-38f, 1.8f, -4.0f), Vector3.Up);
+        _buildCamera.GlobalPosition = new Vector3(-38f, 6.2f, -3.5f);
+        _buildCamera.LookAt(new Vector3(-38f, 1.8f, -11.5f), Vector3.Up);
 
         RestorePieces();
         SetProcess(true);
@@ -124,6 +126,7 @@ public partial class SwingBuilder : Node3D, IBuildMode
         _buildCamera.Current = false;
         _camera.Current = true;
         _camera.Snap();
+        foreach (var socket in _sockets.Values) socket.SetGhostVisible(false);
         _onBuildModeChanged?.Invoke(false);
         _hud.HideBuildBar();
     }
@@ -187,6 +190,7 @@ public partial class SwingBuilder : Node3D, IBuildMode
         {
             if (socket.Placed) continue;
             socket.SetEnabled(true);
+            socket.SetGhostVisible(Active);
             bool valid = BuildRules.ValidateSwingPlacement(_selected, socket.SocketId, _data.SwingPieces, out _);
             socket.SetValid(valid);
         }

@@ -1,0 +1,49 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Mesh" path="res://scenes/world/assets/environment/RallyRoad.obj" id="ext_1"]
+
+[node name="RallyRoadPreview" type="Node3D"]
+
+
+[node name="RoadMesh" type="MeshInstance3D" parent="."]
+mesh = ExtResource("ext_1")
+
+[node name="Gate4_1" type="Marker3D" parent="."]
+position = Vector3(56.849, 0, -27.6095)
+metadata/gameplay_id = "M05_M09.gate.1"
+
+[node name="Gate4_2" type="Marker3D" parent="."]
+position = Vector3(85.3185, 0, -38.2365)
+metadata/gameplay_id = "M05_M09.gate.2"
+
+[node name="Gate4_3" type="Marker3D" parent="."]
+position = Vector3(83.37222, 0, 22.62394)
+metadata/gameplay_id = "M05_M09.gate.3"
+
+[node name="Gate4_4" type="Marker3D" parent="."]
+position = Vector3(57.97862, 0, 38.46842)
+metadata/gameplay_id = "M05_M09.gate.4"
+
+[node name="Gate6_1" type="Marker3D" parent="."]
+position = Vector3(55.66538, 0, -19.29089)
+metadata/gameplay_id = "M19.gate.1"
+
+[node name="Gate6_2" type="Marker3D" parent="."]
+position = Vector3(69.184, 0, -43.24)
+metadata/gameplay_id = "M19.gate.2"
+
+[node name="Gate6_3" type="Marker3D" parent="."]
+position = Vector3(87.22875, 0, -30.9562)
+metadata/gameplay_id = "M19.gate.3"
+
+[node name="Gate6_4" type="Marker3D" parent="."]
+position = Vector3(84.5, 0, 17.3125)
+metadata/gameplay_id = "M19.gate.4"
+
+[node name="Gate6_5" type="Marker3D" parent="."]
+position = Vector3(66.33377, 0, 43.09929)
+metadata/gameplay_id = "M19.gate.5"
+
+[node name="Gate6_6" type="Marker3D" parent="."]
+position = Vector3(55.94223, 0, 23.70704)
+metadata/gameplay_id = "M19.gate.6"

@@ -5,8 +5,10 @@ namespace PatchworkIsland;
 
 /// <summary>
 /// The authored village road rectangles, kept pure so NPC traffic and tests can
-/// verify every route waypoint is actually on a road. WorldBuilder mirrors these
-/// rectangles; SurfaceRules adds the rally loop for footstep selection.
+/// verify every route waypoint is actually on a road. The eight entries mirror
+/// the visible slabs in <c>TownRoads_Collidable.tscn</c> exactly; that scene is
+/// authoritative, and the pure test suite fails if either drifts. SurfaceRules
+/// adds the rally loop for footstep selection.
 /// </summary>
 public static class RoadNetwork
 {
@@ -28,17 +30,13 @@ public static class RoadNetwork
 
     public static readonly IReadOnlyList<Rect> Roads = new List<Rect>
     {
-        new(-4f, 0f, 44f, 3.2f),
-        new(68.5f, 0f, 19.5f, 3.2f),
-        new(-30f, 9.5f, 2.6f, 9.5f),
-        new(-38f, 9.5f, 1.7f, 9.5f),
-        new(-20f, -10f, 1.9f, 10f),
-        new(25f, -5.5f, 2.4f, 5.5f),
-        new(-14f, 4.5f, 1.8f, 4.5f),
-        new(5f, 1.9f, 1.9f, 1.9f),
-        new(15f, 9.8f, 1.6f, 9.8f),
-        new(-32f, -2.6f, 6f, 1.6f),
-        new(-22f, 3f, 3.25f, 2f),
+        new(-4f, 0f, 44f, 3.2f),       // main street, x -48..40
+        new(-30f, 11.1f, 2.6f, 7.9f),  // north side road, z 3.2..19
+        new(-38f, 11.1f, 1.7f, 7.9f),  // north side road, z 3.2..19
+        new(-20f, -11.6f, 1.9f, 8.4f), // south side road, z -20..-3.2
+        new(25f, -7.1f, 2.4f, 3.9f),   // workshop road, z -11..-3.2
+        new(-14f, 6.1f, 1.8f, 2.9f),   // town-hall road, z 3.2..9
+        new(15f, 11.4f, 1.6f, 8.2f),   // north-east road, z 3.2..19.6
     };
 
     public static bool Contains(float x, float z)

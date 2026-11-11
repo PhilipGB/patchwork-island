@@ -1,0 +1,348 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assets/icons/house.svg" id="1_x00rn"]
+[ext_resource type="Texture2D" path="res://assets/icons/hammer.svg" id="2_b31m1"]
+[ext_resource type="Texture2D" path="res://assets/icons/basket.svg" id="3_6y1hb"]
+[ext_resource type="Texture2D" path="res://assets/icons/waypoint.svg" id="4_7weuf"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_fpvy1"]
+shading_mode = 2
+specular_mode = 2
+albedo_color = Color(0.53333336, 0.34509805, 0.18431373, 1)
+roughness = 0.95
+
+[sub_resource type="BoxMesh" id="BoxMesh_vpv0r"]
+size = Vector3(0.16, 3.4, 0.16)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xhse2"]
+shading_mode = 2
+specular_mode = 2
+albedo_color = Color(1, 0.972549, 0.9254902, 1)
+roughness = 0.95
+
+[sub_resource type="BoxMesh" id="BoxMesh_l3uuf"]
+size = Vector3(2.8, 0.55, 0.16)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pl82d"]
+shading_mode = 2
+specular_mode = 2
+albedo_color = Color(0.95686275, 0.3529412, 0.32941177, 1)
+roughness = 0.95
+
+[sub_resource type="BoxMesh" id="BoxMesh_s78ef"]
+size = Vector3(2.8, 0.13, 0.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_7nkmb"]
+size = Vector3(2.8, 0.13, 0.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_bbx6o"]
+size = Vector3(0.13, 0.55, 0.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_j88lq"]
+size = Vector3(0.13, 0.55, 0.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_y50tj"]
+size = Vector3(3, 0.75, 0.35)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ljxfc"]
+size = Vector3(2.8, 0.55, 0.16)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_r8hga"]
+shading_mode = 2
+specular_mode = 2
+albedo_color = Color(0.95686275, 0.54509807, 0.2627451, 1)
+roughness = 0.95
+
+[sub_resource type="BoxMesh" id="BoxMesh_i64ot"]
+size = Vector3(2.8, 0.13, 0.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_huyd2"]
+size = Vector3(2.8, 0.13, 0.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_yqgml"]
+size = Vector3(0.13, 0.55, 0.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_bdohj"]
+size = Vector3(0.13, 0.55, 0.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_o4kwf"]
+size = Vector3(3, 0.75, 0.35)
+
+[sub_resource type="BoxMesh" id="BoxMesh_0nif4"]
+size = Vector3(2.2, 0.5, 0.16)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_h3i5l"]
+shading_mode = 2
+specular_mode = 2
+albedo_color = Color(0.14901961, 0.45490196, 0.9254902, 1)
+roughness = 0.95
+
+[sub_resource type="BoxMesh" id="BoxMesh_i6neo"]
+size = Vector3(2.2, 0.13, 0.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_a6ujj"]
+size = Vector3(2.2, 0.13, 0.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_q82m0"]
+size = Vector3(0.13, 0.5, 0.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_jp8wn"]
+size = Vector3(0.13, 0.5, 0.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_pqltw"]
+size = Vector3(2.4, 0.7, 0.35)
+
+[sub_resource type="BoxMesh" id="BoxMesh_qldu8"]
+size = Vector3(2.2, 0.5, 0.16)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_utpwm"]
+shading_mode = 2
+specular_mode = 2
+albedo_color = Color(0.14117648, 0.70980394, 0.89411765, 1)
+roughness = 0.95
+
+[sub_resource type="BoxMesh" id="BoxMesh_lg2m7"]
+size = Vector3(2.2, 0.13, 0.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ghq81"]
+size = Vector3(2.2, 0.13, 0.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_gcvup"]
+size = Vector3(0.13, 0.5, 0.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ddw4e"]
+size = Vector3(0.13, 0.5, 0.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_w6tur"]
+size = Vector3(2.4, 0.7, 0.35)
+
+[node name="DirectionPost" type="Node3D" unique_id=1368717536]
+
+[node name="Box" type="MeshInstance3D" parent="." unique_id=1263503030]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 0)
+material_override = SubResource("StandardMaterial3D_fpvy1")
+mesh = SubResource("BoxMesh_vpv0r")
+
+[node name="Sign_RED HOUSE" type="Node3D" parent="." unique_id=940272502]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -0.9, 2.8, 0.1)
+
+[node name="Box" type="MeshInstance3D" parent="Sign_RED HOUSE" unique_id=8344873]
+material_override = SubResource("StandardMaterial3D_xhse2")
+mesh = SubResource("BoxMesh_l3uuf")
+
+[node name="@MeshInstance3D@586" type="MeshInstance3D" parent="Sign_RED HOUSE" unique_id=705286181]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.275, 0)
+material_override = SubResource("StandardMaterial3D_pl82d")
+mesh = SubResource("BoxMesh_s78ef")
+
+[node name="@MeshInstance3D@587" type="MeshInstance3D" parent="Sign_RED HOUSE" unique_id=1522073691]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.275, 0)
+material_override = SubResource("StandardMaterial3D_pl82d")
+mesh = SubResource("BoxMesh_7nkmb")
+
+[node name="@MeshInstance3D@588" type="MeshInstance3D" parent="Sign_RED HOUSE" unique_id=1168427658]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.4, 0, 0)
+material_override = SubResource("StandardMaterial3D_pl82d")
+mesh = SubResource("BoxMesh_bbx6o")
+
+[node name="@MeshInstance3D@589" type="MeshInstance3D" parent="Sign_RED HOUSE" unique_id=584841489]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.4, 0, 0)
+material_override = SubResource("StandardMaterial3D_pl82d")
+mesh = SubResource("BoxMesh_j88lq")
+
+[node name="@Sprite3D@590" type="Sprite3D" parent="Sign_RED HOUSE" unique_id=1442533062]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.67999995, 0, 0.11)
+pixel_size = 0.023
+texture = ExtResource("1_x00rn")
+
+[node name="SignText" type="Label3D" parent="Sign_RED HOUSE" unique_id=382524930]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.48, 0.01, 0.12)
+pixel_size = 0.0085
+modulate = Color(0.15294118, 0.21176471, 0.29411766, 1)
+outline_modulate = Color(1, 1, 1, 0.9)
+text = "RED HOUSE"
+outline_size = 0
+
+[node name="SignTextBack" type="Label3D" parent="Sign_RED HOUSE" unique_id=112636790]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -0.48, -0.01, -0.12)
+pixel_size = 0.0085
+modulate = Color(0.15294118, 0.21176471, 0.29411766, 1)
+outline_modulate = Color(1, 1, 1, 0.9)
+text = "RED HOUSE"
+outline_size = 0
+
+[node name="SignCameraBlocker" type="StaticBody3D" parent="Sign_RED HOUSE" unique_id=1961082092]
+collision_layer = 16
+collision_mask = 0
+
+[node name="@CollisionShape3D@591" type="CollisionShape3D" parent="Sign_RED HOUSE/SignCameraBlocker" unique_id=1885901939]
+shape = SubResource("BoxShape3D_y50tj")
+
+[node name="Sign_WORKSHOP" type="Node3D" parent="." unique_id=1531024168]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0.9, 2.15, 0.1)
+
+[node name="Box" type="MeshInstance3D" parent="Sign_WORKSHOP" unique_id=1391309997]
+material_override = SubResource("StandardMaterial3D_xhse2")
+mesh = SubResource("BoxMesh_ljxfc")
+
+[node name="@MeshInstance3D@592" type="MeshInstance3D" parent="Sign_WORKSHOP" unique_id=611128702]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.275, 0)
+material_override = SubResource("StandardMaterial3D_r8hga")
+mesh = SubResource("BoxMesh_i64ot")
+
+[node name="@MeshInstance3D@593" type="MeshInstance3D" parent="Sign_WORKSHOP" unique_id=874802376]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.275, 0)
+material_override = SubResource("StandardMaterial3D_r8hga")
+mesh = SubResource("BoxMesh_huyd2")
+
+[node name="@MeshInstance3D@594" type="MeshInstance3D" parent="Sign_WORKSHOP" unique_id=517549095]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.4, 0, 0)
+material_override = SubResource("StandardMaterial3D_r8hga")
+mesh = SubResource("BoxMesh_yqgml")
+
+[node name="@MeshInstance3D@595" type="MeshInstance3D" parent="Sign_WORKSHOP" unique_id=539505342]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.4, 0, 0)
+material_override = SubResource("StandardMaterial3D_r8hga")
+mesh = SubResource("BoxMesh_bdohj")
+
+[node name="@Sprite3D@596" type="Sprite3D" parent="Sign_WORKSHOP" unique_id=1775315512]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.67999995, 0, 0.11)
+pixel_size = 0.023
+texture = ExtResource("2_b31m1")
+
+[node name="SignText" type="Label3D" parent="Sign_WORKSHOP" unique_id=811656125]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.48, 0.01, 0.12)
+pixel_size = 0.0085
+modulate = Color(0.15294118, 0.21176471, 0.29411766, 1)
+outline_modulate = Color(1, 1, 1, 0.9)
+text = "WORKSHOP"
+font_size = 30
+outline_size = 0
+
+[node name="SignTextBack" type="Label3D" parent="Sign_WORKSHOP" unique_id=1078680441]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -0.48, -0.01, -0.12)
+pixel_size = 0.0085
+modulate = Color(0.15294118, 0.21176471, 0.29411766, 1)
+outline_modulate = Color(1, 1, 1, 0.9)
+text = "WORKSHOP"
+font_size = 30
+outline_size = 0
+
+[node name="SignCameraBlocker" type="StaticBody3D" parent="Sign_WORKSHOP" unique_id=1094470611]
+collision_layer = 16
+collision_mask = 0
+
+[node name="@CollisionShape3D@597" type="CollisionShape3D" parent="Sign_WORKSHOP/SignCameraBlocker" unique_id=308610908]
+shape = SubResource("BoxShape3D_o4kwf")
+
+[node name="Sign_SHOP" type="Node3D" parent="." unique_id=1296687022]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -0.7, 1.45, 0.1)
+
+[node name="Box" type="MeshInstance3D" parent="Sign_SHOP" unique_id=1963403898]
+material_override = SubResource("StandardMaterial3D_xhse2")
+mesh = SubResource("BoxMesh_0nif4")
+
+[node name="@MeshInstance3D@598" type="MeshInstance3D" parent="Sign_SHOP" unique_id=1431011021]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
+material_override = SubResource("StandardMaterial3D_h3i5l")
+mesh = SubResource("BoxMesh_i6neo")
+
+[node name="@MeshInstance3D@599" type="MeshInstance3D" parent="Sign_SHOP" unique_id=132156763]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.25, 0)
+material_override = SubResource("StandardMaterial3D_h3i5l")
+mesh = SubResource("BoxMesh_a6ujj")
+
+[node name="@MeshInstance3D@600" type="MeshInstance3D" parent="Sign_SHOP" unique_id=312457591]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.1, 0, 0)
+material_override = SubResource("StandardMaterial3D_h3i5l")
+mesh = SubResource("BoxMesh_q82m0")
+
+[node name="@MeshInstance3D@601" type="MeshInstance3D" parent="Sign_SHOP" unique_id=2119248516]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1, 0, 0)
+material_override = SubResource("StandardMaterial3D_h3i5l")
+mesh = SubResource("BoxMesh_jp8wn")
+
+[node name="@Sprite3D@602" type="Sprite3D" parent="Sign_SHOP" unique_id=110663025]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.38, 0, 0.11)
+pixel_size = 0.023
+texture = ExtResource("3_6y1hb")
+
+[node name="SignText" type="Label3D" parent="Sign_SHOP" unique_id=889050807]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.48, 0.01, 0.12)
+pixel_size = 0.0085
+modulate = Color(0.15294118, 0.21176471, 0.29411766, 1)
+outline_modulate = Color(1, 1, 1, 0.9)
+text = "SHOP"
+outline_size = 0
+
+[node name="SignTextBack" type="Label3D" parent="Sign_SHOP" unique_id=1052894807]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -0.48, -0.01, -0.12)
+pixel_size = 0.0085
+modulate = Color(0.15294118, 0.21176471, 0.29411766, 1)
+outline_modulate = Color(1, 1, 1, 0.9)
+text = "SHOP"
+outline_size = 0
+
+[node name="SignCameraBlocker" type="StaticBody3D" parent="Sign_SHOP" unique_id=1745478891]
+collision_layer = 16
+collision_mask = 0
+
+[node name="@CollisionShape3D@603" type="CollisionShape3D" parent="Sign_SHOP/SignCameraBlocker" unique_id=1254984501]
+shape = SubResource("BoxShape3D_pqltw")
+
+[node name="Sign_BRIDGE" type="Node3D" parent="." unique_id=136426882]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0.8, 0.8, 0.1)
+
+[node name="Box" type="MeshInstance3D" parent="Sign_BRIDGE" unique_id=42292384]
+material_override = SubResource("StandardMaterial3D_xhse2")
+mesh = SubResource("BoxMesh_qldu8")
+
+[node name="@MeshInstance3D@604" type="MeshInstance3D" parent="Sign_BRIDGE" unique_id=2130569297]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
+material_override = SubResource("StandardMaterial3D_utpwm")
+mesh = SubResource("BoxMesh_lg2m7")
+
+[node name="@MeshInstance3D@605" type="MeshInstance3D" parent="Sign_BRIDGE" unique_id=1472963163]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.25, 0)
+material_override = SubResource("StandardMaterial3D_utpwm")
+mesh = SubResource("BoxMesh_ghq81")
+
+[node name="@MeshInstance3D@606" type="MeshInstance3D" parent="Sign_BRIDGE" unique_id=448303139]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.1, 0, 0)
+material_override = SubResource("StandardMaterial3D_utpwm")
+mesh = SubResource("BoxMesh_gcvup")
+
+[node name="@MeshInstance3D@607" type="MeshInstance3D" parent="Sign_BRIDGE" unique_id=1282652310]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1, 0, 0)
+material_override = SubResource("StandardMaterial3D_utpwm")
+mesh = SubResource("BoxMesh_ddw4e")
+
+[node name="@Sprite3D@608" type="Sprite3D" parent="Sign_BRIDGE" unique_id=1423420595]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.38, 0, 0.11)
+pixel_size = 0.023
+texture = ExtResource("4_7weuf")
+
+[node name="SignText" type="Label3D" parent="Sign_BRIDGE" unique_id=364229238]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.48, 0.01, 0.12)
+pixel_size = 0.0085
+modulate = Color(0.15294118, 0.21176471, 0.29411766, 1)
+outline_modulate = Color(1, 1, 1, 0.9)
+text = "BRIDGE"
+font_size = 30
+outline_size = 0
+
+[node name="SignTextBack" type="Label3D" parent="Sign_BRIDGE" unique_id=291255845]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -0.48, -0.01, -0.12)
+pixel_size = 0.0085
+modulate = Color(0.15294118, 0.21176471, 0.29411766, 1)
+outline_modulate = Color(1, 1, 1, 0.9)
+text = "BRIDGE"
+font_size = 30
+outline_size = 0
+
+[node name="SignCameraBlocker" type="StaticBody3D" parent="Sign_BRIDGE" unique_id=271042845]
+collision_layer = 16
+collision_mask = 0
+
+[node name="@CollisionShape3D@609" type="CollisionShape3D" parent="Sign_BRIDGE/SignCameraBlocker" unique_id=570957004]
+shape = SubResource("BoxShape3D_w6tur")

@@ -9,6 +9,7 @@ namespace PatchworkIsland;
 public partial class ParkBuilder : Node3D, IBuildMode
 {
     public bool Active { get; private set; }
+    public int PlacedVisualCount => _visuals.Count;
 
     private GameData _data;
     private MissionService _missions;

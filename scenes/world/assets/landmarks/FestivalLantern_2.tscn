@@ -1,0 +1,50 @@
+[gd_scene format=3]
+
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_1"]
+top_radius = 0.06
+bottom_radius = 0.08
+height = 2.3
+radial_segments = 8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_2"]
+albedo_color = Color(0.4509804, 0.3215686, 0.2196078, 1)
+roughness = 0.94
+
+[sub_resource type="SphereMesh" id="SphereMesh_3"]
+radius = 0.3
+height = 0.6
+radial_segments = 8
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_4"]
+albedo_color = Color(0.972549, 0.8235294, 0.2352941, 1)
+roughness = 0.94
+
+[sub_resource type="BoxMesh" id="BoxMesh_5"]
+size = Vector3(0.22, 0.36, 0.22)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_6"]
+albedo_color = Color(0.9647059, 0.6196078, 0.2627451, 1)
+roughness = 0.94
+emission_enabled = true
+emission = Color(0.9647059, 0.6196078, 0.2627451, 1)
+emission_energy_multiplier = 0.45
+
+[node name="FestivalLantern_2" type="Node3D"]
+visible = false
+
+[node name="Pole" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.15, 0)
+mesh = SubResource("CylinderMesh_1")
+material_override = SubResource("StandardMaterial_2")
+
+[node name="Lamp" type="MeshInstance3D" parent="."]
+position = Vector3(0, 2.35, 0)
+mesh = SubResource("SphereMesh_3")
+material_override = SubResource("StandardMaterial_4")
+
+[node name="Shade" type="MeshInstance3D" parent="."]
+position = Vector3(0, 2.35, 0)
+mesh = SubResource("BoxMesh_5")
+material_override = SubResource("StandardMaterial_6")

@@ -12,49 +12,50 @@ namespace PatchworkIsland;
 public partial class WorldBuilder : Node3D
 {
     // ---- Landmark anchors (also used by mission markers) ----
-    public Vector3 PlayerSpawn { get; } = new(-38.0f, 0.15f, 9.5f);
-    public Vector3 VanSpawn { get; } = new(-30.0f, 0.15f, 14.5f);
-    public Vector3 JobBoard { get; } = new(-22.0f, 0.0f, 5.0f);
-    public Vector3 PlayerHouseDoor { get; } = new(-38.0f, 0.0f, 18.3f);
-    public Vector3 PlayerHouseCenter { get; } = new(-38.0f, 0.0f, 24.0f);
-    public Vector3 TownHallDoor { get; } = new(-14.0f, 0.0f, 8.4f);
-    public Vector3 TownHallCenter { get; } = new(-14.0f, 0.0f, 14.0f);
-    public Vector3 RedHouseDoor { get; } = new(-20.0f, 0.0f, -18.7f);
-    public Vector3 RedHouseCenter { get; } = new(-20.0f, 0.0f, -24.0f);
-    public Vector3 ShopDoor { get; } = new(5.0f, 0.0f, 3.8f);
-    public Vector3 ShopCenter { get; } = new(5.0f, 0.0f, 9.0f);
-    public Vector3 ClothesShopDoor { get; } = new(24.0f, 0.0f, 3.5f);
-    public Vector3 ClothesShopCenter { get; } = new(24.0f, 0.0f, 7.0f);
-    public Vector3 WorkshopDoor { get; } = new(25.0f, 0.0f, -10.3f);
-    public Vector3 WorkshopCenter { get; } = new(25.0f, 0.0f, -16.0f);
-    public Vector3 AppleCrate { get; } = new(-2.5f, 0.0f, 3.6f);
-    public Vector3 PostCounter { get; } = new(-9.0f, 0.0f, 8.0f);
-    public Vector3 BridgeSite { get; } = new(36.5f, 0.0f, 4.5f);
-    public Vector3 BridgeCenter { get; } = new(45.0f, 0.0f, 0.0f);
-    public Vector3 PlaygroundCenter { get; } = new(-38.0f, 0.0f, -5.0f);
-    public Vector3 ParkCenter { get; } = new(15.0f, 0.0f, 16.0f);
-    public Vector3 VillageGreenSign { get; } = new(10.0f, 0.0f, 10.7f);
-    public Vector3 GroveCenter { get; } = new(-40.0f, 0.0f, -32.0f);
-    public Vector3 StonePatchCenter { get; } = new(18.0f, 0.0f, -34.0f);
-    public Vector3 RaceStart { get; private set; } = new(56.0f, 0.0f, -6.0f);
-    public Vector3 ParkingSign { get; } = new(-33.0f, 0.0f, 12.5f);
-    public Vector3 FurnitureStation { get; } = new(-40.5f, 0.0f, 20.5f);
+    public Vector3 PlayerSpawn { get; protected set; } = new(-38.0f, 0.15f, 9.5f);
+    public Vector3 VanSpawn { get; protected set; } = new(-30.0f, 0.15f, 14.5f);
+    public Vector3 JobBoard { get; protected set; } = new(-22.0f, 0.0f, 5.0f);
+    public Vector3 PlayerHouseDoor { get; protected set; } = new(-38.0f, 0.0f, 18.3f);
+    public Vector3 PlayerHouseCenter { get; protected set; } = new(-38.0f, 0.0f, 24.0f);
+    public Vector3 TownHallDoor { get; protected set; } = new(-14.0f, 0.0f, 8.4f);
+    public Vector3 TownHallCenter { get; protected set; } = new(-14.0f, 0.0f, 14.0f);
+    public Vector3 RedHouseDoor { get; protected set; } = new(-20.0f, 0.0f, -18.7f);
+    public Vector3 RedHouseCenter { get; protected set; } = new(-20.0f, 0.0f, -24.0f);
+    public Vector3 ShopDoor { get; protected set; } = new(5.0f, 0.0f, 3.8f);
+    public Vector3 ShopCenter { get; protected set; } = new(5.0f, 0.0f, 9.0f);
+    public Vector3 ClothesShopDoor { get; protected set; } = new(24.0f, 0.0f, 3.5f);
+    public Vector3 ClothesShopCenter { get; protected set; } = new(24.0f, 0.0f, 7.0f);
+    public Vector3 WorkshopDoor { get; protected set; } = new(25.0f, 0.0f, -10.3f);
+    public Vector3 WorkshopCenter { get; protected set; } = new(25.0f, 0.0f, -16.0f);
+    public Vector3 AppleCrate { get; protected set; } = new(-2.5f, 0.0f, 3.6f);
+    public Vector3 PostCounter { get; protected set; } = new(-9.0f, 0.0f, 8.0f);
+    public Vector3 BridgeSite { get; protected set; } = new(36.5f, 0.0f, 4.5f);
+    public Vector3 BridgeCenter { get; protected set; } = new(45.0f, 0.0f, 0.0f);
+    public Vector3 PlaygroundCenter { get; protected set; } = new(-38.0f, 0.0f, -9.5f);
+    public Vector3 PlaygroundWorksite { get; protected set; } = new(-38.0f, 0.1f, -5.0f);
+    public Vector3 ParkCenter { get; protected set; } = new(15.0f, 0.0f, 16.0f);
+    public Vector3 VillageGreenSign { get; protected set; } = new(10.0f, 0.0f, 10.7f);
+    public Vector3 GroveCenter { get; protected set; } = new(-40.0f, 0.0f, -32.0f);
+    public Vector3 StonePatchCenter { get; protected set; } = new(18.0f, 0.0f, -34.0f);
+    public Vector3 RaceStart { get; protected set; } = new(56.0f, 0.0f, -6.0f);
+    public Vector3 ParkingSign { get; protected set; } = new(-33.0f, 0.0f, 12.5f);
+    public Vector3 FurnitureStation { get; protected set; } = new(-40.5f, 0.0f, 20.5f);
 
-    public Vector3[] SwingFrames { get; } = { new(-41.0f, 0.0f, -5.0f), new(-35.0f, 0.0f, -5.0f) };
-    public (Vector3 Position, float Yaw)[] RaceGates { get; private set; } = System.Array.Empty<(Vector3, float)>();
-    public (Vector3 Position, float Yaw)[] M19RaceGates { get; private set; } = System.Array.Empty<(Vector3, float)>();
-    public Node3D RallyRoad { get; private set; }
-    public Node3D RaceGates4Root { get; private set; }
-    public Node3D RaceGates6Root { get; private set; }
-    public int RallySampleCount { get; private set; }
-    public float RallyLength { get; private set; }
+    public Vector3[] SwingFrames { get; protected set; } = { new(-41.0f, 0.0f, -11.5f), new(-35.0f, 0.0f, -11.5f) };
+    public (Vector3 Position, float Yaw)[] RaceGates { get; protected set; } = System.Array.Empty<(Vector3, float)>();
+    public (Vector3 Position, float Yaw)[] M19RaceGates { get; protected set; } = System.Array.Empty<(Vector3, float)>();
+    public Node3D RallyRoad { get; protected set; }
+    public Node3D RaceGates4Root { get; protected set; }
+    public Node3D RaceGates6Root { get; protected set; }
+    public int RallySampleCount { get; protected set; }
+    public float RallyLength { get; protected set; }
 
-    public Node3D BridgeBarrier { get; private set; }
-    public Node3D FinishedBridge { get; private set; }
-    public Node3D CelebrationDecor { get; private set; }
-    public Node3D RaceStartFlag { get; private set; }
-    public Node3D GoldCourseFlag { get; private set; }
-    public Node3D PlaygroundFixSign { get; private set; }
+    public Node3D BridgeBarrier { get; protected set; }
+    public Node3D FinishedBridge { get; protected set; }
+    public Node3D CelebrationDecor { get; protected set; }
+    public Node3D RaceStartFlag { get; protected set; }
+    public Node3D GoldCourseFlag { get; protected set; }
+    public Node3D PlaygroundFixSign { get; protected set; }
     public List<Label3D> BrokenSwingLabels { get; } = new();
     public List<Vector3> WoodSpawnPoints { get; } = new();
     public List<Vector3> StoneSpawnPoints { get; } = new();
@@ -68,22 +69,22 @@ public partial class WorldBuilder : Node3D
     public List<Node3D> LibraryShelfSlots { get; } = new();
     public List<Node3D> BakeryDisplaySlots { get; } = new();
     public List<(string Book, Vector3 Position)> BookSpawnPoints { get; } = new();
-    public Vector3 BakeryStall { get; } = new(15.2f, 0f, 5.2f);
-    public Vector3 LibraryShelf { get; } = new(-20.8f, 0f, 8.2f);
+    public Vector3 BakeryStall { get; protected set; } = new(15.2f, 0f, 5.2f);
+    public Vector3 LibraryShelf { get; protected set; } = new(-20.8f, 0f, 8.2f);
 
     // ---- P14 finale anchors and visuals ----
-    public Vector3 RepairCarPosition { get; } = new(35.2f, 0f, -7.8f);
+    public Vector3 RepairCarPosition { get; protected set; } = new(35.2f, 0f, -7.8f);
     public List<Vector3> RepairPartSpawnPoints { get; } = new();
     public List<Vector3> FestivalTablePads { get; } = new();
     public List<Vector3> FestivalLanternPads { get; } = new();
     public List<Node3D> FestivalTableVisuals { get; } = new();
     public List<Node3D> FestivalLanternVisuals { get; } = new();
-    public Node3D DeliveryBoard { get; private set; }
-    public Node3D MarketStock { get; private set; }
-    public Node3D PipCarBroken { get; private set; }
-    public Node3D PipCarFixed { get; private set; }
-    public Node3D RallyPodium { get; private set; }
-    public Node3D FestivalDecor { get; private set; }
+    public Node3D DeliveryBoard { get; protected set; }
+    public Node3D MarketStock { get; protected set; }
+    public Node3D PipCarBroken { get; protected set; }
+    public Node3D PipCarFixed { get; protected set; }
+    public Node3D RallyPodium { get; protected set; }
+    public Node3D FestivalDecor { get; protected set; }
 
     private readonly RandomNumberGenerator _rng = new();
     private readonly List<(Vector2 Center, Vector2 HalfExtents)> _keepClear = new();
@@ -93,7 +94,7 @@ public partial class WorldBuilder : Node3D
     private static readonly Color RoofGreen = Color.FromHtml("3B9B5A");
     private static readonly Color WorkshopWall = Color.FromHtml("E8D5B0");
 
-    public void Build()
+    public virtual void Build()
     {
         _rng.Seed = 20261107;
         Name = "Village";
@@ -128,15 +129,15 @@ public partial class WorldBuilder : Node3D
         ocean.CastShadow = GeometryInstance3D.ShadowCastingSetting.Off;
 
         // Sandy edges around the island.
-        Geo.Box(this, new Vector3(15f, 0.02f, -54.4f), new Vector3(148f, 0.06f, 1.6f), Palette.Sand);
-        Geo.Box(this, new Vector3(15f, 0.02f, 54.4f), new Vector3(148f, 0.06f, 1.6f), Palette.Sand);
+        Geo.Box(this, new Vector3(20f, 0.02f, -54.4f), new Vector3(150.2f, 0.06f, 1.6f), Palette.Sand);
+        Geo.Box(this, new Vector3(20f, 0.02f, 54.4f), new Vector3(150.2f, 0.06f, 1.6f), Palette.Sand);
         Geo.Box(this, new Vector3(-54.4f, 0.02f, 0f), new Vector3(1.6f, 0.06f, 108f), Palette.Sand);
         Geo.Box(this, new Vector3(94.4f, 0.02f, 0f), new Vector3(1.6f, 0.06f, 108f), Palette.Sand);
 
         // Visible low hedge boundary (and matching colliders).
         Color hedge = Color.FromHtml("2E8B45");
-        Geo.StaticBox(this, "BoundNorth", new Vector3(15, 0.7f, -54f), new Vector3(150, 1.4f, 1.2f), hedge);
-        Geo.StaticBox(this, "BoundSouth", new Vector3(15, 0.7f, 54f), new Vector3(150, 1.4f, 1.2f), hedge);
+        Geo.StaticBox(this, "BoundNorth", new Vector3(20f, 0.7f, -54f), new Vector3(150.2f, 1.4f, 1.2f), hedge);
+        Geo.StaticBox(this, "BoundSouth", new Vector3(20f, 0.7f, 54f), new Vector3(150.2f, 1.4f, 1.2f), hedge);
         Geo.StaticBox(this, "BoundWest", new Vector3(-54.5f, 0.7f, 0), new Vector3(1.2f, 1.4f, 108f), hedge);
         Geo.StaticBox(this, "BoundEast", new Vector3(94.5f, 0.7f, 0), new Vector3(1.2f, 1.4f, 108f), hedge);
 
@@ -183,10 +184,6 @@ public partial class WorldBuilder : Node3D
     private void BuildRoads()
     {
         AddRoadRect(new Vector3(-4f, 0, 0), 88f, 6.4f);
-        // East road starts at the bridge's east edge (x=50.5), not under the
-        // last 1.5 m of wooden deck; the old overlap painted a grey slab
-        // across the planks.
-        AddRoadRect(new Vector3(69.25f, 0, 0), 37.5f, 6.4f);
         AddRoadRect(new Vector3(-30f, 0, 9.5f), 5.2f, 19f);
         AddRoadRect(new Vector3(-38f, 0, 9.5f), 3.4f, 19f);
         AddRoadRect(new Vector3(-20f, 0, -10f), 3.8f, 20f);
@@ -201,13 +198,8 @@ public partial class WorldBuilder : Node3D
         {
             Geo.Box(this, new Vector3(x, 0.058f, 0), new Vector3(2.5f, 0.012f, 0.16f), Palette.RoadMark);
         }
-        for (float x = 51.5f; x < 87; x += 5.4f)
+        for (float x = -46; x < 39; x += 4f)
         {
-            Geo.Box(this, new Vector3(x, 0.058f, 0), new Vector3(2.5f, 0.012f, 0.16f), Palette.RoadMark);
-        }
-        for (float x = -46; x < 87; x += 4f)
-        {
-            if (x > 39 && x < 51) continue;
             Geo.Box(this, new Vector3(x, 0.06f, -3.05f), new Vector3(1.6f, 0.01f, 0.09f), Palette.RoadMark);
             Geo.Box(this, new Vector3(x, 0.06f, 3.05f), new Vector3(1.6f, 0.01f, 0.09f), Palette.RoadMark);
         }
@@ -328,18 +320,20 @@ public partial class WorldBuilder : Node3D
             new Vector3(width + 1.2f, 0.26f, slopeLen), roofColor, new Vector3(-angle, 0, 0), false, "RoofNorth");
         Geo.Box(root, new Vector3(0, wallHeight + 0.25f + roofHeight * 0.5f, depth * 0.25f),
             new Vector3(width + 1.2f, 0.26f, slopeLen), roofColor, new Vector3(angle, 0, 0), false, "RoofSouth");
-        // Gable infill.
-        float gzFront = frontSign * depth * 0.5f;
-        Geo.Triangle(root, "GableFront",
-            new Vector3(-width * 0.5f, wallHeight + 0.25f, gzFront),
-            new Vector3(width * 0.5f, wallHeight + 0.25f, gzFront),
-            new Vector3(0, wallHeight + 0.25f + roofHeight, gzFront), wallColor,
-            flip: frontSign < 0);
-        Geo.Triangle(root, "GableBack",
-            new Vector3(-width * 0.5f, wallHeight + 0.25f, -gzFront),
-            new Vector3(width * 0.5f, wallHeight + 0.25f, -gzFront),
-            new Vector3(0, wallHeight + 0.25f + roofHeight, -gzFront), wallColor,
-            flip: frontSign > 0);
+        // Gable infill on the ridge ends, not the eave walls. The ridge runs
+        // along X, so the triangular walls belong at +X/-X and must span the
+        // building depth.
+        float gx = width * 0.5f + 0.16f;
+        float gHalfDepth = depth * 0.5f + 0.15f;
+        float gPeak = wallHeight + 0.25f + roofHeight - 0.02f;
+        Geo.Triangle(root, "GableEast",
+            new Vector3(gx, wallHeight + 0.25f, -gHalfDepth),
+            new Vector3(gx, wallHeight + 0.25f, gHalfDepth),
+            new Vector3(gx, gPeak, 0), wallColor, flip: true);
+        Geo.Triangle(root, "GableWest",
+            new Vector3(-gx, wallHeight + 0.25f, -gHalfDepth),
+            new Vector3(-gx, wallHeight + 0.25f, gHalfDepth),
+            new Vector3(-gx, gPeak, 0), wallColor);
         // Chimney for warmth.
         Geo.Box(root, new Vector3(width * 0.28f, wallHeight + roofHeight + 0.1f, -depth * 0.18f),
             new Vector3(0.8f, 1.9f, 0.8f), Color.FromHtml("C7775D"));
@@ -603,14 +597,17 @@ public partial class WorldBuilder : Node3D
         AddFlowerPlanter(posts, new Vector3(-2.0f, 0, 0.4f));
         AddFlowerPlanter(posts, new Vector3(2.0f, 0, 0.4f));
 
-        // Direction post by the road, intentionally readable.
-        var sign = new Node3D { Name = "DirectionPost", Position = new Vector3(-10.8f, 0, 2.8f) };
+        // Direction post by the road, clear of Milo's patrol and the Town Hall
+        // frontage. All arms are stacked on one side of the post so the four
+        // destinations read as one deliberate signpost instead of a cluster.
+        var sign = new Node3D { Name = "DirectionPost", Position = new Vector3(-5.0f, 0, -4.5f) };
         AddChild(sign);
         Geo.Box(sign, new Vector3(0, 1.7f, 0), new Vector3(0.16f, 3.4f, 0.16f), Palette.WoodDark);
-        Geo.SignBoard(sign, new Vector3(-0.9f, 2.8f, 0.1f), -90f, "RED HOUSE", Palette.Red, 2.8f, 0.55f, "house", 32);
-        Geo.SignBoard(sign, new Vector3(0.9f, 2.15f, 0.1f), 90f, "WORKSHOP", Palette.Orange, 2.8f, 0.55f, "hammer", 30);
-        Geo.SignBoard(sign, new Vector3(-0.7f, 1.45f, 0.1f), -90f, "SHOP", Palette.Blue, 2.2f, 0.5f, "basket", 32);
-        Geo.SignBoard(sign, new Vector3(0.8f, 0.8f, 0.1f), 90f, "BRIDGE", Palette.Water, 2.2f, 0.5f, "waypoint", 30);
+        Geo.Sphere(sign, new Vector3(0, 3.55f, 0), 0.16f, Palette.Orange);
+        Geo.SignBoard(sign, new Vector3(1.25f, 3.0f, 0), 0f, "RED HOUSE →", Palette.Red, 2.5f, 0.55f, null, 26);
+        Geo.SignBoard(sign, new Vector3(1.25f, 2.35f, 0), 0f, "← WORKSHOP", Palette.Orange, 2.5f, 0.55f, null, 26);
+        Geo.SignBoard(sign, new Vector3(1.25f, 1.7f, 0), 0f, "← SHOP", Palette.Blue, 2.5f, 0.55f, null, 26);
+        Geo.SignBoard(sign, new Vector3(1.25f, 1.05f, 0), 0f, "← BRIDGE", Palette.Water, 2.5f, 0.55f, null, 26);
     }
 
     // ------------------------------------------------------------------ playground
@@ -629,9 +626,9 @@ public partial class WorldBuilder : Node3D
             AddChild(f);
             Color wood = Palette.Wood;
             // A-frame legs.
-            Geo.Box(f, new Vector3(-1.8f, 1.6f, 0), new Vector3(0.22f, 3.4f, 0.22f), wood, new Vector3(0, 0, -12));
-            Geo.Box(f, new Vector3(1.8f, 1.6f, 0), new Vector3(0.22f, 3.4f, 0.22f), wood, new Vector3(0, 0, 12));
-            Geo.Box(f, new Vector3(-1.8f, 1.6f, 1.8f), new Vector3(0.22f, 3.4f, 0.22f), wood, new Vector3(12, 0, -12));
+            Geo.Box(f, new Vector3(-1.8f, 1.6f, 0), new Vector3(0.22f, 3.4f, 0.22f), wood, new Vector3(12, 0, -12));
+            Geo.Box(f, new Vector3(1.8f, 1.6f, 0), new Vector3(0.22f, 3.4f, 0.22f), wood, new Vector3(12, 0, 12));
+            Geo.Box(f, new Vector3(-1.8f, 1.6f, 1.8f), new Vector3(0.22f, 3.4f, 0.22f), wood, new Vector3(-12, 0, -12));
             Geo.Box(f, new Vector3(1.8f, 1.6f, 1.8f), new Vector3(0.22f, 3.4f, 0.22f), wood, new Vector3(-12, 0, 12));
             Geo.Box(f, new Vector3(0, 3.26f, 0.9f), new Vector3(4.2f, 0.24f, 0.24f), Palette.WoodDark);
             // Empty frame sign.
@@ -745,7 +742,7 @@ public partial class WorldBuilder : Node3D
         Geo.StaticBox(shelf, "ShelfFrame", new Vector3(0, 1.05f, 0),
             new Vector3(4.1f, 2.1f, 0.55f), Palette.Wood);
         for (int row = 0; row < 2; row++)
-            Geo.Box(shelf, new Vector3(0, 0.72f + row * 0.7f, 0.31f),
+            Geo.Box(shelf, new Vector3(0, 0.72f + row * 0.7f, -0.31f),
                 new Vector3(3.8f, 0.1f, 0.12f), Palette.WoodDark);
         Geo.SignBoard(shelf, new Vector3(0, 2.5f, 0), 180f, "LIBRARY", Palette.Blue, 3.2f, 0.7f,
             "star", 30);
@@ -754,10 +751,10 @@ public partial class WorldBuilder : Node3D
         for (int i = 0; i < 4; i++)
         {
             var slot = new Node3D { Name = $"ShelfBook_{books[i]}", Visible = false,
-                Position = new Vector3(-1.35f + i * 0.9f, 1.0f, 0.34f) };
+                Position = new Vector3(-1.35f + i * 0.9f, 1.0f, -0.34f) };
             shelf.AddChild(slot);
             Geo.Box(slot, new Vector3(0, 0.28f, 0), new Vector3(0.3f, 0.56f, 0.12f), bookColors[i]);
-            Geo.Box(slot, new Vector3(0, 0.28f, 0.07f), new Vector3(0.22f, 0.08f, 0.02f), Palette.Cream);
+            Geo.Box(slot, new Vector3(0, 0.28f, -0.07f), new Vector3(0.22f, 0.08f, 0.02f), Palette.Cream);
             LibraryShelfSlots.Add(slot);
         }
         AddKeepClear(LibraryShelf, new Vector2(3f, 2f));
@@ -878,7 +875,13 @@ public partial class WorldBuilder : Node3D
         Geo.Box(RallyPodium, new Vector3(0, 1.1f, 0), new Vector3(1.0f, 0.8f, 0.8f), Palette.Yellow);
         Geo.Cylinder(RallyPodium, new Vector3(0, 1.8f, 0), 0.22f, 0.28f, 0.5f, Color.FromHtml("F4C542"), 12);
         Geo.Sphere(RallyPodium, new Vector3(0, 2.25f, 0), 0.32f, Color.FromHtml("F4C542"), 8, 4);
-        Geo.Label(RallyPodium, new Vector3(0, 2.9f, 0), "GRAND RALLY", 42, Palette.Navy, true, 0.005f);
+        Geo.Box(RallyPodium, new Vector3(0, 2.86f, 0), new Vector3(2.9f, 0.5f, 0.1f), Palette.Yellow);
+        Geo.Box(RallyPodium, new Vector3(-1.25f, 1.72f, 0), new Vector3(0.08f, 2.2f, 0.08f), Palette.WoodDark);
+        Geo.Box(RallyPodium, new Vector3(1.25f, 1.72f, 0), new Vector3(0.08f, 2.2f, 0.08f), Palette.WoodDark);
+        Geo.Label(RallyPodium, new Vector3(0, 2.85f, -0.06f), "GRAND RALLY", 40, Palette.Navy,
+            false, 0.0042f, 4, new Vector3(0, 180, 0));
+        Geo.Label(RallyPodium, new Vector3(0, 2.85f, 0.06f), "GRAND RALLY", 40, Palette.Navy,
+            false, 0.0042f, 4, null);
         AddKeepClear(new Vector3(60.5f, 0f, -13.5f), new Vector2(3f, 3f));
 
         // M20: two table pads, three lantern pads and the festival bunting.
@@ -908,7 +911,7 @@ public partial class WorldBuilder : Node3D
         Vector3[] lanterns =
         {
             new(9.0f, 0.09f, 22.4f), new(21.0f, 0.09f, 22.4f),
-            new(15.0f, 0.09f, 24.2f),
+            new(18.6f, 0.09f, 24.2f),
         };
         for (int i = 0; i < lanterns.Length; i++)
         {
@@ -966,9 +969,15 @@ public partial class WorldBuilder : Node3D
             Geo.Cylinder(root, new Vector3(x, 0.33f, z), 0.31f, 0.31f, 0.22f, tyre, 12,
                 new Vector3(0, 0, 90));
         }
-        Geo.Label(root, new Vector3(0, 1.75f, 0),
-            broken ? "PIP'S CAR — BROKEN" : "PIP'S CAR — READY", 30,
-            broken ? Palette.Red : Palette.Success, true, 0.005f);
+        var statusAnchor = new Marker3D
+        {
+            Name = "StatusAnchor",
+            Position = new Vector3(0, 1.66f, 0),
+        };
+        root.AddChild(statusAnchor);
+        Geo.Label(statusAnchor, Vector3.Zero,
+            broken ? "PIP'S CAR — BROKEN" : "PIP'S CAR — READY", 36,
+            broken ? Palette.Red : Palette.Success, true, 0.006f);
     }
 
     private void BuildBridgeWorksite()
@@ -1037,12 +1046,14 @@ public partial class WorldBuilder : Node3D
         Geo.Box(RaceStartFlag, new Vector3(1.0f, 5.4f, 0), new Vector3(2.0f, 1.2f, 0.08f), Palette.Yellow, null, true);
         Geo.Label(RaceStartFlag, new Vector3(1.0f, 5.4f, 0.06f), "START / FINISH", 42, Palette.Navy, false, 0.005f);
 
-        GoldCourseFlag = new Node3D { Name = "GoldCourseFlag", Position = new Vector3(64.5f, 0, -12.0f), Visible = false };
+        GoldCourseFlag = new Node3D { Name = "GoldCourseFlag", Position = new Vector3(64.5f, 0, -15.5f), Visible = false };
         AddChild(GoldCourseFlag);
         Color gold = Color.FromHtml("F4C542");
         Geo.Cylinder(GoldCourseFlag, new Vector3(0, 2.4f, 0), 0.09f, 0.12f, 4.8f, Palette.WoodDark, 6);
         Geo.Box(GoldCourseFlag, new Vector3(1.05f, 4.45f, 0), new Vector3(2.1f, 1.35f, 0.08f), gold, null, true);
-        Geo.Label(GoldCourseFlag, new Vector3(1.05f, 4.45f, 0.06f), "GOLD LAP", 42, Palette.Navy, false, 0.006f);
+        Geo.Label(GoldCourseFlag, new Vector3(1.05f, 4.45f, 0.06f), "GOLD LAP", 44, Palette.Navy, false, 0.005f);
+        Geo.Label(GoldCourseFlag, new Vector3(1.05f, 4.45f, -0.06f), "GOLD LAP", 44, Palette.Navy,
+            false, 0.005f, 0, new Vector3(0, 180, 0), "Label3D", false);
         Geo.Sphere(GoldCourseFlag, new Vector3(0, 5.05f, 0), 0.28f, gold, 8, 4, null, "GoldOrb");
 
         // A small infield grandstand, deliberately clear of the loop.
@@ -1324,17 +1335,33 @@ public partial class WorldBuilder : Node3D
         {
             float x = -21f + i * 1.1f;
             float y = 4.8f + Mathf.Sin(i * 0.7f) * 0.35f;
-            Geo.Box(CelebrationDecor, new Vector3(x, y, 5.8f), new Vector3(0.7f, 0.45f, 0.05f),
+            var flag = Geo.Box(CelebrationDecor, new Vector3(x, y, 5.8f), new Vector3(0.7f, 0.45f, 0.05f),
                 bunting[i % bunting.Length], new Vector3(0, 0, 25), true, "Bunting");
+            flag.CastShadow = GeometryInstance3D.ShadowCastingSetting.Off;
         }
         for (int i = 0; i < 14; i++)
         {
             float x = -21f + i * 1.1f;
             float y = 4.8f + Mathf.Sin(i * 0.7f) * 0.35f;
-            Geo.Box(CelebrationDecor, new Vector3(x, y, 22.2f), new Vector3(0.7f, 0.45f, 0.05f),
+            var flag = Geo.Box(CelebrationDecor, new Vector3(x, y, 22.2f), new Vector3(0.7f, 0.45f, 0.05f),
                 bunting[(i + 2) % bunting.Length], new Vector3(0, 0, -25), true, "Bunting");
+            flag.CastShadow = GeometryInstance3D.ShadowCastingSetting.Off;
         }
-        Geo.SignBoard(CelebrationDecor, new Vector3(-6.5f, 4.0f, 6.0f), 180f, "VILLAGE FIXED!", Palette.Yellow, 8f, 1.5f, "star", 58);
+        // Free-standing double-sided banner in the festival lawn, clear of the
+        // Town Hall sightline and readable from both approaches.
+        var celebrationBanner = new Node3D
+        {
+            Name = "CelebrationBanner",
+            Position = new Vector3(15f, 0, 19.8f),
+        };
+        CelebrationDecor.AddChild(celebrationBanner);
+        Geo.Box(celebrationBanner, new Vector3(0, 1.8f, 0), new Vector3(0.1f, 3.6f, 0.1f), Palette.WoodDark);
+        Geo.Box(celebrationBanner, new Vector3(2.4f, 1.8f, 0), new Vector3(0.1f, 3.6f, 0.1f), Palette.WoodDark);
+        Geo.Box(celebrationBanner, new Vector3(0, 3.35f, 0), new Vector3(4.72f, 0.75f, 0.12f), Palette.Yellow, null, true);
+        Geo.Label(celebrationBanner, new Vector3(0, 3.34f, -0.07f), "VILLAGE FIXED!", 50,
+            Palette.Navy, false, 0.005f, 3, new Vector3(0, 180, 0));
+        Geo.Label(celebrationBanner, new Vector3(0, 3.34f, 0.07f), "VILLAGE FIXED!", 50,
+            Palette.Navy, false, 0.005f, 3, null);
     }
 
     private void AddLamp(Vector3 pos)

@@ -1,0 +1,206 @@
+[gd_scene format=3]
+
+
+[sub_resource type="BoxMesh" id="BoxMesh_1"]
+size = Vector3(0.22, 0.52, 1.05)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_2"]
+albedo_color = Color(0.9137255, 0.3803922, 0.3137255, 1)
+roughness = 0.94
+
+[sub_resource type="BoxMesh" id="BoxMesh_3"]
+size = Vector3(0.22, 0.18, 1.05)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_4"]
+albedo_color = Color(0.9921569, 0.945098, 0.8431373, 1)
+roughness = 0.94
+
+[sub_resource type="BoxMesh" id="BoxMesh_5"]
+size = Vector3(0.22, 0.52, 1.05)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_6"]
+albedo_color = Color(1, 0.945098, 0.8313725, 1)
+roughness = 0.94
+
+[sub_resource type="BoxMesh" id="BoxMesh_7"]
+size = Vector3(0.22, 0.18, 1.05)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_8"]
+albedo_color = Color(0.9921569, 0.945098, 0.8431373, 1)
+roughness = 0.94
+
+[sub_resource type="BoxMesh" id="BoxMesh_9"]
+size = Vector3(0.22, 0.52, 1.05)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_10"]
+albedo_color = Color(0.9137255, 0.3803922, 0.3137255, 1)
+roughness = 0.94
+
+[sub_resource type="BoxMesh" id="BoxMesh_11"]
+size = Vector3(0.22, 0.18, 1.05)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_12"]
+albedo_color = Color(0.9921569, 0.945098, 0.8431373, 1)
+roughness = 0.94
+
+[sub_resource type="BoxMesh" id="BoxMesh_13"]
+size = Vector3(0.22, 0.52, 1.05)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_14"]
+albedo_color = Color(1, 0.945098, 0.8313725, 1)
+roughness = 0.94
+
+[sub_resource type="BoxMesh" id="BoxMesh_15"]
+size = Vector3(0.22, 0.18, 1.05)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_16"]
+albedo_color = Color(0.9921569, 0.945098, 0.8431373, 1)
+roughness = 0.94
+
+[sub_resource type="BoxMesh" id="BoxMesh_17"]
+size = Vector3(0.22, 0.52, 1.05)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_18"]
+albedo_color = Color(0.9137255, 0.3803922, 0.3137255, 1)
+roughness = 0.94
+
+[sub_resource type="BoxMesh" id="BoxMesh_19"]
+size = Vector3(0.22, 0.18, 1.05)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_20"]
+albedo_color = Color(0.9921569, 0.945098, 0.8431373, 1)
+roughness = 0.94
+
+[sub_resource type="BoxMesh" id="BoxMesh_21"]
+size = Vector3(0.22, 0.52, 1.05)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_22"]
+albedo_color = Color(1, 0.945098, 0.8313725, 1)
+roughness = 0.94
+
+[sub_resource type="BoxMesh" id="BoxMesh_23"]
+size = Vector3(0.22, 0.18, 1.05)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_24"]
+albedo_color = Color(0.9921569, 0.945098, 0.8431373, 1)
+roughness = 0.94
+
+[sub_resource type="BoxMesh" id="BoxMesh_25"]
+size = Vector3(0.22, 0.52, 1.05)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_26"]
+albedo_color = Color(0.9137255, 0.3803922, 0.3137255, 1)
+roughness = 0.94
+
+[sub_resource type="BoxMesh" id="BoxMesh_27"]
+size = Vector3(0.22, 0.18, 1.05)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_28"]
+albedo_color = Color(0.9921569, 0.945098, 0.8431373, 1)
+roughness = 0.94
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_29"]
+top_radius = 0.14
+bottom_radius = 0.14
+height = 1.3
+radial_segments = 8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_30"]
+albedo_color = Color(0.4509804, 0.3215686, 0.2196078, 1)
+roughness = 0.94
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_31"]
+top_radius = 0.14
+bottom_radius = 0.14
+height = 1.3
+radial_segments = 8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_32"]
+albedo_color = Color(0.4509804, 0.3215686, 0.2196078, 1)
+roughness = 0.94
+
+[node name="BridgeBarrier" type="Node3D"]
+
+[node name="Stripe_0" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.75, -3.1)
+mesh = SubResource("BoxMesh_1")
+material_override = SubResource("StandardMaterial_2")
+
+[node name="StripeHighlight_0" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.25, -3.1)
+mesh = SubResource("BoxMesh_3")
+material_override = SubResource("StandardMaterial_4")
+
+[node name="Stripe_1" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1, -2.07)
+mesh = SubResource("BoxMesh_5")
+material_override = SubResource("StandardMaterial_6")
+
+[node name="StripeHighlight_1" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.25, -2.07)
+mesh = SubResource("BoxMesh_7")
+material_override = SubResource("StandardMaterial_8")
+
+[node name="Stripe_2" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.75, -1.04)
+mesh = SubResource("BoxMesh_9")
+material_override = SubResource("StandardMaterial_10")
+
+[node name="StripeHighlight_2" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.25, -1.04)
+mesh = SubResource("BoxMesh_11")
+material_override = SubResource("StandardMaterial_12")
+
+[node name="Stripe_3" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1, -0.01)
+mesh = SubResource("BoxMesh_13")
+material_override = SubResource("StandardMaterial_14")
+
+[node name="StripeHighlight_3" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.25, -0.01)
+mesh = SubResource("BoxMesh_15")
+material_override = SubResource("StandardMaterial_16")
+
+[node name="Stripe_4" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.75, 1.02)
+mesh = SubResource("BoxMesh_17")
+material_override = SubResource("StandardMaterial_18")
+
+[node name="StripeHighlight_4" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.25, 1.02)
+mesh = SubResource("BoxMesh_19")
+material_override = SubResource("StandardMaterial_20")
+
+[node name="Stripe_5" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1, 2.05)
+mesh = SubResource("BoxMesh_21")
+material_override = SubResource("StandardMaterial_22")
+
+[node name="StripeHighlight_5" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.25, 2.05)
+mesh = SubResource("BoxMesh_23")
+material_override = SubResource("StandardMaterial_24")
+
+[node name="Stripe_6" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.75, 3.08)
+mesh = SubResource("BoxMesh_25")
+material_override = SubResource("StandardMaterial_26")
+
+[node name="StripeHighlight_6" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.25, 3.08)
+mesh = SubResource("BoxMesh_27")
+material_override = SubResource("StandardMaterial_28")
+
+[node name="LeftPost" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.65, -3.6)
+mesh = SubResource("CylinderMesh_29")
+material_override = SubResource("StandardMaterial_30")
+
+[node name="RightPost" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.65, 3.6)
+mesh = SubResource("CylinderMesh_31")
+material_override = SubResource("StandardMaterial_32")
+
+[node name="BridgeSite" type="Marker3D" parent="."]
+position = Vector3(0, 0, 0)
+metadata/gameplay_id = "bridge.barrier"

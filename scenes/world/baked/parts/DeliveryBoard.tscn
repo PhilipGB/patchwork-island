@@ -1,0 +1,115 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assets/ui/mission_icons/delivery.png" id="1_lgdyi"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_fpvy1"]
+shading_mode = 2
+specular_mode = 2
+albedo_color = Color(0.53333336, 0.34509805, 0.18431373, 1)
+roughness = 0.95
+
+[sub_resource type="BoxMesh" id="BoxMesh_uh5kx"]
+size = Vector3(0.16, 2.2, 0.16)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xhse2"]
+shading_mode = 2
+specular_mode = 2
+albedo_color = Color(1, 0.972549, 0.9254902, 1)
+roughness = 0.95
+
+[sub_resource type="BoxMesh" id="BoxMesh_nsdmq"]
+size = Vector3(4.8, 0.8, 0.16)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_r8hga"]
+shading_mode = 2
+specular_mode = 2
+albedo_color = Color(0.95686275, 0.54509807, 0.2627451, 1)
+roughness = 0.95
+
+[sub_resource type="BoxMesh" id="BoxMesh_74dxx"]
+size = Vector3(4.8, 0.13, 0.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_k3q45"]
+size = Vector3(4.8, 0.13, 0.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ijx04"]
+size = Vector3(0.13, 0.8, 0.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_n8r6v"]
+size = Vector3(0.13, 0.8, 0.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_g1j4k"]
+size = Vector3(5, 1, 0.35)
+
+[node name="DeliveryBoard" type="Node3D" unique_id=315468761]
+visible = false
+
+[node name="Box" type="MeshInstance3D" parent="." unique_id=1589566246]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
+material_override = SubResource("StandardMaterial3D_fpvy1")
+mesh = SubResource("BoxMesh_uh5kx")
+
+[node name="Sign_DELIVERY ROUTE" type="Node3D" parent="." unique_id=424168208]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 2.2, 0)
+
+[node name="Box" type="MeshInstance3D" parent="Sign_DELIVERY ROUTE" unique_id=1275811402]
+material_override = SubResource("StandardMaterial3D_xhse2")
+mesh = SubResource("BoxMesh_nsdmq")
+
+[node name="@MeshInstance3D@742" type="MeshInstance3D" parent="Sign_DELIVERY ROUTE" unique_id=217157380]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0)
+material_override = SubResource("StandardMaterial3D_r8hga")
+mesh = SubResource("BoxMesh_74dxx")
+
+[node name="@MeshInstance3D@743" type="MeshInstance3D" parent="Sign_DELIVERY ROUTE" unique_id=1251070065]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.4, 0)
+material_override = SubResource("StandardMaterial3D_r8hga")
+mesh = SubResource("BoxMesh_k3q45")
+
+[node name="@MeshInstance3D@744" type="MeshInstance3D" parent="Sign_DELIVERY ROUTE" unique_id=934173135]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.4, 0, 0)
+material_override = SubResource("StandardMaterial3D_r8hga")
+mesh = SubResource("BoxMesh_ijx04")
+
+[node name="@MeshInstance3D@745" type="MeshInstance3D" parent="Sign_DELIVERY ROUTE" unique_id=1237068020]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.4, 0, 0)
+material_override = SubResource("StandardMaterial3D_r8hga")
+mesh = SubResource("BoxMesh_n8r6v")
+
+[node name="@Sprite3D@746" type="Sprite3D" parent="Sign_DELIVERY ROUTE" unique_id=5062005]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.6800001, 0, 0.11)
+pixel_size = 0.008625
+texture = ExtResource("1_lgdyi")
+
+[node name="SignText" type="Label3D" parent="Sign_DELIVERY ROUTE" unique_id=245773250]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.48, 0.01, 0.12)
+pixel_size = 0.0085
+modulate = Color(0.15294118, 0.21176471, 0.29411766, 1)
+outline_modulate = Color(1, 1, 1, 0.9)
+text = "DELIVERY ROUTE"
+font_size = 34
+outline_size = 0
+
+[node name="SignTextBack" type="Label3D" parent="Sign_DELIVERY ROUTE" unique_id=2030240262]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -0.48, -0.01, -0.12)
+pixel_size = 0.0085
+modulate = Color(0.15294118, 0.21176471, 0.29411766, 1)
+outline_modulate = Color(1, 1, 1, 0.9)
+text = "DELIVERY ROUTE"
+font_size = 34
+outline_size = 0
+
+[node name="SignCameraBlocker" type="StaticBody3D" parent="Sign_DELIVERY ROUTE" unique_id=2122931628]
+collision_layer = 16
+collision_mask = 0
+
+[node name="@CollisionShape3D@747" type="CollisionShape3D" parent="Sign_DELIVERY ROUTE/SignCameraBlocker" unique_id=1275151096]
+shape = SubResource("BoxShape3D_g1j4k")
+
+[node name="Label3D" type="Label3D" parent="." unique_id=807497796]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.45, 0.1)
+modulate = Color(0.15294118, 0.21176471, 0.29411766, 1)
+outline_modulate = Color(1, 1, 1, 0.9)
+text = "ADA  ·  PIP  ·  IVY"
+font_size = 34
+outline_size = 0

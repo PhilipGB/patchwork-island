@@ -1,0 +1,88 @@
+[gd_scene load_steps=8 format=3]
+
+[sub_resource type="BoxMesh" id="BoxMesh_1"]
+size = Vector3(0.8, 4.8, 0.8)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2"]
+albedo_color = Color(1.000000, 0.596078, 0.223529, 1)
+roughness = 1.0
+metallic = 0.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_3"]
+size = Vector3(11.2, 0.8, 0.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_4"]
+size = Vector3(2.4, 1.45, 0.3)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5"]
+albedo_color = Color(1.000000, 0.960784, 0.898039, 1)
+roughness = 1.0
+metallic = 0.0
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_6"]
+size = Vector3(0.9, 4.9, 0.9)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_7"]
+size = Vector3(11.2, 0.9, 0.9)
+
+[node name="RallyGate4" type="Node3D"]
+
+
+[node name="Post" type="MeshInstance3D" parent="."]
+position = Vector3(-5.2, 2.4, 0)
+mesh = SubResource("BoxMesh_1")
+material_override = SubResource("StandardMaterial3D_2")
+
+[node name="Post_2" type="MeshInstance3D" parent="."]
+position = Vector3(5.2, 2.4, 0)
+mesh = SubResource("BoxMesh_1")
+material_override = SubResource("StandardMaterial3D_2")
+
+[node name="Beam" type="MeshInstance3D" parent="."]
+position = Vector3(0, 4.75, 0)
+mesh = SubResource("BoxMesh_3")
+material_override = SubResource("StandardMaterial3D_2")
+
+[node name="NumberPanel" type="MeshInstance3D" parent="."]
+position = Vector3(0, 5.95, 0)
+mesh = SubResource("BoxMesh_4")
+material_override = SubResource("StandardMaterial3D_5")
+
+[node name="Number" type="Label3D" parent="."]
+position = Vector3(0, 5.95, -0.2)
+text = "4"
+font_size = 150
+pixel_size = 0.007
+modulate = Color(0.094118, 0.203922, 0.352941, 1)
+billboard = 0
+rotation = Vector3(0, 3.14159, 0)
+double_sided = false
+
+[node name="GateTrigger" type="Marker3D" parent="."]
+position = Vector3(0, 0, 0)
+metadata/gameplay_id = "gate.4"
+
+[node name="CameraOnlyBlocker" type="StaticBody3D" parent="."]
+collision_layer = 16
+collision_mask = 0
+
+[node name="Collision" type="CollisionShape3D" parent="CameraOnlyBlocker"]
+position = Vector3(-5.2, 2.4, 0)
+shape = SubResource("BoxShape3D_6")
+
+[node name="Collision_2" type="CollisionShape3D" parent="CameraOnlyBlocker"]
+position = Vector3(5.2, 2.4, 0)
+shape = SubResource("BoxShape3D_6")
+
+[node name="Collision_3" type="CollisionShape3D" parent="CameraOnlyBlocker"]
+position = Vector3(0, 4.75, 0)
+shape = SubResource("BoxShape3D_7")
+
+[node name="NumberBack" type="Label3D" parent="."]
+position = Vector3(0, 5.95, 0.2)
+text = "4"
+font_size = 150
+pixel_size = 0.007
+modulate = Color(0.094118, 0.203922, 0.352941, 1)
+billboard = 0
+double_sided = false

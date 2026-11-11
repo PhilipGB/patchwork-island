@@ -1,13 +1,12 @@
 # Patchwork Island — run and test guide
 
-> Status: v1.2.1 — M18 Persistence Hotfix, tagged and published. The original ten missions,
-> practice racing, first celebration, character customisation, save/load and
-> recovery remain. v1.2 adds six named villagers, two safe NPC drivers, original
-> music/SFX with persisted settings, a larger continuous rally circuit, and
-> M11–M20 ending in a separate village-festival finale. Save schema 3 migrates
-> schema 1/2 progress and refuses unsupported newer schemas. See `ACCEPTANCE.md`,
-> `PROGRESS.md` and `docs/RELEASE_NOTES_v1.2.1.md` for the pass/fail matrix,
-> evidence and remaining verification gaps.
+> Status: v1.3.0 scene-based town migration — implemented in source, **not
+> tagged or released**. The static town is now the exact baked
+> `scenes/world/baked/Town_Baked.tscn`, instantiated and validated by
+> `WorldSceneAdapter`. All v1.2.1 gameplay and schema-3 saves are retained.
+> Source runtime **1124 assertions**, pure rules **111 tests** and every packaged
+> Linux phase pass. See `PROGRESS.md` P16 and `ACCEPTANCE.md` for the gate and
+> remaining visual/human gaps. The v1.2.1 release notes remain under `docs/`.
 
 ## Prerequisites
 
@@ -24,6 +23,15 @@ godot --path .                 # play
 ```
 
 Or open `project.godot` with Godot 4.7.2 .NET and press F5.
+
+The editable static town is `scenes/world/baked/Town_Baked.tscn`; `Main` loads it
+through `src/World/WorldSceneAdapter.cs`. The original procedural
+`WorldBuilder.Build()` is retained only for the exact-bake tool. Re-bake only if
+that source changes:
+
+```bash
+godot --headless --path . res://scenes/tools/SceneBakeTool.tscn
+```
 
 ## Build check
 
@@ -62,7 +70,7 @@ godot --headless --path . --quit-after 120
 dotnet run --project tests/PatchworkIsland.Tests.csproj
 ```
 
-The runner currently has **77 tests** and covers mission catalog, prerequisites,
+The runner currently has **111 tests** and covers mission catalog, prerequisites,
 unlocks, duplicate pickups, exactly-once rewards, mission switching, hints,
 bridge/swing snapping (including rejected unknown part types), grocery and park
 budgets, furniture costs/starter fallback/purchase caps, ordered checkpoints,
@@ -74,9 +82,10 @@ post-completion furniture rearrangement, save-feedback throttling, settings
 feedback isolation, persisted/discarded session state, newer-replacement
 permission, control-mode precedence, clothing defaults, purchase and ownership
 rules, equip restrictions, clothing save round-trips, older-save defaults,
-mission-catalogue integrity and a complete-field comparison of
+mission-catalogue integrity, a complete-field comparison of
 `MISSIONS.json`/`data/missions.json` that rejects duplicate properties at any
-depth.
+depth, and scene-parity checks for all 75 anchors, building centres/wall sizes,
+required dynamic roots, rally collision and NPC/traffic markers.
 
 ## Godot runtime integration tests
 
@@ -84,11 +93,19 @@ depth.
 godot --headless --path . -- --selftest
 godot --headless --path . -- --selftest-resume
 godot --headless --path . -- --selftest-recovery
+godot --headless --path . -- --selftest-living
+godot --headless --path . -- --selftest-rally
+godot --headless --path . -- --selftest-chapter
+godot --headless --path . -- --selftest-hotfix
+godot --headless --path . -- --selftest-finale
+godot --headless --path . -- --selftest-traversal
+godot --headless --path . -- --selftest-release
+godot --headless --path . -- --selftest-restore
 ```
 
 These use isolated `user://selftest-save.json` and
-`user://selftest-recovery-save.json` files and run **190 assertions across
-three phases**. The first two cover title/modal pause, pausable player/van/world
+`user://selftest-recovery-save.json` files and run **1124 assertions across
+eleven phases**. The first two cover title/modal pause, pausable player/van/world
 processing, stopped physics and race timers, Pause→Settings→Pause,
 Title→Settings→Title, New Game confirmation cancellation, the character
 chooser, real clothes-shop Buy/Wear buttons, wallet updates, insufficient
@@ -98,7 +115,11 @@ The recovery phase injects deterministic write failures and reloads the real
 scene to verify failed New Game recovery, discarded movement, backup recovery,
 the no-save case, settings failure feedback, autosave warning independence,
 newer-save replacement retries, preserved newest-version copies, restored
-character/outfit state and unchanged on-disk bytes.
+character/outfit state and unchanged on-disk bytes. `--selftest-restore`
+additionally reloads seven partial M03/M07/M08/M10/M15/M18/M20 fixtures and
+proves their bridge, swing, park, furniture, garden, pickup and festival visuals
+come back. `--selftest-release` now also restores a v1.2.1-shaped 158-coin save
+with outfits and all constructed world state.
 
 If a concurrently running Godot instance makes `dotnet run` wait on the project
 DLL, build once and execute the test assembly directly:
@@ -192,10 +213,10 @@ runtime or Wine. See `dist/SHA256SUMS` and `dist/README.txt`.
 
 ```text
 dotnet build PatchworkIsland.sln                         -> 0 warnings, 0 errors
-dotnet run --project tests/PatchworkIsland.Tests.csproj -> 107 passed, 0 failed
+dotnet run --project tests/PatchworkIsland.Tests.csproj -> 111 passed, 0 failed
 godot --headless --path . --editor --quit                -> exit 0
-godot --headless --path . --quit-after 120               -> exit 0
-godot --headless --path . -- --selftest                  -> 161 passed, 0 failed
+godot --headless --path . --quit-after 120               -> exit 0, 0 unsafe leaks
+godot --headless --path . -- --selftest                  -> 237 passed, 0 failed
 godot --headless --path . -- --selftest-resume           -> 21 passed, 0 failed
 godot --headless --path . -- --selftest-recovery         -> 101 passed, 0 failed
 godot --headless --path . -- --selftest-living           -> 238 passed, 0 failed
@@ -204,37 +225,39 @@ godot --headless --path . -- --selftest-chapter          -> 217 passed, 0 failed
 godot --headless --path . -- --selftest-hotfix           -> 48 passed, 0 failed
 godot --headless --path . -- --selftest-finale           -> 140 passed, 0 failed
 godot --headless --path . -- --selftest-traversal        -> 18 passed, 0 failed
-godot --headless --path . -- --selftest-release          -> 22 passed, 0 failed
+godot --headless --path . -- --selftest-release          -> 40 passed, 0 failed
+godot --headless --path . -- --selftest-restore          -> 54 passed, 0 failed
 godot --headless --path . --export-release "Linux" ...    -> exit 0
-godot --headless --path . --export-release "Windows..."   -> exit 0
+dist/linux/PatchworkIsland.x86_64 (all runtime phases)    -> 1124 passed, 0 failed
 dist/linux/PatchworkIsland.x86_64 --headless --quit-after 120 -> exit 0
-dist/linux/PatchworkIsland.x86_64 (all runtime phases)    -> 0 failed
 ```
 
-The new phases cover M11–M15, M16–M20, a partial-M18 save/relaunch, six-gate rally, real bridge/road
-traversal, and a schema 2 v1.1.0 save loaded through the real title/Continue path
-with 137 coins, girl + Berry outfit, the original celebration already seen, M11
-available and no repeated M10 celebration. The packaged Linux executable passed
-the same phases, every process exit code 0 with zero leaked unsafe references.
+The new phases cover M11–M15, M16–M20, a partial-M18 save/relaunch, six-gate
+rally, real bridge/road traversal, a schema 2 v1.1.0 save (137 coins) and a
+schema 3 v1.2.1-shaped save (158 coins, outfits, bridge, swings, park and
+furniture). `--selftest-restore` reloads seven partial construction/finale
+worlds. The packaged Linux executable passed the same phases, every process exit
+code 0 with zero leaked unsafe references.
 
-The v1.2.1 Linux export is an ELF x86-64 executable. The Windows executable is
-PE32+ x86-64 with file/product version `1.2.1.0`; **Windows startup was not
-tested** because no Windows runtime or Wine is available, and was explicitly
-waived for the Linux-first release. The previous v1.0.2 and v1.1.0 verification
-remains recorded in `ACCEPTANCE.md`.
+The v1.3.0 Linux export is an ELF x86-64 executable. Windows was not exported or
+tested for this migration; the last Windows artifact is the published v1.2.1
+build and its startup remains **NOT TESTED**. The previous v1.0.2, v1.1.0 and
+v1.2.x verification remains recorded in `ACCEPTANCE.md`.
 
-Real AMD Radeon 890M measurements: 720p mean 16.69 ms / p95 17.35 ms and 1080p
-mean 16.67 ms / p95 17.28 ms over 600 frames each. Packaged audio reached the
-real PipeWire sink monitor with nonzero PCM, and **human listening is PASS** —
-the product owner verified the packaged build on 2026-11-09. Child usability
-testing remains a manual follow-up.
+Real AMD Radeon 890M measurements for the scene-backed world: 720p mean
+16.68–16.71 ms / p95 17.21–17.26 ms and 1080p mean 16.68 ms / p95 17.21 ms over
+600 frames. The v1.2.1 procedural baseline in the same environment was
+16.67–16.71 ms / p95 17.17–17.26 ms with identical 3394 draw calls and 66069
+primitives, so the migration adds no measurable GPU cost. Packaged audio is
+unchanged from v1.2.1; human listening remains **PASS** from the v1.2.0
+verification and was not separately re-auditioned. Child usability testing
+remains a manual follow-up.
 
-The v1.2.1 hotfix adds a real partial-M18 save/relaunch test, legacy-save
-pickup normalisation and a terminal off-island traffic stop, plus the P15.1
-bridge work. Traversal adds 18 checks (fast/slow centre, both road
-edges, westbound, no vertical step, both gate-1 walk/jump checks and a
-from-rest road-lip walk), plus seam/junction/cap captures at exact 720p and true
-1080p.
+The v1.3.0 migration keeps the v1.2.1 hotfix, legacy-save pickup normalisation,
+terminal off-island traffic stop and P15.1 bridge work. Traversal still runs 18
+checks (fast/slow centre, both road edges, westbound, no vertical step, both
+gate-1 walk/jump checks and a from-rest road-lip walk), plus seam/junction/cap
+captures at exact 720p and true 1080p in `evidence/v13_scene_world/`.
 
 ## Developer QA scenarios
 

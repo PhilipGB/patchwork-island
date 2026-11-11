@@ -84,129 +84,91 @@ public partial class PlayerController : CharacterBody3D
         Color secondary = Color.FromHtml(style.SecondaryHex);
         Color accent = Color.FromHtml(style.AccentHex);
         Color shoes = Color.FromHtml(style.ShoeHex);
-        Color hair = Color.FromHtml("6E462B");
-        Color darkHair = hair.Darkened(0.14f);
 
-        _model = new Node3D { Name = "Model", Rotation = new Vector3(0, _yaw, 0) };
-        _model.Scale = new Vector3(0.92f, 0.92f, 0.92f);
+        string templatePath = _wearsDress
+            ? VisualTemplate.PlayerGirlPath
+            : VisualTemplate.PlayerBoyPath;
+        _model = new Node3D
+        {
+            Name = "Model",
+            Rotation = new Vector3(0, _yaw, 0),
+            Scale = new Vector3(0.92f, 0.92f, 0.92f),
+        };
         AddChild(_model);
+        Node3D template = VisualTemplate.Instantiate(_model, "Visual", templatePath);
+        VisualTemplatePath = templatePath;
+
+        var tints = new Dictionary<int, Color>
+        {
+            [0] = main, [1] = main, [2] = main, [3] = main,
+        };
+        if (_wearsDress)
+        {
+            tints[4] = main;
+            tints[5] = secondary;
+            tints[6] = secondary;
+            tints[7] = shoes;
+            tints[8] = shoes;
+            tints[15] = accent;
+            tints[16] = accent;
+            tints[17] = accent;
+        }
+        else
+        {
+            tints[4] = secondary;
+            tints[5] = secondary;
+            tints[6] = shoes;
+            tints[7] = shoes;
+            tints[12] = accent;
+        }
+
+        CharacterRig rig = VisualTemplate.BuildCharacterRig(template, tints);
+        _head = rig.Head;
+        _leftArm = rig.LeftArm;
+        _rightArm = rig.RightArm;
+        _leftLeg = rig.LeftLeg;
+        _rightLeg = rig.RightLeg;
 
         if (_wearsDress)
-            BuildDressBody(main, secondary, accent);
-        else
-            BuildShirtBody(main, secondary, accent);
-
-        // Head and friendly face.
-        _head = new Node3D { Name = "Head", Position = new Vector3(0, 1.61f, 0) };
-        _model.AddChild(_head);
-
-        if (_longHair)
         {
-            // Long hair silhouette and side locks, behind the face.
-            Geo.Box(_head, new Vector3(0, -0.18f, 0.3f), new Vector3(0.6f, 0.84f, 0.18f), hair,
-                null, false, "LongHairBack");
-            Geo.Box(_head, new Vector3(-0.32f, -0.16f, 0.02f), new Vector3(0.09f, 0.56f, 0.4f), darkHair,
-                null, false, "LongHairLeft");
-            Geo.Box(_head, new Vector3(0.32f, -0.16f, 0.02f), new Vector3(0.09f, 0.56f, 0.4f), darkHair,
-                null, false, "LongHairRight");
-            Geo.Box(_head, new Vector3(0, 0.16f, 0.04f), new Vector3(0.6f, 0.12f, 0.44f), hair,
-                null, false, "LongHairTop");
+            _capTop = null;
+            _capBrim = null;
         }
         else
         {
-            // Short, tidy hair with a small front fringe.
-            Geo.Box(_head, new Vector3(0, 0.17f, 0.03f), new Vector3(0.58f, 0.14f, 0.44f), hair,
-                null, false, "ShortHairTop");
-            Geo.Box(_head, new Vector3(0, 0.1f, 0.24f), new Vector3(0.5f, 0.2f, 0.12f), darkHair,
-                null, false, "ShortHairBack");
-            Geo.Box(_head, new Vector3(0, 0.24f, -0.25f), new Vector3(0.46f, 0.1f, 0.07f), hair,
-                null, false, "ShortHairFringe");
+            // The authored boy model has no cap, so keep the M01 reward as a
+            // small overlay that still reads from the default camera.
+            _capTop = Geo.Cylinder(_head, new Vector3(0, 0.39f, 0),
+                0.32f, 0.32f, 0.16f, Palette.Blue, 12);
+            _capBrim = Geo.Box(_head, new Vector3(0, 0.335f, -0.3f),
+                new Vector3(0.5f, 0.06f, 0.3f), Palette.Blue);
+            Geo.Box(_head, new Vector3(0, 0.48f, 0.2f),
+                new Vector3(0.14f, 0.06f, 0.14f), Palette.Cream);
         }
 
-        Geo.Box(_head, Vector3.Zero, new Vector3(0.6f, 0.55f, 0.52f), Palette.Skin);
-        Geo.Box(_head, new Vector3(0, -0.24f, 0.05f), new Vector3(0.2f, 0.14f, 0.2f), Palette.Skin);
-        Geo.Box(_head, new Vector3(-0.14f, 0.05f, -0.27f), new Vector3(0.07f, 0.1f, 0.035f), Palette.Navy);
-        Geo.Box(_head, new Vector3(0.14f, 0.05f, -0.27f), new Vector3(0.07f, 0.1f, 0.035f), Palette.Navy);
-        Geo.Box(_head, new Vector3(0, -0.1f, -0.28f), new Vector3(0.18f, 0.035f, 0.025f), Palette.Navy);
-        Geo.Box(_head, new Vector3(-0.24f, -0.05f, -0.27f), new Vector3(0.08f, 0.04f, 0.02f), new Color("E99A86"));
-        Geo.Box(_head, new Vector3(0.24f, -0.05f, -0.27f), new Vector3(0.08f, 0.04f, 0.02f), new Color("E99A86"));
-
-        if (_longHair)
-        {
-            // A cheerful bow, matching the sketch's flower/bow accessory.
-            var bow = new Node3D { Name = "HairBow", Position = new Vector3(0.28f, 0.26f, -0.02f) };
-            _head.AddChild(bow);
-            Geo.Box(bow, new Vector3(-0.09f, 0, 0), new Vector3(0.16f, 0.12f, 0.07f), accent,
-                new Vector3(0, 0, 22));
-            Geo.Box(bow, new Vector3(0.09f, 0, 0), new Vector3(0.16f, 0.12f, 0.07f), accent,
-                new Vector3(0, 0, -22));
-            Geo.Box(bow, new Vector3(0, 0, 0.035f), new Vector3(0.08f, 0.08f, 0.06f), accent.Darkened(0.18f));
-        }
-
-        // Cap (recoloured by the M01 reward).
-        _capTop = Geo.Cylinder(_head, new Vector3(0, 0.29f, 0), 0.32f, 0.32f, 0.16f, Palette.Blue, 12);
-        _capBrim = Geo.Box(_head, new Vector3(0, 0.235f, -0.31f), new Vector3(0.5f, 0.06f, 0.3f), Palette.Blue);
-        Geo.Box(_head, new Vector3(0, 0.39f, 0.2f), new Vector3(0.14f, 0.06f, 0.14f), Palette.Cream);
-
-        // Arms with pivots at the shoulders.
-        _leftArm = new Node3D { Position = new Vector3(-0.44f, 1.28f, 0) };
-        _model.AddChild(_leftArm);
-        BuildArm(_leftArm, main, accent);
-        _rightArm = new Node3D { Position = new Vector3(0.44f, 1.28f, 0) };
-        _model.AddChild(_rightArm);
-        BuildArm(_rightArm, main, accent);
-
-        // Legs and simple shoes.
-        _leftLeg = new Node3D { Position = new Vector3(-0.18f, 0.64f, 0) };
-        _model.AddChild(_leftLeg);
-        BuildLeg(_leftLeg, secondary, shoes, _wearsDress);
-        _rightLeg = new Node3D { Position = new Vector3(0.18f, 0.64f, 0) };
-        _model.AddChild(_rightLeg);
-        BuildLeg(_rightLeg, secondary, shoes, _wearsDress);
-
+        BuildHair();
         ApplyCapColor();
     }
 
-    private void BuildShirtBody(Color main, Color secondary, Color accent)
+    private void BuildHair()
     {
-        // Shirt, shorts and a small sunny pocket.
-        Geo.Box(_model, new Vector3(0, 1.06f, 0), new Vector3(0.72f, 0.58f, 0.46f), main);
-        Geo.Box(_model, new Vector3(0, 1.3f, 0), new Vector3(0.78f, 0.12f, 0.5f), accent);
-        Geo.Box(_model, new Vector3(0, 0.74f, 0), new Vector3(0.64f, 0.32f, 0.44f), secondary);
-        Geo.Box(_model, new Vector3(0, 1.04f, 0.25f), new Vector3(0.3f, 0.22f, 0.06f), accent);
-        Geo.Box(_model, new Vector3(0, 0.51f, 0), new Vector3(0.66f, 0.08f, 0.46f), accent);
+        // The authored head is a plain block from behind. Add a short hair
+        // shell so the back and sides read as hair from the chase camera.
+        Color hair = Color.FromHtml(_wearsDress ? "6B4226" : "3E2A1C");
+        Geo.Box(_head, new Vector3(0, 0.05f, 0.295f),
+            new Vector3(0.6f, 0.62f, 0.1f), hair, null, false, "HairBack");
+        Geo.Box(_head, new Vector3(-0.29f, 0.04f, 0.03f),
+            new Vector3(0.1f, 0.56f, 0.48f), hair, null, false, "HairLeft");
+        Geo.Box(_head, new Vector3(0.29f, 0.04f, 0.03f),
+            new Vector3(0.1f, 0.56f, 0.48f), hair, null, false, "HairRight");
+        Geo.Box(_head, new Vector3(0, 0.33f, -0.01f),
+            new Vector3(0.62f, 0.12f, 0.54f), hair, null, false, "HairFringe");
+        if (_wearsDress)
+            Geo.Box(_head, new Vector3(0, -0.30f, 0.31f),
+                new Vector3(0.52f, 0.30f, 0.12f), hair, null, false, "HairBob");
     }
 
-    private void BuildDressBody(Color main, Color secondary, Color accent)
-    {
-        // Bodice and a low-poly flared skirt: unmistakably a dress while
-        // keeping the same friendly proportions as the boy character.
-        Geo.Box(_model, new Vector3(0, 1.09f, 0), new Vector3(0.64f, 0.5f, 0.42f), main);
-        Geo.Box(_model, new Vector3(0, 1.27f, 0), new Vector3(0.68f, 0.1f, 0.46f), accent);
-        Geo.Box(_model, new Vector3(0, 1.02f, 0.23f), new Vector3(0.14f, 0.12f, 0.06f), accent);
-        Geo.Cylinder(_model, new Vector3(0, 0.79f, 0), 0.34f, 0.52f, 0.56f, main, 10,
-            null, false, "DressSkirt");
-        Geo.Cylinder(_model, new Vector3(0, 0.535f, 0), 0.525f, 0.525f, 0.07f, accent, 10,
-            null, false, "DressHem");
-        // A little waist ribbon ties the dress to the selected outfit.
-        Geo.Box(_model, new Vector3(0, 0.98f, 0), new Vector3(0.68f, 0.08f, 0.46f), secondary);
-    }
-
-    private static void BuildArm(Node3D arm, Color main, Color accent)
-    {
-        Geo.Box(arm, new Vector3(0, -0.18f, 0), new Vector3(0.19f, 0.36f, 0.2f), main);
-        Geo.Box(arm, new Vector3(0, -0.37f, 0), new Vector3(0.2f, 0.05f, 0.21f), accent);
-        Geo.Box(arm, new Vector3(0, -0.46f, 0), new Vector3(0.16f, 0.2f, 0.17f), Palette.Skin);
-        Geo.Sphere(arm, new Vector3(0, -0.58f, 0), 0.1f, Palette.Skin, 6, 3);
-    }
-
-    private static void BuildLeg(Node3D leg, Color secondary, Color shoes, bool dress)
-    {
-        Color legColor = dress ? Palette.Skin : secondary;
-        Geo.Box(leg, new Vector3(0, -0.28f, 0), new Vector3(0.21f, 0.54f, 0.24f), legColor);
-        Geo.Box(leg, new Vector3(0, -0.56f, -0.06f), new Vector3(0.25f, 0.13f, 0.37f), shoes);
-        Geo.Box(leg, new Vector3(0, -0.61f, -0.06f), new Vector3(0.26f, 0.04f, 0.39f), shoes.Darkened(0.2f));
-    }
+    public string VisualTemplatePath { get; private set; } = "";
 
     public void SetAppearance(string preset, string outfitId)
     {

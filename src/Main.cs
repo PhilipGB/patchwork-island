@@ -16,7 +16,7 @@ public partial class Main : Node3D
 {
     private Hud _hud;
     private AudioManager _audio;
-    private WorldBuilder _world;
+    private WorldSceneAdapter _world;
     private PlayerController _player;
     private CameraRig _rig;
     private WorldMarker _marker;
@@ -110,6 +110,7 @@ public partial class Main : Node3D
         if (HasUserArg("--selftest") || IsFinaleTest || IsTraversalTest ||
             (IsHotfixTest && RuntimeSelfTest.HotfixPhase == 0) ||
             (IsChapterTest && RuntimeSelfTest.ChapterPhase == 0) ||
+            (IsRestoreTest && RuntimeSelfTest.RestorePhase == 0) ||
             (IsReleaseTest && RuntimeSelfTest.ReleasePhase == 0))
             DeleteSelfTestSaves("selftest-save.json");
         else if (IsRecoveryTest && RuntimeSelfTest.RecoveryPhase == 0)
@@ -118,7 +119,7 @@ public partial class Main : Node3D
         ApplyDeveloperScenario();
         ApplySettings();
 
-        _world = new WorldBuilder { Name = "WorldBuilder", ProcessMode = ProcessModeEnum.Pausable };
+        _world = new WorldSceneAdapter { Name = "WorldBuilder", ProcessMode = ProcessModeEnum.Pausable };
         AddChild(_world);
         _world.Build();
 
@@ -192,7 +193,7 @@ public partial class Main : Node3D
         }
         if (HasUserArg("--scenario-m07"))
         {
-            BeginScenario(new Vector3(-38f, 0.2f, 3.0f), 0f,
+            BeginScenario(new Vector3(-38f, 0.2f, -4.0f), Mathf.Pi,
                 "SCENARIO: M07 active. Press E by the broken swings.", 5f);
             return;
         }
@@ -379,11 +380,12 @@ public partial class Main : Node3D
     private static bool IsTraversalTest => HasUserArg("--selftest-traversal");
     private static bool IsReleaseTest => HasUserArg("--selftest-release");
     private static bool IsHotfixTest => HasUserArg("--selftest-hotfix");
+    private static bool IsRestoreTest => HasUserArg("--selftest-restore");
 
     private static bool IsSelfTest =>
         HasUserArg("--selftest") || HasUserArg("--selftest-resume") || IsRecoveryTest ||
         IsLivingTest || IsRallyTest || IsChapterTest || IsFinaleTest || IsTraversalTest ||
-        IsReleaseTest || IsHotfixTest;
+        IsReleaseTest || IsHotfixTest || IsRestoreTest;
 
     private static bool IsSelfTestResume => HasUserArg("--selftest-resume");
 
@@ -391,6 +393,7 @@ public partial class Main : Node3D
         IsSelfTestResume || IsRecoveryTest ||
         (IsChapterTest && RuntimeSelfTest.ChapterPhase > 0) ||
         (IsReleaseTest && RuntimeSelfTest.ReleasePhase > 0) ||
+        (IsRestoreTest && RuntimeSelfTest.RestorePhase > 0) ||
         (IsHotfixTest && RuntimeSelfTest.HotfixPhase > 0);
 
     /// <summary>
@@ -765,7 +768,7 @@ public partial class Main : Node3D
             "E: Call van to parking", ResetVanAtSign, () => !_driving, true, 3.2f, "VanParkingStation");
         _parkingStation.SetPrompt(() => _driving ? "E: Parking sign" : "E: Call van to parking");
 
-        _playgroundStation = Interactable.Create(this, new Vector3(-38f, 0.1f, -1.5f),
+        _playgroundStation = Interactable.Create(this, _world.PlaygroundWorksite,
             "E: Playground worksite", InteractPlayground, null, true, 4.0f, "PlaygroundStation");
         _playgroundStation.SetPrompt(PlaygroundPrompt);
 
@@ -1671,7 +1674,7 @@ public partial class Main : Node3D
         foreach (var definition in NpcCatalog.All)
         {
             var actor = new NpcActor { Name = $"Npc_{definition.Id}" };
-            actor.Initialize(definition);
+            actor.Initialize(definition, _world.GetNpcPatrol(definition.Id));
             actor.TalkRequested += TalkToNpc;
             AddChild(actor);
             _npcs.Add(actor);
@@ -1687,10 +1690,11 @@ public partial class Main : Node3D
         {
             if (route.RallyOnly) continue;
             var car = new TrafficCar { Name = $"Traffic_{route.Id}" };
-            car.Initialize(route,
+            car.Initialize(route, _world.GetTrafficPoints(route.Id),
                 () => _player?.GlobalPosition ?? Vector3.Zero,
                 () => _van?.GlobalPosition ?? Vector3.Zero,
-                () => _driving);
+                () => _driving,
+                () => _trafficCars);
             AddChild(car);
             _trafficCars.Add(car);
         }
@@ -2825,7 +2829,7 @@ public partial class Main : Node3D
             var route = TrafficCatalog.Find("rally_rival");
             if (route == null) return;
             _rallyRival = new TrafficCar { Name = "RallyRival", ProcessMode = ProcessModeEnum.Pausable };
-            _rallyRival.Initialize(route,
+            _rallyRival.Initialize(route, route.Points,
                 () => _player?.GlobalPosition ?? Vector3.Zero,
                 () => _van?.GlobalPosition ?? Vector3.Zero,
                 () => _driving);
@@ -3548,9 +3552,93 @@ public partial class Main : Node3D
     internal ProcessModeEnum RtPlayerProcessMode => _player.ProcessMode;
     internal ProcessModeEnum RtVanProcessMode => _van.ProcessMode;
     internal ProcessModeEnum RtWorldProcessMode => _world.ProcessMode;
+    internal bool RtWorldIsCanonicalScene =>
+        _world?.Town != null &&
+        _world.Town.SceneFilePath == WorldSceneAdapter.TownScenePath &&
+        _world.Town.Name == "Town";
+    internal int RtWorldAnchorCount => _world?.AnchorCount ?? 0;
+    internal int RtWorldTopLevelRootCount => _world?.Town?.GetChildCount() ?? 0;
+    internal int RtBrokenSwingLabelCount => _world?.BrokenSwingLabels.Count ?? 0;
+    internal Vector3 RtWorldAnchorPosition(string id) =>
+        _world?.GetAnchorPosition(id) ?? new Vector3(9999, 9999, 9999);
+    internal Vector3 RtWorldNodePosition(string path)
+    {
+        var node = _world?.Town?.GetNodeOrNull<Node3D>(path);
+        return node?.Position ?? new Vector3(9999, 9999, 9999);
+    }
+    internal Vector3 RtWorldNodeGlobalPosition(string path)
+    {
+        var node = _world?.Town?.GetNodeOrNull<Node3D>(path);
+        return node?.GlobalPosition ?? new Vector3(9999, 9999, 9999);
+    }
+    internal int RtNpcRoutePointCount(string id) =>
+        _world?.GetNpcPatrol(id)?.Count ?? 0;
+    internal int RtTrafficRoutePointCount(string id) =>
+        _world?.GetTrafficPoints(id)?.Count ?? 0;
+    internal int RtRaceGateCount(bool grand) =>
+        grand ? _world?.M19RaceGates.Length ?? 0 : _world?.RaceGates.Length ?? 0;
+    internal Vector3 RtRaceGatePosition(bool grand, int index)
+    {
+        var gates = grand ? _world?.M19RaceGates : _world?.RaceGates;
+        return gates != null && index >= 0 && index < gates.Length
+            ? gates[index].Position
+            : new Vector3(9999, 9999, 9999);
+    }
+    internal float RtRaceGateYaw(bool grand, int index)
+    {
+        var gates = grand ? _world?.M19RaceGates : _world?.RaceGates;
+        return gates != null && index >= 0 && index < gates.Length
+            ? gates[index].Yaw
+            : 9999f;
+    }
+    internal bool RtWorldNodeExists(string path) =>
+        _world?.Town?.GetNodeOrNull<Node>(path) != null;
+    internal bool RtWorldNodeVisible(string path) =>
+        _world?.Town?.GetNodeOrNull<Node3D>(path)?.Visible == true;
+    internal Vector3 RtWorldBoxMeshSize(string path)
+    {
+        var node = _world?.Town?.GetNodeOrNull<Node>(path);
+        var mesh = node?.GetChildren().OfType<MeshInstance3D>()
+            .Select(instance => instance.Mesh as BoxMesh)
+            .FirstOrDefault(box => box != null);
+        return mesh?.Size ?? Vector3.Zero;
+    }
+    internal string RtWorldRayHit(Vector3 from, Vector3 to, uint mask)
+    {
+        using var query = PhysicsRayQueryParameters3D.Create(from, to, mask);
+        var hit = GetWorld3D().DirectSpaceState.IntersectRay(query);
+        if (hit.Count == 0) return "";
+        return (hit["collider"].AsGodotObject() as Node)?.Name.ToString() ?? "unknown";
+    }
     internal double RtRaceElapsed => _raceTimer.ElapsedSeconds;
     internal bool RtBridgeBuilt => _bridgeBuilder?.IsBuilt == true;
+    internal int RtBridgePieceCount => _data.BridgePieces.Count;
+    internal int RtBridgePlacedSocketCount => _bridgeBuilder?.PlacedSocketCount ?? 0;
+    internal bool RtSwingBuilt => _swingBuilder?.IsBuilt == true;
+    internal int RtSwingPlacedSocketCount => _swingBuilder?.PlacedSocketCount ?? 0;
+    internal int RtBrokenSwingLabelsVisible =>
+        _world?.BrokenSwingLabels.Count(label => label.Visible) ?? 0;
+    internal bool RtBridgeBarrierVisible => _world?.BridgeBarrier?.Visible == true;
+    internal bool RtBuildGhostLabelsHidden =>
+        !HasVisibleBuildGhostLabel(_bridgeBuilder) && !HasVisibleBuildGhostLabel(_swingBuilder);
+
+    private static bool HasVisibleBuildGhostLabel(Node root)
+    {
+        if (root == null || !GodotObject.IsInstanceValid(root)) return false;
+        foreach (Node node in root.FindChildren("*", "Label3D", true, false))
+        {
+            if (node is not Label3D label || !label.IsVisibleInTree()) continue;
+            if (label.Text is "SUPPORT" or "PLANK" or "ROPE" or "SEAT") return true;
+        }
+        return false;
+    }
+    internal bool RtPlaygroundFixHidden => _world?.PlaygroundFixSign?.Visible == false;
+    internal Vector3 RtPlaygroundStationPosition =>
+        _playgroundStation?.GlobalPosition ?? new Vector3(9999, 9999, 9999);
     internal int RtParkPlacementCount => _data.ParkPlacements.Count;
+    internal int RtParkVisualCount => _parkBuilder?.PlacedVisualCount ?? 0;
+    internal int RtFurniturePlacementCount => _data.FurniturePlacements.Count;
+    internal int RtFurnitureVisualCount => _furnitureBuilder?.PlacedVisualCount ?? 0;
     internal int RtSwingPieceCount => _data.SwingPieces.Count;
     internal string RtCharacterPreset => _data.CharacterPreset;
     internal string RtEquippedOutfit => _data.EquippedOutfit;
@@ -3666,6 +3754,12 @@ public partial class Main : Node3D
     internal ProcessModeEnum RtNpcProcessMode(string id) =>
         _npcById.TryGetValue(id, out var npc) ? npc.ProcessMode : ProcessModeEnum.Inherit;
 
+    internal void RtTeleportPlayerToClothesDoor()
+    {
+        _player.Teleport(_world.ClothesShopDoor + new Vector3(0f, 0.1f, -1.1f));
+        _player.ForceRefreshInteraction();
+    }
+
     internal void RtTeleportPlayerNearNpc(string id)
     {
         if (!_npcById.TryGetValue(id, out var npc)) return;
@@ -3741,6 +3835,18 @@ public partial class Main : Node3D
         _trafficCars.FirstOrDefault(c => c.RouteId == id)?.CurrentWaypoint ?? -1;
     internal bool RtTrafficHasEngineAudio(string id) =>
         _trafficCars.FirstOrDefault(c => c.RouteId == id)?.HasEngineAudio == true;
+    internal string RtPlayerVisualTemplate => _player?.VisualTemplatePath ?? "";
+    internal string RtVanVisualTemplate => _van?.VisualTemplatePath ?? "";
+    internal string RtNpcVisualTemplate(string id) =>
+        _npcById.TryGetValue(id, out NpcActor npc) ? npc.VisualTemplatePath : "";
+    internal string RtTrafficVisualTemplate(string id) =>
+        _trafficCars.FirstOrDefault(c => c.RouteId == id)?.VisualTemplatePath ?? "";
+    internal string RtPickupVisualTemplates =>
+        string.Join(",", _pickups
+            .Where(p => !string.IsNullOrEmpty(p.VisualTemplatePath))
+            .Select(p => p.ItemType + "=" + p.VisualTemplatePath.GetFile())
+            .Distinct()
+            .OrderBy(text => text, StringComparer.Ordinal));
     internal bool RtTrafficStopped(string id) =>
         _trafficCars.FirstOrDefault(c => c.RouteId == id)?.Stopped == true;
     internal int RtTrafficStopEvents(string id) =>
@@ -4083,6 +4189,12 @@ public partial class Main : Node3D
     internal bool RtPipCarFixedVisible => _world?.PipCarFixed?.Visible == true;
     internal bool RtRallyPodiumVisible => _world?.RallyPodium?.Visible == true;
     internal bool RtFestivalDecorVisible => _world?.FestivalDecor?.Visible == true;
+    internal bool RtFestivalTableVisible(int index) =>
+        _world != null && index >= 0 && index < _world.FestivalTableVisuals.Count &&
+        _world.FestivalTableVisuals[index].Visible;
+    internal bool RtFestivalLanternVisible(int index) =>
+        _world != null && index >= 0 && index < _world.FestivalLanternVisuals.Count &&
+        _world.FestivalLanternVisuals[index].Visible;
     internal bool RtRallyRivalPresent => _rallyRival != null && GodotObject.IsInstanceValid(_rallyRival);
     internal Vector3 RtRallyRivalPosition =>
         _rallyRival != null && GodotObject.IsInstanceValid(_rallyRival)
@@ -4108,8 +4220,10 @@ public partial class Main : Node3D
             if (result.Count == 0) continue;
             var collider = result["collider"].AsGodotObject();
             // Collision is intentionally flush with the ground now; prove the
-            // ray actually hit the rally road mesh rather than the island lawn.
-            if (collider is StaticBody3D body && body.Name == "RallyRoadCollision")
+            // ray hit the rally mesh, or the town-road collider where the two
+            // authored surfaces overlap, rather than the island lawn.
+            if (collider is StaticBody3D body &&
+                (body.Name == "RallyRoadCollision" || body.Name == "TownRoadCollision"))
                 hits++;
         }
         return hits;
@@ -4393,7 +4507,7 @@ public partial class Main : Node3D
             _data.ActiveMission = "";
             RefreshMissionState();
             _hud.Visible = false;
-            await SnapFreeCamera(new Vector3(3.5f, 4f, 1.5f), new Vector3(-2f, 1f, 4.8f),
+            await SnapFreeCamera(new Vector3(9.2f, 1.7f, 0f), new Vector3(9.2f, 1.3f, 3.8f),
                 $"{p}_04_market_stock.png");
 
             // M18 broken car, repair bench, repaired car.

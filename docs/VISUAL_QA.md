@@ -139,3 +139,119 @@ mean 16.67 ms / p95 17.28 ms over 600 frames. Windows rendering remains
 - Roof gable wedges are part of the flat-shaded toy style, not z-fighting.
 - Real-Radeon captures are recorded; Windows rendering and player-eye comfort
   remain **NOT TESTED** in this environment.
+
+## v1.3.0 canonical visual audit (P18)
+
+The canonical scene was audited from 39 fixed district cameras at 1280×720,
+with every static `Label3D` rendered from both sides, plus the 18-shot P14,
+10-shot P12 and 14-shot P13 tours at true 1920×1080.
+
+| ID | Defect | Root cause | Fix | Evidence |
+|---|---|---|---|---|
+| V16 | Freestanding sign text mirrored from the viewer side (bakery, library, jobs, playground, community garden, stone patch, race meadow, bridge works, sign sockets, direction post). | Labels were left facing away from the intended viewer; several were on the wrong side of their panel. | Added a correctly rotated front label and back label to each sign, made each label single-sided, and moved the stone-patch label to the town-facing side. | `evidence/v13_canonical_visual/07_bakery_front.png`, `09_library_front.png`, `11_job_board_front.png`, `05_playground_sign_front.png`, `20_community_garden.png`, `19_stone_patch.png`, `21_rally_signs.png`, `24_bridge_site.png`, `37_market_sign_socket.png` |
+| V17 | Sign panels floated without posts (playground, community garden, stone patch, race meadow, bridge works). | Authored panels had no support geometry. | Added two wooden posts behind each wide panel and one post behind the bridge-works panel. | same set plus `13_direction_post_front.png` |
+| V18 | Two overlapping BROKEN labels per swing frame; rear view mirrored. | One fixed and one billboard label occupied the same spot. | Removed the fixed duplicate; one billboard label remains per frame. | `33_swing_front.png`, `34_swing_back.png` |
+| V19 | Duplicate BRIDGE WORKS sign and cones overlapped the canonical bridge site. | Legacy worksite instance remained beside the canonical `BridgeSite`. | Removed the legacy instance; kept the canonical anchor/sign/crate. | `24_bridge_site.png` |
+| V20 | Lamps inside the town hall, playground sandpit, road, and across sign sightlines. | Legacy lamp coordinates were not adjusted for the authored scene collision. | Moved lamps to verges, moved the playground lamp outside the sand, moved the town-hall lamp to its front verge, removed the redundant direction-post lamp. | `31_west_top_down.png`, `32_east_top_down.png`, `13_direction_post_front.png` |
+| V21 | Playground sign, direction post and bench stood in the main road. | Source coordinates came from the older, narrower road layout. | Moved the sign to the playground entrance, moved the post/bench off the carriageway, removed the redundant lamp. | `05_playground_sign_front.png`, `13_direction_post_front.png`, `30_top_down.png` |
+| V22 | Bench on the rally start road. | Legacy decoration placement. | Removed the misplaced bench. | `p12_1080_02_start_line.png` |
+| V23 | Gate number panels blank/edge-on from the approach. | Single small number face was on the far side of the panel. | Added larger numbers on both faces of all six gate panels. | `22_gate_one_front.png`, `23_gate_one_back.png`, `35_gate_two_front.png`, `36_gate_two_back.png` |
+| V24 | `SUPPORT`/`ROPE`/`SEAT` ghost labels visible during normal play. | Build ghosts stayed visible when their build mode was closed. | `BuildSocket` now hides ghost mesh/icon/label outside build mode; runtime regression added. | `p12_1080_02_start_line.png` |
+
+## v1.3.0 manual defect pass (V25–V35)
+
+This pass used ordinary gameplay-height cameras and distances rather than only
+fixed inspection cameras. Each item was re-rendered from the same viewpoint
+after correction. Evidence is in the ignored
+`evidence/v13_canonical_visual/v13.1_recheck/` directory.
+
+| ID | Defect | Root cause | Fix | Evidence |
+|---|---|---|---|---|
+| V25 | `BRIDGE WORKS` text embedded in the sign panel; a second tiny fragment above it. | One billboard label was anchored behind the panel, so it clipped through both faces. | Replaced it with two single-sided labels just outside each panel face and moved the support posts behind the sign. | `V25_bridge_works_close.png` |
+| V26 | Red House (and the other gabled buildings) had open gable ends with sky visible under the roof. | The reusable buildings had roof slabs and walls but no triangular end walls. | Added a wall-coloured `PrismMesh` gable to both ends of RedHouse, PlayerHouse, Workshop, Market, ClothesShop and TownHall, sized to the roof ridge and width. | `V26_red_house_corner.png`, `V26_player_house_corner.png`, `V26_workshop_corner.png`, `V26_market_corner.png`, `V26_clothes_corner.png`, `V26_townhall_north.png` |
+| V27 | Playground swings, sign and yellow interaction marker encroached on the carriageway. | The playground sand overlapped the road and the interaction station was at the old road edge. | Moved the playground centre to z=-9.5, shortened the sand to 12.4 m, moved the swings to z=-11.5, moved the station to z=-5.0 on the sand, and moved the fix sign and bench with it. | `V27_playground_road.png`, `V27_playground_marker.png` |
+| V28 | Playground sign intersected/obscured the nearest swing frame. | The sign sat between the swing frames at the old centre. | Centred the sign at the playground entrance (local 0,2.1,6.0), 8 m clear of the swings, with new posts. | `V27_playground_road.png` |
+| V29 | Rally gate number was partly behind the crossbeam. | The number panel was centred at y=5.45 while the beam top is y=5.15. | Raised and shortened the panel to 2.4×1.45 m at y=5.95, with matching numbers on both faces of all six gates. | `V29_gate4_approach.png` |
+| V30 | Delivery-van cargo roof showed black/yellow moiré, and `PATCHWORK POST` floated above the body. | The authored vehicle GLBs have no normal data; their flat panels self-shadowed. The rear label sat inside/above the cargo box. | Disabled self-shadow casting for the van and all NPC/rival cars, added a soft contact shadow, and placed the postal label flush on the rear door. | `V30_van_isolated_rear_high.png`, `p12_1080_02_start_line.png`, `p14_1080_01_post_counter.png` |
+| V31 | Pip's broken-car label floated against the workshop wall. | The billboard label was high above the roofline and low contrast. | Lowered it to 1.82 m, raised the font to 40 with a cream outline, and applied the same treatment to the repaired-car label. | `V31_pip_car.png`, `p14_1080_06_broken_pip_car.png` |
+| V32 | Jobs Board junction showed overlapping rectangular road patches, dark joins and lane lines crossing side-road mouths. | Road slabs overlapped at different heights, three stray patches did not connect to anything, and centre/edge dashes ran across junctions. | Removed the three stray patches, trimmed side roads to butt against the main carriageway at z=±3.2, unified every slab top at y=0.0175, and removed centre/edge dashes inside junction mouths. | `V32_jobs_overhead.png`, `V32_road_west_top.png` |
+| V33 | Crossing stripes extended past the side-road boundary. | The crosswalk was 4.2 m wide over a 3.6 m mouth. | Narrowed the crossing to 3.2 m, centred in the mouth. | `V33_crosswalk_top.png`, `p14_1080_01_post_counter.png` |
+| V34 | Lamps stood in the carriageway or against an awning near the Jobs Board. | Legacy lamp coordinates were not checked against the authored road rectangles. | Moved the in-road lamp to the verge between the two north roads and moved the Market lamp to the south verge, clear of the awning. | `V32_jobs_overhead.png`, `V34_lamp_jobs.png`, `V26_market_corner.png` |
+| V35 | `BROKEN`, car-status and `START / FINISH` labels were hard to read at gameplay distance. | Small font sizes and billboard labels that could clip into their backing panels. | Raised the swing label to 46 px with outline, raised the car label to 40 px with outline, enlarged the start flag to 2.8×1.5 m with two 54 px single-sided faces, and moved the postal label to a readable rear position. | `V35_swing_labels.png`, `V35_start_flag.png`, `V35_start_flag_back.png`, `p12_1080_02_start_line.png` |
+
+The blue traffic car in `p12_1080_02_start_line.png` showed the same missing-normal
+roof moiré found on the van. The fix was applied to every `TrafficCar` visual
+(including the rally rival), not just the player van.
+
+### P3 consistency follow-up — no visual pixels changed
+
+The V27 fix moved the playground and station manually, but the underlying
+coordinates were still duplicated in `GameplayAnchors.tscn` and `Main.cs`. The
+playground asset now owns a `WorksiteMarker` at the same verified station point,
+`PlaygroundCenter` follows the scene root, and the station resolves from the
+marker. The rendered position is unchanged, so the existing
+`V27_playground_marker.png` capture remains valid.
+
+The V32 road cleanup removed three visual patches but left their collision
+shapes and old `RoadNetwork` rectangles behind. Collision and road-surface
+classification now use exactly the eight visible slabs; this changes physics
+and footstep classification on the former patches, not any rendered pixels.
+
+### Round-3 gameplay visual pass (V36–V48)
+
+Every geometry correction was re-rendered from the failing direction, the
+opposite side and normal player height. The evidence set is in
+`evidence/v13_canonical_visual/v13.2_round3/`.
+
+| ID | Defect | Correction | Evidence |
+|---|---|---|---|
+| V36 | Gables sat on the eave walls, leaving the ridge end open; roof-overhang shadows made the remaining wall look like a hole. | Moved `GableEast`/`GableWest` to the ridge ends on all six buildings, rotated 90°, sized to depth, and used a `disable_receive_shadows` gable material. The thin dark band left from a low end-on camera is the normal underside of the 0.45 m roof overhang, not an opening. | `gable_six/*.png` (24 views), `redhouse_west_end.png`, `redhouse_south.png` |
+| V37 | 8×1.5 m banner dominated the Town Hall frontage. | Replaced with a 4.72×0.75 m free-standing banner at the M20 festival entrance `(15,3.35,19.8)`, in front of the bunting line and clear of the Town Hall and market alley; yellow emission keeps the shaded face readable, and the centre lantern moved to `x=18.6` so it cannot cover the back text. | `banner_front.png`, `banner_front_player.png`, `banner_back.png`, `banner_back_player25.png` |
+| V38 | Banner text clipped or disappeared at oblique angles. | Two single-sided labels on opposite panel faces, offset outside the surface, no billboard; panel overlaps both posts so it no longer looks wedged between them. | `banner_front.png`, `banner_back.png`, independent front/back/oblique captures |
+| V39 | Four directional signs formed a cluster over Milo and the Town Hall. | One post with four stacked arms at `(-5.0,0,-4.5)`, clear of Milo's patrol; the independent pass caught inverted arrows, which were swapped and are now asserted on all eight strings. | `signpost_front.png`, `signpost_back.png` |
+| V40 | GOLD LAP text clipped/detached. | Two single-sided 56 px labels offset from the flag faces; flag moved to `(64.5,0,-15.5)` so the start/finish pole no longer hides `GO` from the southwest. | `gold_flag_sw.png` |
+| V41 | Pip car status floated above the body. | Scene-owned `StatusAnchor`, label lowered to 1.72 m and reduced to 36 px. | `pip_car.png`, `V41_V47_pip_nameplate.png` |
+| V42 | NPC names overlapped central signs. | Smaller 56 px labels with distance scaling and a 34 m range; signpost moved away. | `V42_milo_nameplate.png`, `V42_ollie_nameplate.png` |
+| V43 | Van rear lettering too small. | 42 px text with 6 px outline at 1.05 m; rear-door fit checked on the glTF. | `V43_van_rear.png` |
+| V44 | Repeated dark rectangles along the Town Hall roadside. | All 28 CelebrationDecor and all 8 FestivalDecor bunting meshes have `cast_shadow = 0`; the festival shadow edge across the banner is gone. | `bunting_shadows.png`, `banner_front.png` |
+| V45 | Swing frame looked incomplete. | Verified intentional pre-M07 state: crossbar present, two `BROKEN` labels, runtime assertion already covers it. | `redhouse_south.png` |
+| V46 | Alley between buildings congested. | Banner moved to the festival entrance; the signpost now stands on the road verge south of the buildings, not in the Town Hall/market alley. | `townhall_west.png`, `signpost_front.png` |
+| V47 | Pip portrait dominated the foreground. | Portrait pixel size reduced from 0.0034 to 0.0018, 24 m range and distance scaling. | `V41_V47_pip_nameplate.png` |
+| V48 | GRAND RALLY label detached from the trophy. | Mounted the label on a 2.9×0.5 m board on two posts above the trophy, front and back. | `podium.png` |
+
+
+### Final independent verification
+
+The independent verifier rendered the failing angles again after each change.
+Its final verdict at `1e57711` is PASS for all of V36–V48: gables closed from
+all four sides, banner readable from the village and festival approaches,
+all eight signpost arrows pointing at the real destinations, full `GOLD LAP`
+clear of the start/finish pole, Pip's status attached from rear/sides, podium
+label attached, no bunting or lantern silhouette, and no z-fighting or
+wrong-facing text. The only remaining caveats are the normal roof-overhang
+shadow at the gable eaves and the expected difference between the sunlit
+banner back and the shaded front.
+
+### Round-4 gameplay visual pass (V49–V57)
+
+Each defect was re-rendered from the failing direction, the opposite side and
+normal player height. The evidence set is in
+`evidence/v13_canonical_visual/v13.3_round4/`.
+
+| ID | Defect | Correction | Evidence |
+|---|---|---|---|
+| V49 | Swing posts crossed or stood vertical at one end. | Front/back legs now tilt in opposite X directions at both ends, meeting under the crossbar; left/right splay retained. | `v49_swing_aframes.png` |
+| V50 | Van's soft shadow was offset and add-ons cast detached blobs. | Contact shadow enlarged to `1.18 × 1.78` at alpha 0.18; antenna, flag and postal pieces set to `cast_shadow = 0`. | `v50_van_rear_shadow.png`, `v50_v51_van_side.png` |
+| V51 | White rectangle with black lines read as a window. | Cream/navy envelope panel with flap, red stamp and `POST` on both sides. | `v50_v51_van_side.png` |
+| V52 | Pip's wheels lay flat like pucks. | Both car variants rotate all wheel cylinders `(0,0,1.5708)`. | `v52_pip_fixed_wheels.png`, `v52_pip_broken_wheels.png` |
+| V53 | Player head was bald from behind. | Back, side and fringe hair plus a girl's bob on the head pivot. | `v53_player_hair_back.png`, `v53_player_hair_front.png` |
+| V54 | Library shelves faced away from the reader. | Ledges and book slots moved to local `-Z`; slots rotated 180°. | `v54_library_street_face.png`, `v54_library_rear_face.png` |
+| V55 | Grey road chord overlay the circuit and ended inside the oval. | Removed the chord and its landing; the wooden deck connects the main street to the circuit; markings and `RoadNetwork` rectangle removed. | `v55_bridge_circuit_top.png`, `v55_bridge_circuit_oblique.png` |
+| V56 | Perimeter hedge had a gap at one end and an overlap at the other. | North/south walls and sand centred at `x=20`, length `150.2`, flush with the west/east walls. | `v56_perimeter_nw.png`, `v56_perimeter_ne.png`, `v56_perimeter_sw.png`, `v56_perimeter_se.png` |
+| V57 | Tree canopies merged. | `Tree_20` → `(65.5,-23)`, `Tree_25` → `(-37,-38)`; closest remaining pair 4.47 m. | `v57_trees_east.png`, `v57_trees_southwest.png` |
+
+The removed east road also required the delivery car's route to move onto the
+main street. Both free-roam routes now use `z=+0.5` westbound and `z=-2.0`
+eastbound; every waypoint is at least 1.8 m and every sampled runtime position
+at least 1.7 m from a critical station. `TrafficCar` now freezes its steering
+while yielding so a stopped car cannot swivel away from a waiting player.

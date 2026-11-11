@@ -600,3 +600,223 @@ The complete M01–M20 domain walkthrough is automated and green. The real-UI
 phases collectively cover M11–M20; the original M01–M10 real-input walkthrough
 from P2/P9 remains the prior evidence. One continuous human M01–M20 sitting is
 **NOT TESTED** in this environment.
+
+## v1.3.0 — scene-based town migration (P16 gate)
+
+Scope: replace the runtime procedural static town with the exact baked
+`Town_Baked.tscn` while keeping v1.2.1 gameplay, schema-3 saves and mission
+content byte-for-byte compatible. Source version is `1.3.0`; no tag or release
+was created. Baseline is `2d6647b` (v1.2.1).
+
+| # | Handoff parity requirement | Result |
+|---|---|---|
+| 1 | `Town_Baked` imports/opens with no missing resources | **PASS** — editor import exit 0; scene opens and every packaged phase loads it. |
+| 2 | Source placement/yaw/wall dimensions/doors match manifest ≤0.01 m | **PASS** — adapter enforces six centres/yaws and wall boxes; all 75 door/pad/pickup anchors match. Pure scene tests repeat the checks. |
+| 3 | All critical anchors resolve exactly once | **PASS** — 75/75 anchors cached, unique and validated; wrong count fails loudly. |
+| 4 | Equivalent collision; camera-only blockers layer 16 | **PASS** — layer-1 ground/wall/rally collision rays, open river gap, layer-16 door blocker checks, plus the real traversal suite across both bridge directions. |
+| 5 | World object/scene IDs match historical saves; no renames | **PASS** — dynamic roots keep source names; `--selftest-restore` proves partial bridge/swing/park/furniture/finale states reload. |
+| 6 | All 20 missions complete through stations | **PASS** — 1124 source runtime assertions and every packaged phase. |
+| 7 | Partial M03/M07/M08/M10/M15/M18/M20 saves restore visuals | **PASS** — new `--selftest-restore` (54 assertions) reloads seven real fixtures. |
+| 8 | v1.2.1 158-coin save with placements/outfits/bridge restores | **PASS** — release phase writes and reloads a schema-3 158-coin fixture with bridge, swings, park, furniture, outfits and player/van transforms. |
+| 9 | NPC patrols and both free-roam traffic routes unchanged | **PASS** — adapter validates every waypoint against `NpcCatalog`/`TrafficCatalog`; pure tests validate the same marker scenes. |
+| 10 | Linux export boot, CI, packaged runtime pass | **PASS (local)** — packaged Linux build passes all 11 phases and `--quit-after 120`; CI command list updated. GitHub CI not yet run on a pushed commit. |
+| 11 | Comparable GPU FPS/frame time, no large regression | **PASS** — real Radeon 890M: identical 3394 draw calls / 66069 primitives; 16.68–16.71 ms mean at 720p and 1080p vs 16.67–16.71 ms baseline. |
+| 12 | Visual check at 1280×720 and 1920×1080 | **PASS (capture)** — full 18-shot P14 tours captured at both sizes in `evidence/v13_scene_world/`; known v1.2.1 glitches remain by design. |
+
+**Build/test gates:** build 0/0; pure **111 passed**; source runtime **1124
+passed, 0 failed**; packaged Linux runtime **1124 passed, 0 failed**; zero leaked
+unsafe references; packaged boot exit 0.
+
+**Final package:** `dist/linux/PatchworkIsland.x86_64`, SHA-256
+`439083f34467e3bbfe7d1e93202745e246f2df68042ac903766e968096e2455a`.
+
+**Remaining severity:** no migration blocker known. Visual polish, Windows
+startup and one continuous human M01–M20 sitting remain untested/deferred; they
+are not claimed. No tag or release has been created.
+
+## v1.3.0 — canonical editor-authoritative town (P17 gate)
+
+Scope: replace the baked/procedural runtime town with the supplied canonical
+scene kit while preserving schema-3 saves, M01–M20 and existing controllers.
+Baseline remains `2d6647b` (v1.2.1); branch `v1.3.0-canonical-town` stacks on
+PR #27. No tag, merge or release created.
+
+| # | Canonical handoff requirement | Result |
+|---|---|---|
+| 1 | Import every authored scene without errors | **PASS** — editor import exit 0; every new `.tscn` loaded headlessly with no failures. |
+| 2 | Create canonical `Town.tscn` from `Town_Assets.tscn`; keep bake as reference | **PASS** — runtime loads `Town.tscn`; `Town_Assets.tscn` and `Town_Baked.tscn` are reference-only. No runtime `WorldBuilder.Build()` or `SceneBakeTool`. |
+| 3 | Scene-authoritative doors and markers; no C# position equality | **PASS** — 75 anchors, six building `DoorMarker`s, gate nodes and build/sign/festival markers are read from scene transforms. |
+| 4 | NPC/traffic routes bind to scene marker groups | **PASS** — all six NPC routes and both free-roam traffic routes resolve from `NpcPatrolMarkers`/`TrafficRouteMarkers`; M05/M09 and M19 gates resolve from authored roots. |
+| 5 | Keep dynamic actor controllers/collision; replace visual subtrees | **PASS** — GLB templates now render player, six NPCs, van, two town cars, rally rival and all pickups; animation pivots, wheel spin and save state are retained. |
+| 6 | Keep stateful roots, built pieces, display slots and recovery | **PASS** — bridge/swing/park/furniture ownership unchanged; bakery/library slots and sign sockets are authored scene nodes; restore phase is green. |
+| 7 | Collision: ground/roads/rally layer 1, camera blockers layer 16 | **PASS** — road roadbed is flush at `y=0`, removing junction/bridge lips; all traversal checks pass in both directions. |
+| 8 | Editor-move proof: ClothesShop +5 m, interaction follows, old save loads | **PASS** — door moved `3.5 → 8.5` with centre `7 → 12`; prompt, Sunny Day purchase, resume (21) and restore (54) all passed, then layout restored. |
+| 9 | Save schema 3, v1.2.1 full/partial saves, M18 pickups, celebrations | **PASS** — unchanged schema and all historical phases green. |
+| 10 | 11 Godot runtime phases including restore | **PASS** — source and packaged Linux: **1166 passed, 0 failed**, every exit 0. |
+| 11 | 720p/1080p screenshots and real-GPU frame time | **PASS** — P14 18/18 at 1280×720 and 1920×1080, P12 10/10 at 720p; canonical 16.68–17.08 ms vs baseline 16.70–16.71 ms with fewer draws/primitives. |
+| 12 | CI runs packaged restore; exact-head green | **PASS** — [run 42850939120](https://github.com/PhilipGB/patchwork-island/actions/runs/42850939120) passed `build-test` (6m25s) and `windows-tests` (2m13s), including packaged `--selftest-restore` (54 passed). |
+
+**Build/test gates:** build 0/0; pure **111 passed**; source runtime **1166
+passed, 0 failed**; packaged Linux runtime **1166 passed, 0 failed**; packaged
+boot exit 0.
+
+**Deviations documented:** no scooter GLB (stable `town_scooter` route uses the
+green town car), four scene-authored `BROKEN` labels (two per swing frame), and
+authored sign-socket/display-slot scenes added where the candidate scene lacked
+existing gameplay IDs. See `docs/CANONICAL_TOWN.md` and
+`docs/scene_bindings.json`.
+
+**Remaining severity:** no canonical migration blocker known. Human visual and
+one continuous M01–M20 sitting remain **NOT TESTED**; Windows startup remains
+**NOT TESTED** and is not claimed. No tag or release created.
+
+## v1.3.0 — canonical visual audit (P18 gate)
+
+A full 1080p audit covered every district, all static signs from both sides,
+the rally gates, celebration/festival state and build-mode previews.
+
+| # | Visual check | Result |
+|---|---|---|
+| 1 | No mirrored static text from viewer-facing sides | **PASS** — Bakery, Library, Job Board, Playground, Community Garden, Stone Patch, Race Meadow, Bridge Works, Sign Socket and Directional Sign labels corrected and re-captured. |
+| 2 | Freestanding signs have visible supports | **PASS** — posts added to Playground, Community Garden, Stone Patch, Race Meadow and Bridge Works. |
+| 3 | No duplicated BROKEN or BRIDGE WORKS assets | **PASS** — duplicate fixed BROKEN label and legacy BridgeWorksite instance removed. |
+| 4 | No lamps inside buildings, sandpits or sign sightlines | **PASS** — road-edge lamps moved to verges; town-hall and playground lamps relocated; redundant direction-post lamp removed. |
+| 5 | No signs or benches standing in roads | **PASS** — Playground sign moved to its entrance verge; direction post/bench moved off the carriageway; rally-start bench removed. |
+| 6 | Rally gate numbers readable from both approaches | **PASS** — both faces of all six gate panels carry correctly rotated numbers. |
+| 7 | Build ghosts hidden outside build mode | **PASS** — SUPPORT/PLANK/ROPE/SEAT ghosts stay hidden until the matching build mode opens; regression added. |
+| 8 | Physics/traversal unchanged | **PASS** — all 18 traversal assertions pass, including bridge crossings in both directions. |
+
+**Gates:** pure **111 passed**; source runtime **1168 passed, 0 failed** across
+all 11 phases. Packaged Linux is rebuilt and verified in `PROGRESS.md`.
+
+**Evidence:** ignored `evidence/v13_canonical_visual/` (39 audit views plus P12,
+P13 and P14 1080p tours). No generated images are committed.
+
+**Remaining severity:** no visual blocker known. Human sign-off, one continuous
+M01–M20 sitting and Windows startup remain **NOT TESTED**. No tag or release.
+
+## v1.3.0 — gameplay-height defect re-check (V25–V35)
+
+| # | Visual check | Result |
+|---|---|---|
+| 1 | Bridge Works sign readable from both sides, with no clipped text | **PASS** — two single-sided labels, posts behind the panel. |
+| 2 | Gabled buildings closed at both ends | **PASS** — two wall-coloured gables added to RedHouse, PlayerHouse, Workshop, Market, ClothesShop and TownHall. |
+| 3 | Playground, swings, sign and interaction marker clear of the road | **PASS** — playground moved south, marker on sand, swings 8 m from the road. |
+| 4 | Playground sign clear of the swing structure | **PASS** — entrance sign centred, no intersection. |
+| 5 | All six rally gate numbers readable from both approaches | **PASS** — panels raised above the beam and dual-faced. |
+| 6 | No vehicle roof moiré or detached postal label | **PASS** — van and all traffic/rival cars use a contact shadow instead of self-shadowing; label flush on the rear door. |
+| 7 | Pip car label reads as attached to the vehicle | **PASS** — lowered, enlarged, outlined. |
+| 8 | Road junctions continuous with no stray patches or crossing lane lines | **PASS** — slabs trimmed and levelled, markings cleared at mouths. |
+| 9 | Crossing stripes stay inside the side road | **PASS** — crossing narrowed to 3.2 m. |
+| 10 | Lamps clear of carriageway and awnings | **PASS** — two lamps relocated. |
+| 11 | World labels readable at gameplay distance | **PASS** — swing, car, flag and postal labels enlarged/outlined. |
+
+**Gates:** pure **111 passed**; source runtime **1168 passed, 0 failed** across
+all 11 phases. Packaged Linux verification is recorded in `PROGRESS.md`.
+
+**Evidence:** ignored `evidence/v13_canonical_visual/v13.1_recheck/` (31
+gameplay-height probe views plus final 1080p P12/P13/P14 tours).
+
+**Remaining severity:** no visual blocker known. Human sign-off, one continuous
+M01–M20 sitting and Windows startup remain **NOT TESTED**. No tag or release.
+
+## v1.3.0 — road and playground consistency follow-up (P3)
+
+| # | Consistency check | Result |
+|---|---|---|
+| 1 | Every removed visual road patch has its collider removed | **PASS** — stale `Collision_07/09/10` and their shapes removed; 8 slabs have 8 colliders. |
+| 2 | Every remaining collider matches a visible slab | **PASS** — five side-road colliders repositioned/resized to the trimmed mesh extents; pure test matches every centre and half-extent within 0.01 m. |
+| 3 | `RoadNetwork` matches the authored asphalt | **PASS** — eight rectangles mirror `TownRoads_Collidable.tscn`; grass beside the former stray patches is no longer classified as road. |
+| 4 | Runtime rejects count drift | **PASS** — `WorldSceneAdapter` requires one layer-1 collider per visible `RoadSlab`. |
+| 5 | Playground interaction position is scene-owned | **PASS** — `Playground/WorksiteMarker` drives the station; no hard-coded playground coordinate remains. |
+| 6 | Existing `PlaygroundCenter` anchor is synchronised | **PASS** — anchor is `(-38,0,-9.5)` and is rejected at load if it drifts from the Playground root. |
+| 7 | Regression coverage | **PASS** — pure test parses both authored road scenes and `RoadNetwork`; runtime test covers anchor, marker and station. |
+
+**Gates:** pure **113 passed**; source runtime **1171 passed, 0 failed** across
+all 11 phases. Packaged verification is recorded in `PROGRESS.md`.
+
+**Remaining severity:** no known consistency blocker. Human visual sign-off,
+one continuous M01–M20 sitting and Windows startup remain **NOT TESTED**.
+
+## v1.3.0 — round-3 visual defects (V36–V48)
+
+| # | Visual check | Result |
+|---|---|---|
+| 1 | V36 all six buildings have closed gable ends | **PASS** — `GableEast`/`GableWest` on the ridge ends, rotated 90°, sized to each building depth, with shadow-free gable material; pure test checks all six. |
+| 2 | V37 banner no longer dominates the Town Hall | **PASS** — reduced from 8×1.5 m floating panel to 4.72×0.75 m free-standing banner at the festival entrance `(15,3.35,19.8)`; Town Hall frontage completely clear and the centre lantern moved to `x=18.6` so it cannot cover the back text. |
+| 3 | V38 banner readable from both sides | **PASS** — two single-sided text labels on opposite faces, no billboard, offsets outside the panel; yellow emission keeps the shaded face readable. |
+| 4 | V39 directional signs no longer cluster over NPCs/Town Hall | **PASS** — four arms on one post at `(-5.0,0,-4.5)`, outside Milo's patrol by >2.5 m; all eight front/back arrow strings now point at the real destinations. |
+| 5 | V40 GOLD LAP text stays attached and readable | **PASS** — two single-sided 56 px labels just outside each flag face; flag moved to `(64.5,0,-15.5)` so the start/finish pole no longer hides `GO`. |
+| 6 | V41 Pip car status reads as vehicle-attached | **PASS** — scene-owned `StatusAnchor`, 36 px label at 1.72 m. |
+| 7 | V42 NPC nameplates do not overlap central signage | **PASS** — 56 px labels, distance scaling, 34 m range; signpost moved out of Milo's route. |
+| 8 | V43 delivery van lettering readable from behind | **PASS** — 42 px, 6 px outline, 1.05 m; glTF rear-door probe confirms it fits. |
+| 9 | V44 no repeated dark rectangles on Town Hall roadside | **PASS** — all 28 CelebrationDecor and all 8 FestivalDecor bunting meshes stop casting shadows. |
+| 10 | V45 swing frame is intentionally broken before M07 | **PASS** — crossbar, two `BROKEN` labels and the existing runtime broken-label assertion; no missing geometry. |
+| 11 | V46 alley sightlines clear of banner/signs | **PASS** — banner moved to the festival entrance; the signpost is now a single stack on the south road verge, clear of Milo and the M16/M17 props. |
+| 12 | M16 delivery board and M17 market stock do not hide each other | **PASS** — market stock moved to the market front `(9.2,3.8)`, more than 11 m from the delivery board. |
+| 13 | V47 NPC portraits no longer dominate foreground | **PASS** — portrait pixel size reduced 47%, 24 m range and distance scaling. |
+| 14 | V48 GRAND RALLY label attached to podium | **PASS** — 2.9×0.5 m board on two posts above the trophy, front and back labels. |
+
+**Gates:** pure **119 passed**; source runtime **1171 passed, 0 failed** across
+all 11 phases; headless import and boot exit 0; packaged Linux boot plus all 11
+phases **1171 passed, 0 failed**, 3× `--selftest` green, ZIP-extracted
+`--selftest` 284/284; exact-head CI on `1e57711` green for `build-test` and
+`windows-tests`. Windows rebuilt, startup **NOT TESTED**.
+
+**Evidence:** ignored `evidence/v13_canonical_visual/v13.2_round3/`.
+
+**Remaining severity:** no known visual blocker. The independent pass found
+and we fixed the inverted V39 arrows, the start/finish pole crossing GOLD LAP,
+the banner post gap, a bunting silhouette on the banner, and the centre
+festival lantern covering the back text. The final pass at `1e57711` is PASS
+on every V36–V48 item. Human sign-off, one continuous M01–M20 sitting and
+Windows startup remain **NOT TESTED**.
+
+## v1.3.0 — round-4 visual defects (V49–V57)
+
+| # | Visual check | Result |
+|---|---|---|
+| 1 | V49 swing posts meet correctly at both ends | **PASS** — front/back legs splay in opposite X directions and the left/right pair splays inward; all four tops meet under the crossbar. |
+| 2 | V50 van shadow sits under the vehicle | **PASS** — one soft contact shadow covers the footprint; antenna, flag and postal pieces no longer cast detached shadows. |
+| 3 | V51 van side mark reads as postal identity | **PASS** — cream panel, navy border, envelope flap, red stamp and `POST` on both sides. |
+| 4 | V52 Pip's car wheels are vertical discs | **PASS** — all eight wheel cylinders on both variants rotated `(0,0,1.5708)`. |
+| 5 | V53 hair on the back of the head | **PASS** — back, side and fringe hair plus a girl's bob, visible from the chase camera without covering the face. |
+| 6 | V54 library shelves face the reader | **PASS** — ledges and book slots moved to the labelled `-Z` front; book slots rotated 180°. |
+| 7 | V55 bridge-to-circuit road no longer overlays the circuit | **PASS** — 37.5 m east-road chord and its landing removed; the wooden bridge deck is the connector; 7 authored slabs and 7 `RoadNetwork` rectangles. |
+| 8 | V56 perimeter barrier has no corner gap or overlap | **PASS** — north/south walls and sand at `x=20`, length `150.2`, flush with the west/east walls; colliders match. |
+| 9 | V57 trees no longer overlap | **PASS** — `Tree_20` and `Tree_25` moved; closest remaining pair is 4.47 m. |
+| 10 | Delivery traffic stays clear of stations after the road removal | **PASS** — both free-roam routes moved to `z=+0.5/-2.0`; no waypoint below 1.8 m and no sampled runtime position below 1.7 m from a critical station. |
+
+**Gates:** pure **119 passed**; source runtime **1171 passed, 0 failed** across
+all 11 phases; headless import and boot exit 0; packaged Linux boot plus all 11
+phases **1171 passed, 0 failed**, 3× `--selftest` green, ZIP-extracted
+`--selftest` 284/284. Windows rebuilt, startup **NOT TESTED**.
+
+**Evidence:** ignored `evidence/v13_canonical_visual/v13.3_round4/` (17 views:
+swing A-frames, bridge/circuit, van, Pip cars, player hair, library, all four
+perimeter corners and both tree groups).
+
+**Remaining severity:** no known visual blocker. Human visual sign-off, one
+continuous M01–M20 sitting and Windows startup remain **NOT TESTED**.
+
+## v1.3.0 — review follow-up: traffic separation and manifest history (P2/P3)
+
+| # | Check | Result |
+|---|---|---|
+| 1 | P2 free-roam cars keep a safe following gap over several loops | **PASS** — the shared route-progress rule holds a 7 m minimum gap; the pure simulation runs six loops at 60 Hz and asserts the gap stays ≥6.9 m. |
+| 2 | P2 following rule is deterministic with a single right of way | **PASS** — only the car behind yields; at equal progress the lexicographically larger route id yields. Both directions are tested. |
+| 3 | P2 no deadlock | **PASS** — the leader always proceeds, so two cars cannot yield to each other; the simulation records zero mutual-yield steps and both cars complete more than three loops. |
+| 4 | P2 runtime integration | **PASS** — `Main.SpawnTraffic` supplies the live `_trafficCars` list; `TrafficCar.ShouldYield()` checks traffic after the player/van checks; all 11 source and packaged phases pass. |
+| 5 | P3 historical v1.2.1 manifest preserved | **PASS** — restored to the original `1b63c13` content: 12-point delivery route starting at `(66,-1.5)`, old scooter lanes. A pure test guards the endpoints and source string. |
+| 6 | P3 separate v1.3.0 manifest | **PASS** — `docs/layout_manifest_v1.3.0.json` carries the canonical town and round-4 20-point routes; `source` is tag v1.3.0. |
+| 7 | P3 tests use the correct manifest | **PASS** — current-scene tests read v1.3.0; the historical anchor-baseline test intentionally reads v1.2.1. |
+
+**Gates:** pure **123 passed**; source runtime **1171 passed, 0 failed** across
+all 11 phases; headless import and boot exit 0; packaged Linux boot plus all 11
+phases **1171 passed, 0 failed**, 3× `--selftest` green, ZIP-extracted
+`--selftest` 284/284. Windows rebuilt, startup **NOT TESTED**.
+
+**Remaining severity:** no known gameplay blocker. The long-horizon traffic
+check is a pure fixed-step simulation; the runtime 24 s living phase remains
+green. Human sign-off, one continuous M01–M20 sitting and Windows startup
+remain **NOT TESTED**.

@@ -1,0 +1,44 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/world/assets/landmarks/RallyGate1.tscn" id="ext_1"]
+
+[ext_resource type="PackedScene" path="res://scenes/world/assets/landmarks/RallyGate2.tscn" id="ext_2"]
+
+[ext_resource type="PackedScene" path="res://scenes/world/assets/landmarks/RallyGate3.tscn" id="ext_3"]
+
+[ext_resource type="PackedScene" path="res://scenes/world/assets/landmarks/RallyGate4.tscn" id="ext_4"]
+
+
+[node name="RaceGates4Root" type="Node3D"]
+
+[node name="RaceGate1" parent="." instance=ExtResource("ext_1")]
+position = Vector3(56.849, 0, -27.6095)
+rotation = Vector3(0, 2.92383, 0)
+
+[node name="GateArrow1" type="Marker3D" parent="."]
+position = Vector3(55.9121, 0.066, -22.4005)
+metadata/gameplay_id = "M05_M09.arrow.1"
+
+[node name="RaceGate2" parent="." instance=ExtResource("ext_2")]
+position = Vector3(85.3185, 0, -38.2365)
+rotation = Vector3(0, 0.55701, 0)
+
+[node name="GateArrow2" type="Marker3D" parent="."]
+position = Vector3(82.0354, 0.066, -41.9891)
+metadata/gameplay_id = "M05_M09.arrow.2"
+
+[node name="RaceGate3" parent="." instance=ExtResource("ext_3")]
+position = Vector3(83.3722, 0, 22.6239)
+rotation = Vector3(0, -0.252136, 0)
+
+[node name="GateArrow3" type="Marker3D" parent="."]
+position = Vector3(84.7808, 0.066, 15.6262)
+metadata/gameplay_id = "M05_M09.arrow.3"
+
+[node name="RaceGate4" parent="." instance=ExtResource("ext_4")]
+position = Vector3(57.9786, 0, 38.4684)
+rotation = Vector3(0, -2.71697, 0)
+
+[node name="GateArrow4" type="Marker3D" parent="."]
+position = Vector3(59.9065, 0.066, 41.5341)
+metadata/gameplay_id = "M05_M09.arrow.4"

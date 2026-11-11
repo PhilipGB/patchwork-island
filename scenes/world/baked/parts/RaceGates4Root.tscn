@@ -1,0 +1,643 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_72auq"]
+shading_mode = 2
+specular_mode = 2
+albedo_color = Color(1, 0.8235294, 0.24705882, 1)
+roughness = 0.95
+
+[sub_resource type="BoxMesh" id="BoxMesh_a6ahm"]
+size = Vector3(0.8, 4.8, 0.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_paw8p"]
+size = Vector3(0.8, 4.8, 0.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_kylst"]
+size = Vector3(11.2, 0.8, 0.8)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xhse2"]
+shading_mode = 2
+specular_mode = 2
+albedo_color = Color(1, 0.972549, 0.9254902, 1)
+roughness = 0.95
+
+[sub_resource type="BoxMesh" id="BoxMesh_thvsu"]
+size = Vector3(3.2, 2.3, 0.3)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_fpvy1"]
+shading_mode = 2
+specular_mode = 2
+albedo_color = Color(0.53333336, 0.34509805, 0.18431373, 1)
+roughness = 0.95
+
+[sub_resource type="BoxMesh" id="BoxMesh_fsx36"]
+size = Vector3(0.09, 3, 0.09)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rg6q3"]
+shading_mode = 2
+specular_mode = 2
+albedo_color = Color(1, 0.8235294, 0.24705882, 1)
+roughness = 0.95
+emission_enabled = true
+emission = Color(1, 0.8235294, 0.24705882, 1)
+emission_energy_multiplier = 0.65
+
+[sub_resource type="BoxMesh" id="BoxMesh_k2b38"]
+size = Vector3(0.8, 0.55, 0.06)
+
+[sub_resource type="BoxMesh" id="BoxMesh_muqim"]
+size = Vector3(0.09, 3, 0.09)
+
+[sub_resource type="BoxMesh" id="BoxMesh_58oni"]
+size = Vector3(0.8, 0.55, 0.06)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_i1tsw"]
+size = Vector3(0.9, 4.9, 0.9)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_jwr21"]
+size = Vector3(0.9, 4.9, 0.9)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_35uwr"]
+size = Vector3(11.2, 0.9, 0.9)
+
+[sub_resource type="BoxMesh" id="BoxMesh_w8ggq"]
+size = Vector3(0.5, 0.018, 1.4)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pyyon"]
+cull_mode = 2
+shading_mode = 2
+albedo_color = Color(1, 0.972549, 0.9254902, 1)
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_oj5ee"]
+_surfaces = [{
+"aabb": AABB(-0.95, 0, 0.55, 1.9, 1e-05, 1.7),
+"format": 34359738375,
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 3,
+"vertex_data": PackedByteArray(51, 51, 115, 191, 0, 0, 0, 0, 205, 204, 12, 63, 51, 51, 115, 63, 0, 0, 0, 0, 205, 204, 12, 63, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16, 64, 255, 127, 0, 0, 0, 0, 255, 191, 255, 127, 0, 0, 0, 0, 255, 191, 255, 127, 0, 0, 0, 0, 255, 191)
+}]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_h3i5l"]
+shading_mode = 2
+specular_mode = 2
+albedo_color = Color(0.14901961, 0.45490196, 0.9254902, 1)
+roughness = 0.95
+
+[sub_resource type="BoxMesh" id="BoxMesh_watmo"]
+size = Vector3(0.8, 4.8, 0.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_cgfyn"]
+size = Vector3(0.8, 4.8, 0.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ca22t"]
+size = Vector3(11.2, 0.8, 0.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_5depv"]
+size = Vector3(3.2, 2.3, 0.3)
+
+[sub_resource type="BoxMesh" id="BoxMesh_vrwjm"]
+size = Vector3(0.09, 3, 0.09)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_krwls"]
+shading_mode = 2
+specular_mode = 2
+albedo_color = Color(0.14901961, 0.45490196, 0.9254902, 1)
+roughness = 0.95
+emission_enabled = true
+emission = Color(0.14901961, 0.45490196, 0.9254902, 1)
+emission_energy_multiplier = 0.65
+
+[sub_resource type="BoxMesh" id="BoxMesh_mevuo"]
+size = Vector3(0.8, 0.55, 0.06)
+
+[sub_resource type="BoxMesh" id="BoxMesh_2utj2"]
+size = Vector3(0.09, 3, 0.09)
+
+[sub_resource type="BoxMesh" id="BoxMesh_cf1wb"]
+size = Vector3(0.8, 0.55, 0.06)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_gt5xo"]
+size = Vector3(0.9, 4.9, 0.9)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_cexfj"]
+size = Vector3(0.9, 4.9, 0.9)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_4m18o"]
+size = Vector3(11.2, 0.9, 0.9)
+
+[sub_resource type="BoxMesh" id="BoxMesh_106j1"]
+size = Vector3(0.5, 0.018, 1.4)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_jjg0b"]
+cull_mode = 2
+shading_mode = 2
+albedo_color = Color(1, 0.8235294, 0.24705882, 1)
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_cnrqx"]
+_surfaces = [{
+"aabb": AABB(-0.95, 0, 0.55, 1.9, 1e-05, 1.7),
+"format": 34359738375,
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 3,
+"vertex_data": PackedByteArray(51, 51, 115, 191, 0, 0, 0, 0, 205, 204, 12, 63, 51, 51, 115, 63, 0, 0, 0, 0, 205, 204, 12, 63, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16, 64, 255, 127, 0, 0, 0, 0, 255, 191, 255, 127, 0, 0, 0, 0, 255, 191, 255, 127, 0, 0, 0, 0, 255, 191)
+}]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_muixb"]
+shading_mode = 2
+specular_mode = 2
+albedo_color = Color(0.5803922, 0.43529412, 0.9098039, 1)
+roughness = 0.95
+
+[sub_resource type="BoxMesh" id="BoxMesh_bja6k"]
+size = Vector3(0.8, 4.8, 0.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_0up8s"]
+size = Vector3(0.8, 4.8, 0.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_kkqj3"]
+size = Vector3(11.2, 0.8, 0.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_v0fag"]
+size = Vector3(3.2, 2.3, 0.3)
+
+[sub_resource type="BoxMesh" id="BoxMesh_d381y"]
+size = Vector3(0.09, 3, 0.09)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bibeq"]
+shading_mode = 2
+specular_mode = 2
+albedo_color = Color(0.5803922, 0.43529412, 0.9098039, 1)
+roughness = 0.95
+emission_enabled = true
+emission = Color(0.5803922, 0.43529412, 0.9098039, 1)
+emission_energy_multiplier = 0.65
+
+[sub_resource type="BoxMesh" id="BoxMesh_0ir8v"]
+size = Vector3(0.8, 0.55, 0.06)
+
+[sub_resource type="BoxMesh" id="BoxMesh_epxdm"]
+size = Vector3(0.09, 3, 0.09)
+
+[sub_resource type="BoxMesh" id="BoxMesh_dovhl"]
+size = Vector3(0.8, 0.55, 0.06)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_a5tuk"]
+size = Vector3(0.9, 4.9, 0.9)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_oipkv"]
+size = Vector3(0.9, 4.9, 0.9)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ys5tp"]
+size = Vector3(11.2, 0.9, 0.9)
+
+[sub_resource type="BoxMesh" id="BoxMesh_jcy83"]
+size = Vector3(0.5, 0.018, 1.4)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_8btr8"]
+cull_mode = 2
+shading_mode = 2
+albedo_color = Color(1, 0.972549, 0.9254902, 1)
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_socfa"]
+_surfaces = [{
+"aabb": AABB(-0.95, 0, 0.55, 1.9, 1e-05, 1.7),
+"format": 34359738375,
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 3,
+"vertex_data": PackedByteArray(51, 51, 115, 191, 0, 0, 0, 0, 205, 204, 12, 63, 51, 51, 115, 63, 0, 0, 0, 0, 205, 204, 12, 63, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16, 64, 255, 127, 0, 0, 0, 0, 255, 191, 255, 127, 0, 0, 0, 0, 255, 191, 255, 127, 0, 0, 0, 0, 255, 191)
+}]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_r8hga"]
+shading_mode = 2
+specular_mode = 2
+albedo_color = Color(0.95686275, 0.54509807, 0.2627451, 1)
+roughness = 0.95
+
+[sub_resource type="BoxMesh" id="BoxMesh_piuth"]
+size = Vector3(0.8, 4.8, 0.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_8scqi"]
+size = Vector3(0.8, 4.8, 0.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_hal17"]
+size = Vector3(11.2, 0.8, 0.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_0dfyd"]
+size = Vector3(3.2, 2.3, 0.3)
+
+[sub_resource type="BoxMesh" id="BoxMesh_75g8l"]
+size = Vector3(0.09, 3, 0.09)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6u8rt"]
+shading_mode = 2
+specular_mode = 2
+albedo_color = Color(0.95686275, 0.54509807, 0.2627451, 1)
+roughness = 0.95
+emission_enabled = true
+emission = Color(0.95686275, 0.54509807, 0.2627451, 1)
+emission_energy_multiplier = 0.65
+
+[sub_resource type="BoxMesh" id="BoxMesh_4wjh2"]
+size = Vector3(0.8, 0.55, 0.06)
+
+[sub_resource type="BoxMesh" id="BoxMesh_j5bs6"]
+size = Vector3(0.09, 3, 0.09)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ve62j"]
+size = Vector3(0.8, 0.55, 0.06)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_4brdk"]
+size = Vector3(0.9, 4.9, 0.9)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ux7lm"]
+size = Vector3(0.9, 4.9, 0.9)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_lm6mk"]
+size = Vector3(11.2, 0.9, 0.9)
+
+[sub_resource type="BoxMesh" id="BoxMesh_rv014"]
+size = Vector3(0.5, 0.018, 1.4)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_r20n3"]
+cull_mode = 2
+shading_mode = 2
+albedo_color = Color(1, 0.8235294, 0.24705882, 1)
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_r7n2w"]
+_surfaces = [{
+"aabb": AABB(-0.95, 0, 0.55, 1.9, 1e-05, 1.7),
+"format": 34359738375,
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 3,
+"vertex_data": PackedByteArray(51, 51, 115, 191, 0, 0, 0, 0, 205, 204, 12, 63, 51, 51, 115, 63, 0, 0, 0, 0, 205, 204, 12, 63, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16, 64, 255, 127, 0, 0, 0, 0, 255, 191, 255, 127, 0, 0, 0, 0, 255, 191, 255, 127, 0, 0, 0, 0, 255, 191)
+}]
+
+[node name="RaceGates4Root" type="Node3D" unique_id=2073353145]
+
+[node name="RaceGate1" type="Node3D" parent="." unique_id=329257506]
+transform = Transform3D(-0.97638184, 0, 0.21605214, 0, 1, 0, -0.21605214, 0, -0.97638184, 56.849, 0, -27.6095)
+
+[node name="Box" type="MeshInstance3D" parent="RaceGate1" unique_id=161204682]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.2, 2.4, 0)
+material_override = SubResource("StandardMaterial3D_72auq")
+mesh = SubResource("BoxMesh_a6ahm")
+
+[node name="@MeshInstance3D@825" type="MeshInstance3D" parent="RaceGate1" unique_id=67127634]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.2, 2.4, 0)
+material_override = SubResource("StandardMaterial3D_72auq")
+mesh = SubResource("BoxMesh_paw8p")
+
+[node name="@MeshInstance3D@826" type="MeshInstance3D" parent="RaceGate1" unique_id=1843305758]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.75, 0)
+material_override = SubResource("StandardMaterial3D_72auq")
+mesh = SubResource("BoxMesh_kylst")
+
+[node name="@MeshInstance3D@827" type="MeshInstance3D" parent="RaceGate1" unique_id=1849538871]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5.45, 0)
+material_override = SubResource("StandardMaterial3D_xhse2")
+mesh = SubResource("BoxMesh_thvsu")
+
+[node name="GateNumber" type="Label3D" parent="RaceGate1" unique_id=1182346461]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5.45, 0)
+pixel_size = 0.006
+billboard = 1
+no_depth_test = true
+modulate = Color(0.15294118, 0.21176471, 0.29411766, 1)
+outline_modulate = Color(1, 1, 1, 0.9)
+text = "1"
+font_size = 180
+outline_size = 0
+
+[node name="@MeshInstance3D@828" type="MeshInstance3D" parent="RaceGate1" unique_id=1024460]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.2, 1.5, 0)
+material_override = SubResource("StandardMaterial3D_fpvy1")
+mesh = SubResource("BoxMesh_fsx36")
+
+[node name="@MeshInstance3D@829" type="MeshInstance3D" parent="RaceGate1" unique_id=210134974]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.7999997, 2.8, 0)
+material_override = SubResource("StandardMaterial3D_rg6q3")
+mesh = SubResource("BoxMesh_k2b38")
+
+[node name="@MeshInstance3D@830" type="MeshInstance3D" parent="RaceGate1" unique_id=1243126842]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.2, 1.5, 0)
+material_override = SubResource("StandardMaterial3D_fpvy1")
+mesh = SubResource("BoxMesh_muqim")
+
+[node name="@MeshInstance3D@831" type="MeshInstance3D" parent="RaceGate1" unique_id=1313909646]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.6, 2.8, 0)
+material_override = SubResource("StandardMaterial3D_rg6q3")
+mesh = SubResource("BoxMesh_58oni")
+
+[node name="GateCameraBlocker" type="StaticBody3D" parent="RaceGate1" unique_id=1199334657]
+collision_layer = 16
+collision_mask = 0
+
+[node name="@CollisionShape3D@832" type="CollisionShape3D" parent="RaceGate1/GateCameraBlocker" unique_id=2033118731]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.2, 2.4, 0)
+shape = SubResource("BoxShape3D_i1tsw")
+
+[node name="@CollisionShape3D@833" type="CollisionShape3D" parent="RaceGate1/GateCameraBlocker" unique_id=1229452954]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.2, 2.4, 0)
+shape = SubResource("BoxShape3D_jwr21")
+
+[node name="@CollisionShape3D@834" type="CollisionShape3D" parent="RaceGate1/GateCameraBlocker" unique_id=1293112072]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.75, 0)
+shape = SubResource("BoxShape3D_35uwr")
+
+[node name="GateArrow1" type="Node3D" parent="." unique_id=872036970]
+transform = Transform3D(-0.9912944, 0, 0.13166392, 0, 1, 0, -0.13166392, 0, -0.9912944, 55.912083, 0.042, -22.400501)
+
+[node name="Box" type="MeshInstance3D" parent="GateArrow1" unique_id=1650035870]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.1)
+material_override = SubResource("StandardMaterial3D_xhse2")
+mesh = SubResource("BoxMesh_w8ggq")
+
+[node name="ArrowHead" type="MeshInstance3D" parent="GateArrow1" unique_id=1954143856]
+material_override = SubResource("StandardMaterial3D_pyyon")
+mesh = SubResource("ArrayMesh_oj5ee")
+
+[node name="Label3D" type="Label3D" parent="GateArrow1" unique_id=2079467515]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.03, -0.8)
+pixel_size = 0.004
+modulate = Color(0.15294118, 0.21176471, 0.29411766, 1)
+outline_modulate = Color(1, 1, 1, 0.9)
+text = "1"
+font_size = 48
+outline_size = 0
+
+[node name="RaceGate2" type="Node3D" parent="." unique_id=546684834]
+transform = Transform3D(0.8488452, 0, 0.52864146, 0, 1, 0, -0.52864146, 0, 0.8488452, 85.318504, 0, -38.2365)
+
+[node name="Box" type="MeshInstance3D" parent="RaceGate2" unique_id=1743388971]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.2, 2.4, 0)
+material_override = SubResource("StandardMaterial3D_h3i5l")
+mesh = SubResource("BoxMesh_watmo")
+
+[node name="@MeshInstance3D@835" type="MeshInstance3D" parent="RaceGate2" unique_id=2003735554]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.2, 2.4, 0)
+material_override = SubResource("StandardMaterial3D_h3i5l")
+mesh = SubResource("BoxMesh_cgfyn")
+
+[node name="@MeshInstance3D@836" type="MeshInstance3D" parent="RaceGate2" unique_id=1725831599]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.75, 0)
+material_override = SubResource("StandardMaterial3D_h3i5l")
+mesh = SubResource("BoxMesh_ca22t")
+
+[node name="@MeshInstance3D@837" type="MeshInstance3D" parent="RaceGate2" unique_id=1318778818]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5.45, 0)
+material_override = SubResource("StandardMaterial3D_xhse2")
+mesh = SubResource("BoxMesh_5depv")
+
+[node name="GateNumber" type="Label3D" parent="RaceGate2" unique_id=2082090724]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5.45, 0)
+pixel_size = 0.006
+billboard = 1
+no_depth_test = true
+modulate = Color(0.15294118, 0.21176471, 0.29411766, 1)
+outline_modulate = Color(1, 1, 1, 0.9)
+text = "2"
+font_size = 180
+outline_size = 0
+
+[node name="@MeshInstance3D@838" type="MeshInstance3D" parent="RaceGate2" unique_id=458347098]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.2, 1.5, 0)
+material_override = SubResource("StandardMaterial3D_fpvy1")
+mesh = SubResource("BoxMesh_vrwjm")
+
+[node name="@MeshInstance3D@839" type="MeshInstance3D" parent="RaceGate2" unique_id=165815915]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.7999997, 2.8, 0)
+material_override = SubResource("StandardMaterial3D_krwls")
+mesh = SubResource("BoxMesh_mevuo")
+
+[node name="@MeshInstance3D@840" type="MeshInstance3D" parent="RaceGate2" unique_id=52089547]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.2, 1.5, 0)
+material_override = SubResource("StandardMaterial3D_fpvy1")
+mesh = SubResource("BoxMesh_2utj2")
+
+[node name="@MeshInstance3D@841" type="MeshInstance3D" parent="RaceGate2" unique_id=573685635]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.6, 2.8, 0)
+material_override = SubResource("StandardMaterial3D_krwls")
+mesh = SubResource("BoxMesh_cf1wb")
+
+[node name="GateCameraBlocker" type="StaticBody3D" parent="RaceGate2" unique_id=542159831]
+collision_layer = 16
+collision_mask = 0
+
+[node name="@CollisionShape3D@842" type="CollisionShape3D" parent="RaceGate2/GateCameraBlocker" unique_id=103194367]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.2, 2.4, 0)
+shape = SubResource("BoxShape3D_gt5xo")
+
+[node name="@CollisionShape3D@843" type="CollisionShape3D" parent="RaceGate2/GateCameraBlocker" unique_id=57287222]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.2, 2.4, 0)
+shape = SubResource("BoxShape3D_cexfj")
+
+[node name="@CollisionShape3D@844" type="CollisionShape3D" parent="RaceGate2/GateCameraBlocker" unique_id=1250002004]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.75, 0)
+shape = SubResource("BoxShape3D_4m18o")
+
+[node name="GateArrow2" type="Node3D" parent="." unique_id=1004865466]
+transform = Transform3D(0.6434681, 0, 0.76547295, 0, 1, 0, -0.76547295, 0, 0.6434681, 82.03543, 0.042, -41.98905)
+
+[node name="Box" type="MeshInstance3D" parent="GateArrow2" unique_id=1610086779]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.1)
+material_override = SubResource("StandardMaterial3D_72auq")
+mesh = SubResource("BoxMesh_106j1")
+
+[node name="ArrowHead" type="MeshInstance3D" parent="GateArrow2" unique_id=1057014265]
+material_override = SubResource("StandardMaterial3D_jjg0b")
+mesh = SubResource("ArrayMesh_cnrqx")
+
+[node name="Label3D" type="Label3D" parent="GateArrow2" unique_id=144596158]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.03, -0.8)
+pixel_size = 0.004
+modulate = Color(0.15294118, 0.21176471, 0.29411766, 1)
+outline_modulate = Color(1, 1, 1, 0.9)
+text = "2"
+font_size = 48
+outline_size = 0
+
+[node name="RaceGate3" type="Node3D" parent="." unique_id=476796436]
+transform = Transform3D(0.9683878, 0, -0.24944964, 0, 1, 0, 0.24944964, 0, 0.9683878, 83.37222, 0, 22.623932)
+
+[node name="Box" type="MeshInstance3D" parent="RaceGate3" unique_id=617545413]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.2, 2.4, 0)
+material_override = SubResource("StandardMaterial3D_muixb")
+mesh = SubResource("BoxMesh_bja6k")
+
+[node name="@MeshInstance3D@845" type="MeshInstance3D" parent="RaceGate3" unique_id=842872251]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.2, 2.4, 0)
+material_override = SubResource("StandardMaterial3D_muixb")
+mesh = SubResource("BoxMesh_0up8s")
+
+[node name="@MeshInstance3D@846" type="MeshInstance3D" parent="RaceGate3" unique_id=1830389834]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.75, 0)
+material_override = SubResource("StandardMaterial3D_muixb")
+mesh = SubResource("BoxMesh_kkqj3")
+
+[node name="@MeshInstance3D@847" type="MeshInstance3D" parent="RaceGate3" unique_id=1201192625]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5.45, 0)
+material_override = SubResource("StandardMaterial3D_xhse2")
+mesh = SubResource("BoxMesh_v0fag")
+
+[node name="GateNumber" type="Label3D" parent="RaceGate3" unique_id=582302006]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5.45, 0)
+pixel_size = 0.006
+billboard = 1
+no_depth_test = true
+modulate = Color(0.15294118, 0.21176471, 0.29411766, 1)
+outline_modulate = Color(1, 1, 1, 0.9)
+text = "3"
+font_size = 180
+outline_size = 0
+
+[node name="@MeshInstance3D@848" type="MeshInstance3D" parent="RaceGate3" unique_id=1237028025]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.2, 1.5, 0)
+material_override = SubResource("StandardMaterial3D_fpvy1")
+mesh = SubResource("BoxMesh_d381y")
+
+[node name="@MeshInstance3D@849" type="MeshInstance3D" parent="RaceGate3" unique_id=737370022]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.7999997, 2.8, 0)
+material_override = SubResource("StandardMaterial3D_bibeq")
+mesh = SubResource("BoxMesh_0ir8v")
+
+[node name="@MeshInstance3D@850" type="MeshInstance3D" parent="RaceGate3" unique_id=2081794102]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.2, 1.5, 0)
+material_override = SubResource("StandardMaterial3D_fpvy1")
+mesh = SubResource("BoxMesh_epxdm")
+
+[node name="@MeshInstance3D@851" type="MeshInstance3D" parent="RaceGate3" unique_id=1378816987]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.6, 2.8, 0)
+material_override = SubResource("StandardMaterial3D_bibeq")
+mesh = SubResource("BoxMesh_dovhl")
+
+[node name="GateCameraBlocker" type="StaticBody3D" parent="RaceGate3" unique_id=1977778109]
+collision_layer = 16
+collision_mask = 0
+
+[node name="@CollisionShape3D@852" type="CollisionShape3D" parent="RaceGate3/GateCameraBlocker" unique_id=619118605]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.2, 2.4, 0)
+shape = SubResource("BoxShape3D_a5tuk")
+
+[node name="@CollisionShape3D@853" type="CollisionShape3D" parent="RaceGate3/GateCameraBlocker" unique_id=2029752725]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.2, 2.4, 0)
+shape = SubResource("BoxShape3D_oipkv")
+
+[node name="@CollisionShape3D@854" type="CollisionShape3D" parent="RaceGate3/GateCameraBlocker" unique_id=616399673]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.75, 0)
+shape = SubResource("BoxShape3D_ys5tp")
+
+[node name="GateArrow3" type="Node3D" parent="." unique_id=446105857]
+transform = Transform3D(0.98772454, 0, -0.1562057, 0, 1, 0, 0.1562057, 0, 0.98772454, 84.78081, 0.042, 15.626177)
+
+[node name="Box" type="MeshInstance3D" parent="GateArrow3" unique_id=1847923754]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.1)
+material_override = SubResource("StandardMaterial3D_xhse2")
+mesh = SubResource("BoxMesh_jcy83")
+
+[node name="ArrowHead" type="MeshInstance3D" parent="GateArrow3" unique_id=1832257703]
+material_override = SubResource("StandardMaterial3D_8btr8")
+mesh = SubResource("ArrayMesh_socfa")
+
+[node name="Label3D" type="Label3D" parent="GateArrow3" unique_id=1259434365]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.03, -0.8)
+pixel_size = 0.004
+modulate = Color(0.15294118, 0.21176471, 0.29411766, 1)
+outline_modulate = Color(1, 1, 1, 0.9)
+text = "3"
+font_size = 48
+outline_size = 0
+
+[node name="RaceGate4" type="Node3D" parent="." unique_id=238714433]
+transform = Transform3D(-0.91118866, 0, -0.4119894, 0, 1, 0, 0.4119894, 0, -0.91118866, 57.97862, 0, 38.468422)
+
+[node name="Box" type="MeshInstance3D" parent="RaceGate4" unique_id=723200592]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.2, 2.4, 0)
+material_override = SubResource("StandardMaterial3D_r8hga")
+mesh = SubResource("BoxMesh_piuth")
+
+[node name="@MeshInstance3D@855" type="MeshInstance3D" parent="RaceGate4" unique_id=1225274960]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.2, 2.4, 0)
+material_override = SubResource("StandardMaterial3D_r8hga")
+mesh = SubResource("BoxMesh_8scqi")
+
+[node name="@MeshInstance3D@856" type="MeshInstance3D" parent="RaceGate4" unique_id=228718870]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.75, 0)
+material_override = SubResource("StandardMaterial3D_r8hga")
+mesh = SubResource("BoxMesh_hal17")
+
+[node name="@MeshInstance3D@857" type="MeshInstance3D" parent="RaceGate4" unique_id=1947612132]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5.45, 0)
+material_override = SubResource("StandardMaterial3D_xhse2")
+mesh = SubResource("BoxMesh_0dfyd")
+
+[node name="GateNumber" type="Label3D" parent="RaceGate4" unique_id=1810881332]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5.45, 0)
+pixel_size = 0.006
+billboard = 1
+no_depth_test = true
+modulate = Color(0.15294118, 0.21176471, 0.29411766, 1)
+outline_modulate = Color(1, 1, 1, 0.9)
+text = "4"
+font_size = 180
+outline_size = 0
+
+[node name="@MeshInstance3D@858" type="MeshInstance3D" parent="RaceGate4" unique_id=1149950466]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.2, 1.5, 0)
+material_override = SubResource("StandardMaterial3D_fpvy1")
+mesh = SubResource("BoxMesh_75g8l")
+
+[node name="@MeshInstance3D@859" type="MeshInstance3D" parent="RaceGate4" unique_id=500554173]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.7999997, 2.8, 0)
+material_override = SubResource("StandardMaterial3D_6u8rt")
+mesh = SubResource("BoxMesh_4wjh2")
+
+[node name="@MeshInstance3D@860" type="MeshInstance3D" parent="RaceGate4" unique_id=593402776]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.2, 1.5, 0)
+material_override = SubResource("StandardMaterial3D_fpvy1")
+mesh = SubResource("BoxMesh_j5bs6")
+
+[node name="@MeshInstance3D@861" type="MeshInstance3D" parent="RaceGate4" unique_id=632518377]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.6, 2.8, 0)
+material_override = SubResource("StandardMaterial3D_6u8rt")
+mesh = SubResource("BoxMesh_ve62j")
+
+[node name="GateCameraBlocker" type="StaticBody3D" parent="RaceGate4" unique_id=220512945]
+collision_layer = 16
+collision_mask = 0
+
+[node name="@CollisionShape3D@862" type="CollisionShape3D" parent="RaceGate4/GateCameraBlocker" unique_id=427905457]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.2, 2.4, 0)
+shape = SubResource("BoxShape3D_4brdk")
+
+[node name="@CollisionShape3D@863" type="CollisionShape3D" parent="RaceGate4/GateCameraBlocker" unique_id=1110937457]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.2, 2.4, 0)
+shape = SubResource("BoxShape3D_ux7lm")
+
+[node name="@CollisionShape3D@864" type="CollisionShape3D" parent="RaceGate4/GateCameraBlocker" unique_id=1097042686]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.75, 0)
+shape = SubResource("BoxShape3D_lm6mk")
+
+[node name="GateArrow4" type="Node3D" parent="." unique_id=804351020]
+transform = Transform3D(-0.7361204, 0, -0.6768506, 0, 1, 0, 0.6768506, 0, -0.7361204, 59.906467, 0.042, 41.53411)
+
+[node name="Box" type="MeshInstance3D" parent="GateArrow4" unique_id=1762192110]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.1)
+material_override = SubResource("StandardMaterial3D_72auq")
+mesh = SubResource("BoxMesh_rv014")
+
+[node name="ArrowHead" type="MeshInstance3D" parent="GateArrow4" unique_id=1802098333]
+material_override = SubResource("StandardMaterial3D_r20n3")
+mesh = SubResource("ArrayMesh_r7n2w")
+
+[node name="Label3D" type="Label3D" parent="GateArrow4" unique_id=688409169]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.03, -0.8)
+pixel_size = 0.004
+modulate = Color(0.15294118, 0.21176471, 0.29411766, 1)
+outline_modulate = Color(1, 1, 1, 0.9)
+text = "4"
+font_size = 48
+outline_size = 0

@@ -1,0 +1,274 @@
+[gd_scene format=3]
+
+
+[sub_resource type="SphereMesh" id="SphereMesh_1"]
+radius = 1.5
+height = 3
+radial_segments = 8
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_2"]
+albedo_color = Color(0.9960784, 0.9960784, 0.9843137, 1)
+roughness = 0.94
+
+[sub_resource type="SphereMesh" id="SphereMesh_3"]
+radius = 2
+height = 4
+radial_segments = 8
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_4"]
+albedo_color = Color(0.9960784, 0.9960784, 0.9843137, 1)
+roughness = 0.94
+
+[sub_resource type="SphereMesh" id="SphereMesh_5"]
+radius = 1.25
+height = 2.5
+radial_segments = 8
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_6"]
+albedo_color = Color(0.9960784, 0.9960784, 0.9843137, 1)
+roughness = 0.94
+
+[sub_resource type="SphereMesh" id="SphereMesh_7"]
+radius = 1.5
+height = 3
+radial_segments = 8
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_8"]
+albedo_color = Color(0.9960784, 0.9960784, 0.9843137, 1)
+roughness = 0.94
+
+[sub_resource type="SphereMesh" id="SphereMesh_9"]
+radius = 2
+height = 4
+radial_segments = 8
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_10"]
+albedo_color = Color(0.9960784, 0.9960784, 0.9843137, 1)
+roughness = 0.94
+
+[sub_resource type="SphereMesh" id="SphereMesh_11"]
+radius = 1.25
+height = 2.5
+radial_segments = 8
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_12"]
+albedo_color = Color(0.9960784, 0.9960784, 0.9843137, 1)
+roughness = 0.94
+
+[sub_resource type="SphereMesh" id="SphereMesh_13"]
+radius = 1.5
+height = 3
+radial_segments = 8
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_14"]
+albedo_color = Color(0.9960784, 0.9960784, 0.9843137, 1)
+roughness = 0.94
+
+[sub_resource type="SphereMesh" id="SphereMesh_15"]
+radius = 2
+height = 4
+radial_segments = 8
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_16"]
+albedo_color = Color(0.9960784, 0.9960784, 0.9843137, 1)
+roughness = 0.94
+
+[sub_resource type="SphereMesh" id="SphereMesh_17"]
+radius = 1.25
+height = 2.5
+radial_segments = 8
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_18"]
+albedo_color = Color(0.9960784, 0.9960784, 0.9843137, 1)
+roughness = 0.94
+
+[sub_resource type="SphereMesh" id="SphereMesh_19"]
+radius = 1.5
+height = 3
+radial_segments = 8
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_20"]
+albedo_color = Color(0.9960784, 0.9960784, 0.9843137, 1)
+roughness = 0.94
+
+[sub_resource type="SphereMesh" id="SphereMesh_21"]
+radius = 2
+height = 4
+radial_segments = 8
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_22"]
+albedo_color = Color(0.9960784, 0.9960784, 0.9843137, 1)
+roughness = 0.94
+
+[sub_resource type="SphereMesh" id="SphereMesh_23"]
+radius = 1.25
+height = 2.5
+radial_segments = 8
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_24"]
+albedo_color = Color(0.9960784, 0.9960784, 0.9843137, 1)
+roughness = 0.94
+
+[sub_resource type="SphereMesh" id="SphereMesh_25"]
+radius = 1.5
+height = 3
+radial_segments = 8
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_26"]
+albedo_color = Color(0.9960784, 0.9960784, 0.9843137, 1)
+roughness = 0.94
+
+[sub_resource type="SphereMesh" id="SphereMesh_27"]
+radius = 2
+height = 4
+radial_segments = 8
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_28"]
+albedo_color = Color(0.9960784, 0.9960784, 0.9843137, 1)
+roughness = 0.94
+
+[sub_resource type="SphereMesh" id="SphereMesh_29"]
+radius = 1.25
+height = 2.5
+radial_segments = 8
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_30"]
+albedo_color = Color(0.9960784, 0.9960784, 0.9843137, 1)
+roughness = 0.94
+
+[sub_resource type="SphereMesh" id="SphereMesh_31"]
+radius = 1.5
+height = 3
+radial_segments = 8
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_32"]
+albedo_color = Color(0.9960784, 0.9960784, 0.9843137, 1)
+roughness = 0.94
+
+[sub_resource type="SphereMesh" id="SphereMesh_33"]
+radius = 2
+height = 4
+radial_segments = 8
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_34"]
+albedo_color = Color(0.9960784, 0.9960784, 0.9843137, 1)
+roughness = 0.94
+
+[sub_resource type="SphereMesh" id="SphereMesh_35"]
+radius = 1.25
+height = 2.5
+radial_segments = 8
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_36"]
+albedo_color = Color(0.9960784, 0.9960784, 0.9843137, 1)
+roughness = 0.94
+
+[node name="Clouds" type="Node3D"]
+
+[node name="Cloud_0_0" type="MeshInstance3D" parent="."]
+position = Vector3(-23.25, 15, -28)
+mesh = SubResource("SphereMesh_1")
+material_override = SubResource("StandardMaterial_2")
+
+[node name="Cloud_0_1" type="MeshInstance3D" parent="."]
+position = Vector3(-22, 15.25, -28)
+mesh = SubResource("SphereMesh_3")
+material_override = SubResource("StandardMaterial_4")
+
+[node name="Cloud_0_2" type="MeshInstance3D" parent="."]
+position = Vector3(-20.6, 15.04, -27.75)
+mesh = SubResource("SphereMesh_5")
+material_override = SubResource("StandardMaterial_6")
+
+[node name="Cloud_1_0" type="MeshInstance3D" parent="."]
+position = Vector3(10.75, 17, -35)
+mesh = SubResource("SphereMesh_7")
+material_override = SubResource("StandardMaterial_8")
+
+[node name="Cloud_1_1" type="MeshInstance3D" parent="."]
+position = Vector3(12, 17.25, -35)
+mesh = SubResource("SphereMesh_9")
+material_override = SubResource("StandardMaterial_10")
+
+[node name="Cloud_1_2" type="MeshInstance3D" parent="."]
+position = Vector3(13.4, 17.04, -34.75)
+mesh = SubResource("SphereMesh_11")
+material_override = SubResource("StandardMaterial_12")
+
+[node name="Cloud_2_0" type="MeshInstance3D" parent="."]
+position = Vector3(58.75, 18, -28)
+mesh = SubResource("SphereMesh_13")
+material_override = SubResource("StandardMaterial_14")
+
+[node name="Cloud_2_1" type="MeshInstance3D" parent="."]
+position = Vector3(60, 18.25, -28)
+mesh = SubResource("SphereMesh_15")
+material_override = SubResource("StandardMaterial_16")
+
+[node name="Cloud_2_2" type="MeshInstance3D" parent="."]
+position = Vector3(61.4, 18.04, -27.75)
+mesh = SubResource("SphereMesh_17")
+material_override = SubResource("StandardMaterial_18")
+
+[node name="Cloud_3_0" type="MeshInstance3D" parent="."]
+position = Vector3(-39.25, 16, 13)
+mesh = SubResource("SphereMesh_19")
+material_override = SubResource("StandardMaterial_20")
+
+[node name="Cloud_3_1" type="MeshInstance3D" parent="."]
+position = Vector3(-38, 16.25, 13)
+mesh = SubResource("SphereMesh_21")
+material_override = SubResource("StandardMaterial_22")
+
+[node name="Cloud_3_2" type="MeshInstance3D" parent="."]
+position = Vector3(-36.6, 16.04, 13.25)
+mesh = SubResource("SphereMesh_23")
+material_override = SubResource("StandardMaterial_24")
+
+[node name="Cloud_4_0" type="MeshInstance3D" parent="."]
+position = Vector3(1.75, 20, 38)
+mesh = SubResource("SphereMesh_25")
+material_override = SubResource("StandardMaterial_26")
+
+[node name="Cloud_4_1" type="MeshInstance3D" parent="."]
+position = Vector3(3, 20.25, 38)
+mesh = SubResource("SphereMesh_27")
+material_override = SubResource("StandardMaterial_28")
+
+[node name="Cloud_4_2" type="MeshInstance3D" parent="."]
+position = Vector3(4.4, 20.04, 38.25)
+mesh = SubResource("SphereMesh_29")
+material_override = SubResource("StandardMaterial_30")
+
+[node name="Cloud_5_0" type="MeshInstance3D" parent="."]
+position = Vector3(72.75, 15, 27)
+mesh = SubResource("SphereMesh_31")
+material_override = SubResource("StandardMaterial_32")
+
+[node name="Cloud_5_1" type="MeshInstance3D" parent="."]
+position = Vector3(74, 15.25, 27)
+mesh = SubResource("SphereMesh_33")
+material_override = SubResource("StandardMaterial_34")
+
+[node name="Cloud_5_2" type="MeshInstance3D" parent="."]
+position = Vector3(75.4, 15.04, 27.25)
+mesh = SubResource("SphereMesh_35")
+material_override = SubResource("StandardMaterial_36")

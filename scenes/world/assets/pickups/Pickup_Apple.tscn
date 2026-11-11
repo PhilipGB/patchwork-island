@@ -1,0 +1,27 @@
+[gd_scene format=3]
+
+
+[sub_resource type="SphereMesh" id="SphereMesh_1"]
+radius = 0.3
+height = 0.6
+radial_segments = 8
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_2"]
+albedo_color = Color(0.9098039, 0.345098, 0.345098, 1)
+roughness = 0.94
+
+[node name="Pickup_Apple" type="Node3D"]
+
+[node name="Collectible" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.35, 0)
+mesh = SubResource("SphereMesh_1")
+material_override = SubResource("StandardMaterial_2")
+
+[node name="PickupOrigin" type="Marker3D" parent="."]
+position = Vector3(0, 0, 0)
+metadata/scene_binding_id = "pickup.apple"
+
+[node name="PickupRange" type="Marker3D" parent="."]
+position = Vector3(0, 0, 0)
+metadata/radius = 3.9

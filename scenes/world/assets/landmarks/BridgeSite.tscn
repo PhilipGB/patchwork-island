@@ -1,0 +1,68 @@
+[gd_scene format=3]
+
+
+[sub_resource type="BoxMesh" id="BoxMesh_1"]
+size = Vector3(4.6, 0.85, 0.16)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_2"]
+albedo_color = Color(0.9137255, 0.3803922, 0.3137255, 1)
+roughness = 0.94
+
+[sub_resource type="BoxMesh" id="BoxMesh_3"]
+size = Vector3(2.2, 0.9, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_4"]
+albedo_color = Color(0.6823529, 0.4784314, 0.2901961, 1)
+roughness = 0.94
+
+[sub_resource type="BoxMesh" id="AuditPostMesh"]
+size = Vector3(0.16, 1.9, 0.16)
+
+[sub_resource type="StandardMaterial3D" id="AuditPostMat"]
+albedo_color = Color(0.439216, 0.258824, 0.121569, 1)
+roughness = 1.0
+
+[node name="BridgeSite" type="Node3D"]
+
+[node name="WorksiteAnchor" type="Marker3D" parent="."]
+position = Vector3(0, 0, 0)
+metadata/gameplay_id = "BridgeSite"
+
+[node name="BridgeWorksSign" type="MeshInstance3D" parent="."]
+position = Vector3(0, 2.2, 0)
+mesh = SubResource("BoxMesh_1")
+material_override = SubResource("StandardMaterial_2")
+
+[node name="WorksiteTextFront" type="Label3D" parent="."]
+position = Vector3(0, 2.2, 0.13)
+text = "BRIDGE WORKS"
+font_size = 44
+pixel_size = 0.005
+modulate = Color(0.1019608, 0.1882353, 0.3254902, 1)
+billboard = 0
+double_sided = false
+
+[node name="WorksiteTextBack" type="Label3D" parent="."]
+position = Vector3(0, 2.2, -0.13)
+text = "BRIDGE WORKS"
+font_size = 44
+pixel_size = 0.005
+modulate = Color(0.1019608, 0.1882353, 0.3254902, 1)
+billboard = 0
+rotation = Vector3(0, 3.14159, 0)
+double_sided = false
+
+[node name="SupplyCrate" type="MeshInstance3D" parent="."]
+position = Vector3(1, 0.45, 0.5)
+mesh = SubResource("BoxMesh_3")
+material_override = SubResource("StandardMaterial_4")
+
+[node name="SignPostLeft" type="MeshInstance3D" parent="."]
+position = Vector3(-1.7, 0.95, -0.12)
+mesh = SubResource("AuditPostMesh")
+material_override = SubResource("AuditPostMat")
+
+[node name="SignPostRight" type="MeshInstance3D" parent="."]
+position = Vector3(1.7, 0.95, -0.12)
+mesh = SubResource("AuditPostMesh")
+material_override = SubResource("AuditPostMat")

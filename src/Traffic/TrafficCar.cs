@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Godot;
 
 namespace PatchworkIsland;
@@ -24,9 +25,11 @@ public partial class TrafficCar : CharacterBody3D
     public int StopEvents { get; private set; }
 
     private TrafficRouteDefinition _route;
+    private IReadOnlyList<NpcPoint> _points = Array.Empty<NpcPoint>();
     private Func<Vector3> _playerPosition;
     private Func<Vector3> _vanPosition;
     private Func<bool> _playerDriving;
+    private Func<IReadOnlyList<TrafficCar>> _otherTraffic;
     private Node3D _visual;
     private readonly System.Collections.Generic.List<Node3D> _wheels = new();
     private float _yaw;
@@ -37,20 +40,24 @@ public partial class TrafficCar : CharacterBody3D
     private AudioStreamPlayer3D _engineIdle;
     private AudioStreamPlayer3D _engineDrive;
 
-    public void Initialize(TrafficRouteDefinition route, Func<Vector3> playerPosition,
-        Func<Vector3> vanPosition, Func<bool> playerDriving)
+    public void Initialize(TrafficRouteDefinition route,
+        IReadOnlyList<NpcPoint> points, Func<Vector3> playerPosition,
+        Func<Vector3> vanPosition, Func<bool> playerDriving,
+        Func<IReadOnlyList<TrafficCar>> otherTraffic = null)
     {
         _route = route ?? throw new ArgumentNullException(nameof(route));
-        if (_route.Points.Count < 4)
+        _points = points ?? route.Points;
+        if (_points.Count < 4)
             throw new ArgumentException("A traffic route needs at least four points.", nameof(route));
         _playerPosition = playerPosition;
         _vanPosition = vanPosition;
         _playerDriving = playerDriving;
+        _otherTraffic = otherTraffic;
         RouteId = route.Id;
         DriverId = route.DriverId;
         RallyOnly = route.RallyOnly;
         Name = $"Traffic_{route.Id}";
-        Position = new Vector3(route.Points[0].X, 0.08f, route.Points[0].Z);
+        Position = new Vector3(_points[0].X, 0.08f, _points[0].Z);
         CollisionLayer = 0; // never blocks the player, van or mission stations
         CollisionMask = 1;  // world geometry only
         FloorSnapLength = 0.5f;
@@ -58,8 +65,8 @@ public partial class TrafficCar : CharacterBody3D
         SafeMargin = 0.04f;
         UpDirection = Vector3.Up;
         ProcessMode = ProcessModeEnum.Pausable;
-        CurrentWaypoint = 1 % route.Points.Count;
-        SetYawToward(route.Points[CurrentWaypoint]);
+        CurrentWaypoint = 1 % _points.Count;
+        SetYawToward(_points[CurrentWaypoint]);
     }
 
     public override void _Ready()
@@ -77,113 +84,32 @@ public partial class TrafficCar : CharacterBody3D
         BuildVisual();
         _engineIdle = AudioManager.CreateVehicleLoop(this, "engine_idle_loop", 7f, 38f, -27f);
         _engineDrive = AudioManager.CreateVehicleLoop(this, "engine_drive_loop", 7f, 38f, -40f);
-        _wheels.Clear();
-        foreach (var child in _visual.GetChildren())
-            if (child is Node3D node && node.Name.ToString().StartsWith("Wheel", StringComparison.Ordinal))
-                _wheels.Add(node);
     }
+
+    public string VisualTemplatePath { get; private set; } = "";
 
     private void BuildVisual()
     {
         _visual = new Node3D { Name = "TrafficVisual" };
         AddChild(_visual);
-        Color main = Color.FromHtml(_route.ColourHex);
-        Color dark = main.Darkened(0.22f);
-        Color glass = Color.FromHtml("9BD8F2");
-        Color tyre = Color.FromHtml("343A46");
-        if (_route.VehicleKind == "scooter")
-            BuildScooter(main, dark, glass, tyre);
-        else if (_route.VehicleKind == "rally_car")
-            BuildRallyCar(main, dark, glass, tyre);
-        else
-            BuildCar(main, dark, glass, tyre);
-    }
+        if (!VisualTemplate.TrafficPaths.TryGetValue(RouteId, out string templatePath))
+            templatePath = VisualTemplate.TrafficPaths["town_scooter"];
+        Node3D template = VisualTemplate.Instantiate(_visual, "Visual", templatePath);
+        VisualTemplatePath = templatePath;
+        VisualTemplate.ApplyVertexColours(template, VisualTemplate.VertexColourMaterial());
+        _wheels.Clear();
+        _wheels.AddRange(VisualTemplate.BuildWheelPivots(template));
 
-    private void BuildCar(Color main, Color dark, Color glass, Color tyre)
-    {
-        Geo.Box(_visual, new Vector3(0, 0.58f, 0), new Vector3(1.6f, 0.5f, 2.65f), main);
-        Geo.Box(_visual, new Vector3(0, 1.02f, 0.18f), new Vector3(1.36f, 0.58f, 1.35f), main);
-        Geo.Box(_visual, new Vector3(0, 1.08f, -0.52f), new Vector3(1.28f, 0.48f, 0.06f), glass);
-        Geo.Box(_visual, new Vector3(0, 1.08f, 0.9f), new Vector3(1.2f, 0.48f, 0.06f), glass);
-        Geo.Box(_visual, new Vector3(0, 1.35f, 0.2f), new Vector3(1.3f, 0.12f, 1.1f), dark);
-        Geo.Box(_visual, new Vector3(0, 0.62f, -1.36f), new Vector3(1.66f, 0.18f, 0.12f), dark);
-        Geo.Box(_visual, new Vector3(0, 0.62f, 1.36f), new Vector3(1.66f, 0.18f, 0.12f), dark);
-        Geo.Box(_visual, new Vector3(-0.52f, 0.68f, -1.37f), new Vector3(0.34f, 0.22f, 0.06f),
-            Color.FromHtml("FFF3C9"));
-        Geo.Box(_visual, new Vector3(0.52f, 0.68f, -1.37f), new Vector3(0.34f, 0.22f, 0.06f),
-            Color.FromHtml("FFF3C9"));
-        Geo.Box(_visual, new Vector3(-0.52f, 0.68f, 1.37f), new Vector3(0.28f, 0.2f, 0.06f),
-            Palette.Red);
-        Geo.Box(_visual, new Vector3(0.52f, 0.68f, 1.37f), new Vector3(0.28f, 0.2f, 0.06f),
-            Palette.Red);
-        AddWheel(new Vector3(-0.79f, 0.35f, -0.82f), tyre);
-        AddWheel(new Vector3(0.79f, 0.35f, -0.82f), tyre);
-        AddWheel(new Vector3(-0.79f, 0.35f, 0.82f), tyre);
-        AddWheel(new Vector3(0.79f, 0.35f, 0.82f), tyre);
-        AddDriverSilhouette(new Vector3(-0.34f, 1.25f, 0.12f));
-        Geo.Label(_visual, new Vector3(0, 1.15f, 1.22f), "VILLAGE", 30, Palette.Navy,
-            false, 0.003f, 0, null, "CarLabel");
-    }
-
-    private void BuildRallyCar(Color main, Color dark, Color glass, Color tyre)
-    {
-        Geo.Box(_visual, new Vector3(0, 0.48f, 0), new Vector3(1.58f, 0.42f, 2.6f), main);
-        Geo.Box(_visual, new Vector3(0, 0.88f, 0.12f), new Vector3(1.28f, 0.42f, 1.25f), main);
-        Geo.Box(_visual, new Vector3(0, 0.94f, -0.55f), new Vector3(1.18f, 0.34f, 0.06f), glass);
-        Geo.Box(_visual, new Vector3(0, 1.22f, 1.15f), new Vector3(1.9f, 0.12f, 0.55f), dark);
-        Geo.Box(_visual, new Vector3(-0.55f, 1.32f, 1.32f), new Vector3(0.1f, 0.35f, 0.12f), dark);
-        Geo.Box(_visual, new Vector3(0.55f, 1.32f, 1.32f), new Vector3(0.1f, 0.35f, 0.12f), dark);
-        Geo.Box(_visual, new Vector3(0, 0.55f, -1.31f), new Vector3(1.64f, 0.18f, 0.1f), dark);
-        Geo.Box(_visual, new Vector3(0, 0.72f, -1.37f), new Vector3(1.3f, 0.28f, 0.04f), Palette.Yellow);
-        Geo.Label(_visual, new Vector3(0, 0.72f, -1.4f), "6", 72, Palette.Navy, false, 0.0025f);
-        AddWheel(new Vector3(-0.78f, 0.33f, -0.8f), tyre);
-        AddWheel(new Vector3(0.78f, 0.33f, -0.8f), tyre);
-        AddWheel(new Vector3(-0.78f, 0.33f, 0.8f), tyre);
-        AddWheel(new Vector3(0.78f, 0.33f, 0.8f), tyre);
-        AddDriverSilhouette(new Vector3(-0.34f, 1.12f, 0.1f));
-    }
-
-    private void BuildScooter(Color main, Color dark, Color glass, Color tyre)
-    {
-        Geo.Box(_visual, new Vector3(0, 0.42f, 0), new Vector3(0.62f, 0.16f, 1.35f), main);
-        Geo.Box(_visual, new Vector3(0, 0.68f, 0.36f), new Vector3(0.52f, 0.28f, 0.72f), dark);
-        Geo.Box(_visual, new Vector3(0, 0.96f, -0.52f), new Vector3(0.16f, 0.8f, 0.16f), main,
-            new Vector3(-12, 0, 0));
-        Geo.Box(_visual, new Vector3(0, 1.3f, -0.6f), new Vector3(0.78f, 0.1f, 0.1f), Palette.Navy);
-        Geo.Box(_visual, new Vector3(0, 0.78f, 0.72f), new Vector3(0.58f, 0.44f, 0.55f), main);
-        Geo.Box(_visual, new Vector3(0, 0.95f, 0.98f), new Vector3(0.5f, 0.3f, 0.06f), Palette.Red);
-        Geo.Box(_visual, new Vector3(0, 1.33f, -0.66f), new Vector3(0.22f, 0.18f, 0.08f),
-            Color.FromHtml("FFF3C9"));
-        Geo.Label(_visual, new Vector3(0, 1.05f, 0.72f), "POST", 26, Palette.Navy, false, 0.0025f);
-        // Rider silhouette so the scooter clearly has a driver.
-        Geo.Box(_visual, new Vector3(0, 1.38f, 0.2f), new Vector3(0.44f, 0.62f, 0.36f), main);
-        Geo.Box(_visual, new Vector3(0, 1.78f, 0.14f), new Vector3(0.38f, 0.36f, 0.34f), Palette.Skin);
-        Geo.Box(_visual, new Vector3(0, 1.98f, 0.14f), new Vector3(0.4f, 0.12f, 0.36f),
-            Color.FromHtml("#664b39"));
-        AddWheel(new Vector3(0, 0.34f, -0.72f), tyre);
-        AddWheel(new Vector3(0, 0.34f, 0.7f), tyre);
-    }
-
-    private void AddWheel(Vector3 position, Color tyre)
-    {
-        var pivot = new Node3D { Name = $"Wheel_{_wheels.Count}", Position = position };
-        _visual.AddChild(pivot);
-        Geo.Cylinder(pivot, Vector3.Zero, 0.32f, 0.32f, 0.22f, tyre, 12,
-            new Vector3(0, 0, 90));
-        Geo.Cylinder(pivot, new Vector3(0.12f, 0, 0), 0.13f, 0.13f, 0.04f,
-            Color.FromHtml("AEB6C2"), 10, new Vector3(0, 0, 90));
-        _wheels.Add(pivot);
-    }
-
-    private void AddDriverSilhouette(Vector3 position)
-    {
-        NpcDefinition definition = NpcCatalog.Find(DriverId) ?? NpcCatalog.All[0];
-        Geo.Box(_visual, position, new Vector3(0.4f, 0.52f, 0.34f),
-            Color.FromHtml(definition.MainHex));
-        Geo.Box(_visual, position + new Vector3(0, 0.34f, -0.04f), new Vector3(0.34f, 0.32f, 0.3f),
-            Palette.Skin);
-        Geo.Box(_visual, position + new Vector3(0, 0.52f, -0.04f), new Vector3(0.36f, 0.1f, 0.32f),
-            Color.FromHtml(definition.HairHex));
+        // Same missing-normal self-shadow fix as the player van.
+        VisualTemplate.DisableSelfShadow(template);
+        bool scooter = _route.VehicleKind == "scooter";
+        var groundShadow = Geo.Disc(this, new Vector3(0, 0.015f, 0), 1.0f,
+            new Color(0.06f, 0.10f, 0.16f), 0.15f);
+        groundShadow.Name = "GroundShadow";
+        groundShadow.Scale = scooter
+            ? new Vector3(0.62f, 1f, 0.95f)
+            : new Vector3(1.05f, 1f, 1.55f);
+        groundShadow.CastShadow = GeometryInstance3D.ShadowCastingSetting.Off;
     }
 
     private void SetYawToward(NpcPoint target)
@@ -201,30 +127,34 @@ public partial class TrafficCar : CharacterBody3D
         if (_route == null || Stopped) return;
         _hornCooldown = Mathf.Max(0f, _hornCooldown - dt);
 
-        var target = _route.Points[CurrentWaypoint];
+        var target = _points[CurrentWaypoint];
         Vector3 targetPos = new(target.X, GlobalPosition.Y, target.Z);
         Vector3 to = targetPos - GlobalPosition;
         to.Y = 0;
         float distance = to.Length();
         if (distance < 0.85f)
         {
-            CurrentWaypoint = (CurrentWaypoint + 1) % _route.Points.Count;
-            target = _route.Points[CurrentWaypoint];
+            CurrentWaypoint = (CurrentWaypoint + 1) % _points.Count;
+            target = _points[CurrentWaypoint];
             targetPos = new Vector3(target.X, GlobalPosition.Y, target.Z);
             to = targetPos - GlobalPosition;
             to.Y = 0;
             distance = to.Length();
         }
 
-        Vector3 direction = distance > 0.001f ? to / distance : -GlobalTransform.Basis.Z;
-        float targetYaw = Mathf.Atan2(-direction.X, -direction.Z);
-        float angle = Mathf.Abs(Mathf.Wrap(targetYaw - _yaw, -Mathf.Pi, Mathf.Pi));
-        float turnRate = 1.25f; // radians per second
-        _yaw = Mathf.MoveToward(_yaw, _yaw + Mathf.Wrap(targetYaw - _yaw, -Mathf.Pi, Mathf.Pi),
-            turnRate * dt);
-        Rotation = new Vector3(0, _yaw, 0);
-
         bool yield = ShouldYield();
+        float angle = 0f;
+        if (!yield)
+        {
+            Vector3 direction = distance > 0.001f ? to / distance : -GlobalTransform.Basis.Z;
+            float targetYaw = Mathf.Atan2(-direction.X, -direction.Z);
+            angle = Mathf.Abs(Mathf.Wrap(targetYaw - _yaw, -Mathf.Pi, Mathf.Pi));
+            float turnRate = 1.25f; // radians per second
+            _yaw = Mathf.MoveToward(_yaw, _yaw + Mathf.Wrap(targetYaw - _yaw, -Mathf.Pi, Mathf.Pi),
+                turnRate * dt);
+            Rotation = new Vector3(0, _yaw, 0);
+        }
+
         if (yield && !Yielding)
         {
             YieldEvents++;
@@ -316,6 +246,30 @@ public partial class TrafficCar : CharacterBody3D
             float vanDistance = toVan.Length();
             if (vanDistance < 4.2f) return true;
             if (vanDistance < 7.5f && toVan.Normalized().Dot(forward) > 0.1f) return true;
+        }
+        return ShouldYieldToOtherTraffic();
+    }
+
+    /// <summary>
+    /// Keep a following gap on the shared one-way village loop. Only the car
+    /// behind gives way; the leader always proceeds, so two cars can queue
+    /// without either one blocking the other indefinitely.
+    /// </summary>
+    private bool ShouldYieldToOtherTraffic()
+    {
+        if (_otherTraffic == null) return false;
+        float progress = TrafficCatalog.ProgressOnVillageLoop(
+            GlobalPosition.X, GlobalPosition.Z);
+        foreach (TrafficCar other in _otherTraffic())
+        {
+            if (other == null || ReferenceEquals(other, this) ||
+                !GodotObject.IsInstanceValid(other) || other.RallyOnly || other.Stopped)
+                continue;
+            float otherProgress = TrafficCatalog.ProgressOnVillageLoop(
+                other.GlobalPosition.X, other.GlobalPosition.Z);
+            if (TrafficCatalog.ShouldYieldToTraffic(
+                    progress, RouteId, otherProgress, other.RouteId))
+                return true;
         }
         return false;
     }
