@@ -160,7 +160,7 @@ world-text problems that survived the fixed inspection cameras. Gables are now
 on the ridge ends rather than the eave walls, with a shadow-free gable material
 so the roof overhang cannot paint a false opening. The oversized floating
 `VILLAGE FIXED!` panel is now a compact free-standing double-sided banner in
-the M20 festival lawn. The four directional arms were consolidated on one post
+the M20 festival entrance, in front of the bunting line. The four directional arms were consolidated on one post
 clear of Milo's patrol, with arrow glyphs verified from both faces; the GOLD
 LAP flag, Pip's car status and the rally podium label use two fixed faces or a
 scene-owned anchor; NPC identity markers scale with distance; and both the

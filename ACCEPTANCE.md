@@ -743,7 +743,7 @@ one continuous M01–M20 sitting and Windows startup remain **NOT TESTED**.
 | # | Visual check | Result |
 |---|---|---|
 | 1 | V36 all six buildings have closed gable ends | **PASS** — `GableEast`/`GableWest` on the ridge ends, rotated 90°, sized to each building depth, with shadow-free gable material; pure test checks all six. |
-| 2 | V37 banner no longer dominates the Town Hall | **PASS** — reduced from 8×1.5 m floating panel to 4.72×0.75 m free-standing banner in the festival lawn; Town Hall frontage completely clear. |
+| 2 | V37 banner no longer dominates the Town Hall | **PASS** — reduced from 8×1.5 m floating panel to 4.72×0.75 m free-standing banner at the festival entrance `(15,3.35,19.8)`; Town Hall frontage completely clear. |
 | 3 | V38 banner readable from both sides | **PASS** — two single-sided text labels on opposite faces, no billboard, offsets outside the panel; yellow emission keeps the shaded face readable. |
 | 4 | V39 directional signs no longer cluster over NPCs/Town Hall | **PASS** — four arms on one post at `(-5.0,0,-4.5)`, outside Milo's patrol by >2.5 m; all eight front/back arrow strings now point at the real destinations. |
 | 5 | V40 GOLD LAP text stays attached and readable | **PASS** — two single-sided 56 px labels just outside each flag face; flag moved to `(64.5,0,-15.5)` so the start/finish pole no longer hides `GO`. |
@@ -752,7 +752,7 @@ one continuous M01–M20 sitting and Windows startup remain **NOT TESTED**.
 | 8 | V43 delivery van lettering readable from behind | **PASS** — 42 px, 6 px outline, 1.05 m; glTF rear-door probe confirms it fits. |
 | 9 | V44 no repeated dark rectangles on Town Hall roadside | **PASS** — all 28 CelebrationDecor and all 8 FestivalDecor bunting meshes stop casting shadows. |
 | 10 | V45 swing frame is intentionally broken before M07 | **PASS** — crossbar, two `BROKEN` labels and the existing runtime broken-label assertion; no missing geometry. |
-| 11 | V46 alley sightlines clear of banner/signs | **PASS** — banner moved to the festival lawn; the signpost is now a single stack on the south road verge, clear of Milo and the M16/M17 props. |
+| 11 | V46 alley sightlines clear of banner/signs | **PASS** — banner moved to the festival entrance; the signpost is now a single stack on the south road verge, clear of Milo and the M16/M17 props. |
 | 12 | M16 delivery board and M17 market stock do not hide each other | **PASS** — market stock moved to the market front `(9.2,3.8)`, more than 11 m from the delivery board. |
 | 13 | V47 NPC portraits no longer dominate foreground | **PASS** — portrait pixel size reduced 47%, 24 m range and distance scaling. |
 | 14 | V48 GRAND RALLY label attached to podium | **PASS** — 2.9×0.5 m board on two posts above the trophy, front and back labels. |
@@ -760,7 +760,8 @@ one continuous M01–M20 sitting and Windows startup remain **NOT TESTED**.
 **Gates:** pure **119 passed**; source runtime **1171 passed, 0 failed** across
 all 11 phases; headless import and boot exit 0; packaged Linux boot plus all 11
 phases **1171 passed, 0 failed**, 3× `--selftest` green, ZIP-extracted
-`--selftest` 284/284. Windows rebuilt, startup **NOT TESTED**.
+`--selftest` 284/284; exact-head CI on `7ea110f` green for `build-test` and
+`windows-tests`. Windows rebuilt, startup **NOT TESTED**.
 
 **Evidence:** ignored `evidence/v13_canonical_visual/v13.2_round3/`.
 

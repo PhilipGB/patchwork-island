@@ -2714,12 +2714,16 @@ internal static class Program
             Check(banner.X >= 4.7f,
                 $"celebration banner panel leaves a gap to its posts: {banner.X}");
             var position = ParseNodePosition(text, "CelebrationSign");
-            Check(position.Z >= 23f && position.Y >= 3f && position.Y <= 4f,
-                $"celebration banner is not in the festival lawn: {position}");
+            Check(position.Z >= 19f && position.Z <= 21f && position.Y >= 3f && position.Y <= 4f,
+                $"celebration banner is not at the festival entrance: {position}");
             Check(text.Contains("MessageFront") && text.Contains("MessageBack"),
                 "celebration banner needs front and back text faces");
             Check(text.Contains("PostWest") && text.Contains("PostEast"),
                 "celebration banner is not free-standing on its own posts");
+            string town = File.ReadAllText(Path.Combine(root, "scenes", "world", "Town.tscn"));
+            var lantern = ParseInstancePosition(town, "FestivalLantern_2");
+            Check(MathF.Abs(lantern.X - 15f) >= 2.5f,
+                $"the centre festival lantern blocks the banner back face at x={lantern.X}");
         });
 
         Run("directional signpost is one clean stack away from Milo", () =>

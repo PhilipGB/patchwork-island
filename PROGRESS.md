@@ -2316,11 +2316,15 @@ All geometry and text changes are in the authored scenes; the procedural
   test checks end placement, rotation, depth and material on all six.
 - **V37/V38 — celebration banner.** The 8 m × 1.5 m floating panel that blocked
   the Town Hall was replaced by a 4.72 m × 0.75 m free-standing banner on two
-  posts in the M20 festival lawn at `(15, 3.35, 24.6)`. The panel overlaps both
+  posts at the M20 festival entrance, `(15, 3.35, 19.8)`. The panel overlaps both
   posts by 1 cm, has two correctly oriented, non-billboard text faces, and uses
   a mild yellow emission so the shaded face still reads as celebration yellow.
-  It is clear of the Town Hall frontage, the market alley and the festival
-  tables.
+  It stands in front of the festival bunting line, so no flag can silhouette
+  across the panel from the village approach; the P14 festival camera sees the
+  panel above the tables. The centre festival lantern was moved from
+  `(15, 24.2)` to `(18.6, 24.2)` so its pole and lamp no longer cover the back
+  text from the festival-side centreline. The banner is clear of the Town Hall
+  frontage, the market alley and the benches.
 - **V39 — directional signs.** The four boards were spread left/right around
   one post at `(-9.8, 4.2)` inside Milo's patrol area. They are now four
   consistent arms stacked on the right of one post at `(-5.0, 0, -4.5)` on
@@ -2372,10 +2376,10 @@ All geometry and text changes are in the authored scenes; the procedural
   and passed `--selftest` (284/284).
 - Windows binary rebuilt (PE32+ x86-64) but startup remains **NOT TESTED**.
 - Final package hashes:
-  - `linux/PatchworkIsland.x86_64` `46fd0a4ad4495af99df3b36b28a68771a5eb5cbf2b143762e89c774531d72f6b`
-  - `windows/PatchworkIsland.exe` `37ceeb2bafa355d50646ecfb13cf916aee72c93b8975e778b7996562956ad272`
-  - `PatchworkIsland-1.3.0-Linux-x86_64.zip` `a836e6132600a401d7df2ddd2abdfbc2a97b8e51aa1a8d4a81e800654af606f6`
-  - `PatchworkIsland-1.3.0-Windows-x86_64.zip` `b58685eee5556503481b4d9b089ab00c2119c16163d998cce475d686d6042e9f`
+  - `linux/PatchworkIsland.x86_64` `ab31fa356372b4ba9607fe942370efba55956f83ff39bb889c0d7527fe8b4549`
+  - `windows/PatchworkIsland.exe` `e2f1bd7a1fd12cb7cc23730eb9e1b8331cf27540713d0babf24e5d9531e57b6e`
+  - `PatchworkIsland-1.3.0-Linux-x86_64.zip` `105bfc7753cfddf2adeba3b2caa68260e704f41538df8686a411211fff605ddb`
+  - `PatchworkIsland-1.3.0-Windows-x86_64.zip` `448d6ce5af5677017e184ea0f6a294831dfaf7d6731ec8013617e8359ed83ea7`
 - Visual probes: `evidence/v13_canonical_visual/v13.2_round3/` (24 gable
   views across all six buildings, town-level front/back/side probes, P11 NPC
   and P14 finale tours).
@@ -2385,6 +2389,10 @@ All geometry and text changes are in the authored scenes; the procedural
   V40 PASS with the start/finish pole caveat, V41 PASS, V42/V47 PASS, V44
   PASS, V45 PASS, V48 PASS. Every reported defect was addressed and a focused
   re-verification is running.
+- Exact-head CI: commit `7ea110f` — `build-test` **success** and
+  `windows-tests` **success**; PR #28 open and mergeable. An earlier
+  `b65fc02` Windows run failed only because the new bunting test assumed LF
+  line endings; the regex is now CRLF-safe and the rerun is green.
 
 ### Remaining gaps
 

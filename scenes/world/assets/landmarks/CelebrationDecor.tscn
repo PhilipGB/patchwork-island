@@ -386,22 +386,22 @@ mesh = SubResource("BoxMesh_55")
 material_override = SubResource("StandardMaterial_56")
 
 [node name="CelebrationSign" type="MeshInstance3D" parent="."]
-position = Vector3(15, 3.35, 24.6)
+position = Vector3(15, 3.35, 19.8)
 mesh = SubResource("BoxMesh_57")
 material_override = SubResource("StandardMaterial_58")
 
 [node name="PostWest" type="MeshInstance3D" parent="."]
-position = Vector3(12.6, 1.8, 24.6)
+position = Vector3(12.6, 1.8, 19.8)
 mesh = SubResource("BoxMesh_59")
 material_override = SubResource("StandardMaterial_60")
 
 [node name="PostEast" type="MeshInstance3D" parent="."]
-position = Vector3(17.4, 1.8, 24.6)
+position = Vector3(17.4, 1.8, 19.8)
 mesh = SubResource("BoxMesh_59")
 material_override = SubResource("StandardMaterial_60")
 
 [node name="MessageFront" type="Label3D" parent="."]
-position = Vector3(15, 3.34, 24.53)
+position = Vector3(15, 3.34, 19.73)
 text = "VILLAGE FIXED!"
 font_size = 50
 pixel_size = 0.005
@@ -412,7 +412,7 @@ billboard = 0
 rotation = Vector3(0, 3.14159, 0)
 
 [node name="MessageBack" type="Label3D" parent="."]
-position = Vector3(15, 3.34, 24.67)
+position = Vector3(15, 3.34, 19.87)
 text = "VILLAGE FIXED!"
 font_size = 50
 pixel_size = 0.005

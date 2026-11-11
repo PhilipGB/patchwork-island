@@ -819,7 +819,7 @@ position = Vector3(9, 0.09, 22.4)
 position = Vector3(21, 0.09, 22.4)
 
 [node name="FestivalLantern_2" parent="." instance=ExtResource("canonical_20")]
-position = Vector3(15, 0.09, 24.2)
+position = Vector3(18.6, 0.09, 24.2)
 
 [node name="SignSocket_market" parent="." instance=ExtResource("canonical_sign_socket")]
 position = Vector3(18.0, 0, 9.6)

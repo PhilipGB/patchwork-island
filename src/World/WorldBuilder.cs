@@ -920,7 +920,7 @@ public partial class WorldBuilder : Node3D
         Vector3[] lanterns =
         {
             new(9.0f, 0.09f, 22.4f), new(21.0f, 0.09f, 22.4f),
-            new(15.0f, 0.09f, 24.2f),
+            new(18.6f, 0.09f, 24.2f),
         };
         for (int i = 0; i < lanterns.Length; i++)
         {
@@ -1361,7 +1361,7 @@ public partial class WorldBuilder : Node3D
         var celebrationBanner = new Node3D
         {
             Name = "CelebrationBanner",
-            Position = new Vector3(15f, 0, 24.6f),
+            Position = new Vector3(15f, 0, 19.8f),
         };
         CelebrationDecor.AddChild(celebrationBanner);
         Geo.Box(celebrationBanner, new Vector3(0, 1.8f, 0), new Vector3(0.1f, 3.6f, 0.1f), Palette.WoodDark);

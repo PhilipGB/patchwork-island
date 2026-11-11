@@ -258,7 +258,7 @@
     "The swing frame assets contain four BROKEN labels (two per frame), so restoration counts every scene-authored label rather than assuming two.",
     "No scooter GLB is supplied; the town_scooter route keeps its stable route ID and uses the green town-car visual template.",
     "The playground WorksiteMarker lives inside Playground.tscn; the PlaygroundCenter gameplay anchor is validated against the Playground root at load, and the interaction station uses the marker.",
-    "CelebrationDecor is a compact free-standing banner in the M20 festival lawn; it no longer overlaps the Town Hall frontage.",
+    "CelebrationDecor is a compact free-standing banner at the M20 festival entrance, in front of the bunting line; it no longer overlaps the Town Hall frontage.",
     "The DirectionPost is an authored four-arm stack at (-5, 0, -4.5) on the south verge, clear of Milo, the Delivery Board and Market Stock.",
     "Building gables use StandardMaterial3D_Gable with disable_receive_shadows so roof overhangs cannot read as open pediments.",
     "The M17 MarketStock is at (9.2, 0, 3.8) in front of the market, clear of the M16 DeliveryBoard at (-2.5, 0, 4.2)."
