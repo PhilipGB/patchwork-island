@@ -105,3 +105,10 @@ cars progressing along the inner and outer routes.
   physics. A future pass can align the proxy height to the road surface.
 - The city still uses the supplied placeholder architecture; the remediation
   only makes the authored grid traversable and visually consistent.
+
+## Release status
+
+The existing GitHub **v1.4.0** pre-release/tag points to commit `21b226e`
+(before this remediation). Do not move a published tag. The grid fix is on the
+`v1.4.0-city-expansion` branch in PR #32 at `430c05e`; a new **v1.4.1** tag and
+pre-release should be used if this is published.

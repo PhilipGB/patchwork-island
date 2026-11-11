@@ -2813,20 +2813,20 @@ godot --headless --path . --quit-after 120               -> exit 0
 Source runtime total: **1265 passed, 0 failed**, all twelve phases exit 0.
 Every process exits 0; the known Mono shutdown resource warnings are unchanged.
 
-### Packaged Linux 1.4.0
+### Packaged Linux 1.4.0 — CityFix
 
-A headless release export was produced from this exact tree to
-`/home/philip/.cache/tmp/opencode/patchwork-export-140/PatchworkIsland.x86_64`
-(outside the repository):
+A release export was produced from the city-grid remediation commit and tested
+from the local package:
 
 ```text
-size   163,734,792 bytes
-sha256 8756e0cdee7ef115f0306efebb19c696c806b68483d8c4c5a5555f7e9c5ea604
-file   ELF 64-bit LSB executable, x86-64
+dist/linux/PatchworkIsland.x86_64        163,762,008 bytes
+sha256 8fb9435451e9052e62b1d07774eae7763d4dca842767c1e06817101530868e42
+dist/windows/PatchworkIsland.exe         199,587,440 bytes
+sha256 6fc9ba41efdf4dc9229d6d5da05423f15f7a8e6980c818345e7948c687ab9e4b
 ```
 
-The packaged binary booted headlessly and passed all twelve runtime phases
-with the same counts as source:
+The packaged binary booted headlessly and passed all twelve runtime phases with
+the same counts as source:
 
 ```text
 boot 0
@@ -2834,20 +2834,20 @@ boot 0
 --selftest-resume        21 passed, 0 failed
 --selftest-recovery     101 passed, 0 failed
 --selftest-living       238 passed, 0 failed
---selftest-rally         10 passed, 0 failed (M05 19.03 s, M09 18.98 s)
+--selftest-rally         10 passed, 0 failed
 --selftest-chapter      217 passed, 0 failed
 --selftest-hotfix        48 passed, 0 failed
---selftest-finale       140 passed, 0 failed (M19 22.32 s)
+--selftest-finale       140 passed, 0 failed
 --selftest-traversal     18 passed, 0 failed
 --selftest-release       40 passed, 0 failed
 --selftest-restore       54 passed, 0 failed
 --selftest-city          94 passed, 0 failed
 ```
 
-Packaged total: **1265 passed, 0 failed**, all phases exit 0. This proves the
-city scene/assets and `data/city_missions.json` survive the export filter.
-The executable was not added to `dist/`; no Windows export was produced for
-this checkpoint.
+Packaged total: **1265 passed, 0 failed**, all phases exit 0. The matching local
+CityFix ZIPs and `SHA256SUMS.v1.4.0-cityfix` are in the gitignored `dist/`.
+The existing GitHub v1.4.0 pre-release remains pinned to the earlier `21b226e`
+build; this remediation should be published as a new v1.4.1 tag/release.
 
 ### Performance — real AMD Radeon 890M
 

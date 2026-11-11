@@ -26,6 +26,10 @@
 - [x] City reachable and returnable by driving the van; the full-speed runtime
   test crosses the gate in both directions, and the approach has no seam trap
   or van-loss path.
+- [x] Sidewalk segments never cross a carriageway, plazas/buildings stay out of
+  the road grid, and the van and NPC cars traverse the city grid.
+- [x] The player can step from the road onto the central plaza to reach CITY
+  JOBS.
 - [x] Independent CityJobs board with C01, C02 and C03 playable end-to-end.
 - [x] City mission progress, rewards and completed world changes survive
   save/reload.

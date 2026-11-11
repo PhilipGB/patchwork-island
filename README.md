@@ -35,9 +35,16 @@ all existing saves keep their behaviour.
   0.002–0.003 ms. See `docs/05_CITY_PERFORMANCE.md`.
 - **Test build published.** Download the v1.4.0 pre-release from
   <https://github.com/PhilipGB/patchwork-island/releases/tag/v1.4.0>
-  (commit `21b226e`). Human visual sign-off, one continuous
-  M01–M21/C01–C03 sitting and Windows startup remain open. See `PROGRESS.md`
-  P24 and `docs/03_ACCEPTANCE.md`.
+  (commit `21b226e`). The published tag predates the city-grid remediation on
+  PR #32; use the CityFix local build or a future v1.4.1 release for the fixed
+  grid. Human visual sign-off, one continuous M01–M21/C01–C03 sitting and
+  Windows startup remain open. See `PROGRESS.md` P24 and
+  `docs/03_ACCEPTANCE.md`.
+- **City grid remediation (PR #32, commit `430c05e`).** Sidewalks are split
+  into 81 segments with a 16 m entrance gap, plazas are 56 m, buildings/HLOD
+  are scaled to fit, and the road/marking surfaces are flush. The van can enter
+  the city, NPC cars stay on the grid, and the player can step onto the plaza.
+  Evidence: `evidence/v14_city/defects/` (before) and `defects-fixed/` (after).
 - Screenshots: `evidence/v14_city/720/` and `evidence/v14_city/1080/`.
   Compatibility notes: `docs/CITY_EXPANSION_COMPATIBILITY.md`.
 
