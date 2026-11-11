@@ -358,7 +358,7 @@ src/Core/                 pure rules, mission/save/race/control logic
 src/Build/                bridge, swings, park and furniture builders
 src/Player/               player and camera
 src/Vehicle/              delivery van
-src/World/                procedural village and interactables
+src/World/                scene adapter, world data contract and interactables
 src/UI/                   HUD, job board, shop, grocery and furniture UI
 data/missions.json        authoritative runtime mission content
 tests/                    dependency-free .NET test runner

@@ -22,7 +22,8 @@ instructions are historical and no longer apply.
 
 This ZIP contains Godot 4 `.tscn` scenes, editable primitive building/landmark assets,
 positioned town preview, complete coordinate manifest, native rally preview mesh,
-NPC/traffic waypoints, exact-bake tool, source tour screenshots and a migration handoff.
+NPC/traffic waypoints, source tour screenshots and a migration handoff. The
+historical exact-bake tool is no longer part of the repository.
 
 ## Important distinction
 
