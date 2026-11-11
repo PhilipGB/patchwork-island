@@ -1,0 +1,42 @@
+[gd_scene load_steps=7 format=3]
+
+[sub_resource type="StandardMaterial3D" id="mat_cream"]
+albedo_color = Color(0.89412, 0.83137, 0.67451, 1)
+metallic = 0.0
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="mat_dark"]
+albedo_color = Color(0.15686, 0.21569, 0.27843, 1)
+metallic = 0.0
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="mat_glass2"]
+albedo_color = Color(0.66275, 0.84314, 0.85098, 1)
+metallic = 0.25
+roughness = 0.23
+
+[sub_resource type="BoxMesh" id="box_1"]
+size = Vector3(22, 43, 20)
+material = SubResource("mat_cream")
+
+[sub_resource type="BoxMesh" id="box_2"]
+size = Vector3(23, 0.8, 21)
+material = SubResource("mat_dark")
+
+[sub_resource type="BoxMesh" id="box_3"]
+size = Vector3(21, 27.95, 0.12)
+material = SubResource("mat_glass2")
+
+[node name="CornerHotelHLOD" type="Node3D"]
+
+[node name="Silhouette" type="MeshInstance3D" parent="."]
+position = Vector3(0, 21.5, 0)
+mesh = SubResource("box_1")
+
+[node name="Roof" type="MeshInstance3D" parent="."]
+position = Vector3(0, 43.4, 0)
+mesh = SubResource("box_2")
+
+[node name="FacadeTint" type="MeshInstance3D" parent="."]
+position = Vector3(0, 22.790000000000003, 10.1)
+mesh = SubResource("box_3")

@@ -1,0 +1,74 @@
+[gd_scene load_steps=11 format=3]
+
+[sub_resource type="StandardMaterial3D" id="mat_road"]
+albedo_color = Color(0.2, 0.23922, 0.29412, 1)
+metallic = 0.0
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="mat_sidewalk"]
+albedo_color = Color(0.61569, 0.66667, 0.70196, 1)
+metallic = 0.0
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="mat_mark"]
+albedo_color = Color(0.97255, 0.93333, 0.88235, 1)
+metallic = 0.0
+roughness = 0.8
+
+[sub_resource type="BoxMesh" id="box_1"]
+size = Vector3(24, 0.16, 64)
+material = SubResource("mat_road")
+
+[sub_resource type="BoxMesh" id="box_2"]
+size = Vector3(4, 0.3, 64)
+material = SubResource("mat_sidewalk")
+
+[sub_resource type="BoxMesh" id="box_3"]
+size = Vector3(4, 0.3, 64)
+material = SubResource("mat_sidewalk")
+
+[sub_resource type="BoxMesh" id="box_4"]
+size = Vector3(0.35, 0.025, 6)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_5"]
+size = Vector3(0.35, 0.025, 6)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_6"]
+size = Vector3(0.35, 0.025, 6)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_7"]
+size = Vector3(0.35, 0.025, 6)
+material = SubResource("mat_mark")
+
+[node name="RoadStraight" type="Node3D"]
+
+[node name="Road" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.08, 0)
+mesh = SubResource("box_1")
+
+[node name="SidewalkL" type="MeshInstance3D" parent="."]
+position = Vector3(-14, 0.2, 0)
+mesh = SubResource("box_2")
+
+[node name="SidewalkR" type="MeshInstance3D" parent="."]
+position = Vector3(14, 0.2, 0)
+mesh = SubResource("box_3")
+
+[node name="LaneDash_0" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.19, -24)
+mesh = SubResource("box_4")
+
+[node name="LaneDash_1" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.19, -8)
+mesh = SubResource("box_5")
+
+[node name="LaneDash_2" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.19, 8)
+mesh = SubResource("box_6")
+
+[node name="LaneDash_3" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.19, 24)
+mesh = SubResource("box_7")

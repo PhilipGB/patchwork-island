@@ -1,0 +1,223 @@
+[gd_scene load_steps=29 format=3]
+
+[sub_resource type="StandardMaterial3D" id="mat_concrete"]
+albedo_color = Color(0.78431, 0.77255, 0.71373, 1)
+metallic = 0.0
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="mat_dark"]
+albedo_color = Color(0.15686, 0.21569, 0.27843, 1)
+metallic = 0.0
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="mat_glass"]
+albedo_color = Color(0.40784, 0.7098, 0.77647, 1)
+metallic = 0.25
+roughness = 0.23
+
+[sub_resource type="StandardMaterial3D" id="mat_glass2"]
+albedo_color = Color(0.66275, 0.84314, 0.85098, 1)
+metallic = 0.25
+roughness = 0.23
+
+[sub_resource type="BoxMesh" id="box_1"]
+size = Vector3(26, 24, 23)
+material = SubResource("mat_concrete")
+
+[sub_resource type="BoxMesh" id="box_2"]
+size = Vector3(27, 1, 24)
+material = SubResource("mat_dark")
+
+[sub_resource type="BoxMesh" id="box_3"]
+size = Vector3(23, 4, 23.18)
+material = SubResource("mat_glass")
+
+[sub_resource type="BoxMesh" id="box_4"]
+size = Vector3(5, 5, 0.65)
+material = SubResource("mat_dark")
+
+[sub_resource type="BoxMesh" id="box_5"]
+size = Vector3(3.5, 4, 0.7)
+material = SubResource("mat_glass2")
+
+[sub_resource type="BoxMesh" id="box_6"]
+size = Vector3(7.647058823529412, 3, 0.18)
+material = SubResource("mat_glass2")
+
+[sub_resource type="BoxMesh" id="box_7"]
+size = Vector3(7.647058823529412, 3, 0.18)
+material = SubResource("mat_glass2")
+
+[sub_resource type="BoxMesh" id="box_8"]
+size = Vector3(7.647058823529412, 3, 0.18)
+material = SubResource("mat_glass2")
+
+[sub_resource type="BoxMesh" id="box_9"]
+size = Vector3(7.647058823529412, 3, 0.18)
+material = SubResource("mat_glass2")
+
+[sub_resource type="BoxMesh" id="box_10"]
+size = Vector3(0.18, 2.6, 14.72)
+material = SubResource("mat_glass2")
+
+[sub_resource type="BoxMesh" id="box_11"]
+size = Vector3(0.18, 2.6, 14.72)
+material = SubResource("mat_glass2")
+
+[sub_resource type="BoxMesh" id="box_12"]
+size = Vector3(7.647058823529412, 3, 0.18)
+material = SubResource("mat_glass2")
+
+[sub_resource type="BoxMesh" id="box_13"]
+size = Vector3(7.647058823529412, 3, 0.18)
+material = SubResource("mat_glass2")
+
+[sub_resource type="BoxMesh" id="box_14"]
+size = Vector3(7.647058823529412, 3, 0.18)
+material = SubResource("mat_glass2")
+
+[sub_resource type="BoxMesh" id="box_15"]
+size = Vector3(7.647058823529412, 3, 0.18)
+material = SubResource("mat_glass2")
+
+[sub_resource type="BoxMesh" id="box_16"]
+size = Vector3(0.18, 2.6, 14.72)
+material = SubResource("mat_glass2")
+
+[sub_resource type="BoxMesh" id="box_17"]
+size = Vector3(0.18, 2.6, 14.72)
+material = SubResource("mat_glass2")
+
+[sub_resource type="BoxMesh" id="box_18"]
+size = Vector3(7.647058823529412, 3, 0.18)
+material = SubResource("mat_glass2")
+
+[sub_resource type="BoxMesh" id="box_19"]
+size = Vector3(7.647058823529412, 3, 0.18)
+material = SubResource("mat_glass2")
+
+[sub_resource type="BoxMesh" id="box_20"]
+size = Vector3(7.647058823529412, 3, 0.18)
+material = SubResource("mat_glass2")
+
+[sub_resource type="BoxMesh" id="box_21"]
+size = Vector3(7.647058823529412, 3, 0.18)
+material = SubResource("mat_glass2")
+
+[sub_resource type="BoxMesh" id="box_22"]
+size = Vector3(0.18, 2.6, 14.72)
+material = SubResource("mat_glass2")
+
+[sub_resource type="BoxMesh" id="box_23"]
+size = Vector3(0.18, 2.6, 14.72)
+material = SubResource("mat_glass2")
+
+[sub_resource type="BoxShape3D" id="building_collision_shape"]
+size = Vector3(26, 24, 23)
+
+
+[node name="LibraryCentre" type="Node3D"]
+
+[node name="MainVolume" type="MeshInstance3D" parent="."]
+position = Vector3(0, 12.0, 0)
+mesh = SubResource("box_1")
+
+[node name="RoofParapet" type="MeshInstance3D" parent="."]
+position = Vector3(0, 24.5, 0)
+mesh = SubResource("box_2")
+
+[node name="GroundFloorGlazing" type="MeshInstance3D" parent="."]
+position = Vector3(0, 2.5, 11.62)
+mesh = SubResource("box_3")
+
+[node name="EntranceFrame" type="MeshInstance3D" parent="."]
+position = Vector3(0, 2.5, 11.98)
+mesh = SubResource("box_4")
+
+[node name="Door" type="MeshInstance3D" parent="."]
+position = Vector3(0, 2.1, 12.35)
+mesh = SubResource("box_5")
+
+[node name="FrontWindow_0_-1" type="MeshInstance3D" parent="."]
+position = Vector3(-6.5, 9.0, 11.66)
+mesh = SubResource("box_6")
+
+[node name="RearWindow_0_-1" type="MeshInstance3D" parent="."]
+position = Vector3(-6.5, 9.0, -11.66)
+mesh = SubResource("box_7")
+
+[node name="FrontWindow_0_1" type="MeshInstance3D" parent="."]
+position = Vector3(6.5, 9.0, 11.66)
+mesh = SubResource("box_8")
+
+[node name="RearWindow_0_1" type="MeshInstance3D" parent="."]
+position = Vector3(6.5, 9.0, -11.66)
+mesh = SubResource("box_9")
+
+[node name="EastRibbon_0" type="MeshInstance3D" parent="."]
+position = Vector3(13.16, 9.0, 0)
+mesh = SubResource("box_10")
+
+[node name="WestRibbon_0" type="MeshInstance3D" parent="."]
+position = Vector3(-13.16, 9.0, 0)
+mesh = SubResource("box_11")
+
+[node name="FrontWindow_1_-1" type="MeshInstance3D" parent="."]
+position = Vector3(-6.5, 13.0, 11.66)
+mesh = SubResource("box_12")
+
+[node name="RearWindow_1_-1" type="MeshInstance3D" parent="."]
+position = Vector3(-6.5, 13.0, -11.66)
+mesh = SubResource("box_13")
+
+[node name="FrontWindow_1_1" type="MeshInstance3D" parent="."]
+position = Vector3(6.5, 13.0, 11.66)
+mesh = SubResource("box_14")
+
+[node name="RearWindow_1_1" type="MeshInstance3D" parent="."]
+position = Vector3(6.5, 13.0, -11.66)
+mesh = SubResource("box_15")
+
+[node name="EastRibbon_1" type="MeshInstance3D" parent="."]
+position = Vector3(13.16, 13.0, 0)
+mesh = SubResource("box_16")
+
+[node name="WestRibbon_1" type="MeshInstance3D" parent="."]
+position = Vector3(-13.16, 13.0, 0)
+mesh = SubResource("box_17")
+
+[node name="FrontWindow_2_-1" type="MeshInstance3D" parent="."]
+position = Vector3(-6.5, 17.0, 11.66)
+mesh = SubResource("box_18")
+
+[node name="RearWindow_2_-1" type="MeshInstance3D" parent="."]
+position = Vector3(-6.5, 17.0, -11.66)
+mesh = SubResource("box_19")
+
+[node name="FrontWindow_2_1" type="MeshInstance3D" parent="."]
+position = Vector3(6.5, 17.0, 11.66)
+mesh = SubResource("box_20")
+
+[node name="RearWindow_2_1" type="MeshInstance3D" parent="."]
+position = Vector3(6.5, 17.0, -11.66)
+mesh = SubResource("box_21")
+
+[node name="EastRibbon_2" type="MeshInstance3D" parent="."]
+position = Vector3(13.16, 17.0, 0)
+mesh = SubResource("box_22")
+
+[node name="WestRibbon_2" type="MeshInstance3D" parent="."]
+position = Vector3(-13.16, 17.0, 0)
+mesh = SubResource("box_23")
+
+[node name="BuildingCollision" type="StaticBody3D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="BuildingCollision"]
+position = Vector3(0, 12, 0)
+shape = SubResource("building_collision_shape")
+
+[node name="DoorMarker" type="Marker3D" parent="."]
+position = Vector3(0, 0, 14.5)
+metadata/scene_binding_id = "CityLibraryCentreDoor"

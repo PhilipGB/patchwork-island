@@ -1,0 +1,393 @@
+[gd_scene load_steps=27 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/world/assets/characters/Pip_Visual.tscn" id="ext_engineer"]
+
+[sub_resource type="StandardMaterial3D" id="mat_wood"]
+albedo_color = Color(0.72549, 0.52157, 0.31373, 1)
+metallic = 0.0
+roughness = 0.85
+
+[sub_resource type="StandardMaterial3D" id="mat_dark"]
+albedo_color = Color(0.15686, 0.21569, 0.27843, 1)
+metallic = 0.0
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="mat_cream"]
+albedo_color = Color(0.89412, 0.83137, 0.67451, 1)
+metallic = 0.0
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="mat_orange"]
+albedo_color = Color(0.95686, 0.5451, 0.26275, 1)
+metallic = 0.0
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="mat_red"]
+albedo_color = Color(0.83922, 0.41961, 0.33725, 1)
+metallic = 0.0
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="mat_amber"]
+albedo_color = Color(0.97255, 0.74118, 0.24706, 1)
+metallic = 0.0
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="mat_green"]
+albedo_color = Color(0.37255, 0.58039, 0.48627, 1)
+metallic = 0.0
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="mat_steel"]
+albedo_color = Color(0.48235, 0.52941, 0.57255, 1)
+metallic = 0.2
+roughness = 0.8
+
+[sub_resource type="BoxMesh" id="box_parcel"]
+size = Vector3(1.15, 0.7, 0.9)
+material = SubResource("mat_wood")
+
+[sub_resource type="BoxMesh" id="box_crate"]
+size = Vector3(1.2, 1.0, 1.0)
+material = SubResource("mat_wood")
+
+[sub_resource type="BoxMesh" id="box_post"]
+size = Vector3(0.16, 2.5, 0.16)
+material = SubResource("mat_dark")
+
+[sub_resource type="BoxMesh" id="box_sign"]
+size = Vector3(2.2, 1.1, 0.16)
+material = SubResource("mat_cream")
+
+[sub_resource type="BoxMesh" id="box_cabinet"]
+size = Vector3(1.15, 1.7, 0.7)
+material = SubResource("mat_steel")
+
+[sub_resource type="BoxMesh" id="box_lens"]
+size = Vector3(0.32, 0.32, 0.08)
+material = SubResource("mat_red")
+
+[sub_resource type="BoxMesh" id="box_counter"]
+size = Vector3(4.4, 1.1, 1.3)
+material = SubResource("mat_wood")
+
+[sub_resource type="BoxMesh" id="box_counter_top"]
+size = Vector3(4.8, 0.16, 1.6)
+material = SubResource("mat_cream")
+
+[sub_resource type="CylinderMesh" id="cyl_beacon"]
+top_radius = 0.12
+bottom_radius = 0.28
+height = 0.7
+radial_segments = 8
+material = SubResource("mat_orange")
+
+[node name="CityJobs" type="Node3D"]
+
+[node name="C01DepotParcels" type="Node3D" parent="."]
+position = Vector3(-78, 0.2, -58)
+
+[node name="Parcel0" type="MeshInstance3D" parent="C01DepotParcels"]
+position = Vector3(-0.7, 0.4, 0)
+mesh = SubResource("box_parcel")
+
+[node name="Parcel1" type="MeshInstance3D" parent="C01DepotParcels"]
+position = Vector3(0.1, 0.4, 0)
+mesh = SubResource("box_parcel")
+
+[node name="Parcel2" type="MeshInstance3D" parent="C01DepotParcels"]
+position = Vector3(0.9, 0.4, 0)
+mesh = SubResource("box_parcel")
+
+[node name="DepotSign" type="Node3D" parent="C01DepotParcels"]
+position = Vector3(-1.8, 0, 1.0)
+
+[node name="Post" type="MeshInstance3D" parent="C01DepotParcels/DepotSign"]
+position = Vector3(0, 1.25, 0)
+mesh = SubResource("box_post")
+
+[node name="Board" type="MeshInstance3D" parent="C01DepotParcels/DepotSign"]
+position = Vector3(0.8, 2.45, 0)
+mesh = SubResource("box_sign")
+
+[node name="Text" type="Label3D" parent="C01DepotParcels/DepotSign"]
+position = Vector3(0.8, 2.45, 0.1)
+pixel_size = 0.006
+text = "PARCELS"
+font_size = 52
+outline_size = 8
+modulate = Color(0.15294, 0.21176, 0.29412, 1)
+
+[node name="C01Stop1" type="Node3D" parent="."]
+position = Vector3(-80, 0.2, -80)
+
+[node name="Post" type="MeshInstance3D" parent="C01Stop1"]
+position = Vector3(0, 1.25, 0)
+mesh = SubResource("box_post")
+
+[node name="Board" type="MeshInstance3D" parent="C01Stop1"]
+position = Vector3(0, 2.45, 0)
+mesh = SubResource("box_sign")
+
+[node name="Text" type="Label3D" parent="C01Stop1"]
+position = Vector3(0, 2.45, 0.1)
+pixel_size = 0.006
+text = "1  MARKET"
+font_size = 52
+outline_size = 8
+modulate = Color(0.15294, 0.21176, 0.29412, 1)
+
+[node name="C01Stop2" type="Node3D" parent="."]
+position = Vector3(0, 0.2, -80)
+
+[node name="Post" type="MeshInstance3D" parent="C01Stop2"]
+position = Vector3(0, 1.25, 0)
+mesh = SubResource("box_post")
+
+[node name="Board" type="MeshInstance3D" parent="C01Stop2"]
+position = Vector3(0, 2.45, 0)
+mesh = SubResource("box_sign")
+
+[node name="Text" type="Label3D" parent="C01Stop2"]
+position = Vector3(0, 2.45, 0.1)
+pixel_size = 0.006
+text = "2  LIBRARY"
+font_size = 52
+outline_size = 8
+modulate = Color(0.15294, 0.21176, 0.29412, 1)
+
+[node name="C01Stop3" type="Node3D" parent="."]
+position = Vector3(80, 0.2, -80)
+
+[node name="Post" type="MeshInstance3D" parent="C01Stop3"]
+position = Vector3(0, 1.25, 0)
+mesh = SubResource("box_post")
+
+[node name="Board" type="MeshInstance3D" parent="C01Stop3"]
+position = Vector3(0, 2.45, 0)
+mesh = SubResource("box_sign")
+
+[node name="Text" type="Label3D" parent="C01Stop3"]
+position = Vector3(0, 2.45, 0.1)
+pixel_size = 0.006
+text = "3  HOSPITAL"
+font_size = 52
+outline_size = 8
+modulate = Color(0.15294, 0.21176, 0.29412, 1)
+
+[node name="C02Crates" type="Node3D" parent="."]
+
+[node name="Crate0" type="MeshInstance3D" parent="C02Crates"]
+position = Vector3(79, 0.6, 76)
+mesh = SubResource("box_crate")
+metadata/city_prop_id = "C02_Crate_0"
+
+[node name="Crate1" type="MeshInstance3D" parent="C02Crates"]
+position = Vector3(81, 0.6, 76)
+mesh = SubResource("box_crate")
+metadata/city_prop_id = "C02_Crate_1"
+
+[node name="Crate2" type="MeshInstance3D" parent="C02Crates"]
+position = Vector3(79, 0.6, 79)
+mesh = SubResource("box_crate")
+metadata/city_prop_id = "C02_Crate_2"
+
+[node name="Crate3" type="MeshInstance3D" parent="C02Crates"]
+position = Vector3(81, 0.6, 79)
+mesh = SubResource("box_crate")
+metadata/city_prop_id = "C02_Crate_3"
+
+[node name="Crate4" type="MeshInstance3D" parent="C02Crates"]
+position = Vector3(79, 0.6, 82)
+mesh = SubResource("box_crate")
+metadata/city_prop_id = "C02_Crate_4"
+
+[node name="Crate5" type="MeshInstance3D" parent="C02Crates"]
+position = Vector3(81, 0.6, 82)
+mesh = SubResource("box_crate")
+metadata/city_prop_id = "C02_Crate_5"
+
+[node name="C02Stall" type="Node3D" parent="."]
+position = Vector3(80, 0.2, 84.6)
+
+[node name="Counter" type="MeshInstance3D" parent="C02Stall"]
+position = Vector3(0, 0.55, 0)
+mesh = SubResource("box_counter")
+
+[node name="CounterTop" type="MeshInstance3D" parent="C02Stall"]
+position = Vector3(0, 1.18, 0)
+mesh = SubResource("box_counter_top")
+
+[node name="StallSign" type="MeshInstance3D" parent="C02Stall"]
+position = Vector3(0, 2.8, 0)
+mesh = SubResource("box_sign")
+
+[node name="StallText" type="Label3D" parent="C02Stall"]
+position = Vector3(0, 2.8, 0.1)
+pixel_size = 0.006
+text = "MARKET STALLS"
+font_size = 52
+outline_size = 8
+modulate = Color(0.15294, 0.21176, 0.29412, 1)
+
+[node name="C03Cabinet1" type="Node3D" parent="."]
+position = Vector3(0, 0.2, 0)
+
+[node name="Body" type="MeshInstance3D" parent="C03Cabinet1"]
+position = Vector3(0, 0.85, 0)
+mesh = SubResource("box_cabinet")
+
+[node name="LensRed" type="MeshInstance3D" parent="C03Cabinet1"]
+position = Vector3(0, 1.45, 0.4)
+mesh = SubResource("box_lens")
+
+[node name="LensAmber" type="MeshInstance3D" parent="C03Cabinet1"]
+position = Vector3(0, 1.05, 0.4)
+mesh = SubResource("box_lens")
+
+[node name="LensGreen" type="MeshInstance3D" parent="C03Cabinet1"]
+position = Vector3(0, 0.65, 0.4)
+mesh = SubResource("box_lens")
+
+[node name="Number" type="Label3D" parent="C03Cabinet1"]
+position = Vector3(0, 1.9, 0.1)
+pixel_size = 0.006
+text = "1"
+font_size = 64
+outline_size = 8
+modulate = Color(0.15294, 0.21176, 0.29412, 1)
+
+[node name="C03Cabinet2" type="Node3D" parent="."]
+position = Vector3(0, 0.2, 80)
+
+[node name="Body" type="MeshInstance3D" parent="C03Cabinet2"]
+position = Vector3(0, 0.85, 0)
+mesh = SubResource("box_cabinet")
+
+[node name="LensRed" type="MeshInstance3D" parent="C03Cabinet2"]
+position = Vector3(0, 1.45, 0.4)
+mesh = SubResource("box_lens")
+
+[node name="LensAmber" type="MeshInstance3D" parent="C03Cabinet2"]
+position = Vector3(0, 1.05, 0.4)
+mesh = SubResource("box_lens")
+
+[node name="LensGreen" type="MeshInstance3D" parent="C03Cabinet2"]
+position = Vector3(0, 0.65, 0.4)
+mesh = SubResource("box_lens")
+
+[node name="Number" type="Label3D" parent="C03Cabinet2"]
+position = Vector3(0, 1.9, 0.1)
+pixel_size = 0.006
+text = "2"
+font_size = 64
+outline_size = 8
+modulate = Color(0.15294, 0.21176, 0.29412, 1)
+
+[node name="C03Cabinet3" type="Node3D" parent="."]
+position = Vector3(80, 0.2, 0)
+
+[node name="Body" type="MeshInstance3D" parent="C03Cabinet3"]
+position = Vector3(0, 0.85, 0)
+mesh = SubResource("box_cabinet")
+
+[node name="LensRed" type="MeshInstance3D" parent="C03Cabinet3"]
+position = Vector3(0, 1.45, 0.4)
+mesh = SubResource("box_lens")
+
+[node name="LensAmber" type="MeshInstance3D" parent="C03Cabinet3"]
+position = Vector3(0, 1.05, 0.4)
+mesh = SubResource("box_lens")
+
+[node name="LensGreen" type="MeshInstance3D" parent="C03Cabinet3"]
+position = Vector3(0, 0.65, 0.4)
+mesh = SubResource("box_lens")
+
+[node name="Number" type="Label3D" parent="C03Cabinet3"]
+position = Vector3(0, 1.9, 0.1)
+pixel_size = 0.006
+text = "3"
+font_size = 64
+outline_size = 8
+modulate = Color(0.15294, 0.21176, 0.29412, 1)
+
+[node name="Engineer" parent="." instance=ExtResource("ext_engineer")]
+position = Vector3(80, 0.2, 6)
+
+[node name="EngineerSign" type="Node3D" parent="."]
+position = Vector3(84, 0.2, 6)
+
+[node name="Post" type="MeshInstance3D" parent="EngineerSign"]
+position = Vector3(0, 1.25, 0)
+mesh = SubResource("box_post")
+
+[node name="Board" type="MeshInstance3D" parent="EngineerSign"]
+position = Vector3(0, 2.45, 0)
+mesh = SubResource("box_sign")
+
+[node name="Text" type="Label3D" parent="EngineerSign"]
+position = Vector3(0, 2.45, 0.1)
+pixel_size = 0.006
+text = "ENGINEER"
+font_size = 52
+outline_size = 8
+modulate = Color(0.15294, 0.21176, 0.29412, 1)
+
+[node name="Marker_C01_Depot" type="Marker3D" parent="."]
+position = Vector3(-78, 0.2, -56)
+metadata/city_job_id = "C01_Depot"
+
+[node name="Marker_C01_Stop1" type="Marker3D" parent="."]
+position = Vector3(-80, 0.2, -77.8)
+metadata/city_job_id = "C01_Stop1"
+
+[node name="Marker_C01_Stop2" type="Marker3D" parent="."]
+position = Vector3(0, 0.2, -77.8)
+metadata/city_job_id = "C01_Stop2"
+
+[node name="Marker_C01_Stop3" type="Marker3D" parent="."]
+position = Vector3(80, 0.2, -77.8)
+metadata/city_job_id = "C01_Stop3"
+
+[node name="Marker_C02_Crate_0" type="Marker3D" parent="."]
+position = Vector3(79, 0.2, 75)
+metadata/city_job_id = "C02_Crate_0"
+
+[node name="Marker_C02_Crate_1" type="Marker3D" parent="."]
+position = Vector3(81, 0.2, 75)
+metadata/city_job_id = "C02_Crate_1"
+
+[node name="Marker_C02_Crate_2" type="Marker3D" parent="."]
+position = Vector3(79, 0.2, 78)
+metadata/city_job_id = "C02_Crate_2"
+
+[node name="Marker_C02_Crate_3" type="Marker3D" parent="."]
+position = Vector3(81, 0.2, 78)
+metadata/city_job_id = "C02_Crate_3"
+
+[node name="Marker_C02_Crate_4" type="Marker3D" parent="."]
+position = Vector3(79, 0.2, 81)
+metadata/city_job_id = "C02_Crate_4"
+
+[node name="Marker_C02_Crate_5" type="Marker3D" parent="."]
+position = Vector3(81, 0.2, 81)
+metadata/city_job_id = "C02_Crate_5"
+
+[node name="Marker_C02_Stall" type="Marker3D" parent="."]
+position = Vector3(80, 0.2, 83)
+metadata/city_job_id = "C02_Stall"
+
+[node name="Marker_C03_Cabinet1" type="Marker3D" parent="."]
+position = Vector3(0, 0.2, 2.2)
+metadata/city_job_id = "C03_Cabinet1"
+
+[node name="Marker_C03_Cabinet2" type="Marker3D" parent="."]
+position = Vector3(0, 0.2, 82.2)
+metadata/city_job_id = "C03_Cabinet2"
+
+[node name="Marker_C03_Cabinet3" type="Marker3D" parent="."]
+position = Vector3(80, 0.2, 2.2)
+metadata/city_job_id = "C03_Cabinet3"
+
+[node name="Marker_C03_Engineer" type="Marker3D" parent="."]
+position = Vector3(80, 0.2, 8)
+metadata/city_job_id = "C03_Engineer"

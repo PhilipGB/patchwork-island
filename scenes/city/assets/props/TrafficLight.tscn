@@ -1,0 +1,68 @@
+[gd_scene load_steps=11 format=3]
+
+[sub_resource type="StandardMaterial3D" id="mat_dark"]
+albedo_color = Color(0.15686, 0.21569, 0.27843, 1)
+metallic = 0.0
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="mat_steel"]
+albedo_color = Color(0.23137, 0.32157, 0.41569, 1)
+metallic = 0.25
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="mat_red"]
+albedo_color = Color(0.83922, 0.41961, 0.33725, 1)
+metallic = 0.0
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="mat_gold"]
+albedo_color = Color(0.9098, 0.7098, 0.32157, 1)
+metallic = 0.0
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="mat_green"]
+albedo_color = Color(0.37255, 0.58039, 0.48627, 1)
+metallic = 0.0
+roughness = 0.8
+
+[sub_resource type="BoxMesh" id="box_1"]
+size = Vector3(0.4, 7, 0.4)
+material = SubResource("mat_dark")
+
+[sub_resource type="BoxMesh" id="box_2"]
+size = Vector3(1.2, 3, 0.85)
+material = SubResource("mat_steel")
+
+[sub_resource type="BoxMesh" id="box_3"]
+size = Vector3(0.6, 0.6, 0.12)
+material = SubResource("mat_red")
+
+[sub_resource type="BoxMesh" id="box_4"]
+size = Vector3(0.6, 0.6, 0.12)
+material = SubResource("mat_gold")
+
+[sub_resource type="BoxMesh" id="box_5"]
+size = Vector3(0.6, 0.6, 0.12)
+material = SubResource("mat_green")
+
+[node name="TrafficLight" type="Node3D"]
+
+[node name="Pole" type="MeshInstance3D" parent="."]
+position = Vector3(0, 3.5, 0)
+mesh = SubResource("box_1")
+
+[node name="Housing" type="MeshInstance3D" parent="."]
+position = Vector3(0, 7, 0)
+mesh = SubResource("box_2")
+
+[node name="Lensred" type="MeshInstance3D" parent="."]
+position = Vector3(0, 8, 0.5)
+mesh = SubResource("box_3")
+
+[node name="Lensgold" type="MeshInstance3D" parent="."]
+position = Vector3(0, 7, 0.5)
+mesh = SubResource("box_4")
+
+[node name="Lensgreen" type="MeshInstance3D" parent="."]
+position = Vector3(0, 6, 0.5)
+mesh = SubResource("box_5")

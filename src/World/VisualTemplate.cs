@@ -51,6 +51,9 @@ public static class VisualTemplate
         "tyre" => "res://scenes/world/assets/pickups/Pickup_RepairTyre.tscn",
         "lamp" => "res://scenes/world/assets/pickups/Pickup_RepairLamp.tscn",
         "battery" => "res://scenes/world/assets/pickups/Pickup_RepairBattery.tscn",
+        "safety_cone" => "res://scenes/world/assets/pickups/Pickup_SafetyCone.tscn",
+        "barrier_panel" => "res://scenes/world/assets/pickups/Pickup_BarrierPanel.tscn",
+        "toolbox" => "res://scenes/world/assets/pickups/Pickup_Toolbox.tscn",
         _ => "res://scenes/world/assets/pickups/Pickup_Coin.tscn",
     };
 

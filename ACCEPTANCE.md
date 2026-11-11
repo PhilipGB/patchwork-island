@@ -845,3 +845,31 @@ passed, 0 failed**; headless import and boot exit 0.
 **Remaining severity:** no asset-driven migration blocker known. Human visual
 sign-off, one continuous M01–M20 sitting and Windows startup remain **NOT
 TESTED**. Packaged gates and hashes are recorded in `PROGRESS.md` P23.
+
+## v1.4.0 — City Expansion (P24 gate)
+
+Scope: add the gated Roadworks Rescue mission, a drivable town-to-city join,
+three independent city jobs, tiered city simulation/HLOD and schema-4 saves
+without changing the village's M01–M20 gameplay. Baseline `0dbd0c6`; no tag or
+release is created by this gate.
+
+| # | City requirement | Result |
+|---|---|---|
+| 1 | M21 is the only new gate and requires all twenty village jobs | **PASS** — M21 prerequisites are M01–M20; practice racing and bonus racing are not prerequisites. Pure tests cover the chain and exactly-once 25-coin reward. |
+| 2 | Supplies and counting/order task are required | **PASS** — 3 cones + 2 panels + 1 toolbox, then 3 + 2 + 1 counting and cone→panel→toolbox order. Wrong quantities/order never consume supplies. |
+| 3 | Physical gate blocks until completion and then opens atomically | **PASS** — authored collider spans the 16.6 m opening; completion hides barrier/fences, clears the layer and disables every shape. A full-speed runtime van is stopped while closed and passes when open. |
+| 4 | Road state survives save/reload and cannot reopen/reward twice | **PASS** — schema-4 fields and validation; `--selftest-city` reloads the real scene and repeats the open state. |
+| 5 | City is drivable and returnable without seam traps | **PASS** — authored bridge/causeway at world x≈49..188, flush surfaces, gate at x=96. M05/M09/M19 autopilot races still complete after the fix. |
+| 6 | Independent CITY JOBS board and C01–C03 | **PASS** — separate catalogue/service/UI; the board lists only city jobs. Pure and runtime tests complete all three through their real state machines. |
+| 7 | City progress, rewards and world state persist | **PASS** — separate save fields + schema-4 round-trip; mid-drive city save/continue covered by `--selftest-city`. |
+| 8 | City logical time advances while hidden | **PASS** — deterministic pose function; 1,800 s advanced in 0.002–0.003 ms with zero actor nodes. No per-agent catch-up loop. |
+| 9 | Tiered detail/HLOD with hysteresis and bounded actors | **PASS** — 20 detailed buildings + 16 HLOD proxies on the street; 16 HLOD only on the approach; zero city nodes in town. Near/mid pools are capped and deduplicated. |
+| 10 | Measured performance at 720p/1080p | **PASS** — worst p95 4.51 ms at 720p and 5.60 ms at 1080p with vsync off on Radeon 890M; town stage has no city content. Method/results in `docs/05_CITY_PERFORMANCE.md`. |
+| 11 | Existing game, saves and runtime phases remain green | **PASS** — pure **132 passed**; source runtime **1247 passed, 0 failed** across 12 phases; packaged Linux 1.4.0 also booted and passed all 12 phases (**1247 passed**); headless import/boot exit 0. |
+| 12 | CI entry exists for the city phase | **PASS (source)** — `--selftest-city` is in `.github/workflows/build-and-test.yml` for source and packaged Linux. **CI has not run on this uncommitted tree.** |
+
+**Not tested / not claimed:** one continuous human M01–M21 → C01–C03 sitting;
+human visual sign-off; Windows startup; real-GPU performance outside this one
+Linux/Mesa Radeon 890M machine; a same-method v1.3.0 town baseline; explicit
+>33 ms transition hitch instrumentation; a packaged v1.4.0 export. No PR or tag
+exists for this gate.

@@ -2100,6 +2100,9 @@ public partial class RuntimeSelfTest : Node
         }
         Expect(Main.RtMissionCompleted("M05"), "M05 completes through real driving");
         Expect(Main.RtRaceCheckpoint("M05") == 4, "M05 reaches all four gates");
+        if (!Main.RtMissionCompleted("M05"))
+            GD.Print($"RALLY DIAG M05 checkpoint={Main.RtRaceCheckpoint("M05")} " +
+                     $"van={Main.RtVanPosition} driving={Main.RtMode}");
         Main.RtStopRallyAutopilot();
         Main.RtCloseModal();
         await Wait(0.5f);

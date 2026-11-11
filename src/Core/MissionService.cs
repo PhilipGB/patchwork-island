@@ -41,6 +41,7 @@ public static class MissionRules
             "M18" => FinaleRules.M18Complete(data),
             "M19" => FinaleRules.M19Complete(data),
             "M20" => FinaleRules.M20Complete(data),
+            "M21" => RoadworksRules.IsComplete(data),
             _ => false,
         };
     }
@@ -266,6 +267,73 @@ public sealed class MissionService
         Data.RemoveItem("stone", 3);
         Data.SetMissionCounter("M02", "delivered", 1);
         return CompleteActive(0);
+    }
+
+    // ------------------------------------------------------- M21 roadworks
+    /// <summary>
+    /// Consumes the three marked cones, two barrier panels and toolbox at the
+    /// worksite. This is only a partial step; the order task still has to be
+    /// solved before the mission can complete.
+    /// </summary>
+    public GameplayOutcome DeliverRoadworksSupplies()
+    {
+        if (Data.ActiveMission != RoadworksRules.MissionId)
+            return FailGame("Start Roadworks Rescue at the village JOBS board first.");
+        if (Data.IsCompleted(RoadworksRules.MissionId))
+            return FailGame("The city road is already open.");
+        if (RoadworksRules.SuppliesDelivered(Data))
+            return FailGame("The crew already has every delivery.");
+        if (!RoadworksRules.HasAllSupplies(Data))
+        {
+            return FailGame(
+                $"The crew still needs {RoadworksRules.ConeCount} cones, " +
+                $"{RoadworksRules.PanelCount} barrier panels and one toolbox. " +
+                $"Delivered {RoadworksRules.SupplyProgress(Data)} of " +
+                $"{RoadworksRules.SupplyTotal}.");
+        }
+
+        Data.RemoveItem("safety_cone", RoadworksRules.ConeCount);
+        Data.RemoveItem("barrier_panel", RoadworksRules.PanelCount);
+        Data.RemoveItem("toolbox", RoadworksRules.ToolboxCount);
+        Data.SetMissionCounter(RoadworksRules.MissionId,
+            RoadworksRules.SuppliesDeliveredKey, 1);
+        return new GameplayOutcome
+        {
+            Success = true,
+            Message = "3 cones, 2 barrier panels and 1 toolbox delivered. Now help the crew check the loading order.",
+        };
+    }
+
+    /// <summary>
+    /// Short numeracy/order task at the worksite. A wrong answer costs no item
+    /// or coin and leaves the mission active. The correct answer completes M21
+    /// exactly once through CompleteActive.
+    /// </summary>
+    public GameplayOutcome CompleteRoadworksTask(int total, IReadOnlyList<string> order)
+    {
+        if (Data.ActiveMission != RoadworksRules.MissionId)
+            return FailGame("Start Roadworks Rescue at the village JOBS board first.");
+        if (Data.IsCompleted(RoadworksRules.MissionId))
+            return FailGame("The city road is already open.");
+        if (!RoadworksRules.SuppliesDelivered(Data))
+            return FailGame("Deliver every item to the worksite first.");
+        if (RoadworksRules.TaskDone(Data))
+            return FailGame("The crew already checked the loading order.");
+        if (!RoadworksRules.TotalIsCorrect(total))
+            return FailGame(
+                $"{RoadworksRules.ConeCount} cones + {RoadworksRules.PanelCount} panels + " +
+                $"1 toolbox. Count again.");
+        if (!RoadworksRules.OrderIsCorrect(order))
+            return FailGame("Load the cones first, then the barrier panels, then the toolbox.");
+
+        Data.SetMissionCounter(RoadworksRules.MissionId, RoadworksRules.TaskDoneKey, 1);
+        var result = CompleteActive(0);
+        return new GameplayOutcome
+        {
+            Success = result.Success,
+            Message = result.Message,
+            Completion = result.Success ? result : null,
+        };
     }
 
     /// <summary>Awards a mission exactly once; safe to call repeatedly.</summary>
@@ -998,7 +1066,12 @@ public sealed class MissionService
         Data.Coins += total;
         string completedId = mission.Id;
         Data.ActiveMission = "";
-        bool allTwenty = Data.CompletedMissions.Distinct().Count() >= Catalog.Missions.Count;
+        bool allMissions = Catalog.Missions.All(m => Data.IsCompleted(m.Id));
+        bool allTwenty = new[]
+        {
+            "M01", "M02", "M03", "M04", "M05", "M06", "M07", "M08", "M09", "M10",
+            "M11", "M12", "M13", "M14", "M15", "M16", "M17", "M18", "M19", "M20",
+        }.All(Data.IsCompleted);
 
         if (completedId == "M01")
             UnlockCosmetic("red_cap");
@@ -1009,7 +1082,7 @@ public sealed class MissionService
             Mission = mission,
             CoinsAwarded = mission.RewardCoins,
             BonusCoins = bonusCoins,
-            AllComplete = allTwenty,
+            AllComplete = allMissions,
             OriginalChapterComplete = MissionRules.OriginalChapterComplete(Data),
             AllTwentyComplete = allTwenty,
             Message = $"{mission.Title} complete! +{total} coins.",
@@ -1047,6 +1120,9 @@ public sealed class MissionService
         "orange_parcel" => "Orange parcel",
         "rope" => "Rope",
         "seat" => "Seat",
+        "safety_cone" => "Safety cone",
+        "barrier_panel" => "Barrier panel",
+        "toolbox" => "Toolbox",
         _ => item,
     };
 }

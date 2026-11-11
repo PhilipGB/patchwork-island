@@ -1,22 +1,53 @@
-# Patchwork Island — v1.3.0 Scene-Based Town Migration
+# Patchwork Island — v1.4.0 City Expansion
 
 A happy little 3D village adventure for players aged roughly 5–10. A storm has
 scattered the village's supplies. Deliver parcels, repair the bridge, drive the
 post van, rebuild the playground, decorate the village green and furnish your
-own home. Every completed job visibly changes the island.
+own home. Finish all twenty village jobs, clear the roadworks, then drive into
+Patchwork City for three more independent jobs. Every completed job visibly
+changes the island.
 
 This repository contains the complete Godot 4.7.2 .NET / C# source, automated
 tests, real-input GUI evidence and release build instructions.
 
-## v1.3.0 source status — asset-driven town, not released
+## v1.4.0 source status — City Expansion, not released
 
-**The static town is authored directly in Godot scenes.** `scenes/world/Town.tscn`
-is the runtime level, assembled from the reusable scenes in
-`scenes/world/assets/`; `src/World/WorldSceneAdapter.cs` instantiates it and
-populates the `WorldModel` data contract. There is no procedural `WorldBuilder`,
-no bake tool and no baked snapshot. Schema stays **3**, all 20 missions, pickups,
-build sockets, NPC/traffic routes, driving, cosmetics and save-recovery
-behaviour are retained.
+The city is a second authored play space at world `(320, 0, 0)`, reached by
+driving the delivery van through the east roadworks gate. The village remains
+the same game: M01–M20, both finales, practice racing, NPC traffic, cosmetics and
+all existing saves keep their behaviour.
+
+- **M21 Roadworks Rescue** is the gate job: deliver 3 safety cones, 2 barrier
+  panels and 1 toolbox, then solve the crew's 3 + 2 + 1 counting and load-order
+  task. Completing it removes the barrier, disables its collider and opens the
+  road once. The 25-coin reward and open state are saved.
+- **City JOBS** is an independent board with C01 City Courier, C02 Market
+  Stock-Up and C03 Signals and Signs. City progress and rewards are separate
+  from the village mission graph and use the same coin wallet.
+- **Tiered city simulation**: 24 vehicles and 42 pedestrians are a deterministic
+  function of seed + logical time. The hidden city advances O(1) without agent
+  nodes; authored detail/HLOD cells use distance hysteresis, and near/mid actors
+  are phased in from the pool.
+- Save schema **4** adds city state and migrates schema 3 saves without changing
+  coins, mission progress, outfits or world state. Newer saves remain protected.
+- Measurements on AMD Radeon 890M: p95 ≤ 5.7 ms in all four probe stages at
+  720p and 1080p with vsync disabled; a 30-minute hidden-city advance costs
+  0.002–0.003 ms. See `docs/05_CITY_PERFORMANCE.md`.
+- **Not tagged or released.** Human visual sign-off, one continuous
+  M01–M21/C01–C03 sitting and Windows startup remain open. See `PROGRESS.md`
+  P24 and `docs/03_ACCEPTANCE.md`.
+- Screenshots: `evidence/v14_city/720/` and `evidence/v14_city/1080/`.
+  Compatibility notes: `docs/CITY_EXPANSION_COMPATIBILITY.md`.
+
+## v1.3.0 scene-based town migration
+
+**The static town is authored directly in Godot scenes.**
+`scenes/world/Town.tscn` is the runtime level, assembled from the reusable
+scenes in `scenes/world/assets/`; `src/World/WorldSceneAdapter.cs` instantiates
+it and populates the `WorldModel` data contract. There is no procedural
+`WorldBuilder`, no bake tool and no baked snapshot. Schema stays **3**, all 20
+missions, pickups, build sockets, NPC/traffic routes, driving, cosmetics and
+save-recovery behaviour are retained.
 
 - 75 gameplay anchors, six building centres/yaws/wall dimensions and all
   NPC/traffic waypoints are checked at load; missing or moved content fails
@@ -254,18 +285,21 @@ Writes are atomic (temporary file, flush, move). A structurally invalid or
 unreadable main save is renamed `save.json.corrupt-<timestamp>` and the backup
 is loaded if possible.
 
-Save schema versions are separate from game release versions. v1.2.1 writes
-schema **3** and loads supported older schemas:
+Save schema versions are separate from game release versions. v1.4.0 writes
+schema **4** and loads supported older schemas:
 
-- **Schema 1** (v1.0.x) saves migrate in memory through schema 2 to schema 3.
-  Every progression field is preserved; missing character fields default to
-  **Boy + Everyday + no purchases**.
+- **Schema 1** (v1.0.x) saves migrate in memory through schema 2 and 3 to
+  schema 4. Every progression field is preserved; missing character fields
+  default to **Boy + Everyday + no purchases**.
 - **Schema 2** (v1.1.0) saves keep coins, outfits, cosmetics, bridge/park/
   furniture state, player/van snapshots and the original M10 `CelebrationSeen`.
   The new `FestivalSeen` marker defaults to false, M11 unlocks immediately, and
   the original ten-job celebration does not repeat. The original file is kept
-  as the `.bak` backup and is rewritten at schema 3 by the next save.
-- **Schema 4 or newer** is unsupported and is **never** loaded, downgraded,
+  as the `.bak` backup and is rewritten at schema 4 by the next save.
+- **Schema 3** (v1.2.1/v1.3.0) saves keep the complete twenty-job village,
+  festival/celebration flags and all world state. The city road starts closed,
+  the city board is empty and the city simulation gets a deterministic seed.
+- **Schema 5 or newer** is unsupported and is **never** loaded, downgraded,
   discarded or overwritten automatically. The title screen explains the
   incompatibility. An ordinary autosave refuses to touch the file. Only an
   explicitly confirmed New Game may replace it, and a

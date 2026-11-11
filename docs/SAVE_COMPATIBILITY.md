@@ -1,18 +1,25 @@
 # Save compatibility and mission expansion
 
-## v1.2.0 contract
+## v1.4.0 contract
 
-- `GameData.SchemaVersion` defaults to `SaveService.CurrentVersion == 3`.
-- Schema 1 migrates in memory through schema 2 to schema 3. Schema 2 adds no
-  required JSON fields for old saves; `FestivalSeen` defaults to false.
+- `GameData.SchemaVersion` defaults to `SaveService.CurrentVersion == 4`.
+- Schema 1 migrates in memory through schema 2, 3 and 4. Schema 3 saves gain a
+  closed city road, an empty city board, a deterministic city seed and zero
+  logical city time; no village progression field is changed.
 - Unsupported newer schemas are detected by `JsonDocument` before `GameData`
   deserialisation. Ordinary saves refuse to overwrite them. Explicit New Game
   replacement creates a preserved `newer-vN` copy first.
 - `CompletedMissions`, `MissionProgress`, player/van snapshots, bridge/swing/
   park/furniture state, wallet, inventory, clothes ownership, equipped outfit,
-  `CelebrationSeen` and `FestivalSeen` are persisted.
+  `CelebrationSeen`, `FestivalSeen`, M21 roadworks state, completed city jobs,
+  city job counters, the city seed and the logical city clock are persisted.
+- City state is validated independently: unknown/duplicate city jobs, jobs
+  completed without objective progress, impossible city counters, a road open
+  before M21, and an M21 reward claimed before completion all invalidate a save.
+- The full city compatibility table is in
+  `docs/CITY_EXPANSION_COMPATIBILITY.md`.
 
-## Two completion milestones
+## Town completion milestones
 
 - `MissionRules.OriginalChapterComplete(data)` = M01–M10.
   `CelebrationSeen` belongs only to this original finale.

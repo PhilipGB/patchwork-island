@@ -25,7 +25,7 @@ public static class JobBoardUi
             if (showChapterTwo)
                 Show(hud, service, implemented, startMission, practiceRace, false);
         };
-        var chapterTwo = UiKit.Button(tabs, "New adventures  (11–20)", 19, new Vector2(0, 44),
+        var chapterTwo = UiKit.Button(tabs, "New adventures  (11–21)", 19, new Vector2(0, 44),
             showChapterTwo ? new Color("FFF3C9") : Palette.Cream,
             showChapterTwo ? Palette.Orange : Palette.Lavender);
         chapterTwo.Name = "ChapterTwoTab";
@@ -49,7 +49,11 @@ public static class JobBoardUi
         }
         else if (data.IsCompleted("M20"))
         {
-            UiKit.Label(summary, "All 20 jobs complete — free roam unlocked!", 19, Palette.Success,
+            UiKit.Label(summary,
+                data.CityRoadOpen
+                    ? "All 20 village jobs complete — the CITY ROAD is open!"
+                    : "All 20 required jobs complete — Roadworks Rescue unlocks the city!",
+                19, data.CityRoadOpen ? Palette.Teal : Palette.Success,
                 HorizontalAlignment.Left, false);
         }
         else
@@ -191,6 +195,7 @@ public static class JobBoardUi
         "M18" => "mechanic",
         "M19" => "grand_rally",
         "M20" => "festival",
+        "M21" => "road_signs",
         _ => "star",
     };
 }

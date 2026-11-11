@@ -255,3 +255,15 @@ main street. Both free-roam routes now use `z=+0.5` westbound and `z=-2.0`
 eastbound; every waypoint is at least 1.8 m and every sampled runtime position
 at least 1.7 m from a critical station. `TrafficCar` now freezes its steering
 while yielding so a stopped car cannot swivel away from a waiting player.
+
+## v1.4.0 city expansion visual fixes (P24)
+
+| ID | Defect | Correction | Evidence |
+|---|---|---|---|
+| V58 | CITY JOBS board header/subtitle were mirrored from the plaza. | Removed the extra 180° rotation from the two Label3D nodes; the board's own 180° rotation already faces the notice at the plaza. | `evidence/v14_city/720/p16_06_city_jobs_plaza.png`, `.../p16_07_city_jobs_board.png` |
+| V59 | Roadworks notice was side-on to the approach, floating high and overlapping the barrier. | Moved the board/post to the south verge at local `(-2.5, 2.55, 8.5)`, rotated it toward the town approach, lowered it, and face-corrected both `CITY ROAD CLOSED` / `ROAD OPEN` labels. | `evidence/v14_city/720/p16_01_roadworks_closed.png`, `.../p16_02_roadworks_open.png` |
+| V60 | Gate/approach sat on the rally's eastern edge; the raised approach slab and gate collider broke M05/M09/M19 autopilot runs. | Gate moved from world x=90 to x=96; approach surfaces lowered below the rally surface (top ≈ 0.01 m vs 0.022 m); approach collision made flush; rails shortened; sign/crew moved to the verge; gate apron added. | `evidence/v14_city/720/p16_01…02`, `--selftest-rally` 10/10 and `--selftest-finale` 140/140 |
+
+The city board and roadworks sign were re-captured after each fix at exact
+1280×720 and 1920×1080. The final sets are in `evidence/v14_city/720/` and
+`evidence/v14_city/1080/`.

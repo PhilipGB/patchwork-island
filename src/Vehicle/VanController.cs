@@ -201,6 +201,13 @@ public partial class VanController : CharacterBody3D
         Velocity = Vector3.Zero;
     }
 
+    /// <summary>Non-shipping physics test seam used by the city runtime selftest.</summary>
+    internal void TestLaunch(float speed)
+    {
+        Speed = speed;
+        Velocity = new Vector3(0, Velocity.Y, 0);
+    }
+
     public List<Vector3> GetExitCandidates()
     {
         return new List<Vector3>

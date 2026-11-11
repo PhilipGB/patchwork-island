@@ -1,0 +1,42 @@
+[gd_scene load_steps=7 format=3]
+
+[sub_resource type="StandardMaterial3D" id="mat_concrete"]
+albedo_color = Color(0.78431, 0.77255, 0.71373, 1)
+metallic = 0.0
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="mat_dark"]
+albedo_color = Color(0.15686, 0.21569, 0.27843, 1)
+metallic = 0.0
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="mat_glass2"]
+albedo_color = Color(0.66275, 0.84314, 0.85098, 1)
+metallic = 0.25
+roughness = 0.23
+
+[sub_resource type="BoxMesh" id="box_1"]
+size = Vector3(26, 24, 23)
+material = SubResource("mat_concrete")
+
+[sub_resource type="BoxMesh" id="box_2"]
+size = Vector3(27, 0.8, 24)
+material = SubResource("mat_dark")
+
+[sub_resource type="BoxMesh" id="box_3"]
+size = Vector3(25, 15.600000000000001, 0.12)
+material = SubResource("mat_glass2")
+
+[node name="LibraryCentreHLOD" type="Node3D"]
+
+[node name="Silhouette" type="MeshInstance3D" parent="."]
+position = Vector3(0, 12.0, 0)
+mesh = SubResource("box_1")
+
+[node name="Roof" type="MeshInstance3D" parent="."]
+position = Vector3(0, 24.4, 0)
+mesh = SubResource("box_2")
+
+[node name="FacadeTint" type="MeshInstance3D" parent="."]
+position = Vector3(0, 12.72, 11.6)
+mesh = SubResource("box_3")
