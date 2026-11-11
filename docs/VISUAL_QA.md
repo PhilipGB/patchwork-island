@@ -206,7 +206,7 @@ opposite side and normal player height. The evidence set is in
 | ID | Defect | Correction | Evidence |
 |---|---|---|---|
 | V36 | Gables sat on the eave walls, leaving the ridge end open; roof-overhang shadows made the remaining wall look like a hole. | Moved `GableEast`/`GableWest` to the ridge ends on all six buildings, rotated 90°, sized to depth, and used a `disable_receive_shadows` gable material. The thin dark band left from a low end-on camera is the normal underside of the 0.45 m roof overhang, not an opening. | `gable_six/*.png` (24 views), `redhouse_west_end.png`, `redhouse_south.png` |
-| V37 | 8×1.5 m banner dominated the Town Hall frontage. | Replaced with a 4.72×0.75 m free-standing banner at the M20 festival entrance `(15,3.35,19.8)`, in front of the bunting line and clear of the Town Hall and market alley; yellow emission keeps the shaded face readable. | `banner_front.png`, `banner_front_player.png`, `banner_back.png` |
+| V37 | 8×1.5 m banner dominated the Town Hall frontage. | Replaced with a 4.72×0.75 m free-standing banner at the M20 festival entrance `(15,3.35,19.8)`, in front of the bunting line and clear of the Town Hall and market alley; yellow emission keeps the shaded face readable, and the centre lantern moved to `x=18.6` so it cannot cover the back text. | `banner_front.png`, `banner_front_player.png`, `banner_back.png`, `banner_back_player25.png` |
 | V38 | Banner text clipped or disappeared at oblique angles. | Two single-sided labels on opposite panel faces, offset outside the surface, no billboard; panel overlaps both posts so it no longer looks wedged between them. | `banner_front.png`, `banner_back.png`, independent front/back/oblique captures |
 | V39 | Four directional signs formed a cluster over Milo and the Town Hall. | One post with four stacked arms at `(-5.0,0,-4.5)`, clear of Milo's patrol; the independent pass caught inverted arrows, which were swapped and are now asserted on all eight strings. | `signpost_front.png`, `signpost_back.png` |
 | V40 | GOLD LAP text clipped/detached. | Two single-sided 56 px labels offset from the flag faces; flag moved to `(64.5,0,-15.5)` so the start/finish pole no longer hides `GO` from the southwest. | `gold_flag_sw.png` |
@@ -218,3 +218,16 @@ opposite side and normal player height. The evidence set is in
 | V46 | Alley between buildings congested. | Banner moved to the festival entrance; the signpost now stands on the road verge south of the buildings, not in the Town Hall/market alley. | `townhall_west.png`, `signpost_front.png` |
 | V47 | Pip portrait dominated the foreground. | Portrait pixel size reduced from 0.0034 to 0.0018, 24 m range and distance scaling. | `V41_V47_pip_nameplate.png` |
 | V48 | GRAND RALLY label detached from the trophy. | Mounted the label on a 2.9×0.5 m board on two posts above the trophy, front and back. | `podium.png` |
+
+
+### Final independent verification
+
+The independent verifier rendered the failing angles again after each change.
+Its final verdict at `1e57711` is PASS for all of V36–V48: gables closed from
+all four sides, banner readable from the village and festival approaches,
+all eight signpost arrows pointing at the real destinations, full `GOLD LAP`
+clear of the start/finish pole, Pip's status attached from rear/sides, podium
+label attached, no bunting or lantern silhouette, and no z-fighting or
+wrong-facing text. The only remaining caveats are the normal roof-overhang
+shadow at the gable eaves and the expected difference between the sunlit
+banner back and the shaded front.

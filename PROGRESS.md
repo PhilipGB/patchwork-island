@@ -2383,13 +2383,15 @@ All geometry and text changes are in the authored scenes; the procedural
 - Visual probes: `evidence/v13_canonical_visual/v13.2_round3/` (24 gable
   views across all six buildings, town-level front/back/side probes, P11 NPC
   and P14 finale tours).
-- Independent visual pass (first round): V36 PASS (all six ends solid; the
-  remaining dark eave band is the normal underside of the 0.45 m roof
-  overhang, not an opening), V37/V38 PASS, V39 **FAIL** (arrows inverted),
-  V40 PASS with the start/finish pole caveat, V41 PASS, V42/V47 PASS, V44
-  PASS, V45 PASS, V48 PASS. Every reported defect was addressed and a focused
-  re-verification is running.
-- Exact-head CI: commit `7ea110f` — `build-test` **success** and
+- Independent visual passes, final verdict at `1e57711`: V36 PASS (all six
+  ends solid; the remaining eave band is the roof overhang shadow/underside,
+  not an opening), V37/V38 PASS from the village and festival approaches
+  (banner at the festival entrance, centre lantern off-axis), V39 PASS (all
+  eight arrow strings point at the real destinations), V40 PASS (full flag
+  text clear from the old southwest angle), V41 PASS, V42/V47 PASS, V44 PASS,
+  V45 PASS, V48 PASS. No remaining clipping, floating text, z-fighting,
+  protruding geometry or wrong-facing text in the reviewed angles.
+- Exact-head CI: commit `1e57711` — `build-test` **success** and
   `windows-tests` **success**; PR #28 open and mergeable. An earlier
   `b65fc02` Windows run failed only because the new bunting test assumed LF
   line endings; the regex is now CRLF-safe and the rerun is green.
@@ -2400,6 +2402,6 @@ All geometry and text changes are in the authored scenes; the procedural
 - Windows startup remains **NOT TESTED**.
 - V45 is confirmed intentional: the swing frame is the pre-M07 broken state,
   with crossbar, `BROKEN` labels and the runtime broken-label assertion.
-- The festival bunting still hangs across one banner approach at head height;
-  it is decorative and no longer casts shadows or clips the text. The P14
-  festival camera and the opposite approach are clean.
+- The celebration banner is free-standing at the festival entrance rather than
+  mounted on the Town Hall; both faces and the P14 festival camera were
+  re-rendered, but the final human composition sign-off is still **NOT TESTED**.

@@ -743,7 +743,7 @@ one continuous M01–M20 sitting and Windows startup remain **NOT TESTED**.
 | # | Visual check | Result |
 |---|---|---|
 | 1 | V36 all six buildings have closed gable ends | **PASS** — `GableEast`/`GableWest` on the ridge ends, rotated 90°, sized to each building depth, with shadow-free gable material; pure test checks all six. |
-| 2 | V37 banner no longer dominates the Town Hall | **PASS** — reduced from 8×1.5 m floating panel to 4.72×0.75 m free-standing banner at the festival entrance `(15,3.35,19.8)`; Town Hall frontage completely clear. |
+| 2 | V37 banner no longer dominates the Town Hall | **PASS** — reduced from 8×1.5 m floating panel to 4.72×0.75 m free-standing banner at the festival entrance `(15,3.35,19.8)`; Town Hall frontage completely clear and the centre lantern moved to `x=18.6` so it cannot cover the back text. |
 | 3 | V38 banner readable from both sides | **PASS** — two single-sided text labels on opposite faces, no billboard, offsets outside the panel; yellow emission keeps the shaded face readable. |
 | 4 | V39 directional signs no longer cluster over NPCs/Town Hall | **PASS** — four arms on one post at `(-5.0,0,-4.5)`, outside Milo's patrol by >2.5 m; all eight front/back arrow strings now point at the real destinations. |
 | 5 | V40 GOLD LAP text stays attached and readable | **PASS** — two single-sided 56 px labels just outside each flag face; flag moved to `(64.5,0,-15.5)` so the start/finish pole no longer hides `GO`. |
@@ -760,13 +760,14 @@ one continuous M01–M20 sitting and Windows startup remain **NOT TESTED**.
 **Gates:** pure **119 passed**; source runtime **1171 passed, 0 failed** across
 all 11 phases; headless import and boot exit 0; packaged Linux boot plus all 11
 phases **1171 passed, 0 failed**, 3× `--selftest` green, ZIP-extracted
-`--selftest` 284/284; exact-head CI on `7ea110f` green for `build-test` and
+`--selftest` 284/284; exact-head CI on `1e57711` green for `build-test` and
 `windows-tests`. Windows rebuilt, startup **NOT TESTED**.
 
 **Evidence:** ignored `evidence/v13_canonical_visual/v13.2_round3/`.
 
-**Remaining severity:** no known visual blocker from the static probes. The
-independent pass found one definite defect, the inverted V39 arrows, which is
-fixed and covered by the pure test; focused re-verification is **IN PROGRESS**.
-Human sign-off, one continuous M01–M20 sitting and Windows startup remain
-**NOT TESTED**.
+**Remaining severity:** no known visual blocker. The independent pass found
+and we fixed the inverted V39 arrows, the start/finish pole crossing GOLD LAP,
+the banner post gap, a bunting silhouette on the banner, and the centre
+festival lantern covering the back text. The final pass at `1e57711` is PASS
+on every V36–V48 item. Human sign-off, one continuous M01–M20 sitting and
+Windows startup remain **NOT TESTED**.
