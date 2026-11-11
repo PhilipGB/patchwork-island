@@ -29,17 +29,39 @@ mesh = SubResource("BoxMesh_3")
 material_override = SubResource("StandardMaterial_4")
 
 [node name="Heading" type="Label3D" parent="."]
-position = Vector3(0, 2.25, -0.1)
+position = Vector3(0, 2.30, -0.1)
 text = "DELIVERY ROUTE"
 font_size = 42
 pixel_size = 0.005
 modulate = Color(0.1019608, 0.1882353, 0.3254902, 1)
-billboard = 1
+billboard = 0
+double_sided = false
+rotation = Vector3(0, 3.14159, 0)
+
+[node name="Heading_Back" type="Label3D" parent="."]
+position = Vector3(0, 2.30, 0.1)
+text = "DELIVERY ROUTE"
+font_size = 42
+pixel_size = 0.005
+modulate = Color(0.1019608, 0.1882353, 0.3254902, 1)
+billboard = 0
+double_sided = false
 
 [node name="Addresses" type="Label3D" parent="."]
-position = Vector3(0, 1.5, -0.1)
+position = Vector3(0, 1.98, -0.1)
 text = "ADA  •  PIP  •  IVY"
 font_size = 34
 pixel_size = 0.005
 modulate = Color(0.1019608, 0.1882353, 0.3254902, 1)
-billboard = 1
+billboard = 0
+double_sided = false
+rotation = Vector3(0, 3.14159, 0)
+
+[node name="Addresses_Back" type="Label3D" parent="."]
+position = Vector3(0, 1.98, 0.1)
+text = "ADA  •  PIP  •  IVY"
+font_size = 34
+pixel_size = 0.005
+modulate = Color(0.1019608, 0.1882353, 0.3254902, 1)
+billboard = 0
+double_sided = false

@@ -1,4 +1,4 @@
-[gd_scene format=3]
+[gd_scene load_steps=61 format=3]
 
 
 [sub_resource type="BoxMesh" id="BoxMesh_1"]
@@ -198,164 +198,225 @@ albedo_color = Color(0.972549, 0.8235294, 0.2352941, 1)
 roughness = 0.94
 
 [sub_resource type="BoxMesh" id="BoxMesh_57"]
-size = Vector3(8, 1.5, 0.2)
+size = Vector3(4.72, 0.75, 0.12)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial_58"]
 albedo_color = Color(0.972549, 0.8235294, 0.2352941, 1)
+roughness = 0.94
+emission_enabled = true
+emission = Color(0.972549, 0.8235294, 0.2352941, 1)
+emission_energy_multiplier = 0.65
+
+[sub_resource type="BoxMesh" id="BoxMesh_59"]
+size = Vector3(0.1, 3.6, 0.1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_60"]
+albedo_color = Color(0.439216, 0.258824, 0.121569, 1)
 roughness = 0.94
 
 [node name="CelebrationDecor" type="Node3D"]
 visible = false
 
 [node name="Bunting_0_0" type="MeshInstance3D" parent="."]
+cast_shadow = 0
 position = Vector3(-21, 4.8, 5.8)
 mesh = SubResource("BoxMesh_1")
 material_override = SubResource("StandardMaterial_2")
 
 [node name="Bunting_1_0" type="MeshInstance3D" parent="."]
+cast_shadow = 0
 position = Vector3(-21, 4.8, 22.2)
 mesh = SubResource("BoxMesh_3")
 material_override = SubResource("StandardMaterial_4")
 
 [node name="Bunting_0_1" type="MeshInstance3D" parent="."]
+cast_shadow = 0
 position = Vector3(-19.9, 5.02548, 5.8)
 mesh = SubResource("BoxMesh_5")
 material_override = SubResource("StandardMaterial_6")
 
 [node name="Bunting_1_1" type="MeshInstance3D" parent="."]
+cast_shadow = 0
 position = Vector3(-19.9, 5.02548, 22.2)
 mesh = SubResource("BoxMesh_7")
 material_override = SubResource("StandardMaterial_8")
 
 [node name="Bunting_0_2" type="MeshInstance3D" parent="."]
+cast_shadow = 0
 position = Vector3(-18.8, 5.14491, 5.8)
 mesh = SubResource("BoxMesh_9")
 material_override = SubResource("StandardMaterial_10")
 
 [node name="Bunting_1_2" type="MeshInstance3D" parent="."]
+cast_shadow = 0
 position = Vector3(-18.8, 5.14491, 22.2)
 mesh = SubResource("BoxMesh_11")
 material_override = SubResource("StandardMaterial_12")
 
 [node name="Bunting_0_3" type="MeshInstance3D" parent="."]
+cast_shadow = 0
 position = Vector3(-17.7, 5.10212, 5.8)
 mesh = SubResource("BoxMesh_13")
 material_override = SubResource("StandardMaterial_14")
 
 [node name="Bunting_1_3" type="MeshInstance3D" parent="."]
+cast_shadow = 0
 position = Vector3(-17.7, 5.10212, 22.2)
 mesh = SubResource("BoxMesh_15")
 material_override = SubResource("StandardMaterial_16")
 
 [node name="Bunting_0_4" type="MeshInstance3D" parent="."]
+cast_shadow = 0
 position = Vector3(-16.6, 4.91725, 5.8)
 mesh = SubResource("BoxMesh_17")
 material_override = SubResource("StandardMaterial_18")
 
 [node name="Bunting_1_4" type="MeshInstance3D" parent="."]
+cast_shadow = 0
 position = Vector3(-16.6, 4.91725, 22.2)
 mesh = SubResource("BoxMesh_19")
 material_override = SubResource("StandardMaterial_20")
 
 [node name="Bunting_0_5" type="MeshInstance3D" parent="."]
+cast_shadow = 0
 position = Vector3(-15.5, 4.67723, 5.8)
 mesh = SubResource("BoxMesh_21")
 material_override = SubResource("StandardMaterial_22")
 
 [node name="Bunting_1_5" type="MeshInstance3D" parent="."]
+cast_shadow = 0
 position = Vector3(-15.5, 4.67723, 22.2)
 mesh = SubResource("BoxMesh_23")
 material_override = SubResource("StandardMaterial_24")
 
 [node name="Bunting_0_6" type="MeshInstance3D" parent="."]
+cast_shadow = 0
 position = Vector3(-14.4, 4.49495, 5.8)
 mesh = SubResource("BoxMesh_25")
 material_override = SubResource("StandardMaterial_26")
 
 [node name="Bunting_1_6" type="MeshInstance3D" parent="."]
+cast_shadow = 0
 position = Vector3(-14.4, 4.49495, 22.2)
 mesh = SubResource("BoxMesh_27")
 material_override = SubResource("StandardMaterial_28")
 
 [node name="Bunting_0_7" type="MeshInstance3D" parent="."]
+cast_shadow = 0
 position = Vector3(-13.3, 4.45614, 5.8)
 mesh = SubResource("BoxMesh_29")
 material_override = SubResource("StandardMaterial_30")
 
 [node name="Bunting_1_7" type="MeshInstance3D" parent="."]
+cast_shadow = 0
 position = Vector3(-13.3, 4.45614, 22.2)
 mesh = SubResource("BoxMesh_31")
 material_override = SubResource("StandardMaterial_32")
 
 [node name="Bunting_0_8" type="MeshInstance3D" parent="."]
+cast_shadow = 0
 position = Vector3(-12.2, 4.57906, 5.8)
 mesh = SubResource("BoxMesh_33")
 material_override = SubResource("StandardMaterial_34")
 
 [node name="Bunting_1_8" type="MeshInstance3D" parent="."]
+cast_shadow = 0
 position = Vector3(-12.2, 4.57906, 22.2)
 mesh = SubResource("BoxMesh_35")
 material_override = SubResource("StandardMaterial_36")
 
 [node name="Bunting_0_9" type="MeshInstance3D" parent="."]
+cast_shadow = 0
 position = Vector3(-11.1, 4.80588, 5.8)
 mesh = SubResource("BoxMesh_37")
 material_override = SubResource("StandardMaterial_38")
 
 [node name="Bunting_1_9" type="MeshInstance3D" parent="."]
+cast_shadow = 0
 position = Vector3(-11.1, 4.80588, 22.2)
 mesh = SubResource("BoxMesh_39")
 material_override = SubResource("StandardMaterial_40")
 
 [node name="Bunting_0_10" type="MeshInstance3D" parent="."]
+cast_shadow = 0
 position = Vector3(-10, 5.02995, 5.8)
 mesh = SubResource("BoxMesh_41")
 material_override = SubResource("StandardMaterial_42")
 
 [node name="Bunting_1_10" type="MeshInstance3D" parent="."]
+cast_shadow = 0
 position = Vector3(-10, 5.02995, 22.2)
 mesh = SubResource("BoxMesh_43")
 material_override = SubResource("StandardMaterial_44")
 
 [node name="Bunting_0_11" type="MeshInstance3D" parent="."]
+cast_shadow = 0
 position = Vector3(-8.9, 5.14586, 5.8)
 mesh = SubResource("BoxMesh_45")
 material_override = SubResource("StandardMaterial_46")
 
 [node name="Bunting_1_11" type="MeshInstance3D" parent="."]
+cast_shadow = 0
 position = Vector3(-8.9, 5.14586, 22.2)
 mesh = SubResource("BoxMesh_47")
 material_override = SubResource("StandardMaterial_48")
 
 [node name="Bunting_0_12" type="MeshInstance3D" parent="."]
+cast_shadow = 0
 position = Vector3(-7.8, 5.09911, 5.8)
 mesh = SubResource("BoxMesh_49")
 material_override = SubResource("StandardMaterial_50")
 
 [node name="Bunting_1_12" type="MeshInstance3D" parent="."]
+cast_shadow = 0
 position = Vector3(-7.8, 5.09911, 22.2)
 mesh = SubResource("BoxMesh_51")
 material_override = SubResource("StandardMaterial_52")
 
 [node name="Bunting_0_13" type="MeshInstance3D" parent="."]
+cast_shadow = 0
 position = Vector3(-6.7, 4.91168, 5.8)
 mesh = SubResource("BoxMesh_53")
 material_override = SubResource("StandardMaterial_54")
 
 [node name="Bunting_1_13" type="MeshInstance3D" parent="."]
+cast_shadow = 0
 position = Vector3(-6.7, 4.91168, 22.2)
 mesh = SubResource("BoxMesh_55")
 material_override = SubResource("StandardMaterial_56")
 
 [node name="CelebrationSign" type="MeshInstance3D" parent="."]
-position = Vector3(-6.5, 4, 6)
+position = Vector3(15, 3.35, 24.6)
 mesh = SubResource("BoxMesh_57")
 material_override = SubResource("StandardMaterial_58")
 
-[node name="Message" type="Label3D" parent="."]
-position = Vector3(-6.5, 4, 5.83)
+[node name="PostWest" type="MeshInstance3D" parent="."]
+position = Vector3(12.6, 1.8, 24.6)
+mesh = SubResource("BoxMesh_59")
+material_override = SubResource("StandardMaterial_60")
+
+[node name="PostEast" type="MeshInstance3D" parent="."]
+position = Vector3(17.4, 1.8, 24.6)
+mesh = SubResource("BoxMesh_59")
+material_override = SubResource("StandardMaterial_60")
+
+[node name="MessageFront" type="Label3D" parent="."]
+position = Vector3(15, 3.34, 24.53)
 text = "VILLAGE FIXED!"
-font_size = 70
+font_size = 50
 pixel_size = 0.005
 modulate = Color(0.1019608, 0.1882353, 0.3254902, 1)
-billboard = 1
+outline_size = 3
+outline_modulate = Color(1, 0.976, 0.9, 0.75)
+billboard = 0
+rotation = Vector3(0, 3.14159, 0)
+
+[node name="MessageBack" type="Label3D" parent="."]
+position = Vector3(15, 3.34, 24.67)
+text = "VILLAGE FIXED!"
+font_size = 50
+pixel_size = 0.005
+modulate = Color(0.1019608, 0.1882353, 0.3254902, 1)
+outline_size = 3
+outline_modulate = Color(1, 0.976, 0.9, 0.75)
+billboard = 0

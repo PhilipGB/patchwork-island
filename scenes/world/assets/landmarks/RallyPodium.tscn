@@ -42,6 +42,20 @@ rings = 4
 albedo_color = Color(0.9568627, 0.772549, 0.2588235, 1)
 roughness = 0.94
 
+[sub_resource type="BoxMesh" id="BoxMesh_11"]
+size = Vector3(2.9, 0.5, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_12"]
+size = Vector3(0.08, 2.2, 0.08)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_13"]
+albedo_color = Color(0.972549, 0.8235294, 0.2352941, 1)
+roughness = 0.94
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_14"]
+albedo_color = Color(0.439216, 0.258824, 0.121569, 1)
+roughness = 0.94
+
 [node name="RallyPodium" type="Node3D"]
 visible = false
 
@@ -70,10 +84,38 @@ position = Vector3(0, 2.25, 0)
 mesh = SubResource("SphereMesh_9")
 material_override = SubResource("StandardMaterial_10")
 
-[node name="Headline" type="Label3D" parent="."]
-position = Vector3(0, 2.9, 0)
+[node name="HeadlineBoard" type="MeshInstance3D" parent="."]
+position = Vector3(0, 2.86, 0)
+mesh = SubResource("BoxMesh_11")
+material_override = SubResource("StandardMaterial_13")
+
+[node name="HeadlinePostWest" type="MeshInstance3D" parent="."]
+position = Vector3(-1.25, 1.72, 0)
+mesh = SubResource("BoxMesh_12")
+material_override = SubResource("StandardMaterial_14")
+
+[node name="HeadlinePostEast" type="MeshInstance3D" parent="."]
+position = Vector3(1.25, 1.72, 0)
+mesh = SubResource("BoxMesh_12")
+material_override = SubResource("StandardMaterial_14")
+
+[node name="HeadlineFront" type="Label3D" parent="."]
+position = Vector3(0, 2.85, -0.06)
 text = "GRAND RALLY"
-font_size = 42
-pixel_size = 0.005
+font_size = 40
+pixel_size = 0.0042
 modulate = Color(0.1019608, 0.1882353, 0.3254902, 1)
-billboard = 1
+outline_size = 4
+outline_modulate = Color(1, 0.976, 0.9, 0.9)
+billboard = 0
+rotation = Vector3(0, 3.14159, 0)
+
+[node name="HeadlineBack" type="Label3D" parent="."]
+position = Vector3(0, 2.85, 0.06)
+text = "GRAND RALLY"
+font_size = 40
+pixel_size = 0.0042
+modulate = Color(0.1019608, 0.1882353, 0.3254902, 1)
+outline_size = 4
+outline_modulate = Color(1, 0.976, 0.9, 0.9)
+billboard = 0

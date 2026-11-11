@@ -68,41 +68,49 @@ roughness = 0.94
 visible = false
 
 [node name="Bunting_0" type="MeshInstance3D" parent="."]
+cast_shadow = 0
 position = Vector3(9, 2.2, 21.2)
 mesh = SubResource("BoxMesh_1")
 material_override = SubResource("StandardMaterial_2")
 
 [node name="Bunting_1" type="MeshInstance3D" parent="."]
+cast_shadow = 0
 position = Vector3(10.7, 2.2, 21.2)
 mesh = SubResource("BoxMesh_3")
 material_override = SubResource("StandardMaterial_4")
 
 [node name="Bunting_2" type="MeshInstance3D" parent="."]
+cast_shadow = 0
 position = Vector3(12.4, 2.2, 21.2)
 mesh = SubResource("BoxMesh_5")
 material_override = SubResource("StandardMaterial_6")
 
 [node name="Bunting_3" type="MeshInstance3D" parent="."]
+cast_shadow = 0
 position = Vector3(14.1, 2.2, 21.2)
 mesh = SubResource("BoxMesh_7")
 material_override = SubResource("StandardMaterial_8")
 
 [node name="Bunting_4" type="MeshInstance3D" parent="."]
+cast_shadow = 0
 position = Vector3(15.8, 2.2, 21.2)
 mesh = SubResource("BoxMesh_9")
 material_override = SubResource("StandardMaterial_10")
 
 [node name="Bunting_5" type="MeshInstance3D" parent="."]
+cast_shadow = 0
 position = Vector3(17.5, 2.2, 21.2)
 mesh = SubResource("BoxMesh_11")
 material_override = SubResource("StandardMaterial_12")
 
 [node name="Bunting_6" type="MeshInstance3D" parent="."]
+cast_shadow = 0
 position = Vector3(19.2, 2.2, 21.2)
 mesh = SubResource("BoxMesh_13")
 material_override = SubResource("StandardMaterial_14")
 
 [node name="Bunting_7" type="MeshInstance3D" parent="."]
+cast_shadow = 0
 position = Vector3(20.9, 2.2, 21.2)
 mesh = SubResource("BoxMesh_15")
 material_override = SubResource("StandardMaterial_16")

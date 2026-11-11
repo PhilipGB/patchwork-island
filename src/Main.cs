@@ -4506,7 +4506,7 @@ public partial class Main : Node3D
             _data.ActiveMission = "";
             RefreshMissionState();
             _hud.Visible = false;
-            await SnapFreeCamera(new Vector3(3.5f, 4f, 1.5f), new Vector3(-2f, 1f, 4.8f),
+            await SnapFreeCamera(new Vector3(9.2f, 1.7f, 0f), new Vector3(9.2f, 1.3f, 3.8f),
                 $"{p}_04_market_stock.png");
 
             // M18 broken car, repair bench, repaired car.

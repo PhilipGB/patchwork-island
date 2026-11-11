@@ -352,7 +352,7 @@ position = Vector3(-22, 0, 5)
 rotation = Vector3(0, 3.14159, 0)
 
 [node name="DirectionPost" parent="." instance=ExtResource("ext_11")]
-position = Vector3(-9.8, 0, 4.2)
+position = Vector3(-5.0, 0, -4.5)
 
 [node name="Playground" parent="." instance=ExtResource("ext_12")]
 position = Vector3(-38, 0, -9.5)
@@ -771,7 +771,7 @@ position = Vector3(0, 0, 0)
 position = Vector3(61.5, 0, -8.5)
 
 [node name="GoldCourseFlag" parent="." instance=ExtResource("canonical_4")]
-position = Vector3(64.5, 0, -12)
+position = Vector3(64.5, 0, -15.5)
 
 [node name="PlaygroundFixSign" parent="." instance=ExtResource("canonical_5")]
 position = Vector3(-38, 0, -14.5)
@@ -780,7 +780,7 @@ position = Vector3(-38, 0, -14.5)
 position = Vector3(-2.5, 0, 4.2)
 
 [node name="MarketStock" parent="." instance=ExtResource("canonical_7")]
-position = Vector3(-2, 0, 4.8)
+position = Vector3(9.2, 0, 3.8)
 
 [node name="PipCarBroken" parent="." instance=ExtResource("canonical_8")]
 position = Vector3(35.2, 0, -7.8)

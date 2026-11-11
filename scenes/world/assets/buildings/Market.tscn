@@ -1,4 +1,4 @@
-[gd_scene load_steps=38 format=3]
+[gd_scene load_steps=39 format=3]
 
 [sub_resource type="BoxMesh" id="BoxMesh_1"]
 size = Vector3(12.6, 0.4, 9.6)
@@ -128,8 +128,14 @@ size = Vector3(1.23, 0.18, 1.8)
 [sub_resource type="BoxMesh" id="BoxMesh_36"]
 size = Vector3(12.1, 0.13, 0.17)
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_Gable"]
+albedo_color = Color(1.000000, 0.945098, 0.792157, 1)
+roughness = 1.0
+metallic = 0.0
+disable_receive_shadows = true
+
 [sub_resource type="PrismMesh" id="GableMesh"]
-size = Vector3(13.2, 2.55, 0.3)
+size = Vector3(9.3, 2.50, 0.3)
 
 [node name="Market" type="Node3D"]
 
@@ -214,15 +220,17 @@ position = Vector3(0, 0.08, -5.3)
 mesh = SubResource("BoxMesh_13")
 material_override = SubResource("StandardMaterial3D_2")
 
-[node name="GableFront" type="MeshInstance3D" parent="."]
-position = Vector3(0, 5.02, 4.83)
+[node name="GableEast" type="MeshInstance3D" parent="."]
+position = Vector3(6, 4.90, 0)
+rotation = Vector3(0, 1.5708, 0)
 mesh = SubResource("GableMesh")
-material_override = SubResource("StandardMaterial3D_5")
+material_override = SubResource("StandardMaterial3D_Gable")
 
-[node name="GableBack" type="MeshInstance3D" parent="."]
-position = Vector3(0, 5.02, -4.83)
+[node name="GableWest" type="MeshInstance3D" parent="."]
+position = Vector3(-6, 4.90, 0)
+rotation = Vector3(0, -1.5708, 0)
 mesh = SubResource("GableMesh")
-material_override = SubResource("StandardMaterial3D_5")
+material_override = SubResource("StandardMaterial3D_Gable")
 
 [node name="RoofNorth" type="MeshInstance3D" parent="."]
 position = Vector3(0, 4.82, -2.25)

@@ -103,4 +103,15 @@ text = "FRESH STOCK"
 font_size = 44
 pixel_size = 0.005
 modulate = Color(0.1019608, 0.1882353, 0.3254902, 1)
-billboard = 1
+billboard = 0
+double_sided = false
+rotation = Vector3(0, 3.14159, 0)
+
+[node name="Text_Back" type="Label3D" parent="."]
+position = Vector3(0, 1.85, 0.1)
+text = "FRESH STOCK"
+font_size = 44
+pixel_size = 0.005
+modulate = Color(0.1019608, 0.1882353, 0.3254902, 1)
+billboard = 0
+double_sided = false

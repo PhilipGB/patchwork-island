@@ -123,10 +123,14 @@ position = Vector3(0, 1.5, 1.55)
 mesh = SubResource("BoxMesh_17")
 material_override = SubResource("StandardMaterial_18")
 
-[node name="Status" type="Label3D" parent="."]
-position = Vector3(0, 1.82, 0)
+[node name="StatusAnchor" type="Marker3D" parent="."]
+position = Vector3(0, 1.72, 0)
+metadata/scene_binding_id = "vehicle.status"
+
+[node name="Status" type="Label3D" parent="StatusAnchor"]
+position = Vector3(0, 0, 0)
 text = "PIP'S CAR — BROKEN"
-font_size = 40
+font_size = 36
 pixel_size = 0.006
 outline_size = 7
 outline_modulate = Color(1, 0.976, 0.9, 0.95)

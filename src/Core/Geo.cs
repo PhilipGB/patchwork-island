@@ -188,6 +188,7 @@ public static class Geo
                 Roughness = 1f,
                 ShadingMode = BaseMaterial3D.ShadingModeEnum.PerVertex,
                 CullMode = BaseMaterial3D.CullModeEnum.Disabled,
+                DisableReceiveShadows = true,
             },
         };
         parent.AddChild(mesh);

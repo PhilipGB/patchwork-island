@@ -2295,3 +2295,103 @@ No visual pixel change is expected from this follow-up: the worksite marker
 resolves to the same global `(-38, 0.1, -5.0)` station already shown in the
 V27 evidence, and the road visuals themselves were not moved. The existing
 `evidence/v13_canonical_visual/v13.1_recheck/` captures remain representative.
+
+## P20 — Round-3 visual defect pass (V36–V48) — IN PROGRESS
+
+**Branch:** `v1.3.0-canonical-town`.
+
+The third visual review found nine visible defects and four issues to verify.
+All geometry and text changes are in the authored scenes; the procedural
+`WorldBuilder` mirror was updated so a future bake cannot reintroduce them.
+
+### Geometry and composition
+
+- **V36 — gables.** The V26 gables were placed on the front/back eave walls
+  even though the roof ridge runs along X. From the side they appeared as two
+  white triangles outside the roof, with the actual pediment open. All six
+  buildings now have `GableEast` / `GableWest` on the ridge ends, rotated 90°,
+  sized to the building depth, and fitted under the ridge. A dedicated
+  `StandardMaterial3D_Gable` uses `disable_receive_shadows = true` so the roof
+  overhang no longer throws a dark triangle that reads like a hole. The pure
+  test checks end placement, rotation, depth and material on all six.
+- **V37/V38 — celebration banner.** The 8 m × 1.5 m floating panel that blocked
+  the Town Hall was replaced by a 4.72 m × 0.75 m free-standing banner on two
+  posts in the M20 festival lawn at `(15, 3.35, 24.6)`. The panel overlaps both
+  posts by 1 cm, has two correctly oriented, non-billboard text faces, and uses
+  a mild yellow emission so the shaded face still reads as celebration yellow.
+  It is clear of the Town Hall frontage, the market alley and the festival
+  tables.
+- **V39 — directional signs.** The four boards were spread left/right around
+  one post at `(-9.8, 4.2)` inside Milo's patrol area. They are now four
+  consistent arms stacked on the right of one post at `(-5.0, 0, -4.5)` on
+  the south verge, with front/back labels. The first independent render caught
+  that the arrow glyphs were inverted on both faces; they were swapped and the
+  pure test now asserts all eight strings. From each face the west destination
+  points left and the three east destinations point right. The M17
+  `MarketStock` moved from `(-2, 4.8)` to `(9.2, 3.8)` in front of the market,
+  so the M16 delivery board no longer hides it.
+- **V48 — GRAND RALLY podium.** The billboard label floated 0.3 m above the
+  trophy. It is now mounted on a 2.9 m × 0.5 m board on two posts above the
+  trophy, with front and back labels.
+
+### World-space text and vehicles
+
+- **V40 — GOLD LAP.** The single billboard label was replaced by two
+  single-sided labels offset just outside the flag faces; text is now 56 px
+  with a cream outline and stays attached at oblique angles. The independent
+  pass found the race start/finish pole crossing the flag from the southwest,
+  hiding `GO`; the flag moved from `(64.5, 0, -12)` to `(64.5, 0, -15.5)` and
+  the pole no longer intersects it. The pure test keeps the flag more than 6 m
+  from the race start pole.
+- **V41 — Pip's car.** Both car variants have a scene-owned `StatusAnchor`;
+  the status label is a child of that marker, lowered to 1.72 m and reduced to
+  36 px so it reads against the cab instead of floating over the body.
+- **V42/V47 — NPC labels and portraits.** Nameplates are 56 px instead of 68,
+  use a smaller pixel size, have a 34 m visibility range and scale with camera
+  distance (clamped 0.72–1.45×). Portraits are 0.0018 px/texel instead of
+  0.0034, have a 24 m range and scale 0.75–1.20×. Together with the signpost
+  move, NPC names no longer collide with the town-centre signage.
+- **V43 — delivery van.** `PATCHWORK POST` is now 42 px with a 6 px outline
+  at 1.05 m on the rear door; a glTF probe confirms it stays inside the door
+  silhouette.
+- **V44 — roadside dark dashes.** All 28 CelebrationDecor bunting meshes have
+  `cast_shadow = 0`; the repeated rectangular ground shadows are gone. The
+  independent pass found the same hard-shadow problem on the eight M20
+  FestivalDecor bunting flags, which were splitting the celebration banner
+  into a light and dark half; those eight flags also have `cast_shadow = 0`.
+
+### Verification status
+
+- Pure tests: **119 passed, 0 failed**.
+- Source runtime: **1171 passed, 0 failed**, all 11 phases exit 0
+  (`284/21/101/238/10/217/48/140/18/40/54`).
+- Headless import and boot: exit 0.
+- Packaged Linux (`dist/linux/PatchworkIsland.x86_64`, exported from this
+  tree): boot **PASS**; all 11 phases **1171 passed, 0 failed**;
+  `--selftest` repeated **3/3 green** (284 each); ZIP-extracted binary booted
+  and passed `--selftest` (284/284).
+- Windows binary rebuilt (PE32+ x86-64) but startup remains **NOT TESTED**.
+- Final package hashes:
+  - `linux/PatchworkIsland.x86_64` `46fd0a4ad4495af99df3b36b28a68771a5eb5cbf2b143762e89c774531d72f6b`
+  - `windows/PatchworkIsland.exe` `37ceeb2bafa355d50646ecfb13cf916aee72c93b8975e778b7996562956ad272`
+  - `PatchworkIsland-1.3.0-Linux-x86_64.zip` `a836e6132600a401d7df2ddd2abdfbc2a97b8e51aa1a8d4a81e800654af606f6`
+  - `PatchworkIsland-1.3.0-Windows-x86_64.zip` `b58685eee5556503481b4d9b089ab00c2119c16163d998cce475d686d6042e9f`
+- Visual probes: `evidence/v13_canonical_visual/v13.2_round3/` (24 gable
+  views across all six buildings, town-level front/back/side probes, P11 NPC
+  and P14 finale tours).
+- Independent visual pass (first round): V36 PASS (all six ends solid; the
+  remaining dark eave band is the normal underside of the 0.45 m roof
+  overhang, not an opening), V37/V38 PASS, V39 **FAIL** (arrows inverted),
+  V40 PASS with the start/finish pole caveat, V41 PASS, V42/V47 PASS, V44
+  PASS, V45 PASS, V48 PASS. Every reported defect was addressed and a focused
+  re-verification is running.
+
+### Remaining gaps
+
+- Human visual sign-off and one continuous M01–M20 sitting remain **NOT TESTED**.
+- Windows startup remains **NOT TESTED**.
+- V45 is confirmed intentional: the swing frame is the pre-M07 broken state,
+  with crossbar, `BROKEN` labels and the runtime broken-label assertion.
+- The festival bunting still hangs across one banner approach at head height;
+  it is decorative and no longer casts shadows or clips the text. The P14
+  festival camera and the opposite approach are clean.

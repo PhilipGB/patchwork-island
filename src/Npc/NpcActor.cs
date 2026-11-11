@@ -33,6 +33,7 @@ public partial class NpcActor : CharacterBody3D
     private float _wave;
     private Vector3 _lastPosition;
     private Label3D _nameLabel;
+    private Sprite3D _portrait;
 
     public void Initialize(NpcDefinition definition,
         IReadOnlyList<NpcPoint> patrolPoints = null)
@@ -152,19 +153,43 @@ public partial class NpcActor : CharacterBody3D
 
     private void BuildMarker()
     {
-        var portrait = new Sprite3D
+        _portrait = new Sprite3D
         {
             Name = "Portrait",
             Texture = NpcPortrait.Load(Definition.Id),
-            PixelSize = 0.0034f,
-            Position = new Vector3(0, 2.3f, 0),
+            PixelSize = 0.0018f,
+            Position = new Vector3(0, 2.18f, 0),
             Billboard = BaseMaterial3D.BillboardModeEnum.Enabled,
             Shaded = false,
             DoubleSided = true,
+            VisibilityRangeEnd = 24f,
+            VisibilityRangeEndMargin = 2f,
+            VisibilityRangeFadeMode = GeometryInstance3D.VisibilityRangeFadeModeEnum.Self,
         };
-        AddChild(portrait);
-        _nameLabel = Geo.Label(this, new Vector3(0, 2.92f, 0), Definition.Name, 68, Palette.Navy,
-            true, 0.0058f, 10);
+        AddChild(_portrait);
+        _nameLabel = Geo.Label(this, new Vector3(0, 2.82f, 0), Definition.Name, 56, Palette.Navy,
+            true, 0.005f, 8);
+        _nameLabel.VisibilityRangeEnd = 34f;
+        _nameLabel.VisibilityRangeEndMargin = 2f;
+        _nameLabel.VisibilityRangeFadeMode = GeometryInstance3D.VisibilityRangeFadeModeEnum.Self;
+    }
+
+    /// <summary>
+    /// Keeps villager identity readable without letting a foreground portrait or
+    /// nameplate swallow the scene. World size grows with distance, then clamps
+    /// so labels neither dominate close-ups nor vanish at normal play range.
+    /// </summary>
+    public override void _Process(double delta)
+    {
+        if (_nameLabel == null)
+            return;
+        Camera3D camera = GetViewport()?.GetCamera3D();
+        if (camera == null)
+            return;
+        float distance = camera.GlobalPosition.DistanceTo(_nameLabel.GlobalPosition);
+        _nameLabel.Scale = Vector3.One * Mathf.Clamp(distance / 10f, 0.72f, 1.45f);
+        if (_portrait != null)
+            _portrait.Scale = Vector3.One * Mathf.Clamp(distance / 12f, 0.75f, 1.20f);
     }
 
     public override void _PhysicsProcess(double delta)

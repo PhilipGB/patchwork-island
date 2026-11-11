@@ -115,8 +115,8 @@ public partial class VanController : CharacterBody3D
         // Postal identity sits flush on the rear cargo door.
         AddEnvelopeMark(_visual, -1.105f, 1.3f, 0.25f, -1);
         AddEnvelopeMark(_visual, 1.105f, 1.3f, 0.25f, 1);
-        Geo.Label(_visual, new Vector3(0, 0.95f, 1.83f), "PATCHWORK POST", 30, Palette.Navy,
-            false, 0.005f, 4, null, "VanRearText");
+        Geo.Label(_visual, new Vector3(0, 1.05f, 1.83f), "PATCHWORK POST", 42, Palette.Navy,
+            false, 0.0055f, 6, null, "VanRearText");
 
         // The authored van has a closed cabin, so the driver figure is kept as
         // an optional hidden node rather than rebuilt from boxes.

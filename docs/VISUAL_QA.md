@@ -196,3 +196,25 @@ The V32 road cleanup removed three visual patches but left their collision
 shapes and old `RoadNetwork` rectangles behind. Collision and road-surface
 classification now use exactly the eight visible slabs; this changes physics
 and footstep classification on the former patches, not any rendered pixels.
+
+### Round-3 gameplay visual pass (V36–V48)
+
+Every geometry correction was re-rendered from the failing direction, the
+opposite side and normal player height. The evidence set is in
+`evidence/v13_canonical_visual/v13.2_round3/`.
+
+| ID | Defect | Correction | Evidence |
+|---|---|---|---|
+| V36 | Gables sat on the eave walls, leaving the ridge end open; roof-overhang shadows made the remaining wall look like a hole. | Moved `GableEast`/`GableWest` to the ridge ends on all six buildings, rotated 90°, sized to depth, and used a `disable_receive_shadows` gable material. The thin dark band left from a low end-on camera is the normal underside of the 0.45 m roof overhang, not an opening. | `gable_six/*.png` (24 views), `redhouse_west_end.png`, `redhouse_south.png` |
+| V37 | 8×1.5 m banner dominated the Town Hall frontage. | Replaced with a 4.72×0.75 m free-standing banner in the M20 festival lawn, clear of the Town Hall and the market alley; yellow emission keeps the shaded face readable. | `banner_front.png`, `banner_back.png`, `banner_front_close.png` |
+| V38 | Banner text clipped or disappeared at oblique angles. | Two single-sided labels on opposite panel faces, offset outside the surface, no billboard; panel overlaps both posts so it no longer looks wedged between them. | `banner_front.png`, `banner_back.png`, independent front/back/oblique captures |
+| V39 | Four directional signs formed a cluster over Milo and the Town Hall. | One post with four stacked arms at `(-5.0,0,-4.5)`, clear of Milo's patrol; the independent pass caught inverted arrows, which were swapped and are now asserted on all eight strings. | `signpost_front.png`, `signpost_back.png` |
+| V40 | GOLD LAP text clipped/detached. | Two single-sided 56 px labels offset from the flag faces; flag moved to `(64.5,0,-15.5)` so the start/finish pole no longer hides `GO` from the southwest. | `gold_flag_sw.png` |
+| V41 | Pip car status floated above the body. | Scene-owned `StatusAnchor`, label lowered to 1.72 m and reduced to 36 px. | `pip_car.png`, `V41_V47_pip_nameplate.png` |
+| V42 | NPC names overlapped central signs. | Smaller 56 px labels with distance scaling and a 34 m range; signpost moved away. | `V42_milo_nameplate.png`, `V42_ollie_nameplate.png` |
+| V43 | Van rear lettering too small. | 42 px text with 6 px outline at 1.05 m; rear-door fit checked on the glTF. | `V43_van_rear.png` |
+| V44 | Repeated dark rectangles along the Town Hall roadside. | All 28 CelebrationDecor and all 8 FestivalDecor bunting meshes have `cast_shadow = 0`; the festival shadow edge across the banner is gone. | `bunting_shadows.png`, `banner_front.png` |
+| V45 | Swing frame looked incomplete. | Verified intentional pre-M07 state: crossbar present, two `BROKEN` labels, runtime assertion already covers it. | `redhouse_south.png` |
+| V46 | Alley between buildings congested. | Banner moved to the festival lawn; the signpost now stands on the road verge south of the buildings, not in the Town Hall/market alley. | `townhall_west.png`, `signpost_front.png` |
+| V47 | Pip portrait dominated the foreground. | Portrait pixel size reduced from 0.0034 to 0.0018, 24 m range and distance scaling. | `V41_V47_pip_nameplate.png` |
+| V48 | GRAND RALLY label detached from the trophy. | Mounted the label on a 2.9×0.5 m board on two posts above the trophy, front and back. | `podium.png` |
