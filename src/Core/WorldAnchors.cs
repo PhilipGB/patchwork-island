@@ -5,7 +5,7 @@ namespace PatchworkIsland;
 
 /// <summary>
 /// Stable world anchors used by pure route validation. These mirror the
-/// landmark positions in WorldBuilder; tests use them to prove NPCs and traffic
+/// authored scene anchor positions; tests use them to prove NPCs and traffic
 /// keep clear of buildings and critical job interactions.
 /// </summary>
 public static class WorldAnchors

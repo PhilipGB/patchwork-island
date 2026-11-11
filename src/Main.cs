@@ -119,7 +119,7 @@ public partial class Main : Node3D
         ApplyDeveloperScenario();
         ApplySettings();
 
-        _world = new WorldSceneAdapter { Name = "WorldBuilder", ProcessMode = ProcessModeEnum.Pausable };
+        _world = new WorldSceneAdapter { Name = "Village", ProcessMode = ProcessModeEnum.Pausable };
         AddChild(_world);
         _world.Build();
 

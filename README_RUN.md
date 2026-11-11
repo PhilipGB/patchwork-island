@@ -1,12 +1,13 @@
 # Patchwork Island — run and test guide
 
-> Status: v1.3.0 scene-based town migration — implemented in source, **not
-> tagged or released**. The static town is now the exact baked
-> `scenes/world/baked/Town_Baked.tscn`, instantiated and validated by
-> `WorldSceneAdapter`. All v1.2.1 gameplay and schema-3 saves are retained.
-> Source runtime **1124 assertions**, pure rules **111 tests** and every packaged
-> Linux phase pass. See `PROGRESS.md` P16 and `ACCEPTANCE.md` for the gate and
-> remaining visual/human gaps. The v1.2.1 release notes remain under `docs/`.
+> Status: v1.3.0 asset-driven town — implemented in source, **not tagged or
+> released**. The static town is `scenes/world/Town.tscn`, assembled from
+> `scenes/world/assets/` and instantiated by `WorldSceneAdapter`. There is no
+> bake step and no procedural `WorldBuilder`. All v1.2.1 gameplay and schema-3
+> saves are retained. Source runtime **1171 assertions**, pure rules **123
+> tests** and every packaged Linux phase pass. See `PROGRESS.md` and
+> `ACCEPTANCE.md` for the gate and remaining gaps. The v1.2.1 release notes
+> remain under `docs/`.
 
 ## Prerequisites
 
@@ -24,14 +25,10 @@ godot --path .                 # play
 
 Or open `project.godot` with Godot 4.7.2 .NET and press F5.
 
-The editable static town is `scenes/world/baked/Town_Baked.tscn`; `Main` loads it
-through `src/World/WorldSceneAdapter.cs`. The original procedural
-`WorldBuilder.Build()` is retained only for the exact-bake tool. Re-bake only if
-that source changes:
-
-```bash
-godot --headless --path . res://scenes/tools/SceneBakeTool.tscn
-```
+The editable static town is `scenes/world/Town.tscn`, assembled from the
+reusable scenes under `scenes/world/assets/`. Edit those scenes directly in the
+Godot editor; `WorldSceneAdapter` loads `Town.tscn` at runtime. There is no bake
+or regeneration step.
 
 ## Build check
 
@@ -70,7 +67,7 @@ godot --headless --path . --quit-after 120
 dotnet run --project tests/PatchworkIsland.Tests.csproj
 ```
 
-The runner currently has **111 tests** and covers mission catalog, prerequisites,
+The runner currently has **123 tests** and covers mission catalog, prerequisites,
 unlocks, duplicate pickups, exactly-once rewards, mission switching, hints,
 bridge/swing snapping (including rejected unknown part types), grocery and park
 budgets, furniture costs/starter fallback/purchase caps, ordered checkpoints,
@@ -104,7 +101,7 @@ godot --headless --path . -- --selftest-restore
 ```
 
 These use isolated `user://selftest-save.json` and
-`user://selftest-recovery-save.json` files and run **1124 assertions across
+`user://selftest-recovery-save.json` files and run **1171 assertions across
 eleven phases**. The first two cover title/modal pause, pausable player/van/world
 processing, stopped physics and race timers, Pause→Settings→Pause,
 Title→Settings→Title, New Game confirmation cancellation, the character
@@ -213,10 +210,10 @@ runtime or Wine. See `dist/SHA256SUMS` and `dist/README.txt`.
 
 ```text
 dotnet build PatchworkIsland.sln                         -> 0 warnings, 0 errors
-dotnet run --project tests/PatchworkIsland.Tests.csproj -> 111 passed, 0 failed
+dotnet run --project tests/PatchworkIsland.Tests.csproj -> 123 passed, 0 failed
 godot --headless --path . --editor --quit                -> exit 0
 godot --headless --path . --quit-after 120               -> exit 0, 0 unsafe leaks
-godot --headless --path . -- --selftest                  -> 237 passed, 0 failed
+godot --headless --path . -- --selftest                  -> 284 passed, 0 failed
 godot --headless --path . -- --selftest-resume           -> 21 passed, 0 failed
 godot --headless --path . -- --selftest-recovery         -> 101 passed, 0 failed
 godot --headless --path . -- --selftest-living           -> 238 passed, 0 failed
@@ -228,7 +225,7 @@ godot --headless --path . -- --selftest-traversal        -> 18 passed, 0 failed
 godot --headless --path . -- --selftest-release          -> 40 passed, 0 failed
 godot --headless --path . -- --selftest-restore          -> 54 passed, 0 failed
 godot --headless --path . --export-release "Linux" ...    -> exit 0
-dist/linux/PatchworkIsland.x86_64 (all runtime phases)    -> 1124 passed, 0 failed
+dist/linux/PatchworkIsland.x86_64 (all runtime phases)    -> 1171 passed, 0 failed
 dist/linux/PatchworkIsland.x86_64 --headless --quit-after 120 -> exit 0
 ```
 
@@ -239,9 +236,9 @@ furniture). `--selftest-restore` reloads seven partial construction/finale
 worlds. The packaged Linux executable passed the same phases, every process exit
 code 0 with zero leaked unsafe references.
 
-The v1.3.0 Linux export is an ELF x86-64 executable. Windows was not exported or
-tested for this migration; the last Windows artifact is the published v1.2.1
-build and its startup remains **NOT TESTED**. The previous v1.0.2, v1.1.0 and
+The v1.3.0 Linux export is an ELF x86-64 executable. The v1.3.0 Windows export
+was rebuilt from this tree, but startup remains **NOT TESTED** because this
+environment has no Windows runtime or Wine. The previous v1.0.2, v1.1.0 and
 v1.2.x verification remains recorded in `ACCEPTANCE.md`.
 
 Real AMD Radeon 890M measurements for the scene-backed world: 720p mean

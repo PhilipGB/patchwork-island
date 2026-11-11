@@ -820,3 +820,28 @@ phases **1171 passed, 0 failed**, 3× `--selftest` green, ZIP-extracted
 check is a pure fixed-step simulation; the runtime 24 s living phase remains
 green. Human sign-off, one continuous M01–M20 sitting and Windows startup
 remain **NOT TESTED**.
+
+## v1.3.0 — asset-driven world, WorldBuilder and bake removed (P23 gate)
+
+Scope: make the authored Godot scenes the only source of truth. The procedural
+`WorldBuilder`, the one-shot `SceneBakeTool` and the generated
+`scenes/world/baked/` snapshot are removed. Baseline is `e1ca753`; no tag or
+release is created by this gate.
+
+| # | Asset-driven requirement | Result |
+|---|---|---|
+| 1 | Runtime level is the authored `scenes/world/Town.tscn` | **PASS** — `WorldSceneAdapter` instantiates it and reads anchors, doors, gates and route markers from scene nodes. |
+| 2 | No procedural fallback or hard-coded placement path | **PASS** — missing anchors, doors or markers throw at load; there is no code path that regenerates scenery. |
+| 3 | Shared gameplay data contract preserved | **PASS** — `WorldModel` carries all 69 properties used by `Main`, `BridgeBuilder`, `SwingBuilder` and the mission systems. |
+| 4 | `WorldBuilder` and bake pipeline removed | **PASS** — `WorldBuilder.cs`, `SceneBakeTool.cs`/`.tscn`, the unused `WorldSceneAnchors` helper and all 34 baked files are deleted; no runtime or test reference remains. |
+| 5 | Tests inspect the authored assets, not the baked snapshot | **PASS** — building centres come from `Town.tscn`; wall dimensions from `assets/buildings/*.tscn`; collision/finale roots from `Town.tscn`, `RallyRoad_Collidable.tscn` and `PlayerHouse.tscn`. |
+| 6 | Gameplay, schema-3 saves and M01–M20 unchanged | **PASS** — pure **123 passed**; source runtime **1171 passed, 0 failed** across all 11 phases; restore/release/recovery phases green. |
+| 7 | Current docs and manifests describe scene authority | **PASS** — `layout_manifest_v1.3.0.json` carries `scene_authority`; `README*`, `IMPLEMENTATION_PLAN.md` and `docs/` describe direct scene editing. The v1.2.1 manifest is unchanged. |
+| 8 | Future development edits scenes directly | **PASS** — no bake or regeneration step is documented or required; editor import and headless boot exit 0. |
+
+**Build/test gates:** build 0/0; pure **123 passed**; source runtime **1171
+passed, 0 failed**; headless import and boot exit 0.
+
+**Remaining severity:** no asset-driven migration blocker known. Human visual
+sign-off, one continuous M01–M20 sitting and Windows startup remain **NOT
+TESTED**. Packaged gates and hashes are recorded in `PROGRESS.md` P23.

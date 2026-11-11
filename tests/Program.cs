@@ -2707,7 +2707,7 @@ internal static class Program
         }
     });
 
-        Run("baked gameplay anchors match the v1.2.1 manifest with canonical overrides", () =>
+        Run("gameplay anchors match the historical v1.2.1 manifest with canonical overrides", () =>
         {
             string root = FindRepoRoot();
             using var manifest = JsonDocument.Parse(File.ReadAllText(
@@ -3024,25 +3024,25 @@ internal static class Program
             Equal(0, unmatched.Count, "RoadNetwork rectangles without a visible slab");
         });
 
-        Run("baked buildings keep source centres and wall dimensions", () =>
+        Run("authored buildings keep source centres and wall dimensions", () =>
         {
             string root = FindRepoRoot();
             using var manifest = JsonDocument.Parse(File.ReadAllText(
                 Path.Combine(root, "docs", "layout_manifest_v1.3.0.json")));
-            string town = File.ReadAllText(Path.Combine(root, "scenes", "world", "baked",
-                "Town_Baked.tscn"));
+            string town = File.ReadAllText(Path.Combine(root, "scenes", "world",
+                "Town.tscn"));
             foreach (var building in manifest.RootElement.GetProperty("building_instances")
                          .EnumerateArray())
             {
                 string id = building.GetProperty("id").GetString();
                 var position = building.GetProperty("position");
-                var actual = ParseInstanceOrigin(town, id);
+                var actual = ParseInstancePosition(town, id);
                 var want = (position[0].GetSingle(), position[1].GetSingle(), position[2].GetSingle());
                 Check(Distance(actual, want) <= 0.01f,
                     $"{id} instance moved to {actual}, expected {want}");
 
-                string part = File.ReadAllText(Path.Combine(root, "scenes", "world", "baked",
-                    "parts", id + ".tscn"));
+                string part = File.ReadAllText(Path.Combine(root, "scenes", "world",
+                    "assets", "buildings", id + ".tscn"));
                 var west = ParseWallSize(part, "WallWest");
                 Check(Math.Abs(west.Y - building.GetProperty("wall_height").GetSingle()) <= 0.01f,
                     $"{id} wall height {west.Y}");
@@ -3054,11 +3054,11 @@ internal static class Program
             }
         });
 
-        Run("baked town keeps static collision and dynamic finale roots", () =>
+        Run("authored town keeps static collision and dynamic finale roots", () =>
         {
             string root = FindRepoRoot();
-            string baked = Path.Combine(root, "scenes", "world", "baked");
-            string town = File.ReadAllText(Path.Combine(baked, "Town_Baked.tscn"));
+            string town = File.ReadAllText(Path.Combine(root, "scenes", "world",
+                "Town.tscn"));
             var required = new[]
             {
                 "BridgeBarrier", "PipCarBroken", "PipCarFixed", "DeliveryBoard",
@@ -3068,11 +3068,13 @@ internal static class Program
             };
             foreach (string id in required)
                 Check(town.Contains($"name=\"{id}\"", StringComparison.Ordinal),
-                    $"Town_Baked is missing {id}");
-            string rally = File.ReadAllText(Path.Combine(baked, "parts", "RallyRoad.tscn"));
+                    $"Town.tscn is missing {id}");
+            string rally = File.ReadAllText(Path.Combine(root, "scenes", "world", "assets",
+                "environment", "RallyRoad_Collidable.tscn"));
             Check(rally.Contains("RallyRoadCollision", StringComparison.Ordinal),
                 "rally road part has no collision body");
-            string house = File.ReadAllText(Path.Combine(baked, "parts", "PlayerHouse.tscn"));
+            string house = File.ReadAllText(Path.Combine(root, "scenes", "world", "assets",
+                "buildings", "PlayerHouse.tscn"));
             Check(house.Contains("DoorCameraBlocker", StringComparison.Ordinal) &&
                   house.Contains("collision_layer = 16", StringComparison.Ordinal),
                 "enterable house keeps its layer-16 camera blocker");
@@ -3665,20 +3667,6 @@ internal static class Program
         return (values[0], values[1], values[2]);
     }
 
-    private static (float X, float Y, float Z) ParseInstanceOrigin(string sceneText, string name)
-    {
-        string pattern = "\\[node name=\"" + Regex.Escape(name) + "\" type=\"Node3D\" " +
-                         "parent=\"\\.\"[^\\]]*instance=ExtResource\\(\"[^\"]+\"\\)\\]" +
-                         "\\s*\\ntransform = Transform3D\\(([^)]+)\\)";
-        var match = Regex.Match(sceneText, pattern);
-        if (!match.Success) throw new Exception($"Instance {name} transform missing");
-        float[] values = match.Groups[1].Value.Split(',')
-            .Select(part => float.Parse(part.Trim(), CultureInfo.InvariantCulture))
-            .ToArray();
-        if (values.Length != 12) throw new Exception($"Instance {name} transform malformed");
-        return (values[9], values[10], values[11]);
-    }
-
     private static (float X, float Y, float Z) ParseWallSize(string sceneText, string wallName)
     {
         var boxMeshes = new Dictionary<string, (float, float, float)>(StringComparer.Ordinal);
@@ -3694,11 +3682,20 @@ internal static class Program
             boxMeshes[match.Groups["id"].Value] = (values[0], values[1], values[2]);
         }
 
-        string meshPattern = "\\[node name=\"[^\"]+\" type=\"MeshInstance3D\" parent=\"" +
-                             Regex.Escape(wallName) + "\"[^\\]]*\\](?<body>.*?)(?=\\n\\[node |\\z)";
-        var meshNode = Regex.Match(sceneText, meshPattern, RegexOptions.Singleline);
-        if (!meshNode.Success) throw new Exception($"No mesh child under {wallName}");
-        var reference = Regex.Match(meshNode.Groups["body"].Value,
+        string directPattern = "\\[node name=\"" + Regex.Escape(wallName) +
+                               "\" type=\"MeshInstance3D\"[^\\]]*\\]" +
+                               "(?<body>.*?)(?=\\n\\[node |\\z)";
+        var direct = Regex.Match(sceneText, directPattern, RegexOptions.Singleline);
+        string meshBody = direct.Success ? direct.Groups["body"].Value : null;
+        if (meshBody == null)
+        {
+            string meshPattern = "\\[node name=\"[^\"]+\" type=\"MeshInstance3D\" parent=\"" +
+                                 Regex.Escape(wallName) + "\"[^\\]]*\\](?<body>.*?)(?=\\n\\[node |\\z)";
+            var meshNode = Regex.Match(sceneText, meshPattern, RegexOptions.Singleline);
+            if (!meshNode.Success) throw new Exception($"No mesh under {wallName}");
+            meshBody = meshNode.Groups["body"].Value;
+        }
+        var reference = Regex.Match(meshBody,
             "mesh = SubResource\\(\"(?<id>[^\"]+)\"\\)");
         if (!reference.Success) throw new Exception($"No BoxMesh on {wallName}");
         return boxMeshes[reference.Groups["id"].Value];

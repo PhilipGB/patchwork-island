@@ -1,22 +1,20 @@
 # Canonical editor-authoritative town (v1.3.0)
 
-This document records the second v1.3.0 migration: the runtime no longer uses
-the baked snapshot or runtime procedural scenery. `scenes/world/Town.tscn` is
-the editor-authoritative level, assembled from the supplied reusable scenes in
-`scenes/world/assets/`.
+The runtime uses one editor-authoritative level: `scenes/world/Town.tscn`,
+assembled from the reusable scenes in `scenes/world/assets/`. There is no
+procedural `WorldBuilder` and no bake step.
 
 ## Runtime source of truth
 
-- `WorldSceneAdapter` instantiates `res://scenes/world/Town.tscn`.
-- `WorldBuilder.Build()` is not called during gameplay and `SceneBakeTool` is not
-  rerun for the canonical scenery.
+- `WorldSceneAdapter : WorldModel` instantiates `res://scenes/world/Town.tscn`.
 - Gameplay positions come from `GameplayAnchors`, building `DoorMarker` children,
   scene gate nodes and the authored `NpcPatrolMarkers` / `TrafficRouteMarkers`
   groups. No position-equality assertions remain in the runtime adapter.
 - Save schema remains **3**; all M01–M20 mission content, pickups, build states,
   cosmetics and recovery behaviour are unchanged.
-- The previous `Town_Baked.tscn` and `Town_Assets.tscn` remain in the repository
-  as reference material. Neither is loaded at runtime.
+- `Town_Assets.tscn` remains as the original supplied candidate scene for
+  provenance. It is not loaded at runtime. `Town_Baked.tscn`, `WorldBuilder` and
+  `SceneBakeTool` were removed.
 
 ## Scene additions
 
@@ -165,5 +163,5 @@ clear of Milo's patrol, with arrow glyphs verified from both faces; the GOLD
 LAP flag, Pip's car status and the rally podium label use two fixed faces or a
 scene-owned anchor; NPC identity markers scale with distance; and both the
 CelebrationDecor and FestivalDecor bunting no longer cast rectangular ground
-shadows. The procedural `WorldBuilder` mirrors the same changes for future
-bakes.
+shadows. The authored asset scenes are the only source of truth; there is no
+procedural mirror or bake step to keep in sync.

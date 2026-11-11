@@ -20,7 +20,7 @@ public partial class BridgeBuilder : Node3D, IBuildMode
     private MissionService _missions;
     private CameraRig _camera;
     private Hud _hud;
-    private WorldBuilder _world;
+    private WorldModel _world;
     private Action _onBridgeComplete;
     private Action<bool> _onBuildModeChanged;
     private Action _onProgressChanged;
@@ -30,7 +30,7 @@ public partial class BridgeBuilder : Node3D, IBuildMode
     private Camera3D _buildCamera;
 
     public void Initialize(GameData data, MissionService missions, CameraRig camera, Hud hud,
-        WorldBuilder world, Action onBridgeComplete, Action<bool> onBuildModeChanged,
+        WorldModel world, Action onBridgeComplete, Action<bool> onBuildModeChanged,
         Action onProgressChanged)
     {
         _data = data;

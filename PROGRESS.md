@@ -2578,3 +2578,67 @@ car.
   60 Hz; it does not model acceleration or corner speed scaling. The 7 m gap
   is larger than the worst braking distance, and the 24 s runtime living test
   still passes.
+
+## P23 — v1.3.0 asset-driven world: WorldBuilder and bake removed — PASS
+
+The static town is now authored only in Godot scenes. Future development edits
+`scenes/world/Town.tscn` and `scenes/world/assets/` directly; there is no
+procedural builder, bake tool or baked snapshot to keep in sync.
+
+### Changes
+
+- Extracted the runtime data contract from `WorldBuilder` into
+  `src/World/WorldModel.cs` (`abstract partial class WorldModel : Node3D`).
+  It keeps all 69 gameplay-facing properties (anchors, spawns, lists, scene
+  handles) and declares `abstract void Build()`.
+- `WorldSceneAdapter` now derives from `WorldModel`; `Main` names the instance
+  `Village`. `BridgeBuilder` and `SwingBuilder` take `WorldModel` parameters.
+- Deleted `src/World/WorldBuilder.cs`, `tools/SceneBakeTool.cs`,
+  `scenes/tools/SceneBakeTool.tscn`, the unused `tools/WorldSceneAnchors.cs`
+  helper and all 34 files under `scenes/world/baked/`.
+- `Town_Assets.tscn` and `Town_Preview.tscn` remain as reference/preview scenes
+  only. `Town.tscn` is the single runtime level.
+- Rewrote the two baked-reference tests against the authored assets:
+  - building centres come from `Town.tscn` instances and wall sizes from
+    `scenes/world/assets/buildings/<id>.tscn` direct `MeshInstance3D` walls;
+  - static collision and finale roots are read from `Town.tscn`,
+    `RallyRoad_Collidable.tscn` and `assets/buildings/PlayerHouse.tscn`.
+- Extended `ParseWallSize` to accept both direct wall meshes and wall parents
+  with mesh children; removed the now-unused `ParseInstanceOrigin` helper.
+- `docs/layout_manifest_v1.3.0.json` replaces `exact_baking` with
+  `scene_authority`; the immutable v1.2.1 manifest is untouched.
+- Updated `README.md`, `README_RUN.md`, `README_START_HERE.md`,
+  `IMPLEMENTATION_PLAN.md`, `docs/CANONICAL_TOWN.md`,
+  `docs/TECHNICAL_GUIDANCE.md`, `docs/ASSET_CATALOGUE.md`,
+  `docs/scene_bindings.json` and `docs/MIGRATION_AGENT_HANDOFF.md`.
+  Remaining `WorldBuilder`/`Town_Baked` mentions are historical provenance
+  statements only.
+
+### Verification status
+
+- Build: 0 warnings, 0 errors.
+- Pure tests: **123 passed, 0 failed**.
+- Source runtime: **1171 passed, 0 failed**, all 11 phases exit 0
+  (`284/21/101/238/10/217/48/140/18/40/54`).
+- Headless editor import and boot: exit 0.
+
+### Packaged gates
+
+- Package: `dist/linux/PatchworkIsland.x86_64`, `dist/windows/PatchworkIsland.exe`,
+  `dist/PatchworkIsland-1.3.0-Linux-x86_64.zip`,
+  `dist/PatchworkIsland-1.3.0-Windows-x86_64.zip`.
+- Packaged Linux boot **PASS**; all 11 phases **1171 passed, 0 failed**, every
+  phase exit 0; `--selftest` repeated **3/3 green** (284 each).
+- The extracted v1.3.0 ZIP binary booted and passed `--selftest` (284/284).
+- `sha256sum -c dist/SHA256SUMS` passes for all four files.
+- Hashes:
+  - `linux/PatchworkIsland.x86_64` `2e6134801a2511e4e0d172452114b013ba03c4de0c2bdd205279ca40c55a9f89`
+  - `windows/PatchworkIsland.exe` `d40470fbbc4b538f50e7332770dca3ab6ee13de21b308d4ac39840cdea847d3d`
+  - `PatchworkIsland-1.3.0-Linux-x86_64.zip` `d6d735ad8f59d2b4ef3d106597294913313c33060ee0de66ecb6b9980456fc90`
+  - `PatchworkIsland-1.3.0-Windows-x86_64.zip` `96695e213e0ccb29b201dbbd662b9ece274ed5c17b6a7dae0c4662f3162fe159`
+- Windows binary rebuilt (PE32+ x86-64) but startup remains **NOT TESTED**.
+
+### Remaining gaps
+
+- Human visual sign-off, one continuous M01–M20 sitting and Windows startup
+  remain **NOT TESTED**.
