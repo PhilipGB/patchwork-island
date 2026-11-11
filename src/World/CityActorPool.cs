@@ -24,12 +24,15 @@ public partial class CityVehicleVisual : CharacterBody3D
     public float Progress { get; private set; }
     public float Speed { get; private set; }
     public bool Yielding { get; private set; }
+    public float ReconciliationLag { get; private set; }
+    public float RouteLength => _length;
 
     private CityRoutePoint[] _route;
     private float[] _cumulative;
     private float _length;
     private float _yaw;
     private float _wheelAngle;
+    private bool _testHold;
     private Node3D _full;
     private Node3D _proxy;
     private readonly List<Node3D> _wheels = new();
@@ -51,6 +54,10 @@ public partial class CityVehicleVisual : CharacterBody3D
         _playerDriving = playerDriving;
         _vanPosition = vanPosition;
         Name = $"CityVehicle_{agent.Id}";
+        // City traffic is cooperative/decorative: cars collide with static
+        // geometry but deliberately not with the player or van. ShouldYield
+        // keeps them out of the player's path without letting traffic trap a
+        // young player in an intersection.
         CollisionLayer = 0;
         CollisionMask = 1;
         FloorSnapLength = 0.6f;
@@ -113,12 +120,21 @@ public partial class CityVehicleVisual : CharacterBody3D
         SetPhysicsProcess(near);
     }
 
-    public void SpawnAt(CityAgentPose pose, CityActorTier tier)
+    public void SpawnAt(CityAgentPose pose, CityActorTier tier, float lagMeters = 0f)
     {
-        Progress = pose.RouteProgress;
+        ReconciliationLag = Mathf.Clamp(lagMeters, -CityActorPool.MaxVisualLagMeters, CityActorPool.MaxVisualLagMeters);
+        Progress = Wrap(pose.RouteProgress - ReconciliationLag, _length);
         _yaw = pose.Yaw;
         SetPoseFromProgress(0.35f);
         SetTier(tier);
+    }
+
+    public void SetReconciliationLag(float lagMeters) => ReconciliationLag = lagMeters;
+
+    public void SnapToProgress(float progress)
+    {
+        Progress = Wrap(progress, _length);
+        SetPoseFromProgress(0.35f);
     }
 
     public void StepMid(float delta)
@@ -133,7 +149,8 @@ public partial class CityVehicleVisual : CharacterBody3D
         if (Tier != CityActorTier.Near || _route == null) return;
         float dt = (float)delta;
         Yielding = ShouldYield();
-        float targetSpeed = Yielding ? 0f : Speed;
+        float correction = Mathf.Clamp(ReconciliationLag / 4f, -2f, 2.5f);
+        float targetSpeed = Yielding ? 0f : Mathf.Max(0f, Speed + correction);
         targetSpeed *= CornerFactor();
         float current = new Vector2(Velocity.X, Velocity.Z).Length();
         current = Mathf.MoveToward(current, targetSpeed, (Yielding ? 10f : 3.4f) * dt);
@@ -175,29 +192,39 @@ public partial class CityVehicleVisual : CharacterBody3D
             yield return _cumulative[i];
     }
 
-    private bool ShouldYield()
+    public static bool ShouldYieldTo(Vector3 carPosition, Vector3 forward,
+        Vector3 playerPosition, bool playerDriving, Vector3 vanPosition)
     {
-        Vector3 forward = -GlobalTransform.Basis.Z;
         forward.Y = 0;
-        forward = forward.Normalized();
-        if (_playerPosition != null)
+        if (forward.LengthSquared() > 0.0001f) forward = forward.Normalized();
+        Vector3 toPlayer = playerPosition - carPosition;
+        toPlayer.Y = 0;
+        float playerDistance = toPlayer.Length();
+        if (playerDistance < 3.4f ||
+            (playerDistance < 7f && toPlayer.Normalized().Dot(forward) > 0.1f))
+            return true;
+        if (playerDriving)
         {
-            Vector3 to = _playerPosition() - GlobalPosition;
-            to.Y = 0;
-            float distance = to.Length();
-            if (distance < 3.4f || (distance < 7f && to.Normalized().Dot(forward) > 0.1f))
-                return true;
-        }
-        if (_playerDriving?.Invoke() == true && _vanPosition != null)
-        {
-            Vector3 to = _vanPosition() - GlobalPosition;
-            to.Y = 0;
-            float distance = to.Length();
-            if (distance < 5.2f || (distance < 9f && to.Normalized().Dot(forward) > 0.1f))
+            Vector3 toVan = vanPosition - carPosition;
+            toVan.Y = 0;
+            float vanDistance = toVan.Length();
+            if (vanDistance < 5.2f ||
+                (vanDistance < 9f && toVan.Normalized().Dot(forward) > 0.1f))
                 return true;
         }
         return false;
     }
+
+    private bool ShouldYield()
+    {
+        Vector3 player = _playerPosition?.Invoke() ?? GlobalPosition;
+        Vector3 van = _vanPosition?.Invoke() ?? GlobalPosition;
+        return _testHold || ShouldYieldTo(GlobalPosition, -GlobalTransform.Basis.Z,
+            player, _playerDriving?.Invoke() == true, van);
+    }
+
+    /// <summary>Controlled yield seam for the city streaming reconciliation test.</summary>
+    public void SetTestHold(bool hold) => _testHold = hold;
 
     private void SetPoseFromProgress(float y)
     {
@@ -429,8 +456,10 @@ public partial class CityActorPool : Node3D
     public const int MaxNearPedestrians = 22;
     public const float ActiveRadius = 175f;
     public const float NearRadius = 78f;
+    public const float MaxVisualLagMeters = 18f;
     private const float RetentionRadius = ActiveRadius + 22f;
     private const float MidStep = 0.25f;
+    private readonly Dictionary<int, float> _visualLags = new();
 
     public int VisualVehicleCount => _vehicles.Count;
     public int VisualPedestrianCount => _pedestrians.Count;
@@ -488,13 +517,48 @@ public partial class CityActorPool : Node3D
             RefreshSelection(localFocus, activeRadius, nearRadius);
         }
 
+        ReconcileVehicles();
         if (_midTimer <= 0f)
         {
             _midTimer = MidStep;
-            foreach (var vehicle in _vehicles.Values)
-                vehicle.StepMid(MidStep);
             foreach (var ped in _pedestrians.Values)
                 ped.StepMid(MidStep);
+        }
+    }
+
+    private static float SignedDelta(float from, float to, float length)
+    {
+        if (length <= 0.0001f) return 0f;
+        float delta = (to - from) % length;
+        if (delta > length * 0.5f) delta -= length;
+        else if (delta < -length * 0.5f) delta += length;
+        return delta;
+    }
+
+    private void ReconcileVehicles()
+    {
+        if (_sim == null) return;
+        foreach (var pair in _vehicles)
+        {
+            var vehicle = pair.Value;
+            var agent = _sim.Agents.FirstOrDefault(a => a.Id == pair.Key);
+            if (agent == null) continue;
+            var pose = _sim.PoseAt(agent);
+            if (vehicle.Tier == CityActorTier.Mid)
+            {
+                vehicle.SnapToProgress(pose.RouteProgress);
+                vehicle.SetReconciliationLag(0f);
+                _visualLags[pair.Key] = 0f;
+                continue;
+            }
+            float lag = SignedDelta(vehicle.Progress, pose.RouteProgress, vehicle.RouteLength);
+            // Keep the stored lag bounded, but never teleport a near actor
+            // forward while it is yielding (that can push it through the
+            // player). The physical car keeps its place and catches up when
+            // the yield ends; streaming re-entry uses the bounded stored lag.
+            lag = Mathf.Clamp(lag, -MaxVisualLagMeters, MaxVisualLagMeters);
+            vehicle.SetReconciliationLag(lag);
+            _visualLags[pair.Key] = lag;
         }
     }
 
@@ -549,7 +613,8 @@ public partial class CityActorPool : Node3D
                 vehicle.Initialize(entry.Agent, _vehicleRoutes[entry.Agent.RouteIndex],
                     _playerPosition, _driving, _vanPosition);
                 var pose = _sim.PoseAt(entry.Agent);
-                vehicle.SpawnAt(pose, TierFor(entry.Distance, nearRadius));
+                float savedLag = _visualLags.TryGetValue(entry.Agent.Id, out float lag) ? lag : 0f;
+                vehicle.SpawnAt(pose, TierFor(entry.Distance, nearRadius), savedLag);
                 _vehicles[entry.Agent.Id] = vehicle;
             }
             else
@@ -589,6 +654,7 @@ public partial class CityActorPool : Node3D
     public void ResetAll()
     {
         ClearAll();
+        _visualLags.Clear();
         _poolTimer = 0f;
         _midTimer = 0f;
     }

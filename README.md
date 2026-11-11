@@ -40,7 +40,7 @@ all existing saves keep their behaviour.
   grid. Human visual sign-off, one continuous M01–M21/C01–C03 sitting and
   Windows startup remain open. See `PROGRESS.md` P24 and
   `docs/03_ACCEPTANCE.md`.
-- **City grid remediation (PR #32, commit `430c05e`).** Sidewalks are split
+- **City grid remediation (PR #32 review follow-up).** Sidewalks are split
   into 81 segments with a 16 m entrance gap, plazas are 56 m, buildings/HLOD
   are scaled to fit, and the road/marking surfaces are flush. The van can enter
   the city, NPC cars stay on the grid, and the player can step onto the plaza.

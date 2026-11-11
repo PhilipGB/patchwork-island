@@ -54,6 +54,9 @@ public partial class CityWorldAdapter : Node3D
     private readonly List<CityCell> _cells = new();
     private readonly List<StaticBody3D> _districtBodies = new();
     private readonly List<CollisionShape3D> _districtShapes = new();
+    private readonly List<StaticBody3D> _groundBodies = new();
+    private bool _groundCollisionActive;
+    public const float GroundCollisionRadius = 185f;
     private Marker3D _boardMarker;
     private Node3D _boardRoot;
     private float _lodTimer;
@@ -178,6 +181,7 @@ public partial class CityWorldAdapter : Node3D
         ApplyDistrictVisible(districtVisible);
         if (Approach != null) Approach.Visible = approachVisible;
         SetApproachCollision(approachVisible);
+        if (districtVisible) UpdateGroundCollision(focusWorld);
 
         if (!districtVisible)
         {
@@ -320,6 +324,11 @@ public partial class CityWorldAdapter : Node3D
 
     private void CacheCollision()
     {
+        var ground = District.GetNodeOrNull<StaticBody3D>("CityGround");
+        if (ground == null)
+            throw new InvalidOperationException("CityDistrict is missing its CityGround collision body.");
+        _groundBodies.Add(ground);
+
         foreach (var body in Descendants(District).OfType<StaticBody3D>())
         {
             _districtBodies.Add(body);
@@ -393,10 +402,11 @@ public partial class CityWorldAdapter : Node3D
         }
         _districtVisibleState = visible;
         DistrictRoot.Visible = visible;
-        foreach (var body in _districtBodies)
-            body.CollisionLayer = visible ? 1u : 0u;
         if (!visible)
         {
+            _groundCollisionActive = false;
+            foreach (var body in _districtBodies)
+                body.CollisionLayer = 0u;
             DetailedVisible = 0;
             HlodVisible = 0;
             _lastVisibleCells = 0;
@@ -411,9 +421,20 @@ public partial class CityWorldAdapter : Node3D
         }
         else
         {
-            // Force a fresh distance pass when re-entering the city.
+            // Visibility and collision are separate: distant HLOD/streaming may
+            // keep the district visible without enabling streets under the town.
             _lodTimer = 0f;
         }
+    }
+
+    private void UpdateGroundCollision(Vector3 focusWorld)
+    {
+        bool active = CityLayout.DistanceToCityCentre(focusWorld.X, focusWorld.Z)
+                      <= GroundCollisionRadius;
+        if (active == _groundCollisionActive) return;
+        _groundCollisionActive = active;
+        foreach (var body in _groundBodies)
+            body.CollisionLayer = active ? 1u : 0u;
     }
 
     private void SetApproachCollision(bool active)

@@ -37,7 +37,9 @@ public partial class CityRuntimeSelfTest : Node
             RoadworksDeliveryChecks();
             GateAndMissionsChecks();
             await CityActivationChecks();
+            await CityTrafficCooperationChecks();
             await HighSpeedAndReturnChecks();
+            await CityTraversalChecks();
             SaveRoundTripChecks();
         }
         catch (Exception ex)
@@ -197,6 +199,63 @@ public partial class CityRuntimeSelfTest : Node
             "player walks from the road onto the central plaza");
     }
 
+    private async Task CityTrafficCooperationChecks()
+    {
+        var city = Main.RtCity;
+        var centre = new Vector3(CityLayout.WorldX(0f), 0.4f, CityLayout.WorldZ(0f));
+        Vector3 forward = new(0f, 0f, -1f);
+        Expect(CityVehicleVisual.ShouldYieldTo(centre, forward,
+                centre + forward * 3f, false, Vector3.Zero),
+            "city traffic yields to a player directly ahead");
+        Expect(!CityVehicleVisual.ShouldYieldTo(centre, forward,
+                centre + forward * 20f, false, Vector3.Zero),
+            "city traffic does not yield to a distant player");
+
+        var car = city.ActorPool.GetChildren().OfType<CityVehicleVisual>()
+            .Where(v => v.Tier == CityActorTier.Near &&
+                        v.GlobalPosition.DistanceTo(centre) < 90f)
+            .OrderBy(v => v.GlobalPosition.DistanceTo(centre))
+            .FirstOrDefault();
+        Expect(car != null, "a near city car is available for the cooperation test");
+        if (car == null) return;
+        int id = car.AgentId;
+        car.SetTestHold(true);
+        await Wait(1.0f);
+        car = city.ActorPool.GetChildren().OfType<CityVehicleVisual>()
+            .FirstOrDefault(v => v.AgentId == id);
+        Expect(car != null && car.Yielding, "held city car is in its yield state");
+        Expect(car != null &&
+               Mathf.Abs(car.ReconciliationLag) <= CityActorPool.MaxVisualLagMeters + 0.1f,
+            "held city car keeps a bounded reconciliation lag");
+        Expect(car != null && Mathf.Abs(car.ReconciliationLag) > 0.1f,
+            "held city car records its visual lag");
+        car?.SetTestHold(false);
+
+        // Stream the car out while the player is in town, then return.
+        Main.RtTeleportPlayer(new Vector3(-38f, 0.4f, 9.5f), 0f);
+        await Wait(1.0f);
+        Expect(city.ActiveVisualActors == 0, "city actors stream out from town");
+
+        Main.RtTeleportPlayer(new Vector3(CityLayout.WorldX(0f), 0.4f, CityLayout.WorldZ(28f)), 0f);
+        await Wait(1.2f);
+        var returned = city.ActorPool.GetChildren().OfType<CityVehicleVisual>()
+            .FirstOrDefault(v => v.AgentId == id);
+        Expect(returned != null, "the same city car returns after streaming");
+        if (returned != null)
+        {
+            Expect(Mathf.Abs(returned.ReconciliationLag) <=
+                   CityActorPool.MaxVisualLagMeters + 0.1f,
+                "returned city car resumes with bounded reconciliation");
+            returned.SetTestHold(true);
+            await Wait(0.8f);
+            Expect(returned.Yielding, "returned city car can yield again");
+            returned.SetTestHold(false);
+        }
+
+        Main.RtTeleportPlayer(new Vector3(CityLayout.WorldX(0f), 0.4f, CityLayout.WorldZ(28f)), 0f);
+        await Wait(0.4f);
+    }
+
     private async Task HighSpeedAndReturnChecks()
     {
         var city = Main.RtCity;
@@ -233,6 +292,7 @@ public partial class CityRuntimeSelfTest : Node
 
         var cars = Main.RtCity.ActorPool.GetChildren().OfType<CityVehicleVisual>()
             .Where(v => v.Tier == CityActorTier.Near).ToList();
+        Expect(cars.Count >= 2, "at least two near city cars are active");
         var carStarts = cars.ToDictionary(v => v.AgentId, v => v.GlobalPosition);
         foreach (var car in cars)
         {
@@ -248,8 +308,14 @@ public partial class CityRuntimeSelfTest : Node
         int moved = carStarts.Count(pair =>
             carEnds.TryGetValue(pair.Key, out Vector3 end) &&
             end.DistanceTo(pair.Value) > 2f);
-        Expect(moved >= Math.Min(2, cars.Count),
-            "near city cars keep moving through intersections");
+        Expect(moved >= 2,
+            "at least two near city cars keep moving through intersections");
+
+        Main.RtTeleportPlayer(new Vector3(0f, 0.4f, 0f), 0f);
+        await Wait(0.9f);
+        Expect(city.DistrictVisible, "distant city stays visible from the town centre");
+        Expect(city.ActiveDistrictCollisionBodies == 0,
+            "distant city keeps physical collision disabled at the town centre");
 
         Main.RtTeleportPlayer(new Vector3(-38f, 0.4f, 9.5f), 0f);
         await Wait(0.9f);
@@ -261,6 +327,47 @@ public partial class CityRuntimeSelfTest : Node
         Expect(Main.RtRoadworks.BarrierVisible && Main.RtRoadworks.ColliderEnabled,
             "a fresh/closed state restores the gate exactly");
         Main.RtSetRoadState(true);
+    }
+
+    private async Task CityTraversalChecks()
+    {
+        Main.RtSetRoadState(true);
+        Main.RtTeleportVan(new Vector3(180f, 0.4f, 0f), -Mathf.Pi / 2f);
+        Main.RtStartVanRoute(new[]
+        {
+            new Vector3(200f, 0.4f, 0f),
+            new Vector3(200f, 0.4f, -40f),
+            new Vector3(280f, 0.4f, -40f),
+            new Vector3(280f, 0.4f, -120f),
+            new Vector3(200f, 0.4f, -120f),
+            new Vector3(200f, 0.4f, 0f),
+            new Vector3(170f, 0.4f, 0f),
+        });
+
+        bool entered = false;
+        bool reachedFirst = false;
+        bool reachedCentre = false;
+        bool returned = false;
+        for (int i = 0; i < 170 && !returned; i++)
+        {
+            await Wait(0.5f);
+            Vector3 van = Main.RtVanPosition;
+            entered |= van.X > 188f;
+            reachedFirst |= van.X > 195f && van.Z < -35f;
+            reachedCentre |= van.X > 275f && van.Z < -35f;
+            returned |= reachedCentre && van.X < 180f;
+        }
+        Main.RtStopVanRoute();
+        GD.Print($"CITY_TRAVERSAL entered={entered} first={reachedFirst} " +
+                 $"centre={reachedCentre} returned={returned} van={Main.RtVanPosition} " +
+                 $"speed={Main.RtVanSpeed:0.00}");
+        Main.RtTeleportPlayer(new Vector3(-38f, 0.4f, 9.5f), 0f);
+        await Wait(0.4f);
+
+        Expect(entered, "sustained driving enters the city road");
+        Expect(reachedFirst, "sustained driving reaches the first city intersection");
+        Expect(reachedCentre, "sustained driving reaches the central city block");
+        Expect(returned, "sustained driving returns from the city to the approach");
     }
 
     private void SaveRoundTripChecks()

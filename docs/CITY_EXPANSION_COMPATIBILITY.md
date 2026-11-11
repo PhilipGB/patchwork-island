@@ -99,3 +99,11 @@ bad main save never replaces a good backup.
 - The city uses authored placeholder buildings, not final hand-modelled art.
 - A city job board entry is available as soon as the road is open; individual
   city jobs do not require an additional village mission beyond M21.
+
+## City traffic policy
+
+City NPC vehicles are intentionally cooperative/decorative. They collide with
+authored static geometry but not with the player or van, and they yield when the
+player is directly ahead. This mirrors the town traffic rule and avoids trapping
+a child in a city intersection. The pure and runtime suite covers the yield
+rule and the near/streamed actor reconciliation.

@@ -2777,7 +2777,7 @@ New regressions: the van crosses the former entrance barrier (`x > 188`), every
 near city car stays on the road grid and at least two keep moving through
 intersections, and the player walks from the road onto the central plaza. Pure
 scene contracts reject sidewalk segments crossing a road or plazas overlapping
-one. City runtime is now **94 passed, 0 failed**.
+one. City runtime is now **111 passed, 0 failed**.
 
 After-fix evidence:
 
@@ -2788,6 +2788,33 @@ After-fix evidence:
 The after-fix van log reaches `x=189.35` on the city road; the car log shows
 continued movement along the inner and outer routes. Full analysis:
 `docs/CITY_TRAVERSAL_REMEDIATION.md`.
+
+### Review follow-up — traversal, traffic and activation
+
+The PR review requested stronger evidence and policy decisions:
+
+- **Full traversal:** the city selftest now drives the van with a sustained
+  throttle autopilot from the approach through the first intersection, around
+  the central block and back out. It asserts all four phases (entered, first
+  intersection, central block, returned).
+- **Traffic policy:** city NPC traffic is explicitly cooperative/decorative.
+  Cars collide with static geometry but not with the player/van and yield when
+  the player is ahead. Static yield tests and a controlled stop/stream test
+  cover the policy.
+- **Reconciliation:** near cars keep a bounded 18 m visual lag. A yielding car
+  is not snapped forward through the player; its lag is stored and applied when
+  it streams back in. Mid actors follow logical pose directly, and near actors
+  catch up with bounded speed. The test holds, streams out, returns and
+  re-yields a car.
+- **Collision scope:** city-ground collision now activates only within 185 m of
+  the city centre, while 335 m visibility remains for HLOD/streaming. At the
+  town centre the district can stay visible with zero active collision bodies;
+  a runtime assertion covers this.
+- **Weak assertion:** the car regression now requires at least two near cars and
+  at least two moving cars.
+
+City runtime is now **111 passed, 0 failed**; the full source total is
+**1282 passed, 0 failed**.
 
 ### Verification — source
 
@@ -2807,10 +2834,10 @@ godot --headless --path . --quit-after 120               -> exit 0
 --selftest-traversal       18 passed, 0 failed
 --selftest-release         40 passed, 0 failed
 --selftest-restore         54 passed, 0 failed
---selftest-city            94 passed, 0 failed
+--selftest-city            111 passed, 0 failed
 ```
 
-Source runtime total: **1265 passed, 0 failed**, all twelve phases exit 0.
+Source runtime total: **1282 passed, 0 failed**, all twelve phases exit 0.
 Every process exits 0; the known Mono shutdown resource warnings are unchanged.
 
 ### Packaged Linux 1.4.0 — CityFix
@@ -2819,10 +2846,10 @@ A release export was produced from the city-grid remediation commit and tested
 from the local package:
 
 ```text
-dist/linux/PatchworkIsland.x86_64        163,762,008 bytes
-sha256 8fb9435451e9052e62b1d07774eae7763d4dca842767c1e06817101530868e42
-dist/windows/PatchworkIsland.exe         199,587,440 bytes
-sha256 6fc9ba41efdf4dc9229d6d5da05423f15f7a8e6980c818345e7948c687ab9e4b
+dist/linux/PatchworkIsland.x86_64        163,777,128 bytes
+sha256 53fd33ee33f680c6ae560ff022ccae8088f3f545071bc43a7f42f9b76f52f97d
+dist/windows/PatchworkIsland.exe         199,602,048 bytes
+sha256 bf99de93914473859de9043fb24447737f9b6b4a1825164daf798f16df76e656
 ```
 
 The packaged binary booted headlessly and passed all twelve runtime phases with
@@ -2841,10 +2868,10 @@ boot 0
 --selftest-traversal     18 passed, 0 failed
 --selftest-release       40 passed, 0 failed
 --selftest-restore       54 passed, 0 failed
---selftest-city          94 passed, 0 failed
+--selftest-city          111 passed, 0 failed
 ```
 
-Packaged total: **1265 passed, 0 failed**, all phases exit 0. The matching local
+Packaged total: **1282 passed, 0 failed**, all phases exit 0. The matching local
 CityFix ZIPs and `SHA256SUMS.v1.4.0-cityfix` are in the gitignored `dist/`.
 The existing GitHub v1.4.0 pre-release remains pinned to the earlier `21b226e`
 build; this remediation should be published as a new v1.4.1 tag/release.

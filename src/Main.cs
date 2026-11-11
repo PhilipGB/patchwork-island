@@ -4467,6 +4467,9 @@ public partial class Main : Node3D
     internal void RtLaunchVan(float speed) => _van.TestLaunch(speed);
     internal float RtVanSpeed => _van.Speed;
 
+    internal void RtStartVanRoute(IReadOnlyList<Vector3> points) => _van.StartRouteAutopilot(points);
+    internal void RtStopVanRoute() => _van.StopAutopilot();
+
     internal void RtProbeCityLod(Vector3 position, float speed)
     {
         _city.SetFocusActors(position, position, true);

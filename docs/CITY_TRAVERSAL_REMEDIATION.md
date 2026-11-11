@@ -79,7 +79,7 @@ recorded city cars visually stopped on the raised blocks.
   - every near city car is on the road grid;
   - at least two near cars keep moving through intersections;
   - the player walks from the road onto the central plaza.
-- `--selftest-city` now has **94 passed, 0 failed**.
+- `--selftest-city` now has **111 passed, 0 failed**.
 - Pure tests: **132 passed, 0 failed**.
 
 ## After-fix evidence
@@ -96,6 +96,47 @@ recorded city cars visually stopped on the raised blocks.
 The after-fix van log reaches `x=189.35` on the city road and the car log shows
 cars progressing along the inner and outer routes.
 
+## Review findings addressed
+
+### Full city traversal
+
+`CityRuntimeSelfTest.CityTraversalChecks` now drives the van with a real
+sustained-throttle autopilot from the approach into the city, through the first
+intersection, around the central block and back to the approach. It asserts
+entrance, first intersection, central block and return separately, rather than
+only passing the old barrier.
+
+### Traffic policy
+
+City NPC traffic is intentionally **cooperative/decorative**, matching the
+town's traffic design. Cars collide with static geometry but not with the player
+or van, and they yield when the player/van is directly ahead. This avoids
+trapping a child in an intersection. The policy is explicit in
+`CityVehicleVisual` and covered by static yield tests plus a controlled
+stop/stream test.
+
+### Visual/logical reconciliation
+
+Near vehicles keep a bounded visual lag (18 m maximum) relative to the compact
+logical schedule. A yielding car is never snapped forward through the player;
+the lag is stored and reused when the actor streams out and back in. Mid-tier
+actors follow the logical pose directly, and near actors gain a small bounded
+catch-up speed when they resume. Tests hold a car, stream it out to town, return
+it, and verify the bounded lag and repeat yield.
+
+### Collision activation distance
+
+Distant city visibility is still enabled at 335 m for HLOD/streaming, but
+physical city-ground collision now activates only within 185 m of the city
+centre. At the town centre the district can remain visible while
+`ActiveDistrictCollisionBodies == 0`, so town movement cannot interact with
+unreachable city paving.
+
+### Traffic test count
+
+The movement assertion now requires **at least two near cars present** and
+**at least two moving**; it can no longer pass vacuously with zero cars.
+
 ## Remaining visual follow-ups (not blockers)
 
 - Directional shadows in the city are still coarse at this shadow distance;
@@ -109,6 +150,6 @@ cars progressing along the inner and outer routes.
 ## Release status
 
 The existing GitHub **v1.4.0** pre-release/tag points to commit `21b226e`
-(before this remediation). Do not move a published tag. The grid fix is on the
-`v1.4.0-city-expansion` branch in PR #32 at `430c05e`; a new **v1.4.1** tag and
-pre-release should be used if this is published.
+(before this remediation). Do not move a published tag. The grid fix and review follow-up are on the
+`v1.4.0-city-expansion` branch in PR #32; a new **v1.4.1** tag and pre-release
+should be used if this is published.
