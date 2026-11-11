@@ -1,7 +1,8 @@
 # Patchwork Island — run and test guide
 
-> Status: v1.4.0 City Expansion — implemented in source, **not tagged or
-> released**. The static town is `scenes/world/Town.tscn`; the city is authored
+> Status: v1.4.0 City Expansion — **test build published** as GitHub
+> pre-release [`v1.4.0`](https://github.com/PhilipGB/patchwork-island/releases/tag/v1.4.0)
+> from commit `21b226e`. The static town is `scenes/world/Town.tscn`; the city is authored
 > in `scenes/city/` and loaded by `CityWorldAdapter`. There is no bake step and
 > no procedural `WorldBuilder` or city generator. All v1.2.1/v1.3.0 gameplay,
 > M01–M20 semantics and schema-3 saves are retained; schema 4 adds city state.
@@ -209,10 +210,12 @@ godot --headless --path . --export-release "Linux" dist/linux/PatchworkIsland.x8
 ```
 
 Both exports are single-file, self-contained builds (no Godot or .NET install
-required on the player machine). `export_presets.cfg` is committed. The v1.3.0
-Linux export was launched and played; the v1.4.0 tree was also exported and
-booted locally. The Windows x64 export was produced in earlier milestones and
-inspected, but **startup was not tested** because this environment has no
+required on the player machine). `export_presets.cfg` is committed. The v1.4.0
+test build is published as a GitHub pre-release at
+<https://github.com/PhilipGB/patchwork-island/releases/tag/v1.4.0>.
+The packaged Linux binary was launched, booted and passed all twelve runtime
+phases from the exported ZIP. The Windows x64 export is a PE32+ 1.4.0.0
+executable, but **startup was not tested** because this environment has no
 Windows runtime or Wine.
 
 ## Final verification — v1.4.0 source tree

@@ -10,7 +10,7 @@ changes the island.
 This repository contains the complete Godot 4.7.2 .NET / C# source, automated
 tests, real-input GUI evidence and release build instructions.
 
-## v1.4.0 source status — City Expansion, not released
+## v1.4.0 — City Expansion test build
 
 The city is a second authored play space at world `(320, 0, 0)`, reached by
 driving the delivery van through the east roadworks gate. The village remains
@@ -33,7 +33,9 @@ all existing saves keep their behaviour.
 - Measurements on AMD Radeon 890M: p95 ≤ 5.7 ms in all four probe stages at
   720p and 1080p with vsync disabled; a 30-minute hidden-city advance costs
   0.002–0.003 ms. See `docs/05_CITY_PERFORMANCE.md`.
-- **Not tagged or released.** Human visual sign-off, one continuous
+- **Test build published.** Download the v1.4.0 pre-release from
+  <https://github.com/PhilipGB/patchwork-island/releases/tag/v1.4.0>
+  (commit `21b226e`). Human visual sign-off, one continuous
   M01–M21/C01–C03 sitting and Windows startup remain open. See `PROGRESS.md`
   P24 and `docs/03_ACCEPTANCE.md`.
 - Screenshots: `evidence/v14_city/720/` and `evidence/v14_city/1080/`.

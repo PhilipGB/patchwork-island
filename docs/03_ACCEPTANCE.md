@@ -49,8 +49,10 @@
   feedback still verified (132 pure tests + all runtime phases).
 - [x] Existing .NET suite, runtime phases and packaged Linux boot pass locally
   (132 pure; 1253 runtime assertions across 12 source phases and 1253 in a
-  packaged v1.4.0 build). The city phase is wired into CI, but the workflow has
-  not run on this uncommitted tree. See `PROGRESS.md` for exact counts.
+  packaged v1.4.0 build). Exact-head CI at `21b226e` passed `build-test` and
+  `windows-tests` (run
+  [43075355414](https://github.com/PhilipGB/patchwork-island/actions/runs/43075355414)).
+  See `PROGRESS.md` for exact counts.
 
 ## Performance targets
 - [x] 60 fps / 16.7 ms on Radeon 890M at 720p: measured p95 ≤ 5.7 ms with vsync

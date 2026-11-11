@@ -2646,12 +2646,13 @@ procedural builder, bake tool or baked snapshot to keep in sync.
 - Human visual sign-off, one continuous M01–M20 sitting and Windows startup
   remain **NOT TESTED**.
 
-## P24 — v1.4.0 City Expansion — local verification PASS, PR #32 open
+## P24 — v1.4.0 City Expansion — test release published
 
 **Branch/worktree:** `v1.4.0-city-expansion`, based on `0dbd0c6`
-(`v1.3.0-asset-driven`). The PR is stacked on open PR #31. No tag or release was
-created. The working tree also contains the local, gitignored `dist/` 1.4.0
-builds.
+(`v1.3.0-asset-driven`). The PR is stacked on open PR #31. The verified source
+is published as the **v1.4.0 test pre-release** from `21b226e`
+(<https://github.com/PhilipGB/patchwork-island/releases/tag/v1.4.0>). The
+working tree also contains the local, gitignored `dist/` 1.4.0 builds.
 
 Source version is **1.4.0**; save schema is **4**. The village remains the
 M01–M20 game. The city is a second authored space reached only through the new
@@ -2856,11 +2857,44 @@ south verge) and re-captured.
 - Human composition/visual sign-off of the city screenshots is still open.
 - Windows export/startup is **NOT TESTED**.
 - PR [#32](https://github.com/PhilipGB/patchwork-island/pull/32) is open and
-  stacked on #31. Linux and Windows CI passed at `09b9fd6`; the M21 delivery
-  fix reruns CI on the final head.
-- A packaged Linux 1.4.0 export was built in a temp directory and passed all 12
-  phases, but it was not copied into `dist/` and no Windows 1.4.0 export was
-  produced.
+  stacked on #31. Exact-head CI at `21b226e` passed `build-test` and
+  `windows-tests` in run
+  [43075355414](https://github.com/PhilipGB/patchwork-island/actions/runs/43075355414).
+- The v1.4.0 test release uses the packaged Linux and Windows exports in
+  `dist/`: the Linux package booted and passed all twelve runtime phases, and
+  the Windows PE32+ executable reports version `1.4.0.0`. Windows startup is
+  still **NOT TESTED**.
 - The approach road still crosses the rally meadow visually at z=0. It is flush
   and below the rally surface, and the rally/autopilot tests pass, but it is a
   deliberate layout compromise rather than a separate ring road.
+
+### v1.4.0 test release — PASS
+
+Published as a GitHub pre-release from annotated tag **`v1.4.0`** at
+**`21b226e`**:
+<https://github.com/PhilipGB/patchwork-island/releases/tag/v1.4.0>.
+
+Release assets:
+
+```text
+PatchworkIsland-1.4.0-Linux-x86_64.zip
+PatchworkIsland-1.4.0-Windows-x86_64.zip
+README.txt
+SHA256SUMS
+```
+
+Hashes:
+
+```text
+19bc6ee6c7b87172c68fa03ee70980aafc56fa7d3c34f2c54c12a2757f3058dd  linux/PatchworkIsland.x86_64
+bd0632feceaa34ef8800522d6e9e8c6c2ef47f4fb3642e0cd8c4a56d246728a7  windows/PatchworkIsland.exe
+3bf67da64ef80669841dac68439d7cb2f599deadbc8cadd02ee4cf1803422dba  PatchworkIsland-1.4.0-Linux-x86_64.zip
+56542f617d831656bc5c5f7ff8269754902973aed46f325ab5fadae2df920577  PatchworkIsland-1.4.0-Windows-x86_64.zip
+```
+
+The packaged Linux binary booted headlessly (exit 0) and passed all twelve
+runtime phases (**1253 passed, 0 failed**). The extracted ZIP binary was
+byte-identical and passed its boot and `--selftest-city` (**82/0**) checks. The
+Windows export is a self-contained PE32+ x86-64 executable reporting file and
+product version `1.4.0.0`; **Windows startup is NOT TESTED**. The release is
+marked pre-release so it does not replace v1.3.0 as the latest stable release.
