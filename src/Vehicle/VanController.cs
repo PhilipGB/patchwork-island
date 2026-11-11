@@ -104,17 +104,18 @@ public partial class VanController : CharacterBody3D
 
         // The authored van has no face normals, so its large flat panels
         // self-shadow into a moire pattern. Let the body receive shadows but
-        // not cast them, and ground it with a soft blob shadow instead.
+        // not cast them, and ground it with one soft contact shadow that
+        // covers the whole footprint.
         VisualTemplate.DisableSelfShadow(template);
-        var groundShadow = Geo.Disc(this, new Vector3(0, 0.015f, 0), 1.0f,
-            new Color(0.06f, 0.10f, 0.16f), 0.15f);
+        var groundShadow = Geo.Disc(this, new Vector3(0, 0.02f, 0), 1.0f,
+            new Color(0.06f, 0.10f, 0.16f), 0.18f);
         groundShadow.Name = "GroundShadow";
-        groundShadow.Scale = new Vector3(1.05f, 1f, 1.55f);
+        groundShadow.Scale = new Vector3(1.18f, 1f, 1.78f);
         groundShadow.CastShadow = GeometryInstance3D.ShadowCastingSetting.Off;
 
-        // Postal identity sits flush on the rear cargo door.
-        AddEnvelopeMark(_visual, -1.105f, 1.3f, 0.25f, -1);
-        AddEnvelopeMark(_visual, 1.105f, 1.3f, 0.25f, 1);
+        // Postal identity sits flush on the rear cargo door and both sides.
+        AddPostalMark(_visual, -1.105f, 1.3f, 0.25f, -1);
+        AddPostalMark(_visual, 1.105f, 1.3f, 0.25f, 1);
         Geo.Label(_visual, new Vector3(0, 1.05f, 1.83f), "PATCHWORK POST", 42, Palette.Navy,
             false, 0.0055f, 6, null, "VanRearText");
 
@@ -124,22 +125,49 @@ public partial class VanController : CharacterBody3D
         _visual.AddChild(_driverFigure);
         _driverFigure.Visible = false;
 
-        // A small friendly antenna flag so the van reads from a distance.
-        Geo.Cylinder(_visual, new Vector3(0.78f, 2.12f, 0.68f), 0.03f, 0.03f, 0.6f,
+        // A small friendly antenna flag so the van reads from a distance. It
+        // must not throw a detached blob shadow beside the van.
+        var antenna = Geo.Cylinder(_visual, new Vector3(0.78f, 2.12f, 0.68f), 0.03f, 0.03f, 0.6f,
             Palette.Navy, 5);
-        Geo.Box(_visual, new Vector3(0.78f, 2.42f, 0.68f), new Vector3(0.42f, 0.26f, 0.04f),
-            Palette.Red);
+        antenna.CastShadow = GeometryInstance3D.ShadowCastingSetting.Off;
+        var antennaFlag = Geo.Box(_visual, new Vector3(0.78f, 2.42f, 0.68f),
+            new Vector3(0.42f, 0.26f, 0.04f), Palette.Red);
+        antennaFlag.CastShadow = GeometryInstance3D.ShadowCastingSetting.Off;
     }
 
-    private static void AddEnvelopeMark(Node parent, float x, float y, float z, int side)
+    private static void AddPostalMark(Node parent, float x, float y, float z, int side)
     {
-        Geo.Box(parent, new Vector3(x, y, z), new Vector3(0.04f, 0.55f, 0.9f), Palette.Cream);
-        Geo.Box(parent, new Vector3(x + side * 0.02f, y + 0.08f, z), new Vector3(0.02f, 0.02f, 0.72f), Palette.Navy);
-        Geo.Box(parent, new Vector3(x + side * 0.02f, y + 0.08f, z), new Vector3(0.02f, 0.32f, 0.02f), Palette.Navy);
-        Geo.Box(parent, new Vector3(x + side * 0.02f, y - 0.1f, z - 0.35f), new Vector3(0.02f, 0.02f, 0.35f), Palette.Navy,
-            new Vector3(0, 26, 0));
-        Geo.Box(parent, new Vector3(x + side * 0.02f, y - 0.1f, z + 0.35f), new Vector3(0.02f, 0.02f, 0.35f), Palette.Navy,
-            new Vector3(0, -26, 0));
+        // A cream side panel with a navy border, envelope flap, stamp and the
+        // word POST, so the mark reads as postal identity rather than a window.
+        var panel = Geo.Box(parent, new Vector3(x, y, z),
+            new Vector3(0.04f, 0.52f, 0.86f), Palette.Cream);
+        panel.CastShadow = GeometryInstance3D.ShadowCastingSetting.Off;
+
+        float face = x + side * 0.03f;
+        Color navy = Palette.Navy;
+        var top = Geo.Box(parent, new Vector3(face, y + 0.24f, z),
+            new Vector3(0.02f, 0.04f, 0.86f), navy);
+        var bottom = Geo.Box(parent, new Vector3(face, y - 0.24f, z),
+            new Vector3(0.02f, 0.04f, 0.86f), navy);
+        var front = Geo.Box(parent, new Vector3(face, y, z - 0.41f),
+            new Vector3(0.02f, 0.52f, 0.04f), navy);
+        var back = Geo.Box(parent, new Vector3(face, y, z + 0.41f),
+            new Vector3(0.02f, 0.52f, 0.04f), navy);
+        top.CastShadow = bottom.CastShadow = front.CastShadow = back.CastShadow =
+            GeometryInstance3D.ShadowCastingSetting.Off;
+
+        var leftFlap = Geo.Box(parent, new Vector3(face + side * 0.01f, y + 0.10f, z - 0.20f),
+            new Vector3(0.02f, 0.035f, 0.45f), navy, new Vector3(26.6f, 0, 0));
+        var rightFlap = Geo.Box(parent, new Vector3(face + side * 0.01f, y + 0.10f, z + 0.20f),
+            new Vector3(0.02f, 0.035f, 0.45f), navy, new Vector3(-26.6f, 0, 0));
+        leftFlap.CastShadow = rightFlap.CastShadow = GeometryInstance3D.ShadowCastingSetting.Off;
+
+        var stamp = Geo.Box(parent, new Vector3(face + side * 0.01f, y + 0.15f, z + 0.28f),
+            new Vector3(0.02f, 0.12f, 0.12f), Palette.Red);
+        stamp.CastShadow = GeometryInstance3D.ShadowCastingSetting.Off;
+
+        Geo.Label(parent, new Vector3(face + side * 0.025f, y - 0.16f, z), "POST", 24, navy,
+            false, 0.004f, 3, new Vector3(0, side * 90f, 0), "VanPostText");
     }
 
     public void SetDriven(bool driven)

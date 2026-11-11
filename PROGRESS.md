@@ -2296,7 +2296,7 @@ resolves to the same global `(-38, 0.1, -5.0)` station already shown in the
 V27 evidence, and the road visuals themselves were not moved. The existing
 `evidence/v13_canonical_visual/v13.1_recheck/` captures remain representative.
 
-## P20 — Round-3 visual defect pass (V36–V48) — IN PROGRESS
+## P20 — Round-3 visual defect pass (V36–V48) — PASS
 
 **Branch:** `v1.3.0-canonical-town`.
 
@@ -2405,3 +2405,98 @@ All geometry and text changes are in the authored scenes; the procedural
 - The celebration banner is free-standing at the festival entrance rather than
   mounted on the Town Hall; both faces and the P14 festival camera were
   re-rendered, but the final human composition sign-off is still **NOT TESTED**.
+
+## P21 — Round-4 visual defect pass (V49–V57) — PASS
+
+**Branch:** `v1.3.0-canonical-town`.
+
+The fourth visual review found nine remaining defects. All nine were fixed in
+the authored scenes and in the procedural `WorldBuilder` mirror, then captured
+from front/back/side and gameplay-height angles.
+
+### Geometry and composition
+
+- **V49 — swing posts.** The two swing frames now have true A-frames in both
+  planes: at each end the front leg tilts toward `+Z` and the back leg toward
+  `-Z` (rotation `±0.20944` about X), while the left/right pair still splays
+  inward about Z. The top corners now meet under the crossbar instead of
+  crossing or leaving one end vertical.
+- **V50 — van shadow.** The van keeps one soft contact shadow (`GroundShadow`,
+  radius 1.0, scaled `1.18 × 1.78`, alpha 0.18) that covers the full footprint.
+  The antenna, flag and every postal-mark piece stop casting shadows, so the
+  detached blob beside the van is gone.
+- **V51 — van side mark.** The white rectangle with three black lines is now a
+  readable postal mark: cream panel with a navy border, envelope flap, red
+  stamp and a `POST` label on both sides. It sits flush on the cargo body and
+  reads correctly from either side.
+- **V52 — Pip's car wheels.** All four cylinders on `PipCarFixed` and
+  `PipCarBroken` are rotated `(0, 0, 1.5708)` so the wheel axis runs across the
+  car; the wheels now read as vertical discs instead of horizontal pucks.
+- **V53 — player hair.** The player rig gains a hair shell on the head pivot:
+  back, left, right and fringe pieces, plus a longer bob for the girl preset.
+  It is visible from the chase camera and does not cover the face; the cap
+  still attaches above it.
+- **V54 — library shelves.** Both ledges and all four book slots moved from
+  local `+Z` to local `-Z`, the labelled street-facing side. Book slots are
+  rotated 180° so covers and page blocks face the reader. The blank back face
+  is now the side against the Town Hall.
+- **V55 — bridge to circuit.** The 37.5 m east-road chord (`x 50.5..88`) and its
+  short landing replacement are removed entirely: the grey slab no longer
+  overlays the rally circuit or stops inside the oval. The authored wooden
+  bridge deck (`x 39.55..50.45`) is the connector and lands on both the main
+  street and the circuit's west edge. Its centre-line and edge markings were
+  removed with the slab, `RoadNetwork` now has 7 rectangles and the pure test
+  expects 7 authored slabs.
+- **V56 — perimeter barrier.** The north/south sand strips and hedge walls are
+  centred at `x=20` with length `150.2`, matching the west/east walls at
+  `x=-54.5` and `x=94.5`. Both ends are now flush: no gap at one corner and no
+  overlap at the other. Wall colliders use the same dimensions.
+- **V57 — tree spacing.** `Tree_20` moved from `(68, -20)` to `(65.5, -23)` and
+  `Tree_25` from `(-33, -41)` to `(-37, -38)`. The closest remaining pair is
+  `Tree_11/Tree_22` at 4.47 m, so canopies no longer merge.
+
+### Traffic follow-up required by V55
+
+Removing the east road invalidated the delivery car's old loop across the
+river. Both free-roam routes now stay on the main street, with lanes at
+`z=+0.5` (westbound) and `z=-2.0` (eastbound). Those offsets keep every
+waypoint at least 1.8 m from the critical stations and every sampled runtime
+position at least 1.7 m away; the old `z=±1.5` lanes passed 1.0–1.2 m from the
+shop and clothes-shop doors. The 20-point `TrafficRouteMarkers.tscn` routes,
+`TrafficCatalog` and `layout_manifest_v1.2.1.json` were regenerated together.
+While validating this, `TrafficCar` was changed to freeze its steering while
+yielding: previously a stopped car kept swivelling toward its next waypoint and
+could turn away from a waiting player, falsely resuming.
+
+### Verification status
+
+- Pure tests: **119 passed, 0 failed**.
+- Source runtime after the final scene cleanup: **1171 passed, 0 failed**,
+  all 11 phases exit 0 (`284/21/101/238/10/217/48/140/18/40/54`).
+- Headless import and boot: exit 0.
+- Visual probes: ignored
+  `evidence/v13_canonical_visual/v13.3_round4/` — swing A-frames, bridge/circuit
+  top and oblique, van side/rear (postal mark and contact shadow), both Pip
+  cars, player hair front/back, library street/rear faces, all four perimeter
+  corners, and both tree groups.
+- Packaged Linux (`dist/linux/PatchworkIsland.x86_64`, exported from this
+  tree): boot **PASS**; all 11 phases **1171 passed, 0 failed**, every phase
+  exit 0; `--selftest` repeated **3/3 green** (284 each). The extracted
+  v1.3.0 ZIP binary booted and passed `--selftest` (284/284).
+- Windows binary rebuilt (PE32+ x86-64, file/product version `1.3.0.0`) but
+  startup remains **NOT TESTED**.
+- Final package hashes:
+  - `linux/PatchworkIsland.x86_64` `83320e594950e9b7cf7ffea28d888d06a868b946a30d37fd50ee4773dbf8c389`
+  - `windows/PatchworkIsland.exe` `0cd54018ac81cd09c751ac619f122381783b9183254ea6df467d47648b3f7695`
+  - `PatchworkIsland-1.3.0-Linux-x86_64.zip` `23c816e87e157c3379517d55edade22c8e8461e11b8072a278dcee2adc1a1b5d`
+  - `PatchworkIsland-1.3.0-Windows-x86_64.zip` `4c44ff4ccd478b24a680d69f9ddbc5ceed67614d4c3eea01dc751a3bdba72c2c`
+  - `sha256sum -c dist/SHA256SUMS` passes for all four files.
+
+### Remaining gaps
+
+- Human visual sign-off and one continuous M01–M20 sitting remain **NOT TESTED**.
+- Windows startup remains **NOT TESTED**.
+- V45 remains intentional: the swing frame is the pre-M07 broken state with
+  crossbar and `BROKEN` labels.
+- The library's street face sits behind the JOBS board from some approach
+  angles; this is the existing town layout, not a shelf orientation fault.

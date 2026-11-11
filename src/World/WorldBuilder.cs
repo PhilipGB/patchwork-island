@@ -129,15 +129,15 @@ public partial class WorldBuilder : Node3D
         ocean.CastShadow = GeometryInstance3D.ShadowCastingSetting.Off;
 
         // Sandy edges around the island.
-        Geo.Box(this, new Vector3(15f, 0.02f, -54.4f), new Vector3(148f, 0.06f, 1.6f), Palette.Sand);
-        Geo.Box(this, new Vector3(15f, 0.02f, 54.4f), new Vector3(148f, 0.06f, 1.6f), Palette.Sand);
+        Geo.Box(this, new Vector3(20f, 0.02f, -54.4f), new Vector3(150.2f, 0.06f, 1.6f), Palette.Sand);
+        Geo.Box(this, new Vector3(20f, 0.02f, 54.4f), new Vector3(150.2f, 0.06f, 1.6f), Palette.Sand);
         Geo.Box(this, new Vector3(-54.4f, 0.02f, 0f), new Vector3(1.6f, 0.06f, 108f), Palette.Sand);
         Geo.Box(this, new Vector3(94.4f, 0.02f, 0f), new Vector3(1.6f, 0.06f, 108f), Palette.Sand);
 
         // Visible low hedge boundary (and matching colliders).
         Color hedge = Color.FromHtml("2E8B45");
-        Geo.StaticBox(this, "BoundNorth", new Vector3(15, 0.7f, -54f), new Vector3(150, 1.4f, 1.2f), hedge);
-        Geo.StaticBox(this, "BoundSouth", new Vector3(15, 0.7f, 54f), new Vector3(150, 1.4f, 1.2f), hedge);
+        Geo.StaticBox(this, "BoundNorth", new Vector3(20f, 0.7f, -54f), new Vector3(150.2f, 1.4f, 1.2f), hedge);
+        Geo.StaticBox(this, "BoundSouth", new Vector3(20f, 0.7f, 54f), new Vector3(150.2f, 1.4f, 1.2f), hedge);
         Geo.StaticBox(this, "BoundWest", new Vector3(-54.5f, 0.7f, 0), new Vector3(1.2f, 1.4f, 108f), hedge);
         Geo.StaticBox(this, "BoundEast", new Vector3(94.5f, 0.7f, 0), new Vector3(1.2f, 1.4f, 108f), hedge);
 
@@ -184,10 +184,6 @@ public partial class WorldBuilder : Node3D
     private void BuildRoads()
     {
         AddRoadRect(new Vector3(-4f, 0, 0), 88f, 6.4f);
-        // East road starts at the bridge's east edge (x=50.5), not under the
-        // last 1.5 m of wooden deck; the old overlap painted a grey slab
-        // across the planks.
-        AddRoadRect(new Vector3(69.25f, 0, 0), 37.5f, 6.4f);
         AddRoadRect(new Vector3(-30f, 0, 9.5f), 5.2f, 19f);
         AddRoadRect(new Vector3(-38f, 0, 9.5f), 3.4f, 19f);
         AddRoadRect(new Vector3(-20f, 0, -10f), 3.8f, 20f);
@@ -202,13 +198,8 @@ public partial class WorldBuilder : Node3D
         {
             Geo.Box(this, new Vector3(x, 0.058f, 0), new Vector3(2.5f, 0.012f, 0.16f), Palette.RoadMark);
         }
-        for (float x = 51.5f; x < 87; x += 5.4f)
+        for (float x = -46; x < 39; x += 4f)
         {
-            Geo.Box(this, new Vector3(x, 0.058f, 0), new Vector3(2.5f, 0.012f, 0.16f), Palette.RoadMark);
-        }
-        for (float x = -46; x < 87; x += 4f)
-        {
-            if (x > 39 && x < 51) continue;
             Geo.Box(this, new Vector3(x, 0.06f, -3.05f), new Vector3(1.6f, 0.01f, 0.09f), Palette.RoadMark);
             Geo.Box(this, new Vector3(x, 0.06f, 3.05f), new Vector3(1.6f, 0.01f, 0.09f), Palette.RoadMark);
         }
@@ -635,9 +626,9 @@ public partial class WorldBuilder : Node3D
             AddChild(f);
             Color wood = Palette.Wood;
             // A-frame legs.
-            Geo.Box(f, new Vector3(-1.8f, 1.6f, 0), new Vector3(0.22f, 3.4f, 0.22f), wood, new Vector3(0, 0, -12));
-            Geo.Box(f, new Vector3(1.8f, 1.6f, 0), new Vector3(0.22f, 3.4f, 0.22f), wood, new Vector3(0, 0, 12));
-            Geo.Box(f, new Vector3(-1.8f, 1.6f, 1.8f), new Vector3(0.22f, 3.4f, 0.22f), wood, new Vector3(12, 0, -12));
+            Geo.Box(f, new Vector3(-1.8f, 1.6f, 0), new Vector3(0.22f, 3.4f, 0.22f), wood, new Vector3(12, 0, -12));
+            Geo.Box(f, new Vector3(1.8f, 1.6f, 0), new Vector3(0.22f, 3.4f, 0.22f), wood, new Vector3(12, 0, 12));
+            Geo.Box(f, new Vector3(-1.8f, 1.6f, 1.8f), new Vector3(0.22f, 3.4f, 0.22f), wood, new Vector3(-12, 0, -12));
             Geo.Box(f, new Vector3(1.8f, 1.6f, 1.8f), new Vector3(0.22f, 3.4f, 0.22f), wood, new Vector3(-12, 0, 12));
             Geo.Box(f, new Vector3(0, 3.26f, 0.9f), new Vector3(4.2f, 0.24f, 0.24f), Palette.WoodDark);
             // Empty frame sign.
@@ -751,7 +742,7 @@ public partial class WorldBuilder : Node3D
         Geo.StaticBox(shelf, "ShelfFrame", new Vector3(0, 1.05f, 0),
             new Vector3(4.1f, 2.1f, 0.55f), Palette.Wood);
         for (int row = 0; row < 2; row++)
-            Geo.Box(shelf, new Vector3(0, 0.72f + row * 0.7f, 0.31f),
+            Geo.Box(shelf, new Vector3(0, 0.72f + row * 0.7f, -0.31f),
                 new Vector3(3.8f, 0.1f, 0.12f), Palette.WoodDark);
         Geo.SignBoard(shelf, new Vector3(0, 2.5f, 0), 180f, "LIBRARY", Palette.Blue, 3.2f, 0.7f,
             "star", 30);
@@ -760,10 +751,10 @@ public partial class WorldBuilder : Node3D
         for (int i = 0; i < 4; i++)
         {
             var slot = new Node3D { Name = $"ShelfBook_{books[i]}", Visible = false,
-                Position = new Vector3(-1.35f + i * 0.9f, 1.0f, 0.34f) };
+                Position = new Vector3(-1.35f + i * 0.9f, 1.0f, -0.34f) };
             shelf.AddChild(slot);
             Geo.Box(slot, new Vector3(0, 0.28f, 0), new Vector3(0.3f, 0.56f, 0.12f), bookColors[i]);
-            Geo.Box(slot, new Vector3(0, 0.28f, 0.07f), new Vector3(0.22f, 0.08f, 0.02f), Palette.Cream);
+            Geo.Box(slot, new Vector3(0, 0.28f, -0.07f), new Vector3(0.22f, 0.08f, 0.02f), Palette.Cream);
             LibraryShelfSlots.Add(slot);
         }
         AddKeepClear(LibraryShelf, new Vector2(3f, 2f));

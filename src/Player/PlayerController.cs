@@ -146,7 +146,26 @@ public partial class PlayerController : CharacterBody3D
                 new Vector3(0.14f, 0.06f, 0.14f), Palette.Cream);
         }
 
+        BuildHair();
         ApplyCapColor();
+    }
+
+    private void BuildHair()
+    {
+        // The authored head is a plain block from behind. Add a short hair
+        // shell so the back and sides read as hair from the chase camera.
+        Color hair = Color.FromHtml(_wearsDress ? "6B4226" : "3E2A1C");
+        Geo.Box(_head, new Vector3(0, 0.05f, 0.295f),
+            new Vector3(0.6f, 0.62f, 0.1f), hair, null, false, "HairBack");
+        Geo.Box(_head, new Vector3(-0.29f, 0.04f, 0.03f),
+            new Vector3(0.1f, 0.56f, 0.48f), hair, null, false, "HairLeft");
+        Geo.Box(_head, new Vector3(0.29f, 0.04f, 0.03f),
+            new Vector3(0.1f, 0.56f, 0.48f), hair, null, false, "HairRight");
+        Geo.Box(_head, new Vector3(0, 0.33f, -0.01f),
+            new Vector3(0.62f, 0.12f, 0.54f), hair, null, false, "HairFringe");
+        if (_wearsDress)
+            Geo.Box(_head, new Vector3(0, -0.30f, 0.31f),
+                new Vector3(0.52f, 0.30f, 0.12f), hair, null, false, "HairBob");
     }
 
     public string VisualTemplatePath { get; private set; } = "";

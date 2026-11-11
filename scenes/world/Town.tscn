@@ -452,7 +452,7 @@ position = Vector3(70, 0, -16)
 scale = Vector3(0.9, 0.9, 0.9)
 
 [node name="Tree_20" parent="." instance=ExtResource("ext_40")]
-position = Vector3(68, 0, -20)
+position = Vector3(65.5, 0, -23)
 scale = Vector3(1.1, 1.1, 1.1)
 
 [node name="Tree_21" parent="." instance=ExtResource("ext_41")]
@@ -470,7 +470,7 @@ scale = Vector3(1.1, 1.1, 1.1)
 position = Vector3(-43, 0, -45)
 
 [node name="Tree_25" parent="." instance=ExtResource("ext_45")]
-position = Vector3(-33, 0, -41)
+position = Vector3(-37, 0, -38)
 scale = Vector3(0.9, 0.9, 0.9)
 
 [node name="Tree_26" parent="." instance=ExtResource("ext_46")]

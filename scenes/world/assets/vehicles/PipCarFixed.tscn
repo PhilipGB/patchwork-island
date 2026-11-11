@@ -84,21 +84,25 @@ material_override = SubResource("StandardMaterial_6")
 position = Vector3(-1.3, 0.43, -1.25)
 mesh = SubResource("CylinderMesh_7")
 material_override = SubResource("StandardMaterial_8")
+rotation = Vector3(0, 0, 1.5708)
 
 [node name="Wheel_-1.3_1.25" type="MeshInstance3D" parent="."]
 position = Vector3(-1.3, 0.43, 1.25)
 mesh = SubResource("CylinderMesh_9")
 material_override = SubResource("StandardMaterial_10")
+rotation = Vector3(0, 0, 1.5708)
 
 [node name="Wheel_1.3_-1.25" type="MeshInstance3D" parent="."]
 position = Vector3(1.3, 0.43, -1.25)
 mesh = SubResource("CylinderMesh_11")
 material_override = SubResource("StandardMaterial_12")
+rotation = Vector3(0, 0, 1.5708)
 
 [node name="Wheel_1.3_1.25" type="MeshInstance3D" parent="."]
 position = Vector3(1.3, 0.43, 1.25)
 mesh = SubResource("CylinderMesh_13")
 material_override = SubResource("StandardMaterial_14")
+rotation = Vector3(0, 0, 1.5708)
 
 [node name="StatusAnchor" type="Marker3D" parent="."]
 position = Vector3(0, 1.72, 0)

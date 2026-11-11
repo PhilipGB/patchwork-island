@@ -31,7 +31,6 @@ public static class RoadNetwork
     public static readonly IReadOnlyList<Rect> Roads = new List<Rect>
     {
         new(-4f, 0f, 44f, 3.2f),       // main street, x -48..40
-        new(69.25f, 0f, 18.75f, 3.2f), // east road, x 50.5..88
         new(-30f, 11.1f, 2.6f, 7.9f),  // north side road, z 3.2..19
         new(-38f, 11.1f, 1.7f, 7.9f),  // north side road, z 3.2..19
         new(-20f, -11.6f, 1.9f, 8.4f), // south side road, z -20..-3.2

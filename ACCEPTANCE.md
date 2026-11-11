@@ -771,3 +771,30 @@ the banner post gap, a bunting silhouette on the banner, and the centre
 festival lantern covering the back text. The final pass at `1e57711` is PASS
 on every V36–V48 item. Human sign-off, one continuous M01–M20 sitting and
 Windows startup remain **NOT TESTED**.
+
+## v1.3.0 — round-4 visual defects (V49–V57)
+
+| # | Visual check | Result |
+|---|---|---|
+| 1 | V49 swing posts meet correctly at both ends | **PASS** — front/back legs splay in opposite X directions and the left/right pair splays inward; all four tops meet under the crossbar. |
+| 2 | V50 van shadow sits under the vehicle | **PASS** — one soft contact shadow covers the footprint; antenna, flag and postal pieces no longer cast detached shadows. |
+| 3 | V51 van side mark reads as postal identity | **PASS** — cream panel, navy border, envelope flap, red stamp and `POST` on both sides. |
+| 4 | V52 Pip's car wheels are vertical discs | **PASS** — all eight wheel cylinders on both variants rotated `(0,0,1.5708)`. |
+| 5 | V53 hair on the back of the head | **PASS** — back, side and fringe hair plus a girl's bob, visible from the chase camera without covering the face. |
+| 6 | V54 library shelves face the reader | **PASS** — ledges and book slots moved to the labelled `-Z` front; book slots rotated 180°. |
+| 7 | V55 bridge-to-circuit road no longer overlays the circuit | **PASS** — 37.5 m east-road chord and its landing removed; the wooden bridge deck is the connector; 7 authored slabs and 7 `RoadNetwork` rectangles. |
+| 8 | V56 perimeter barrier has no corner gap or overlap | **PASS** — north/south walls and sand at `x=20`, length `150.2`, flush with the west/east walls; colliders match. |
+| 9 | V57 trees no longer overlap | **PASS** — `Tree_20` and `Tree_25` moved; closest remaining pair is 4.47 m. |
+| 10 | Delivery traffic stays clear of stations after the road removal | **PASS** — both free-roam routes moved to `z=+0.5/-2.0`; no waypoint below 1.8 m and no sampled runtime position below 1.7 m from a critical station. |
+
+**Gates:** pure **119 passed**; source runtime **1171 passed, 0 failed** across
+all 11 phases; headless import and boot exit 0; packaged Linux boot plus all 11
+phases **1171 passed, 0 failed**, 3× `--selftest` green, ZIP-extracted
+`--selftest` 284/284. Windows rebuilt, startup **NOT TESTED**.
+
+**Evidence:** ignored `evidence/v13_canonical_visual/v13.3_round4/` (17 views:
+swing A-frames, bridge/circuit, van, Pip cars, player hair, library, all four
+perimeter corners and both tree groups).
+
+**Remaining severity:** no known visual blocker. Human visual sign-off, one
+continuous M01–M20 sitting and Windows startup remain **NOT TESTED**.

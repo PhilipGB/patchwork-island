@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3]
+[gd_scene load_steps=16 format=3]
 
 [sub_resource type="BoxMesh" id="BoxMesh_1"]
 size = Vector3(88, 0.035, 6.4)
@@ -7,9 +7,6 @@ size = Vector3(88, 0.035, 6.4)
 albedo_color = Color(0.533333, 0.533333, 0.600000, 1)
 roughness = 1.0
 metallic = 0.0
-
-[sub_resource type="BoxMesh" id="BoxMesh_3"]
-size = Vector3(37.5, 0.035, 6.4)
 
 [sub_resource type="BoxMesh" id="BoxMesh_4"]
 size = Vector3(5.2, 0.035, 15.8)
@@ -58,11 +55,6 @@ size = Vector3(3.2, 0.01, 0.42)
 [node name="RoadSlab" type="MeshInstance3D" parent="."]
 position = Vector3(-4, 0.0175, 0)
 mesh = SubResource("BoxMesh_1")
-material_override = SubResource("StandardMaterial3D_2")
-
-[node name="RoadSlab_2" type="MeshInstance3D" parent="."]
-position = Vector3(69.25, 0.0175, 0)
-mesh = SubResource("BoxMesh_3")
 material_override = SubResource("StandardMaterial3D_2")
 
 [node name="RoadSlab_3" type="MeshInstance3D" parent="."]
@@ -147,41 +139,6 @@ material_override = SubResource("StandardMaterial3D_14")
 
 [node name="CentreLine_17" type="MeshInstance3D" parent="."]
 position = Vector3(34, 0.058, 0)
-mesh = SubResource("BoxMesh_13")
-material_override = SubResource("StandardMaterial3D_14")
-
-[node name="CentreLine_18" type="MeshInstance3D" parent="."]
-position = Vector3(52, 0.058, 0)
-mesh = SubResource("BoxMesh_13")
-material_override = SubResource("StandardMaterial3D_14")
-
-[node name="CentreLine_19" type="MeshInstance3D" parent="."]
-position = Vector3(57, 0.058, 0)
-mesh = SubResource("BoxMesh_13")
-material_override = SubResource("StandardMaterial3D_14")
-
-[node name="CentreLine_20" type="MeshInstance3D" parent="."]
-position = Vector3(62, 0.058, 0)
-mesh = SubResource("BoxMesh_13")
-material_override = SubResource("StandardMaterial3D_14")
-
-[node name="CentreLine_21" type="MeshInstance3D" parent="."]
-position = Vector3(67, 0.058, 0)
-mesh = SubResource("BoxMesh_13")
-material_override = SubResource("StandardMaterial3D_14")
-
-[node name="CentreLine_22" type="MeshInstance3D" parent="."]
-position = Vector3(72, 0.058, 0)
-mesh = SubResource("BoxMesh_13")
-material_override = SubResource("StandardMaterial3D_14")
-
-[node name="CentreLine_23" type="MeshInstance3D" parent="."]
-position = Vector3(77, 0.058, 0)
-mesh = SubResource("BoxMesh_13")
-material_override = SubResource("StandardMaterial3D_14")
-
-[node name="CentreLine_24" type="MeshInstance3D" parent="."]
-position = Vector3(82, 0.058, 0)
 mesh = SubResource("BoxMesh_13")
 material_override = SubResource("StandardMaterial3D_14")
 
@@ -352,96 +309,6 @@ material_override = SubResource("StandardMaterial3D_14")
 
 [node name="EdgeMark_44" type="MeshInstance3D" parent="."]
 position = Vector3(38, 0.06, 3.05)
-mesh = SubResource("BoxMesh_15")
-material_override = SubResource("StandardMaterial3D_14")
-
-[node name="EdgeMark_45" type="MeshInstance3D" parent="."]
-position = Vector3(54, 0.06, -3.05)
-mesh = SubResource("BoxMesh_15")
-material_override = SubResource("StandardMaterial3D_14")
-
-[node name="EdgeMark_46" type="MeshInstance3D" parent="."]
-position = Vector3(54, 0.06, 3.05)
-mesh = SubResource("BoxMesh_15")
-material_override = SubResource("StandardMaterial3D_14")
-
-[node name="EdgeMark_47" type="MeshInstance3D" parent="."]
-position = Vector3(58, 0.06, -3.05)
-mesh = SubResource("BoxMesh_15")
-material_override = SubResource("StandardMaterial3D_14")
-
-[node name="EdgeMark_48" type="MeshInstance3D" parent="."]
-position = Vector3(58, 0.06, 3.05)
-mesh = SubResource("BoxMesh_15")
-material_override = SubResource("StandardMaterial3D_14")
-
-[node name="EdgeMark_49" type="MeshInstance3D" parent="."]
-position = Vector3(62, 0.06, -3.05)
-mesh = SubResource("BoxMesh_15")
-material_override = SubResource("StandardMaterial3D_14")
-
-[node name="EdgeMark_50" type="MeshInstance3D" parent="."]
-position = Vector3(62, 0.06, 3.05)
-mesh = SubResource("BoxMesh_15")
-material_override = SubResource("StandardMaterial3D_14")
-
-[node name="EdgeMark_51" type="MeshInstance3D" parent="."]
-position = Vector3(66, 0.06, -3.05)
-mesh = SubResource("BoxMesh_15")
-material_override = SubResource("StandardMaterial3D_14")
-
-[node name="EdgeMark_52" type="MeshInstance3D" parent="."]
-position = Vector3(66, 0.06, 3.05)
-mesh = SubResource("BoxMesh_15")
-material_override = SubResource("StandardMaterial3D_14")
-
-[node name="EdgeMark_53" type="MeshInstance3D" parent="."]
-position = Vector3(70, 0.06, -3.05)
-mesh = SubResource("BoxMesh_15")
-material_override = SubResource("StandardMaterial3D_14")
-
-[node name="EdgeMark_54" type="MeshInstance3D" parent="."]
-position = Vector3(70, 0.06, 3.05)
-mesh = SubResource("BoxMesh_15")
-material_override = SubResource("StandardMaterial3D_14")
-
-[node name="EdgeMark_55" type="MeshInstance3D" parent="."]
-position = Vector3(74, 0.06, -3.05)
-mesh = SubResource("BoxMesh_15")
-material_override = SubResource("StandardMaterial3D_14")
-
-[node name="EdgeMark_56" type="MeshInstance3D" parent="."]
-position = Vector3(74, 0.06, 3.05)
-mesh = SubResource("BoxMesh_15")
-material_override = SubResource("StandardMaterial3D_14")
-
-[node name="EdgeMark_57" type="MeshInstance3D" parent="."]
-position = Vector3(78, 0.06, -3.05)
-mesh = SubResource("BoxMesh_15")
-material_override = SubResource("StandardMaterial3D_14")
-
-[node name="EdgeMark_58" type="MeshInstance3D" parent="."]
-position = Vector3(78, 0.06, 3.05)
-mesh = SubResource("BoxMesh_15")
-material_override = SubResource("StandardMaterial3D_14")
-
-[node name="EdgeMark_59" type="MeshInstance3D" parent="."]
-position = Vector3(82, 0.06, -3.05)
-mesh = SubResource("BoxMesh_15")
-material_override = SubResource("StandardMaterial3D_14")
-
-[node name="EdgeMark_60" type="MeshInstance3D" parent="."]
-position = Vector3(82, 0.06, 3.05)
-mesh = SubResource("BoxMesh_15")
-material_override = SubResource("StandardMaterial3D_14")
-
-[node name="EdgeMark_61" type="MeshInstance3D" parent="."]
-position = Vector3(86, 0.06, -3.05)
-mesh = SubResource("BoxMesh_15")
-material_override = SubResource("StandardMaterial3D_14")
-
-[node name="EdgeMark_62" type="MeshInstance3D" parent="."]
-position = Vector3(86, 0.06, 3.05)
 mesh = SubResource("BoxMesh_15")
 material_override = SubResource("StandardMaterial3D_14")
 

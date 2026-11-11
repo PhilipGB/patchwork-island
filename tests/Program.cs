@@ -2872,7 +2872,7 @@ internal static class Program
             string environment = Path.Combine(root, "scenes", "world", "assets", "environment");
             var slabs = ParseRoadSlabs(Path.Combine(environment, "TownRoads_Collidable.tscn"));
             var reference = ParseRoadSlabs(Path.Combine(environment, "TownRoads.tscn"));
-            Equal(8, slabs.Count, "authored road slab count");
+            Equal(7, slabs.Count, "authored road slab count");
             Equal(reference.Count, slabs.Count, "reference road slab count");
             foreach (var slab in slabs)
             {

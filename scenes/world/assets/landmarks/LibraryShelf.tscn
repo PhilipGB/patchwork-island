@@ -46,12 +46,12 @@ position = Vector3(0, 1.05, 0)
 shape = SubResource("BoxShape3D_3")
 
 [node name="Shelf" type="MeshInstance3D" parent="."]
-position = Vector3(0, 0.72, 0.31)
+position = Vector3(0, 0.72, -0.31)
 mesh = SubResource("BoxMesh_4")
 material_override = SubResource("StandardMaterial3D_5")
 
 [node name="Shelf_2" type="MeshInstance3D" parent="."]
-position = Vector3(0, 1.42, 0.31)
+position = Vector3(0, 1.42, -0.31)
 mesh = SubResource("BoxMesh_4")
 material_override = SubResource("StandardMaterial3D_5")
 
@@ -75,16 +75,20 @@ position = Vector3(0, 0, -1)
 metadata/gameplay_id = "library-shelf"
 
 [node name="ShelfBook_sun" parent="." instance=ExtResource("slot")]
-position = Vector3(-1.35, 1, 0.34)
+position = Vector3(-1.35, 1, -0.34)
+rotation = Vector3(0, 3.14159, 0)
 
 [node name="ShelfBook_moon" parent="." instance=ExtResource("slot")]
-position = Vector3(-0.45, 1, 0.34)
+position = Vector3(-0.45, 1, -0.34)
+rotation = Vector3(0, 3.14159, 0)
 
 [node name="ShelfBook_tree" parent="." instance=ExtResource("slot")]
-position = Vector3(0.45, 1, 0.34)
+position = Vector3(0.45, 1, -0.34)
+rotation = Vector3(0, 3.14159, 0)
 
 [node name="ShelfBook_star" parent="." instance=ExtResource("slot")]
-position = Vector3(1.35, 1, 0.34)
+position = Vector3(1.35, 1, -0.34)
+rotation = Vector3(0, 3.14159, 0)
 
 [node name="LabelBack" type="Label3D" parent="."]
 position = Vector3(0, 2.5, 0.13)

@@ -139,15 +139,19 @@ public partial class TrafficCar : CharacterBody3D
             distance = to.Length();
         }
 
-        Vector3 direction = distance > 0.001f ? to / distance : -GlobalTransform.Basis.Z;
-        float targetYaw = Mathf.Atan2(-direction.X, -direction.Z);
-        float angle = Mathf.Abs(Mathf.Wrap(targetYaw - _yaw, -Mathf.Pi, Mathf.Pi));
-        float turnRate = 1.25f; // radians per second
-        _yaw = Mathf.MoveToward(_yaw, _yaw + Mathf.Wrap(targetYaw - _yaw, -Mathf.Pi, Mathf.Pi),
-            turnRate * dt);
-        Rotation = new Vector3(0, _yaw, 0);
-
         bool yield = ShouldYield();
+        float angle = 0f;
+        if (!yield)
+        {
+            Vector3 direction = distance > 0.001f ? to / distance : -GlobalTransform.Basis.Z;
+            float targetYaw = Mathf.Atan2(-direction.X, -direction.Z);
+            angle = Mathf.Abs(Mathf.Wrap(targetYaw - _yaw, -Mathf.Pi, Mathf.Pi));
+            float turnRate = 1.25f; // radians per second
+            _yaw = Mathf.MoveToward(_yaw, _yaw + Mathf.Wrap(targetYaw - _yaw, -Mathf.Pi, Mathf.Pi),
+                turnRate * dt);
+            Rotation = new Vector3(0, _yaw, 0);
+        }
+
         if (yield && !Yielding)
         {
             YieldEvents++;

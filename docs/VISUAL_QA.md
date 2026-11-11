@@ -231,3 +231,27 @@ label attached, no bunting or lantern silhouette, and no z-fighting or
 wrong-facing text. The only remaining caveats are the normal roof-overhang
 shadow at the gable eaves and the expected difference between the sunlit
 banner back and the shaded front.
+
+### Round-4 gameplay visual pass (V49–V57)
+
+Each defect was re-rendered from the failing direction, the opposite side and
+normal player height. The evidence set is in
+`evidence/v13_canonical_visual/v13.3_round4/`.
+
+| ID | Defect | Correction | Evidence |
+|---|---|---|---|
+| V49 | Swing posts crossed or stood vertical at one end. | Front/back legs now tilt in opposite X directions at both ends, meeting under the crossbar; left/right splay retained. | `v49_swing_aframes.png` |
+| V50 | Van's soft shadow was offset and add-ons cast detached blobs. | Contact shadow enlarged to `1.18 × 1.78` at alpha 0.18; antenna, flag and postal pieces set to `cast_shadow = 0`. | `v50_van_rear_shadow.png`, `v50_v51_van_side.png` |
+| V51 | White rectangle with black lines read as a window. | Cream/navy envelope panel with flap, red stamp and `POST` on both sides. | `v50_v51_van_side.png` |
+| V52 | Pip's wheels lay flat like pucks. | Both car variants rotate all wheel cylinders `(0,0,1.5708)`. | `v52_pip_fixed_wheels.png`, `v52_pip_broken_wheels.png` |
+| V53 | Player head was bald from behind. | Back, side and fringe hair plus a girl's bob on the head pivot. | `v53_player_hair_back.png`, `v53_player_hair_front.png` |
+| V54 | Library shelves faced away from the reader. | Ledges and book slots moved to local `-Z`; slots rotated 180°. | `v54_library_street_face.png`, `v54_library_rear_face.png` |
+| V55 | Grey road chord overlay the circuit and ended inside the oval. | Removed the chord and its landing; the wooden deck connects the main street to the circuit; markings and `RoadNetwork` rectangle removed. | `v55_bridge_circuit_top.png`, `v55_bridge_circuit_oblique.png` |
+| V56 | Perimeter hedge had a gap at one end and an overlap at the other. | North/south walls and sand centred at `x=20`, length `150.2`, flush with the west/east walls. | `v56_perimeter_nw.png`, `v56_perimeter_ne.png`, `v56_perimeter_sw.png`, `v56_perimeter_se.png` |
+| V57 | Tree canopies merged. | `Tree_20` → `(65.5,-23)`, `Tree_25` → `(-37,-38)`; closest remaining pair 4.47 m. | `v57_trees_east.png`, `v57_trees_southwest.png` |
+
+The removed east road also required the delivery car's route to move onto the
+main street. Both free-roam routes now use `z=+0.5` westbound and `z=-2.0`
+eastbound; every waypoint is at least 1.8 m and every sampled runtime position
+at least 1.7 m from a critical station. `TrafficCar` now freezes its steering
+while yielding so a stopped car cannot swivel away from a waiting player.

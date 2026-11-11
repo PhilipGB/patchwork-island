@@ -37,13 +37,13 @@ roughness = 1.0
 metallic = 0.0
 
 [sub_resource type="BoxMesh" id="BoxMesh_11"]
-size = Vector3(148, 0.06, 1.6)
+size = Vector3(150.2, 0.06, 1.6)
 
 [sub_resource type="BoxMesh" id="BoxMesh_12"]
 size = Vector3(1.6, 0.06, 108)
 
 [sub_resource type="BoxMesh" id="BoxMesh_13"]
-size = Vector3(150, 1.4, 1.2)
+size = Vector3(150.2, 1.4, 1.2)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_14"]
 albedo_color = Color(0.109804, 0.486275, 0.215686, 1)
@@ -51,7 +51,7 @@ roughness = 1.0
 metallic = 0.0
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_15"]
-size = Vector3(150, 1.4, 1.2)
+size = Vector3(150.2, 1.4, 1.2)
 
 [sub_resource type="BoxMesh" id="BoxMesh_16"]
 size = Vector3(1.2, 1.4, 108)
@@ -115,12 +115,12 @@ mesh = SubResource("BoxMesh_9")
 material_override = SubResource("StandardMaterial3D_10")
 
 [node name="SandNorth" type="MeshInstance3D" parent="."]
-position = Vector3(15, 0.02, -54.4)
+position = Vector3(20, 0.02, -54.4)
 mesh = SubResource("BoxMesh_11")
 material_override = SubResource("StandardMaterial3D_10")
 
 [node name="SandSouth" type="MeshInstance3D" parent="."]
-position = Vector3(15, 0.02, 54.4)
+position = Vector3(20, 0.02, 54.4)
 mesh = SubResource("BoxMesh_11")
 material_override = SubResource("StandardMaterial3D_10")
 
@@ -135,7 +135,7 @@ mesh = SubResource("BoxMesh_12")
 material_override = SubResource("StandardMaterial3D_10")
 
 [node name="BoundNorth" type="MeshInstance3D" parent="."]
-position = Vector3(15, 0.7, -54)
+position = Vector3(20, 0.7, -54)
 mesh = SubResource("BoxMesh_13")
 material_override = SubResource("StandardMaterial3D_14")
 
@@ -144,11 +144,11 @@ collision_layer = 1
 collision_mask = 0
 
 [node name="BoundNorthShape" type="CollisionShape3D" parent="BoundNorthCollision"]
-position = Vector3(15, 0.7, -54)
+position = Vector3(20, 0.7, -54)
 shape = SubResource("BoxShape3D_15")
 
 [node name="BoundSouth" type="MeshInstance3D" parent="."]
-position = Vector3(15, 0.7, 54)
+position = Vector3(20, 0.7, 54)
 mesh = SubResource("BoxMesh_13")
 material_override = SubResource("StandardMaterial3D_14")
 
@@ -157,7 +157,7 @@ collision_layer = 1
 collision_mask = 0
 
 [node name="BoundSouthShape" type="CollisionShape3D" parent="BoundSouthCollision"]
-position = Vector3(15, 0.7, 54)
+position = Vector3(20, 0.7, 54)
 shape = SubResource("BoxShape3D_15")
 
 [node name="BoundWest" type="MeshInstance3D" parent="."]

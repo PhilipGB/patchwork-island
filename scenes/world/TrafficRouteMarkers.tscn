@@ -6,39 +6,39 @@
 metadata/route_id = "town_scooter"
 
 [node name="Waypoint_00" type="Marker3D" parent="town_scooter"]
-position = Vector3(-42, 0, -1.5)
+position = Vector3(-42, 0, -2)
 metadata/waypoint_index = 0
 
 [node name="Waypoint_01" type="Marker3D" parent="town_scooter"]
-position = Vector3(-32, 0, -1.5)
+position = Vector3(-32, 0, -2)
 metadata/waypoint_index = 1
 
 [node name="Waypoint_02" type="Marker3D" parent="town_scooter"]
-position = Vector3(-24, 0, -1.5)
+position = Vector3(-24, 0, -2)
 metadata/waypoint_index = 2
 
 [node name="Waypoint_03" type="Marker3D" parent="town_scooter"]
-position = Vector3(-14, 0, -1.5)
+position = Vector3(-14, 0, -2)
 metadata/waypoint_index = 3
 
 [node name="Waypoint_04" type="Marker3D" parent="town_scooter"]
-position = Vector3(-4, 0, -1.5)
+position = Vector3(-4, 0, -2)
 metadata/waypoint_index = 4
 
 [node name="Waypoint_05" type="Marker3D" parent="town_scooter"]
-position = Vector3(8, 0, -1.5)
+position = Vector3(8, 0, -2)
 metadata/waypoint_index = 5
 
 [node name="Waypoint_06" type="Marker3D" parent="town_scooter"]
-position = Vector3(18, 0, -1.5)
+position = Vector3(18, 0, -2)
 metadata/waypoint_index = 6
 
 [node name="Waypoint_07" type="Marker3D" parent="town_scooter"]
-position = Vector3(28, 0, -1.5)
+position = Vector3(28, 0, -2)
 metadata/waypoint_index = 7
 
 [node name="Waypoint_08" type="Marker3D" parent="town_scooter"]
-position = Vector3(34, 0, -1.5)
+position = Vector3(34, 0, -2)
 metadata/waypoint_index = 8
 
 [node name="Waypoint_09" type="Marker3D" parent="town_scooter"]
@@ -46,39 +46,39 @@ position = Vector3(36, 0, 0)
 metadata/waypoint_index = 9
 
 [node name="Waypoint_10" type="Marker3D" parent="town_scooter"]
-position = Vector3(34, 0, 1.5)
+position = Vector3(34, 0, 0.5)
 metadata/waypoint_index = 10
 
 [node name="Waypoint_11" type="Marker3D" parent="town_scooter"]
-position = Vector3(28, 0, 1.5)
+position = Vector3(28, 0, 0.5)
 metadata/waypoint_index = 11
 
 [node name="Waypoint_12" type="Marker3D" parent="town_scooter"]
-position = Vector3(18, 0, 1.5)
+position = Vector3(18, 0, 0.5)
 metadata/waypoint_index = 12
 
 [node name="Waypoint_13" type="Marker3D" parent="town_scooter"]
-position = Vector3(8, 0, 1.5)
+position = Vector3(8, 0, 0.5)
 metadata/waypoint_index = 13
 
 [node name="Waypoint_14" type="Marker3D" parent="town_scooter"]
-position = Vector3(-4, 0, 1.5)
+position = Vector3(-4, 0, 0.5)
 metadata/waypoint_index = 14
 
 [node name="Waypoint_15" type="Marker3D" parent="town_scooter"]
-position = Vector3(-14, 0, 1.5)
+position = Vector3(-14, 0, 0.5)
 metadata/waypoint_index = 15
 
 [node name="Waypoint_16" type="Marker3D" parent="town_scooter"]
-position = Vector3(-24, 0, 1.5)
+position = Vector3(-24, 0, 0.5)
 metadata/waypoint_index = 16
 
 [node name="Waypoint_17" type="Marker3D" parent="town_scooter"]
-position = Vector3(-32, 0, 1.5)
+position = Vector3(-32, 0, 0.5)
 metadata/waypoint_index = 17
 
 [node name="Waypoint_18" type="Marker3D" parent="town_scooter"]
-position = Vector3(-42, 0, 1.5)
+position = Vector3(-42, 0, 0.5)
 metadata/waypoint_index = 18
 
 [node name="Waypoint_19" type="Marker3D" parent="town_scooter"]
@@ -89,49 +89,81 @@ metadata/waypoint_index = 19
 metadata/route_id = "delivery_car"
 
 [node name="Waypoint_00" type="Marker3D" parent="delivery_car"]
-position = Vector3(66, 0, -1.5)
+position = Vector3(34, 0, 0.5)
 metadata/waypoint_index = 0
 
 [node name="Waypoint_01" type="Marker3D" parent="delivery_car"]
-position = Vector3(70, 0, -1.5)
+position = Vector3(28, 0, 0.5)
 metadata/waypoint_index = 1
 
 [node name="Waypoint_02" type="Marker3D" parent="delivery_car"]
-position = Vector3(74, 0, -1.5)
+position = Vector3(18, 0, 0.5)
 metadata/waypoint_index = 2
 
 [node name="Waypoint_03" type="Marker3D" parent="delivery_car"]
-position = Vector3(78, 0, -1.5)
+position = Vector3(8, 0, 0.5)
 metadata/waypoint_index = 3
 
 [node name="Waypoint_04" type="Marker3D" parent="delivery_car"]
-position = Vector3(80, 0, -1.5)
+position = Vector3(-4, 0, 0.5)
 metadata/waypoint_index = 4
 
 [node name="Waypoint_05" type="Marker3D" parent="delivery_car"]
-position = Vector3(80, 0, 0)
+position = Vector3(-14, 0, 0.5)
 metadata/waypoint_index = 5
 
 [node name="Waypoint_06" type="Marker3D" parent="delivery_car"]
-position = Vector3(80, 0, 1.5)
+position = Vector3(-24, 0, 0.5)
 metadata/waypoint_index = 6
 
 [node name="Waypoint_07" type="Marker3D" parent="delivery_car"]
-position = Vector3(78, 0, 1.5)
+position = Vector3(-32, 0, 0.5)
 metadata/waypoint_index = 7
 
 [node name="Waypoint_08" type="Marker3D" parent="delivery_car"]
-position = Vector3(74, 0, 1.5)
+position = Vector3(-42, 0, 0.5)
 metadata/waypoint_index = 8
 
 [node name="Waypoint_09" type="Marker3D" parent="delivery_car"]
-position = Vector3(70, 0, 1.5)
+position = Vector3(-44, 0, 0)
 metadata/waypoint_index = 9
 
 [node name="Waypoint_10" type="Marker3D" parent="delivery_car"]
-position = Vector3(66, 0, 1.5)
+position = Vector3(-42, 0, -2)
 metadata/waypoint_index = 10
 
 [node name="Waypoint_11" type="Marker3D" parent="delivery_car"]
-position = Vector3(65, 0, 0)
+position = Vector3(-32, 0, -2)
 metadata/waypoint_index = 11
+
+[node name="Waypoint_12" type="Marker3D" parent="delivery_car"]
+position = Vector3(-24, 0, -2)
+metadata/waypoint_index = 12
+
+[node name="Waypoint_13" type="Marker3D" parent="delivery_car"]
+position = Vector3(-14, 0, -2)
+metadata/waypoint_index = 13
+
+[node name="Waypoint_14" type="Marker3D" parent="delivery_car"]
+position = Vector3(-4, 0, -2)
+metadata/waypoint_index = 14
+
+[node name="Waypoint_15" type="Marker3D" parent="delivery_car"]
+position = Vector3(8, 0, -2)
+metadata/waypoint_index = 15
+
+[node name="Waypoint_16" type="Marker3D" parent="delivery_car"]
+position = Vector3(18, 0, -2)
+metadata/waypoint_index = 16
+
+[node name="Waypoint_17" type="Marker3D" parent="delivery_car"]
+position = Vector3(28, 0, -2)
+metadata/waypoint_index = 17
+
+[node name="Waypoint_18" type="Marker3D" parent="delivery_car"]
+position = Vector3(34, 0, -2)
+metadata/waypoint_index = 18
+
+[node name="Waypoint_19" type="Marker3D" parent="delivery_car"]
+position = Vector3(36, 0, 0)
+metadata/waypoint_index = 19

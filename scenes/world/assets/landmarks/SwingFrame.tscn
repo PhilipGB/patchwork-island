@@ -23,25 +23,25 @@ metallic = 0.0
 position = Vector3(-1.8, 1.6, 0)
 mesh = SubResource("BoxMesh_1")
 material_override = SubResource("StandardMaterial3D_2")
-rotation = Vector3(0, 0, -0.20944)
+rotation = Vector3(0.20944, 0, -0.20944)
 
 [node name="SwingLeg_2" type="MeshInstance3D" parent="."]
 position = Vector3(-1.8, 1.6, 1.8)
 mesh = SubResource("BoxMesh_1")
 material_override = SubResource("StandardMaterial3D_2")
-rotation = Vector3(0.20944, 0, -0.20944)
+rotation = Vector3(-0.20944, 0, -0.20944)
 
 [node name="SwingLeg_3" type="MeshInstance3D" parent="."]
 position = Vector3(1.8, 1.6, 0)
 mesh = SubResource("BoxMesh_1")
 material_override = SubResource("StandardMaterial3D_2")
-rotation = Vector3(0, 0, 0.20944)
+rotation = Vector3(0.20944, 0, 0.20944)
 
 [node name="SwingLeg_4" type="MeshInstance3D" parent="."]
 position = Vector3(1.8, 1.6, 1.8)
 mesh = SubResource("BoxMesh_1")
 material_override = SubResource("StandardMaterial3D_2")
-rotation = Vector3(0.20944, 0, 0.20944)
+rotation = Vector3(-0.20944, 0, 0.20944)
 
 [node name="SwingCrossbar" type="MeshInstance3D" parent="."]
 position = Vector3(0, 3.26, 0.9)
