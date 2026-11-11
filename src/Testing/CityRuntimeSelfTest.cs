@@ -34,6 +34,7 @@ public partial class CityRuntimeSelfTest : Node
             await Wait(0.7f);
             SceneContractChecks();
             await TownLogicalChecks();
+            RoadworksDeliveryChecks();
             GateAndMissionsChecks();
             await CityActivationChecks();
             await HighSpeedAndReturnChecks();
@@ -84,6 +85,39 @@ public partial class CityRuntimeSelfTest : Node
             "city logical time advances while the city scene is hidden");
         Expect(!city.DistrictVisible && city.ActiveVisualActors == 0,
             "hidden city remains free of actor Nodes after logical advance");
+    }
+
+    private void RoadworksDeliveryChecks()
+    {
+        var data = Main.RtData;
+        data.ActiveMission = RoadworksRules.MissionId;
+        data.SetMissionCounter(RoadworksRules.MissionId, RoadworksRules.SuppliesDeliveredKey, 0);
+        data.SetMissionCounter(RoadworksRules.MissionId, RoadworksRules.TaskDoneKey, 0);
+        data.AddItem("safety_cone", RoadworksRules.ConeCount);
+        data.AddItem("barrier_panel", RoadworksRules.PanelCount);
+        data.AddItem("toolbox", RoadworksRules.ToolboxCount);
+        Expect(RoadworksRules.HasAllSupplies(data),
+            "roadworks delivery test starts with all six supplies carried");
+        Main.RtRefreshMissionState();
+        Expect(Main.RtDestinationLabel == "ROADWORKS DELIVERY",
+            "all six carried supplies move the objective off the workshop");
+        Expect(Main.RtDestination.DistanceTo(Main.RtRoadworks.InteractionPosition) < 0.1f,
+            "the delivery objective points at the closed city gate");
+
+        Main.RtInteractRoadworks();
+        Expect(RoadworksRules.SuppliesDelivered(data),
+            "the real worksite interaction delivers all six supplies");
+        Expect(data.GetItem("safety_cone") == 0 &&
+               data.GetItem("barrier_panel") == 0 &&
+               data.GetItem("toolbox") == 0,
+            "worksite delivery consumes the carried supplies exactly once");
+        Expect(Main.RtModalTitle == "Roadworks loading check",
+            "worksite delivery opens the crew loading check");
+        Main.RtCloseModal();
+
+        data.ActiveMission = "";
+        data.SetMissionCounter(RoadworksRules.MissionId, RoadworksRules.SuppliesDeliveredKey, 0);
+        data.SetMissionCounter(RoadworksRules.MissionId, RoadworksRules.TaskDoneKey, 0);
     }
 
     private void GateAndMissionsChecks()

@@ -1115,7 +1115,7 @@ public partial class Main : Node3D
     private void CreateCityStations()
     {
         _roadworksStation = Interactable.Create(this, _roadworks.InteractionPosition,
-            "E: Roadworks notice", InteractRoadworks, null, true, 4.2f, "RoadworksStation");
+            "E: Roadworks notice", InteractRoadworks, null, true, 5.0f, "RoadworksStation");
         _roadworksStation.SetPrompt(RoadworksPrompt);
 
         _cityJobStation = Interactable.Create(this, _city.BoardInteraction,
@@ -1171,9 +1171,13 @@ public partial class Main : Node3D
         if (_data.IsCompleted(RoadworksRules.MissionId))
             return "E: Roadworks — CITY ROAD OPEN";
         if (_data.ActiveMission == RoadworksRules.MissionId)
-            return RoadworksRules.SuppliesDelivered(_data)
-                ? "E: Help the crew finish the roadworks"
-                : "E: Deliver roadworks supplies";
+        {
+            if (RoadworksRules.SuppliesDelivered(_data))
+                return "E: Help the crew finish the roadworks";
+            return RoadworksRules.HasAllSupplies(_data)
+                ? "E: Deliver roadworks supplies"
+                : "E: Roadworks supplies needed";
+        }
         return _missions.GetStatus(RoadworksRules.MissionId) == MissionStatus.Available
             ? "E: Read the roadworks notice"
             : "CITY ROAD CLOSED — finish all 20 village jobs";
@@ -1208,10 +1212,26 @@ public partial class Main : Node3D
         }
         if (!RoadworksRules.SuppliesDelivered(_data))
         {
-            _hud.ShowHint(
-                $"The crew needs 3 cones, 2 barrier panels and 1 toolbox. " +
-                $"Delivered {RoadworksRules.SupplyProgress(_data)} of {RoadworksRules.SupplyTotal}. " +
-                "The marked pickups are beside the WORKSHOP.");
+            if (!RoadworksRules.HasAllSupplies(_data))
+            {
+                _hud.ShowHint(
+                    $"The crew needs 3 cones, 2 barrier panels and 1 toolbox. " +
+                    $"Delivered {RoadworksRules.SupplyProgress(_data)} of {RoadworksRules.SupplyTotal}. " +
+                    "The marked pickups are beside the WORKSHOP.");
+                return;
+            }
+
+            var delivered = _missions.DeliverRoadworksSupplies();
+            if (!delivered.Success)
+            {
+                _hud.ShowHint(delivered.Message);
+                return;
+            }
+            RefreshMissionState();
+            SaveGame(SaveReason.Autosave);
+            _hud.ShowBigToast(delivered.Message, 4f, Palette.Orange);
+            _audio?.PlaySfx("coin_collect", -7f);
+            ShowRoadworksTask();
             return;
         }
         ShowRoadworksTask();
@@ -3371,6 +3391,10 @@ public partial class Main : Node3D
                 {
                     SetObjective(_roadworks.InteractionPosition, "ROADWORKS CREW", "road_signs", Palette.Orange);
                 }
+                else if (RoadworksRules.HasAllSupplies(_data))
+                {
+                    SetObjective(_roadworks.InteractionPosition, "ROADWORKS DELIVERY", "road_signs", Palette.Yellow);
+                }
                 else
                 {
                     SetObjective(_world.WorkshopDoor + new Vector3(0, 0, 8f),
@@ -3563,7 +3587,9 @@ public partial class Main : Node3D
                                _data.GetItem("toolbox") + " toolbox"));
             rows.Add(("star", RoadworksRules.SuppliesDelivered(_data)
                 ? "Now finish the 3 + 2 + 1 loading check"
-                : "Deliver all six items to the closed gate"));
+                : RoadworksRules.HasAllSupplies(_data)
+                    ? "Now drive to the closed CITY ROAD gate"
+                    : "Deliver all six items to the closed gate"));
         }
         else
         {
@@ -4381,6 +4407,12 @@ public partial class Main : Node3D
     internal Vector3 RtCityDistrictCentre => _city.DistrictCentre;
 
     internal void RtSuppressSaves() => _suppressScenarioSaves = true;
+
+    internal Vector3 RtDestination => _destination;
+
+    internal string RtDestinationLabel => _destLabel;
+
+    internal void RtInteractRoadworks() => InteractRoadworks();
 
     internal void RtSetRoadState(bool open)
     {

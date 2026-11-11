@@ -2646,10 +2646,12 @@ procedural builder, bake tool or baked snapshot to keep in sync.
 - Human visual sign-off, one continuous M01–M20 sitting and Windows startup
   remain **NOT TESTED**.
 
-## P24 — v1.4.0 City Expansion — local verification PASS, uncommitted
+## P24 — v1.4.0 City Expansion — local verification PASS, PR #32 open
 
-**Branch/worktree:** no new branch created. Work is uncommitted on
-`v1.3.0-asset-driven`, based on `0dbd0c6`. No tag, release or PR was created.
+**Branch/worktree:** `v1.4.0-city-expansion`, based on `0dbd0c6`
+(`v1.3.0-asset-driven`). The PR is stacked on open PR #31. No tag or release was
+created. The working tree also contains the local, gitignored `dist/` 1.4.0
+builds.
 
 Source version is **1.4.0**; save schema is **4**. The village remains the
 M01–M20 game. The city is a second authored space reached only through the new
@@ -2706,6 +2708,32 @@ After the fix, M05 **19.03 s**, M09 **18.98 s**, M19 **22.32 s**, all four/six
 gates in order with the optional bonus. No village mission or rally rule
 changed.
 
+### Post-PR playtest fix — M21 delivery interaction
+
+A playtest with **6 / 6** supplies showed the HUD still pointing back to the
+workshop, and pressing E there could not deliver because the items were already
+collected.
+
+Root cause: `Main.InteractRoadworks()` checked `SuppliesDelivered` but never
+called `MissionService.DeliverRoadworksSupplies()`. The objective router also
+used only the already-delivered flag, so it kept selecting the workshop until a
+delivery that could never happen.
+
+Fix:
+
+- the real gate interaction now calls `DeliverRoadworksSupplies()` when all six
+  are carried, consumes them once, saves, shows the delivery toast and opens the
+  crew loading check;
+- the objective switches to `ROADWORKS DELIVERY` at the closed gate as soon as
+  `HasAllSupplies` is true, before delivery (and `ROADWORKS CREW` afterwards);
+- the progress row says “Now drive to the closed CITY ROAD gate” at 6/6;
+- the roadworks station radius is 5.0 m so the prompt is reachable from the
+  bridge approach.
+
+Regression coverage in `--selftest-city` now uses the **real interaction**:
+all six carried → objective points at the gate → E delivers and consumes the
+items → the loading-check modal opens. City runtime count rose from 76 to 82.
+
 ### Verification — source
 
 ```text
@@ -2724,10 +2752,10 @@ godot --headless --path . --quit-after 120               -> exit 0
 --selftest-traversal       18 passed, 0 failed
 --selftest-release         40 passed, 0 failed
 --selftest-restore         54 passed, 0 failed
---selftest-city            76 passed, 0 failed
+--selftest-city            82 passed, 0 failed
 ```
 
-Source runtime total: **1247 passed, 0 failed**, all twelve phases exit 0.
+Source runtime total: **1253 passed, 0 failed**, all twelve phases exit 0.
 Every process exits 0; the known Mono shutdown resource warnings are unchanged.
 
 ### Packaged Linux 1.4.0
@@ -2758,10 +2786,10 @@ boot 0
 --selftest-traversal     18 passed, 0 failed
 --selftest-release       40 passed, 0 failed
 --selftest-restore       54 passed, 0 failed
---selftest-city          76 passed, 0 failed
+--selftest-city          82 passed, 0 failed
 ```
 
-Packaged total: **1247 passed, 0 failed**, all phases exit 0. This proves the
+Packaged total: **1253 passed, 0 failed**, all phases exit 0. This proves the
 city scene/assets and `data/city_missions.json` survive the export filter.
 The executable was not added to `dist/`; no Windows export was produced for
 this checkpoint.
@@ -2827,9 +2855,9 @@ south verge) and re-captured.
   coverage is green.
 - Human composition/visual sign-off of the city screenshots is still open.
 - Windows export/startup is **NOT TESTED**.
-- GitHub CI has not run on this uncommitted tree, and no PR exists. The city
-  phase is wired into `.github/workflows/build-and-test.yml`, but that workflow
-  itself was not executed here.
+- PR [#32](https://github.com/PhilipGB/patchwork-island/pull/32) is open and
+  stacked on #31. Linux and Windows CI passed at `09b9fd6`; the M21 delivery
+  fix reruns CI on the final head.
 - A packaged Linux 1.4.0 export was built in a temp directory and passed all 12
   phases, but it was not copied into `dist/` and no Windows 1.4.0 export was
   produced.
