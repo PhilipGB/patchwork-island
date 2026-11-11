@@ -3528,8 +3528,8 @@ internal static class Program
                 Check(text.Contains("DoorMarker"),
                     Path.GetFileName(file) + " has an authored DoorMarker");
                 var match = Regex.Match(text,
-                    "\\[node name=\"MainVolume\" type=\"MeshInstance3D\" parent=\"\\.\"\\]\\n" +
-                    "position = Vector3\\(([^)]+)\\)\\nmesh = SubResource\\(\"([^\"]+)\"\\)");
+                    "\\[node name=\"MainVolume\" type=\"MeshInstance3D\" parent=\"\\.\"\\]\\r?\\n" +
+                    "position = Vector3\\(([^)]+)\\)\\r?\\nmesh = SubResource\\(\"([^\"]+)\"\\)");
                 var size = ParseBoxSizes(text, "BoxMesh")[match.Groups[2].Value];
                 buildingMeshes[Path.GetFileNameWithoutExtension(file)] =
                     (0f, 0f, size.X / 2f, size.Z / 2f);
@@ -3543,7 +3543,7 @@ internal static class Program
             }
             var cityPositions = ParseCityBuildingPositions(district);
             foreach (Match marker in Regex.Matches(jobs,
-                         "\\[node name=\"Marker_[^\"]+\" type=\"Marker3D\" parent=\"\\.\"\\]\\n" +
+                         "\\[node name=\"Marker_[^\"]+\" type=\"Marker3D\" parent=\"\\.\"\\]\\r?\\n" +
                          "position = Vector3\\(([^)]+)\\)"))
             {
                 var parts = marker.Groups[1].Value.Split(',');
@@ -4135,7 +4135,7 @@ internal static class Program
     {
         var result = new List<(string, float, float)>();
         string pattern = "\\[node name=\"Building_[0-9]+_(?<arch>[^\"]+)\" parent=\"\\.\" instance=" +
-                         "[^\\]]*\\]\\n(?<body>.*?)(?=\\n\\[|\\z)";
+                         "[^\\]]*\\]\\r?\\n(?<body>.*?)(?=\\r?\\n\\[|\\z)";
         foreach (Match match in Regex.Matches(text, pattern, RegexOptions.Singleline))
         {
             var position = Regex.Match(match.Groups["body"].Value,
