@@ -62,7 +62,7 @@ public partial class CityRuntimeSelfTest : Node
         Expect(city.Simulation.VehicleRoutes.Count == 4, "four authored vehicle lanes");
         Expect(city.Simulation.PedestrianRoutes.Count == 11, "eleven authored pedestrian routes");
         Expect(city.BoardInteraction.DistanceTo(
-            new Vector3(CityLayout.WorldX(0f), 0.4f, CityLayout.WorldZ(20f))) < 0.1f,
+            new Vector3(CityLayout.WorldX(0f), 0.29f, CityLayout.WorldZ(20f))) < 0.1f,
             "CITY JOBS interaction follows its authored marker off the road");
         Expect(road != null && road.BarrierVisible, "closed road starts with the authored barrier visible");
         Expect(road != null && road.ColliderEnabled, "closed road starts with physical collision");
@@ -187,6 +187,14 @@ public partial class CityRuntimeSelfTest : Node
         Expect(names.Count == names.Distinct().Count(), "pool contains no duplicate logical actors");
         Expect(city.DetailedVisible > 0, "near cells render detailed building meshes");
         Expect(city.HlodVisible > 0, "distant city cells render authored HLOD proxies");
+
+        Main.RtTeleportPlayer(new Vector3(CityLayout.WorldX(0f), 0.5f, CityLayout.WorldZ(34f)), 0f);
+        await Wait(0.5f);
+        Input.ActionPress("move_forward");
+        await Wait(2.0f);
+        Input.ActionRelease("move_forward");
+        Expect(Main.RtPlayerPosition.Z < CityLayout.WorldZ(29f),
+            "player walks from the road onto the central plaza");
     }
 
     private async Task HighSpeedAndReturnChecks()
@@ -206,6 +214,13 @@ public partial class CityRuntimeSelfTest : Node
         Expect(Main.RtVanPosition.X > 97.0f,
             "open gate lets the van drive onto the approach at full speed");
 
+        // The city entrance must be drivable through the west sidewalk gap.
+        Main.RtTeleportVan(new Vector3(178f, 0.4f, 0f), -Mathf.Pi / 2f);
+        Main.RtLaunchVan(11.5f);
+        await Wait(3.0f);
+        Expect(Main.RtVanPosition.X > 188.0f,
+            "the van crosses the west sidewalk gap into the city road");
+
         Vector3 approach = new(118f, 0.4f, 0f);
         Main.RtProbeCityLod(approach, 11.5f);
         Expect(city.DistrictVisible && city.ApproachVisible,
@@ -215,6 +230,26 @@ public partial class CityRuntimeSelfTest : Node
         Main.RtProbeCityLod(new Vector3(CityLayout.WorldX(0f), 0.4f, CityLayout.WorldZ(0f)), 11.5f);
         Expect(city.DetailedVisible > 0 && city.HlodVisible >= 0,
             "high-speed centre keeps detailed geometry near the player");
+
+        var cars = Main.RtCity.ActorPool.GetChildren().OfType<CityVehicleVisual>()
+            .Where(v => v.Tier == CityActorTier.Near).ToList();
+        var carStarts = cars.ToDictionary(v => v.AgentId, v => v.GlobalPosition);
+        foreach (var car in cars)
+        {
+            float lx = car.GlobalPosition.X - CityLayout.OriginX;
+            float lz = car.GlobalPosition.Z - CityLayout.OriginZ;
+            bool onRoad = CityLayout.RoadAxes.Any(axis =>
+                MathF.Abs(lx - axis) <= 13f || MathF.Abs(lz - axis) <= 13f);
+            Expect(onRoad, $"city car {car.AgentId} stays on the road grid");
+        }
+        await Wait(2.5f);
+        var carEnds = Main.RtCity.ActorPool.GetChildren().OfType<CityVehicleVisual>()
+            .ToDictionary(v => v.AgentId, v => v.GlobalPosition);
+        int moved = carStarts.Count(pair =>
+            carEnds.TryGetValue(pair.Key, out Vector3 end) &&
+            end.DistanceTo(pair.Value) > 2f);
+        Expect(moved >= Math.Min(2, cars.Count),
+            "near city cars keep moving through intersections");
 
         Main.RtTeleportPlayer(new Vector3(-38f, 0.4f, 9.5f), 0f);
         await Wait(0.9f);

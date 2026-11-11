@@ -283,6 +283,16 @@ public partial class Main : Node3D
             _ = CaptureCity();
             return;
         }
+        if (HasUserArg("--capture-city-defects"))
+        {
+            _started = true;
+            _hud.CloseModal();
+            _hud.Visible = false;
+            _player.SetControlEnabled(false);
+            SyncControlMode();
+            _ = CaptureCityDefects();
+            return;
+        }
         if (HasUserArg("--capture-title"))
         {
             _hud.ShowTitleScreen(false, false, null, StartAdventure, null, QuitGame);
@@ -5295,6 +5305,100 @@ public partial class Main : Node3D
         catch (Exception ex)
         {
             GD.PrintErr($"City performance probe failed: {ex}");
+        }
+        GetTree().Quit();
+    }
+
+    private async Task CaptureCityDefects()
+    {
+        try
+        {
+            CompleteVillageForScenario();
+            _data.CityRoadOpen = true;
+            _data.CityRoadworksCompleted = true;
+            _data.CityRoadworksRewardClaimed = true;
+            _roadworks.SetRoadState(true, false);
+            _hud.Visible = false;
+            _player.Teleport(new Vector3(170f, 0.5f, 0f), -Mathf.Pi / 2f);
+            _rig.SetView(-90f, 20f, 9f);
+            _rig.Snap();
+            await Wait(1.2f);
+
+            // Approach and city entrance: the west sidewalk strip crosses z=0.
+            await SnapFreeCamera(new Vector3(170f, 4.2f, 9f), new Vector3(202f, 0.5f, 0f),
+                "p24_01_city_entry_side.png");
+            await SnapFreeCamera(new Vector3(185f, 18f, 7f), new Vector3(198f, 0f, 0f),
+                "p24_02_city_entry_overhead.png");
+
+            // Real van physics: launch east at full speed from the town side.
+            RtTeleportVan(new Vector3(170f, 0.4f, 0f), -Mathf.Pi / 2f);
+            RtLaunchVan(11.5f);
+            for (int i = 0; i < 8; i++)
+            {
+                await Wait(0.5f);
+                GD.Print($"CITY_DEFECT van_t{i} x={_van.GlobalPosition.X:0.00} " +
+                         $"y={_van.GlobalPosition.Y:0.00} speed={_van.Speed:0.00}");
+            }
+            GD.Print($"CITY_DEFECT ground_185={RtWorldRayHit(new Vector3(185f, 2f, 0f), new Vector3(185f, -1f, 0f), 1u)} " +
+                     $"ground_190={RtWorldRayHit(new Vector3(190f, 2f, 0f), new Vector3(190f, -1f, 0f), 1u)} " +
+                     $"ground_200={RtWorldRayHit(new Vector3(200f, 2f, 0f), new Vector3(200f, -1f, 0f), 1u)}");
+            GD.Print($"CITY_DEFECT forward_190={RtWorldRayHit(new Vector3(190f, 1f, 0f), new Vector3(205f, 1f, 0f), 1u)} " +
+                     $"forward_191={RtWorldRayHit(new Vector3(191f, 1f, 0f), new Vector3(205f, 1f, 0f), 1u)}");
+            await SnapFreeCamera(_van.GlobalPosition + new Vector3(-7f, 5f, 9f),
+                _van.GlobalPosition + new Vector3(6f, 0.8f, 0f),
+                "p24_03_van_stopped_at_entry.png");
+
+            // Overhead intersection: continuous sidewalk bands cross both roads.
+            await SnapFreeCamera(new Vector3(CityLayout.WorldX(-40f), 26f, CityLayout.WorldZ(-16f)),
+                new Vector3(CityLayout.WorldX(-40f), 0f, CityLayout.WorldZ(-40f)),
+                "p24_04_intersection_overhead.png");
+
+            // Activate the city actors near the inner route and record car poses.
+            RtTeleportPlayer(new Vector3(CityLayout.WorldX(-40f), 0.5f, CityLayout.WorldZ(-20f)), 0f);
+            await Wait(2.2f);
+            var before = _city.ActorPool.GetChildren().OfType<CityVehicleVisual>()
+                .Select(v => (Id: v.AgentId, Tier: v.Tier, Position: v.GlobalPosition,
+                    Progress: v.Progress, Speed: v.Speed))
+                .ToList();
+            foreach (var v in before)
+                GD.Print($"CITY_DEFECT car_before id={v.Id} tier={v.Tier} " +
+                         $"pos=({v.Position.X:0.0},{v.Position.Y:0.0},{v.Position.Z:0.0}) " +
+                         $"progress={v.Progress:0.00} speed={v.Speed:0.00}");
+
+            await SnapFreeCamera(new Vector3(CityLayout.WorldX(-52f), 8f, CityLayout.WorldZ(-44f)),
+                new Vector3(CityLayout.WorldX(24f), 0.5f, CityLayout.WorldZ(-44f)),
+                "p24_05_sidewalk_crossing_cars.png");
+            await Wait(4.0f);
+
+            var after = _city.ActorPool.GetChildren().OfType<CityVehicleVisual>()
+                .Select(v => (Id: v.AgentId, Tier: v.Tier, Position: v.GlobalPosition,
+                    Progress: v.Progress, Speed: v.Speed))
+                .ToList();
+            foreach (var v in after)
+                GD.Print($"CITY_DEFECT car_after id={v.Id} tier={v.Tier} " +
+                         $"pos=({v.Position.X:0.0},{v.Position.Y:0.0},{v.Position.Z:0.0}) " +
+                         $"progress={v.Progress:0.00} speed={v.Speed:0.00}");
+
+            var target = after
+                .Where(v => v.Tier == CityActorTier.Near)
+                .OrderBy(v => v.Position.DistanceTo(
+                    new Vector3(CityLayout.WorldX(-26f), 0.5f, CityLayout.WorldZ(-44f))))
+                .FirstOrDefault();
+            if (target.Position != Vector3.Zero)
+            {
+                await SnapFreeCamera(target.Position + new Vector3(5.5f, 4.2f, 7f),
+                    target.Position + new Vector3(0f, 0.7f, 0f),
+                    "p24_06_stuck_city_car_close.png");
+            }
+
+            // Wide grid view: sidewalk bands and plaza slabs visibly cross roads.
+            await SnapFreeCamera(new Vector3(CityLayout.WorldX(0f), 135f, CityLayout.WorldZ(210f)),
+                new Vector3(CityLayout.WorldX(0f), 0f, CityLayout.WorldZ(0f)),
+                "p24_07_city_grid_overview.png");
+        }
+        catch (Exception ex)
+        {
+            GD.PrintErr($"City defect capture failed: {ex}");
         }
         GetTree().Quit();
     }

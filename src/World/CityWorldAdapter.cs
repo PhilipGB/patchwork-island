@@ -293,6 +293,7 @@ public partial class CityWorldAdapter : Node3D
             hlod.Name = "HLOD_" + name;
             hlod.Position = building.Position;
             hlod.Rotation = building.Rotation;
+            hlod.Scale = building.Scale;
             hlod.Visible = false;
             DistrictRoot.AddChild(hlod);
             HlodCount++;

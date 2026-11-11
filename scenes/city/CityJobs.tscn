@@ -84,7 +84,7 @@ material = SubResource("mat_orange")
 [node name="CityJobs" type="Node3D"]
 
 [node name="C01DepotParcels" type="Node3D" parent="."]
-position = Vector3(-78, 0.2, -58)
+position = Vector3(-78, 0.29, -58)
 
 [node name="Parcel0" type="MeshInstance3D" parent="C01DepotParcels"]
 position = Vector3(-0.7, 0.4, 0)
@@ -118,7 +118,7 @@ outline_size = 8
 modulate = Color(0.15294, 0.21176, 0.29412, 1)
 
 [node name="C01Stop1" type="Node3D" parent="."]
-position = Vector3(-80, 0.2, -80)
+position = Vector3(-80, 0.29, -80)
 
 [node name="Post" type="MeshInstance3D" parent="C01Stop1"]
 position = Vector3(0, 1.25, 0)
@@ -137,7 +137,7 @@ outline_size = 8
 modulate = Color(0.15294, 0.21176, 0.29412, 1)
 
 [node name="C01Stop2" type="Node3D" parent="."]
-position = Vector3(0, 0.2, -80)
+position = Vector3(0, 0.29, -80)
 
 [node name="Post" type="MeshInstance3D" parent="C01Stop2"]
 position = Vector3(0, 1.25, 0)
@@ -156,7 +156,7 @@ outline_size = 8
 modulate = Color(0.15294, 0.21176, 0.29412, 1)
 
 [node name="C01Stop3" type="Node3D" parent="."]
-position = Vector3(80, 0.2, -80)
+position = Vector3(80, 0.29, -80)
 
 [node name="Post" type="MeshInstance3D" parent="C01Stop3"]
 position = Vector3(0, 1.25, 0)
@@ -207,7 +207,7 @@ mesh = SubResource("box_crate")
 metadata/city_prop_id = "C02_Crate_5"
 
 [node name="C02Stall" type="Node3D" parent="."]
-position = Vector3(80, 0.2, 84.6)
+position = Vector3(80, 0.29, 84.6)
 
 [node name="Counter" type="MeshInstance3D" parent="C02Stall"]
 position = Vector3(0, 0.55, 0)
@@ -230,7 +230,7 @@ outline_size = 8
 modulate = Color(0.15294, 0.21176, 0.29412, 1)
 
 [node name="C03Cabinet1" type="Node3D" parent="."]
-position = Vector3(0, 0.2, 0)
+position = Vector3(0, 0.29, 0)
 
 [node name="Body" type="MeshInstance3D" parent="C03Cabinet1"]
 position = Vector3(0, 0.85, 0)
@@ -257,7 +257,7 @@ outline_size = 8
 modulate = Color(0.15294, 0.21176, 0.29412, 1)
 
 [node name="C03Cabinet2" type="Node3D" parent="."]
-position = Vector3(0, 0.2, 80)
+position = Vector3(0, 0.29, 80)
 
 [node name="Body" type="MeshInstance3D" parent="C03Cabinet2"]
 position = Vector3(0, 0.85, 0)
@@ -284,7 +284,7 @@ outline_size = 8
 modulate = Color(0.15294, 0.21176, 0.29412, 1)
 
 [node name="C03Cabinet3" type="Node3D" parent="."]
-position = Vector3(80, 0.2, 0)
+position = Vector3(80, 0.29, 0)
 
 [node name="Body" type="MeshInstance3D" parent="C03Cabinet3"]
 position = Vector3(0, 0.85, 0)
@@ -311,10 +311,10 @@ outline_size = 8
 modulate = Color(0.15294, 0.21176, 0.29412, 1)
 
 [node name="Engineer" parent="." instance=ExtResource("ext_engineer")]
-position = Vector3(80, 0.2, 6)
+position = Vector3(80, 0.29, 6)
 
 [node name="EngineerSign" type="Node3D" parent="."]
-position = Vector3(84, 0.2, 6)
+position = Vector3(84, 0.29, 6)
 
 [node name="Post" type="MeshInstance3D" parent="EngineerSign"]
 position = Vector3(0, 1.25, 0)
@@ -333,61 +333,61 @@ outline_size = 8
 modulate = Color(0.15294, 0.21176, 0.29412, 1)
 
 [node name="Marker_C01_Depot" type="Marker3D" parent="."]
-position = Vector3(-78, 0.2, -56)
+position = Vector3(-78, 0.29, -56)
 metadata/city_job_id = "C01_Depot"
 
 [node name="Marker_C01_Stop1" type="Marker3D" parent="."]
-position = Vector3(-80, 0.2, -77.8)
+position = Vector3(-80, 0.29, -77.8)
 metadata/city_job_id = "C01_Stop1"
 
 [node name="Marker_C01_Stop2" type="Marker3D" parent="."]
-position = Vector3(0, 0.2, -77.8)
+position = Vector3(0, 0.29, -77.8)
 metadata/city_job_id = "C01_Stop2"
 
 [node name="Marker_C01_Stop3" type="Marker3D" parent="."]
-position = Vector3(80, 0.2, -77.8)
+position = Vector3(80, 0.29, -77.8)
 metadata/city_job_id = "C01_Stop3"
 
 [node name="Marker_C02_Crate_0" type="Marker3D" parent="."]
-position = Vector3(79, 0.2, 75)
+position = Vector3(79, 0.29, 75)
 metadata/city_job_id = "C02_Crate_0"
 
 [node name="Marker_C02_Crate_1" type="Marker3D" parent="."]
-position = Vector3(81, 0.2, 75)
+position = Vector3(81, 0.29, 75)
 metadata/city_job_id = "C02_Crate_1"
 
 [node name="Marker_C02_Crate_2" type="Marker3D" parent="."]
-position = Vector3(79, 0.2, 78)
+position = Vector3(79, 0.29, 78)
 metadata/city_job_id = "C02_Crate_2"
 
 [node name="Marker_C02_Crate_3" type="Marker3D" parent="."]
-position = Vector3(81, 0.2, 78)
+position = Vector3(81, 0.29, 78)
 metadata/city_job_id = "C02_Crate_3"
 
 [node name="Marker_C02_Crate_4" type="Marker3D" parent="."]
-position = Vector3(79, 0.2, 81)
+position = Vector3(79, 0.29, 81)
 metadata/city_job_id = "C02_Crate_4"
 
 [node name="Marker_C02_Crate_5" type="Marker3D" parent="."]
-position = Vector3(81, 0.2, 81)
+position = Vector3(81, 0.29, 81)
 metadata/city_job_id = "C02_Crate_5"
 
 [node name="Marker_C02_Stall" type="Marker3D" parent="."]
-position = Vector3(80, 0.2, 83)
+position = Vector3(80, 0.29, 83)
 metadata/city_job_id = "C02_Stall"
 
 [node name="Marker_C03_Cabinet1" type="Marker3D" parent="."]
-position = Vector3(0, 0.2, 2.2)
+position = Vector3(0, 0.29, 2.2)
 metadata/city_job_id = "C03_Cabinet1"
 
 [node name="Marker_C03_Cabinet2" type="Marker3D" parent="."]
-position = Vector3(0, 0.2, 82.2)
+position = Vector3(0, 0.29, 82.2)
 metadata/city_job_id = "C03_Cabinet2"
 
 [node name="Marker_C03_Cabinet3" type="Marker3D" parent="."]
-position = Vector3(80, 0.2, 2.2)
+position = Vector3(80, 0.29, 2.2)
 metadata/city_job_id = "C03_Cabinet3"
 
 [node name="Marker_C03_Engineer" type="Marker3D" parent="."]
-position = Vector3(80, 0.2, 8)
+position = Vector3(80, 0.29, 8)
 metadata/city_job_id = "C03_Engineer"

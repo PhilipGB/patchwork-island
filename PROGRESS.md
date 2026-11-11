@@ -2735,6 +2735,60 @@ Regression coverage in `--selftest-city` now uses the **real interaction**:
 all six carried → objective points at the gate → E delivers and consumes the
 items → the loading-check modal opens. City runtime count rose from 76 to 82.
 
+### City traversal remediation — sidewalks, plazas and NPC routes
+
+A driving playtest reported that the van still could not enter the city and that
+raised paved areas crossed the grid, stalling NPC cars.
+
+Captured in the running scene before the fix:
+
+```text
+CITY_DEFECT van_entry x=182.16 y=0.05 z=0.00 speed=0.00
+```
+
+- `evidence/v14_city/defects/p24_01_city_entry_side.png` …
+  `p24_07_city_grid_overview.png`
+- `evidence/v14_city/defects/city-defects-before.log`
+
+Root causes:
+
+- every 4 m sidewalk strip was a continuous 350 m mesh/collider at 0.33 m,
+  crossing all four perpendicular roads and sealing the city entrance;
+- the nine 68 m plaza slabs overlapped the 24 m roads by 6 m on each side;
+- building footprints at ±18 m plots extended up to 5 m into the roads;
+- lane dashes and crosswalks floated 0.2 m above the road and cast detached
+  shadows;
+- the approach/city seam had a 7 cm collision lip.
+
+Implemented:
+
+- rebuilt all 16 sidewalk strips as 81 authored segments between road crossings,
+  with a 16 m entrance gap in the westmost strip at z=0;
+- shrank the nine plazas and shared collision to 56 m so they stop at the road
+  edge;
+- scaled the 36 building instances to 0.62 and copied that scale to their HLOD
+  proxies;
+- lowered city road surfaces/base collision to 0.01–0.02 m and markings to
+  0.04–0.045 m; disabled shadow casting on 152 road-marking meshes;
+- moved the board, benches, trees and city-job roots onto the 0.29 m plaza;
+- restored the traffic signals to the 0.3 m sidewalk level.
+
+New regressions: the van crosses the former entrance barrier (`x > 188`), every
+near city car stays on the road grid and at least two keep moving through
+intersections, and the player walks from the road onto the central plaza. Pure
+scene contracts reject sidewalk segments crossing a road or plazas overlapping
+one. City runtime is now **94 passed, 0 failed**.
+
+After-fix evidence:
+
+- `evidence/v14_city/defects-fixed/p24_01_city_entry_side.png` …
+  `p24_07_city_grid_overview.png`
+- `evidence/v14_city/defects-fixed/city-defects-after.log`
+
+The after-fix van log reaches `x=189.35` on the city road; the car log shows
+continued movement along the inner and outer routes. Full analysis:
+`docs/CITY_TRAVERSAL_REMEDIATION.md`.
+
 ### Verification — source
 
 ```text
@@ -2753,10 +2807,10 @@ godot --headless --path . --quit-after 120               -> exit 0
 --selftest-traversal       18 passed, 0 failed
 --selftest-release         40 passed, 0 failed
 --selftest-restore         54 passed, 0 failed
---selftest-city            82 passed, 0 failed
+--selftest-city            94 passed, 0 failed
 ```
 
-Source runtime total: **1253 passed, 0 failed**, all twelve phases exit 0.
+Source runtime total: **1265 passed, 0 failed**, all twelve phases exit 0.
 Every process exits 0; the known Mono shutdown resource warnings are unchanged.
 
 ### Packaged Linux 1.4.0
@@ -2787,10 +2841,10 @@ boot 0
 --selftest-traversal     18 passed, 0 failed
 --selftest-release       40 passed, 0 failed
 --selftest-restore       54 passed, 0 failed
---selftest-city          82 passed, 0 failed
+--selftest-city          94 passed, 0 failed
 ```
 
-Packaged total: **1253 passed, 0 failed**, all phases exit 0. This proves the
+Packaged total: **1265 passed, 0 failed**, all phases exit 0. This proves the
 city scene/assets and `data/city_missions.json` survive the export filter.
 The executable was not added to `dist/`; no Windows export was produced for
 this checkpoint.

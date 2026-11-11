@@ -10,11 +10,23 @@ no runtime city generator. All coordinates in the city scenes are **local to
 - Local footprint: `-180..+180` on X and Z (360 × 360 m stylised scale).
 - Road axes: `-120`, `-40`, `+40`, `+120` on each axis; 24 m main carriageway,
   14 m joint lanes.
-- Nine 68 m plaza cells centred at `(-80, -80)` … `(+80, +80)`.
+- Nine 56 m plaza slabs centred at `(-80, -80)` … `(+80, +80)`. The 56 m size
+  stops exactly at the 24 m road edges and must not grow back to 68 m.
 - Four building plots per cell at local offsets `(-18, -18)`, `(+18, -18)`,
-  `(-18, +18)`, `(+18, +18)`.
+  `(-18, +18)`, `(+18, +18)`. Building instances are scaled `0.62` so their
+  footprints stay inside the 56 m block; the runtime copies that scale to the
+  matching HLOD proxy.
 - 36 building instances (12 archetypes, three variants each) and 36 matching
   HLOD proxies, one per building.
+- Sidewalk strips are authored as 4 m-wide segments between road crossings,
+  never as continuous 350 m bars. The westmost strip has a 16 m gap at `z=0`
+  for the city entrance. There are 81 segment meshes and 81 matching collision
+  shapes.
+- City road surfaces and the base floor sit at `0.01–0.02 m`; lane dashes and
+  crosswalks sit at `0.04–0.045 m` and do not cast shadows. Sidewalk/plaza tops
+  remain at `0.29–0.33 m`.
+- The CITY JOBS board, city-job markers, benches and trees sit on the `0.29 m`
+  plaza surface.
 - `CityDistrict.tscn` owns ground, sidewalk and building collision, the district
   roads, the city job board and all gameplay markers.
 - `CityJobs.tscn` owns the 15 city-job markers and their authored signs/props.

@@ -3514,6 +3514,56 @@ internal static class Program
             Check(district.Contains("PlazaShape_0"), "plaza collision is authored");
             Check(district.Contains("SidewalkShape_NSSidewalk_0_0"),
                 "sidewalk collision is authored");
+            var cityBoxes = ParseBoxSizes(district, "BoxMesh");
+            int sidewalkSegments = 0;
+            foreach (Match match in Regex.Matches(district,
+                         "\\[node name=\"(?<name>(?:NS|EW)Sidewalk_[^\"]+)\" type=\"MeshInstance3D\" parent=\"\\.\"\\]\\r?\\n" +
+                         "position = Vector3\\((?<pos>[^)]+)\\)\\r?\\n" +
+                         "mesh = SubResource\\(\"(?<mesh>[^\"]+)\"\\)",
+                         RegexOptions.Singleline))
+            {
+                string name = match.Groups["name"].Value;
+                var parts = match.Groups["pos"].Value.Split(',');
+                float px = float.Parse(parts[0].Trim(), CultureInfo.InvariantCulture);
+                float pz = float.Parse(parts[2].Trim(), CultureInfo.InvariantCulture);
+                var size = cityBoxes[match.Groups["mesh"].Value];
+                bool alongZ = name.StartsWith("NS", StringComparison.Ordinal);
+                float centre = alongZ ? pz : px;
+                float half = (alongZ ? size.Z : size.X) * 0.5f;
+                foreach (float axis in CityLayout.RoadAxes)
+                {
+                    float roadMin = axis - CityLayout.RoadWidth * 0.5f;
+                    float roadMax = axis + CityLayout.RoadWidth * 0.5f;
+                    Check(centre + half <= roadMin + 0.01f ||
+                          centre - half >= roadMax - 0.01f,
+                        $"sidewalk '{name}' does not cross the road at {axis:0} m");
+                }
+                sidewalkSegments++;
+            }
+            Check(sidewalkSegments >= 80,
+                "sidewalks are split into intersection-safe authored segments");
+            foreach (Match match in Regex.Matches(district,
+                         "\\[node name=\"BlockPlaza_[^\"]+\" type=\"MeshInstance3D\" parent=\"\\.\"\\]\\r?\\n" +
+                         "position = Vector3\\((?<pos>[^)]+)\\)\\r?\\n" +
+                         "mesh = SubResource\\(\"(?<mesh>[^\"]+)\"\\)",
+                         RegexOptions.Singleline))
+            {
+                var parts = match.Groups["pos"].Value.Split(',');
+                float px = float.Parse(parts[0].Trim(), CultureInfo.InvariantCulture);
+                float pz = float.Parse(parts[2].Trim(), CultureInfo.InvariantCulture);
+                var size = cityBoxes[match.Groups["mesh"].Value];
+                foreach (float axis in CityLayout.RoadAxes)
+                {
+                    float roadMin = axis - CityLayout.RoadWidth * 0.5f;
+                    float roadMax = axis + CityLayout.RoadWidth * 0.5f;
+                    Check(px + size.X * 0.5f <= roadMin + 0.01f ||
+                          px - size.X * 0.5f >= roadMax - 0.01f,
+                        $"plaza at x={px:0} does not overlap a north/south road");
+                    Check(pz + size.Z * 0.5f <= roadMin + 0.01f ||
+                          pz - size.Z * 0.5f >= roadMax - 0.01f,
+                        $"plaza at z={pz:0} does not overlap an east/west road");
+                }
+            }
 
             var jobs = File.ReadAllText(Path.Combine(root, "scenes", "city", "CityJobs.tscn"));
             Equal(15, Regex.Matches(jobs, "metadata/city_job_id =").Count,

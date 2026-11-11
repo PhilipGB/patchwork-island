@@ -48,7 +48,7 @@
 - [x] Existing save migrations, newer-schema protection and manual save failure
   feedback still verified (132 pure tests + all runtime phases).
 - [x] Existing .NET suite, runtime phases and packaged Linux boot pass locally
-  (132 pure; 1253 runtime assertions across 12 source phases and 1253 in a
+  (132 pure; 1265 runtime assertions across 12 source phases and 1265 in a
   packaged v1.4.0 build). Exact-head CI at `21b226e` passed `build-test` and
   `windows-tests` (run
   [43075355414](https://github.com/PhilipGB/patchwork-island/actions/runs/43075355414)).

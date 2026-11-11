@@ -865,7 +865,7 @@ release is created by this gate.
 | 8 | City logical time advances while hidden | **PASS** — deterministic pose function; 1,800 s advanced in 0.002–0.003 ms with zero actor nodes. No per-agent catch-up loop. |
 | 9 | Tiered detail/HLOD with hysteresis and bounded actors | **PASS** — 20 detailed buildings + 16 HLOD proxies on the street; 16 HLOD only on the approach; zero city nodes in town. Near/mid pools are capped and deduplicated. |
 | 10 | Measured performance at 720p/1080p | **PASS** — worst p95 4.51 ms at 720p and 5.60 ms at 1080p with vsync off on Radeon 890M; town stage has no city content. Method/results in `docs/05_CITY_PERFORMANCE.md`. |
-| 11 | Existing game, saves and runtime phases remain green | **PASS** — pure **132 passed**; source runtime **1253 passed, 0 failed** across 12 phases; packaged Linux 1.4.0 also booted and passed all 12 phases (**1253 passed**); headless import/boot exit 0. |
+| 11 | Existing game, saves and runtime phases remain green | **PASS** — pure **132 passed**; source runtime **1265 passed, 0 failed** across 12 phases; packaged Linux 1.4.0 also booted and passed all 12 phases (**1265 passed**); headless import/boot exit 0. |
 | 12 | CI entry exists for the city phase | **PASS (source)** — `--selftest-city` is in `.github/workflows/build-and-test.yml` for source and packaged Linux. **CI has not run on this uncommitted tree.** |
 
 **Not tested / not claimed:** one continuous human M01–M21 → C01–C03 sitting;

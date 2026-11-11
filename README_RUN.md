@@ -104,7 +104,7 @@ godot --headless --path . -- --selftest-city
 ```
 
 These use isolated `user://selftest-save.json` and
-`user://selftest-recovery-save.json` files and total **1253 assertions across
+`user://selftest-recovery-save.json` files and total **1265 assertions across
 twelve phases** on the v1.4.0 tree. The city phase loads the real authored
 district, proves the closed road gating, C01–C03 state flow, physical gate
 open/close, logical-while-hidden simulation, LOD/actor cleanup, a mid-drive save
@@ -236,9 +236,9 @@ godot --headless --path . -- --selftest-finale           -> 140 passed, 0 failed
 godot --headless --path . -- --selftest-traversal        -> 18 passed, 0 failed
 godot --headless --path . -- --selftest-release          -> 40 passed, 0 failed
 godot --headless --path . -- --selftest-restore          -> 54 passed, 0 failed
-godot --headless --path . -- --selftest-city             -> 82 passed, 0 failed
+godot --headless --path . -- --selftest-city             -> 94 passed, 0 failed
 godot --headless --path . --export-release "Linux" ...    -> exit 0
-packaged Linux v1.4.0 (all runtime phases)                -> 1253 passed, 0 failed
+packaged Linux v1.4.0 (all runtime phases)                -> 1265 passed, 0 failed
 packaged Linux --headless --quit-after 120                -> exit 0
 ```
 
