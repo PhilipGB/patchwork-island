@@ -2856,7 +2856,7 @@ internal static class Program
                     "assets", "landmarks", scene));
                 int bunting = Regex.Matches(text, "\\[node name=\"Bunting").Count;
                 int shadowOff = Regex.Matches(text,
-                    "\\[node name=\"Bunting[^\"]*\" type=\"MeshInstance3D\" parent=\"\\.\"\\]\ncast_shadow = 0").Count;
+                    "\\[node name=\"Bunting[^\"]*\" type=\"MeshInstance3D\" parent=\"\\.\"\\]\r?\ncast_shadow = 0").Count;
                 Check(bunting >= minimum, $"{scene}: expected {minimum} bunting flags, found {bunting}");
                 Equal(bunting, shadowOff, $"{scene} bunting shadows disabled");
             }
