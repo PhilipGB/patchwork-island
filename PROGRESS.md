@@ -2637,6 +2637,9 @@ procedural builder, bake tool or baked snapshot to keep in sync.
   - `PatchworkIsland-1.3.0-Linux-x86_64.zip` `d6d735ad8f59d2b4ef3d106597294913313c33060ee0de66ecb6b9980456fc90`
   - `PatchworkIsland-1.3.0-Windows-x86_64.zip` `96695e213e0ccb29b201dbbd662b9ece274ed5c17b6a7dae0c4662f3162fe159`
 - Windows binary rebuilt (PE32+ x86-64) but startup remains **NOT TESTED**.
+- Exact-head CI on `7b47c1a`: `build-test` (6m29s) and `windows-tests` (1m07s)
+  passed in run
+  [43029252909](https://github.com/PhilipGB/patchwork-island/actions/runs/43029252909).
 
 ### Remaining gaps
 
