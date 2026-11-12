@@ -68,4 +68,4 @@ phases, packaged runtime **1373/1373**, source and packaged graphical quality
 | E04 | PASS | Same-hardware 720p/1080p p50/p95/max, draw calls and primitives are recorded in `performance.log`. The 230 ms academy-entry maximum is the one-time course load and is reported as-is; software Xvfb numbers are labelled separately. |
 | E05 | NOT TESTED | Windows build/pure tests run in CI; Windows gameplay startup could not be tested here. |
 | E06 | PASS | 16 screenshots in `evidence/v15_academy/screenshots/`, captured from the frozen head at both resolutions. |
-| E07 | PASS | PR opened against the verified base; the exact head, CI state and any CI discrepancy are recorded in `PROGRESS.md`. No merge, tag or release. |
+| E07 | PASS | PR #35 opened against the verified base; the code head, CI state and any discrepancy are recorded in `PROGRESS.md` and on the PR. No merge, tag or release. |

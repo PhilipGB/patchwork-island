@@ -3175,5 +3175,9 @@ Final verification at the PR head (logs and hashes in `evidence/v15_academy/`):
   not claimed as a full-campaign pass.
 - 720p/1080p evidence: 16 screenshots; GPU performance recorded on the AMD
   Radeon 890M. Windows gameplay startup remains **NOT TESTED**.
-- PR opened against #34's branch; #34 itself was not modified, merged, tagged or
-  released.
+- PR #35 opened against #34's branch; #34 itself was not modified, merged,
+  tagged or released.
+- CI for the code head `a16f616`: `build-test` pass (17m23s) and
+  `windows-tests` pass (1m21s), including the packaged graphical quality and
+  packaged graphical academy steps. The commit that carries this note is
+  documentation-only; it re-runs the same gates without touching code.
