@@ -79,7 +79,7 @@ recorded city cars visually stopped on the raised blocks.
   - every near city car is on the road grid;
   - at least two near cars keep moving through intersections;
   - the player walks from the road onto the central plaza.
-- `--selftest-city` now has **126 passed, 0 failed**.
+- `--selftest-city` now has **129 passed, 0 failed**.
 - Pure tests: **132 passed, 0 failed**.
 
 ## After-fix evidence

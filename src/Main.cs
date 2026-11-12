@@ -543,17 +543,16 @@ public partial class Main : Node3D
         IsSelfTest || OS.GetCmdlineUserArgs().Any(arg =>
             arg.StartsWith("--scenario") || arg.StartsWith("--capture"));
 
-    private void LoadSavedGameIfAvailable()
+    private void LoadSavedGameIfAvailable(string path = null)
     {
-        if (IsDeveloperRun() && !LoadSelfTestSave) return;
-        var loaded = SaveService.Load(SavePath, _catalog);
+        if (path == null && IsDeveloperRun() && !LoadSelfTestSave) return;
+        var loaded = SaveService.Load(path ?? SavePath, _catalog);
         _session.ApplyLoad(loaded);
         switch (loaded.Status)
         {
             case SaveLoadStatus.Loaded:
             case SaveLoadStatus.RecoveredBackup:
-                _data = loaded.Data;
-                _missions = new MissionService(_data, _catalog);
+                AdoptLoadedData(loaded.Data);
                 _loadedFromSave = true;
                 _saveNotice = loaded.RecoveredFromCorrupt || loaded.UsedBackup ? loaded.Message : "";
                 break;
@@ -570,6 +569,19 @@ public partial class Main : Node3D
             case SaveLoadStatus.Missing:
                 break;
         }
+    }
+
+    /// <summary>
+    /// Adopt a loaded save for every service that caches the game data. The
+    /// town and city services must point at the same object: the city board
+    /// gates on the loaded CityRoadOpen, and a stale service would reject city
+    /// jobs even though the road is open.
+    /// </summary>
+    private void AdoptLoadedData(GameData data)
+    {
+        _data = data ?? throw new ArgumentNullException(nameof(data));
+        _missions = new MissionService(_data, _catalog);
+        _cityMissions = new CityMissionService(_data, _cityCatalog);
     }
 
     private void RestoreSavedState()
@@ -4412,6 +4424,10 @@ public partial class Main : Node3D
     internal TownCityRoadworks RtRoadworks => _roadworks;
     internal CityMissionService RtCityMissions => _cityMissions;
     internal GameData RtData => _data;
+    internal GameData RtCityMissionData => _cityMissions.Data;
+    internal CityMissionStartResult RtStartCityMission(string id) => _cityMissions.StartMission(id);
+    internal void RtAdoptLoadedDataForTest(GameData data) => AdoptLoadedData(data);
+    internal void RtLoadSaveForTest(string path) => LoadSavedGameIfAvailable(path);
     internal MissionService RtMissions => _missions;
     internal Vector3 RtCityBoardPosition => _city.BoardInteraction;
     internal Vector3 RtCityDistrictCentre => _city.DistrictCentre;

@@ -2819,8 +2819,8 @@ The PR review requested stronger evidence and policy decisions:
 - **Weak assertion:** the car regression now requires at least two near cars and
   at least two moving cars.
 
-City runtime is now **126 passed, 0 failed**; the full source total is
-**1297 passed, 0 failed**.
+City runtime is now **129 passed, 0 failed**; the full source total is
+**1300 passed, 0 failed**.
 
 ### Verification — source
 
@@ -2840,10 +2840,10 @@ godot --headless --path . --quit-after 120               -> exit 0
 --selftest-traversal       18 passed, 0 failed
 --selftest-release         40 passed, 0 failed
 --selftest-restore         54 passed, 0 failed
---selftest-city            126 passed, 0 failed
+--selftest-city            129 passed, 0 failed
 ```
 
-Source runtime total: **1297 passed, 0 failed**, all twelve phases exit 0.
+Source runtime total: **1300 passed, 0 failed**, all twelve phases exit 0.
 Every process exits 0; the known Mono shutdown resource warnings are unchanged.
 
 ### Packaged Linux 1.4.0 — CityFix
@@ -2874,13 +2874,31 @@ boot 0
 --selftest-traversal     18 passed, 0 failed
 --selftest-release       40 passed, 0 failed
 --selftest-restore       54 passed, 0 failed
---selftest-city          126 passed, 0 failed
+--selftest-city          129 passed, 0 failed
 ```
 
-Packaged total: **1297 passed, 0 failed**, all phases exit 0. The matching local
+Packaged total: **1300 passed, 0 failed**, all phases exit 0. The matching local
 CityFix ZIPs and `SHA256SUMS.v1.4.0-cityfix` are in the gitignored `dist/`.
 The existing GitHub v1.4.0 pre-release remains pinned to the earlier `21b226e`
 build; this remediation should be published as a new v1.4.1 tag/release.
+
+### v1.4.1 hotfix — loaded saves keep city jobs unlocked
+
+A player with all twenty town jobs complete, M21 finished and the road visibly
+open could not start a city job after loading a save. `LoadSavedGameIfAvailable`
+replaced `_data` and `_missions` but left `_cityMissions` bound to the pre-load
+`GameData`. The city board therefore opened from the loaded `CityRoadOpen=true`,
+while `CityMissionService.StartMission` checked the stale copy, saw
+`CityRoadOpen=false`, and refused with the closed-road message.
+
+`AdoptLoadedData` now rebinds `_data`, `_missions` and `_cityMissions` together
+on every successful load or backup recovery. `LoadedOpenRoadCityChecks` loads a
+real save through the production path, marks its road open, asserts the city
+service shares the loaded data, and starts C01. With the city rebind removed the
+regression produces two failures; with the fix it passes.
+
+City runtime is **129 passed, 0 failed**; source runtime is
+**1300 passed, 0 failed**.
 
 ### Performance — real AMD Radeon 890M
 
@@ -2954,8 +2972,8 @@ south verge) and re-captured.
   [release](https://github.com/PhilipGB/patchwork-island/releases/tag/v1.4.1).
   The v1.4.0 tag/release remains at `21b226e` and was not moved.
 - The v1.4.1 release artifact was exported from `main` at `318c74f` and its
-  Linux package booted and passed all twelve runtime phases (1297/1297, city
-  126/126). Windows startup is still **NOT TESTED**.
+  Linux package booted and passed all twelve runtime phases (1300/1300, city
+  129/129). Windows startup is still **NOT TESTED**.
 - The approach road still crosses the rally meadow visually at z=0. It is flush
   and below the rally surface, and the rally/autopilot tests pass, but it is a
   deliberate layout compromise rather than a separate ring road.

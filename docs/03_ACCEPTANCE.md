@@ -52,8 +52,8 @@
 - [x] Existing save migrations, newer-schema protection and manual save failure
   feedback still verified (132 pure tests + all runtime phases).
 - [x] Existing .NET suite, runtime phases and packaged Linux boot pass locally
-  (132 pure; 1297 runtime assertions across 12 source phases and 1297 in a
-  packaged v1.4.0 build). Exact-head CI for the current PR head passes
+  (132 pure; 1300 runtime assertions across 12 source phases and 1300 in a
+  packaged build). Exact-head CI for the current PR head passes
   `build-test` and `windows-tests` (see the
   [PR checks](https://github.com/PhilipGB/patchwork-island/pull/32/checks)).
   See `PROGRESS.md` for exact counts.
