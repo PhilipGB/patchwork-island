@@ -15,7 +15,17 @@ internal static partial class Program
     {
         Run("session replacement binds village, city and activity handlers to one save", () =>
         {
-            var session = new GameSession(catalog, cityCatalog, new GameData());
+            var academy = DrivingAcademyCatalog.FromJson(File.ReadAllText(
+                Path.Combine(FindRepoRoot(), "data", "driving_academy_lessons.json")));
+            var first = new GameData { Coins = 7 };
+            var session = new GameSession(catalog, cityCatalog, academy, first);
+            Check(ReferenceEquals(session.Data, first) && ReferenceEquals(session.Academy.Data, first),
+                "session binds the academy service to the same data");
+            var second = new GameData { Coins = 9 };
+            session.ReplaceData(second);
+            Check(ReferenceEquals(session.Data, second) && ReferenceEquals(session.Academy.Data, second) &&
+                  ReferenceEquals(session.Village.Data, second) && ReferenceEquals(session.City.Data, second),
+                "ReplaceData rebinds village, city and academy together");
             var old = session.Data;
             var loaded = new GameData { Coins = 42 };
             session.ReplaceData(loaded);

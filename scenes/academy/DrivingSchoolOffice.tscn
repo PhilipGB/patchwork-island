@@ -1,0 +1,186 @@
+[gd_scene load_steps=24 format=3]
+
+[sub_resource type="StandardMaterial3D" id="mat_navy"]
+albedo_color = Color(0.098, 0.2196, 0.298, 1)
+roughness = 0.85
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="mat_teal"]
+albedo_color = Color(0.1412, 0.651, 0.6353, 1)
+roughness = 0.85
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="mat_yellow"]
+albedo_color = Color(0.9725, 0.8078, 0.3216, 1)
+roughness = 0.85
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="mat_cream"]
+albedo_color = Color(1, 0.9412, 0.8196, 1)
+roughness = 0.85
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="mat_orange"]
+albedo_color = Color(0.9333, 0.5686, 0.2941, 1)
+roughness = 0.85
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="mat_red"]
+albedo_color = Color(0.8471, 0.3137, 0.3333, 1)
+roughness = 0.85
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="mat_white"]
+albedo_color = Color(0.9608, 0.9686, 0.9294, 1)
+roughness = 0.85
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="mat_grass"]
+albedo_color = Color(0.5765, 0.7294, 0.451, 1)
+roughness = 0.85
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="mat_steel"]
+albedo_color = Color(0.4431, 0.5294, 0.5765, 1)
+roughness = 0.85
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="mat_black"]
+albedo_color = Color(0.1333, 0.1765, 0.2196, 1)
+roughness = 0.85
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="mat_glass"]
+albedo_color = Color(0.5333, 0.7255, 0.7922, 1)
+roughness = 0.85
+metallic = 0.0
+
+[sub_resource type="BoxMesh" id="mesh_box_1"]
+size = Vector3(19.5, 0.32, 13.5)
+
+[sub_resource type="BoxMesh" id="mesh_box_2"]
+size = Vector3(19, 4.35, 13)
+
+[sub_resource type="BoxMesh" id="mesh_box_3"]
+size = Vector3(21, 0.7, 15)
+
+[sub_resource type="BoxMesh" id="mesh_box_4"]
+size = Vector3(21, 0.18, 15)
+
+[sub_resource type="BoxMesh" id="mesh_box_5"]
+size = Vector3(2.9, 3.6, 0.14)
+
+[sub_resource type="BoxMesh" id="mesh_box_6"]
+size = Vector3(1.7, 1.1, 0.16)
+
+[sub_resource type="BoxMesh" id="mesh_box_7"]
+size = Vector3(3.6, 2.1, 0.12)
+
+[sub_resource type="BoxMesh" id="mesh_box_8"]
+size = Vector3(12.4, 1.55, 0.15)
+
+[sub_resource type="BoxMesh" id="mesh_box_9"]
+size = Vector3(3.6, 2.6, 0.16)
+
+[sub_resource type="BoxMesh" id="mesh_box_10"]
+size = Vector3(0.28, 2.6, 0.28)
+
+[sub_resource type="BoxMesh" id="mesh_box_11"]
+size = Vector3(3, 1.2, 1.15)
+
+[sub_resource type="BoxShape3D" id="shape_box_1"]
+size = Vector3(19, 4.35, 13)
+
+[node name="DrivingSchoolOffice" type="Node3D"]
+
+[node name="Foundation" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.1, 0)
+mesh = SubResource("mesh_box_1")
+material_override = SubResource("mat_steel")
+
+[node name="Walls" type="MeshInstance3D" parent="."]
+position = Vector3(0, 2.25, 0)
+mesh = SubResource("mesh_box_2")
+material_override = SubResource("mat_cream")
+
+[node name="Roof" type="MeshInstance3D" parent="."]
+position = Vector3(0, 4.75, 0)
+mesh = SubResource("mesh_box_3")
+material_override = SubResource("mat_navy")
+
+[node name="AccentRoof" type="MeshInstance3D" parent="."]
+position = Vector3(0, 5.12, 0)
+mesh = SubResource("mesh_box_4")
+material_override = SubResource("mat_teal")
+
+[node name="EntranceDoor" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.84, 6.59)
+mesh = SubResource("mesh_box_5")
+material_override = SubResource("mat_navy")
+
+[node name="DoorWindow" type="MeshInstance3D" parent="."]
+position = Vector3(0, 2.85, 6.7)
+mesh = SubResource("mesh_box_6")
+material_override = SubResource("mat_glass")
+
+[node name="WindowLeft" type="MeshInstance3D" parent="."]
+position = Vector3(-5.6, 2.4, 6.58)
+mesh = SubResource("mesh_box_7")
+material_override = SubResource("mat_glass")
+
+[node name="WindowRight" type="MeshInstance3D" parent="."]
+position = Vector3(5.6, 2.4, 6.58)
+mesh = SubResource("mesh_box_7")
+material_override = SubResource("mat_glass")
+
+[node name="SchoolSign" type="MeshInstance3D" parent="."]
+position = Vector3(0, 4.03, 6.68)
+mesh = SubResource("mesh_box_8")
+material_override = SubResource("mat_teal")
+
+[node name="NoticeBoard" type="MeshInstance3D" parent="."]
+position = Vector3(8.5, 1.74, 7.5)
+mesh = SubResource("mesh_box_9")
+material_override = SubResource("mat_yellow")
+
+[node name="NoticePost" type="MeshInstance3D" parent="."]
+position = Vector3(8.5, 1.3, 7.5)
+mesh = SubResource("mesh_box_10")
+material_override = SubResource("mat_navy")
+
+[node name="InfoDesk" type="MeshInstance3D" parent="."]
+position = Vector3(-6, 0.6, 8.1)
+mesh = SubResource("mesh_box_11")
+material_override = SubResource("mat_teal")
+
+[node name="Title" type="Label3D" parent="."]
+position = Vector3(-5.78, 3.78, 6.8)
+text = "DRIVING SCHOOL"
+font_size = 56
+pixel_size = 0.01
+modulate = Color(0.0784, 0.1725, 0.2471, 1)
+outline_size = 3
+
+[node name="BoardText" type="Label3D" parent="."]
+position = Vector3(7.05, 1.67, 7.63)
+text = "LEARN  \u00b7  PRACTISE\nGET YOUR LICENCE"
+font_size = 24
+pixel_size = 0.007
+modulate = Color(0.0784, 0.1725, 0.2471, 1)
+outline_size = 3
+
+[node name="OfficeCollision" type="StaticBody3D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="WallsShape" type="CollisionShape3D" parent="OfficeCollision"]
+position = Vector3(0, 2.25, 0)
+shape = SubResource("shape_box_1")
+
+[node name="EnrollmentInteraction" type="Marker3D" parent="."]
+position = Vector3(8.5, 0.2, 9.2)
+metadata/academy_id = "academy_enrolment"
+
+[node name="EntranceApproach" type="Marker3D" parent="."]
+position = Vector3(0, 0.2, 9.5)
+metadata/academy_id = "academy_entrance"

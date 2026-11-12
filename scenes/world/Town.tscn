@@ -1,4 +1,8 @@
-[gd_scene load_steps=159 format=3]
+[gd_scene load_steps=161 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/academy/DrivingSchoolOffice.tscn" id="academy_office"]
+
+[ext_resource type="PackedScene" path="res://scenes/academy/DrivingSchoolYard.tscn" id="academy_yard"]
 
 [ext_resource type="PackedScene" path="res://scenes/world/assets/environment/Terrain.tscn" id="ext_1"]
 
@@ -833,3 +837,13 @@ position = Vector3(-2.5, 0, 10.5)
 [node name="RaceStart" type="Marker3D" parent="."]
 position = Vector3(56, 0, -6)
 metadata/gameplay_id = "RaceStart"
+
+[node name="DrivingSchoolOffice" parent="." instance=ExtResource("academy_office")]
+position = Vector3(32, 0, 48)
+rotation_degrees = Vector3(0, 180, 0)
+scale = Vector3(0.75, 0.75, 0.75)
+
+[node name="DrivingSchoolYard" parent="." instance=ExtResource("academy_yard")]
+position = Vector3(32, 0, 48)
+rotation_degrees = Vector3(0, 180, 0)
+scale = Vector3(0.75, 0.75, 0.75)

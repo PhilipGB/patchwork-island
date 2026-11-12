@@ -5,17 +5,21 @@ Godot 4.7.2 .NET and C#. Collect supplies, deliver parcels, build a bridge,
 drive the post van, help the villagers and complete three jobs in Patchwork City.
 
 The current game has **21 village missions (M01–M21) and three city jobs
-(C01–C03)**, two celebrations, optional race bonuses, free practice racing,
+(C01–C03)**, a six-lesson driving academy with a final assessment (L01–L06,
+TEST01), two celebrations, optional race bonuses, free practice racing,
 character customisation and persistent progress. The original ten-mission
 handoff is the historical first-playable specification.
 
 ## Current status
 
-This branch is the **1.4.3-dev Linux quality and architecture pass**, unreleased.
-It fixes camera orbit after pause, shop-controller lifetimes, interaction
-clarity, city curb traversal and collected-crate focus. Gameplay controllers,
-mission activities and presentation are separated behind a live session facade.
+This branch is the **1.5.0-dev Driving Academy**, built on the 1.4.3 Linux
+quality/architecture pass. It adds an authored driving school, six lessons, a
+final assessment and a persisted licence; new saves must earn that licence
+before the regular delivery van unlocks, while v1–v4 saves keep a legacy permit
+for their existing campaign.
 
+- [Driving Academy design, rules and code map](docs/DRIVING_ACADEMY.md)
+- [v1.5.0 verification, evidence and remaining limits](docs/DRIVING_ACADEMY_REPORT.md)
 - [Linux verification, evidence and remaining limits](docs/LINUX_QUALITY_PASS.md)
 - [Architecture and responsibility boundaries](docs/ARCHITECTURE.md)
 - [Run, controls, QA scenarios and export guide](README_RUN.md)
@@ -39,8 +43,20 @@ godot --path .
 ```
 
 The authored town is `scenes/world/Town.tscn`; the city is
-`scenes/city/CityDistrict.tscn`. Edit these scenes in Godot. There is no bake
-or procedural world-generation step.
+`scenes/city/CityDistrict.tscn`; the driving course is
+`scenes/academy/DrivingAcademyCourse.tscn`. Edit these scenes in Godot. There is
+no bake or procedural world-generation step.
+
+## Driving Academy
+
+The school is west of the village green. Enrolment costs 15 coins once; the
+three-cone helper job pays 3 coins per round so enrolment is always reachable on
+foot. Six lessons and the final test are free to retry. A pass issues the
+official licence and a one-time 5-coin graduation gift.
+
+New v5 saves need the licence for the regular delivery van. Saves from v1–v4
+migrate with a legacy van permit and keep their existing campaign playable.
+See [docs/DRIVING_ACADEMY.md](docs/DRIVING_ACADEMY.md).
 
 ## Controls and progression
 
@@ -53,7 +69,7 @@ or procedural world-generation step.
 | J / H | Jobs / hint |
 | Esc / P | Pause or close a menu |
 | W/S, A/D in van | Accelerate, brake/reverse and steer |
-| R in van | Recover the van |
+| R in van or academy | Recover/reset the vehicle |
 
 Start a job at the yellow JOBS board, follow the mission card and destination
 arrow, then interact with the highlighted supplies or station. Build mode uses
@@ -67,11 +83,12 @@ board. City and village jobs share the same wallet.
 dotnet run --project tests/PatchworkIsland.Tests.csproj
 godot --headless --path . -- --selftest
 godot --headless --path . -- --selftest-city
+godot --headless --path . -- --selftest-academy
 # Requires a graphical display, or xvfb-run:
 godot --path . -- --selftest-quality
 ```
 
-The full twelve-phase runtime suite, graphical regression checks and input
+The full thirteen-phase runtime suite, graphical regression checks and input
 walkthrough commands are in [the run guide](README_RUN.md). Tests and the
 walkthrough must use disposable user data; do not point them at a player save.
 

@@ -9,9 +9,9 @@ There is no service locator, dependency-injection container, ECS or mission DSL.
 - `Main` is the composition root and session/control-mode coordinator. It creates
   the authored world, actors, builders and collaborators; handles input modes,
   save feedback, title/pause transitions and cross-module completion effects.
-- `GameSession` is a stable facade over the current `GameData`, village service
-  and city service. `ReplaceData` constructs the complete replacement service
-  graph before publishing it. Controllers retain the facade, not a mission
+- `GameSession` is a stable facade over the current `GameData`, village, city
+  and driving-academy services. `ReplaceData` constructs the complete replacement
+  service graph before publishing it. Controllers retain the facade, not a mission
   service or data instance that can become stale after Continue/New Game.
 - `MissionService` retains prerequisites, mission switching and exactly-once
   reward authority. It delegates community and finale activities to
@@ -19,10 +19,15 @@ There is no service locator, dependency-injection container, ECS or mission DSL.
   the previous API, while bakery/library/garden/sign/repair/shop views depend on
   their narrower activity handler. Only the central completion path pays coins.
 - `CityGameplayController`, `VillageStationController`, `PickupController`,
-  `VillagePopulationController` and `RaceController` own distinct interaction,
-  presentation and activity lifecycles. Their small `IGameplayHost` port requests
+  `VillagePopulationController`, `RaceController` and
+  `DrivingAcademyController` own distinct interaction, presentation and activity
+  lifecycles. Their small `IGameplayHost` port requests
   persistence, objective updates or completion effects from the coordinator.
   These controllers do not reference `Main` or use its private members.
+- `DrivingAcademyController` owns the isolated authored venue, learner-car
+  lifecycle, lesson predicates, traffic-light/crossing state and safe return.
+  `DrivingAcademyService` and `DrivingAcademyRules` are pure and persist through
+  `GameSession`; `DrivingAcademyUi`/`DrivingAcademyHud` only present state.
 - `MissionHudPresenter` converts current model/world state into mission rows and
   a destination. It reads the live session and receives the few changing
   physical-state providers it needs. Godot `Hud` owns the actual controls.

@@ -1,0 +1,3 @@
+ec65c86ff1ef13180964f1789d4413a426a4748f484824ad3fc7c4313ce65d98  /tmp/patchwork-export/PatchworkIsland.x86_64
+/tmp/patchwork-export/PatchworkIsland.x86_64: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 5.15.0, stripped
+-rwxr-xr-x+ 1 philip philip 164222440 Nov 12 20:54 /tmp/patchwork-export/PatchworkIsland.x86_64

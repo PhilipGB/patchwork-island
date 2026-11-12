@@ -43,6 +43,8 @@ internal static partial class Program
         SceneContractsTests(catalog, cityCatalog, root, json);
 
         CityExpansionTests(catalog, cityCatalog);
+        AcademyTests(catalog, root);
+        AcademySceneContracts(root);
 
         Console.WriteLine();
         Console.WriteLine($"RESULT: {_passed} passed, {_failed} failed");

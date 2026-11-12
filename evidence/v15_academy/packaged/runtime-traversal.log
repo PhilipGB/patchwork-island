@@ -1,0 +1,23 @@
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+
+[WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 158 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.
+[CITY SCENE] res://scenes/city/CityDistrict.tscn: 36 buildings, 36 HLOD proxies, 9 cells, 15 job markers, 4 vehicle routes, 11 pedestrian routes.
+PASS  traversal test starts on the title screen
+PASS  traversal test starts a fresh village
+PASS  traversal test enters the van
+PASS  van crosses the bridge and east road seam (x=93.7, start=47.0)
+PASS  van keeps moving across the bridge
+PASS  traversal test leaves the van
+PASS  slow van crosses the bridge/connector seam (x=74.2)
+PASS  van crosses the bridge at lateral offset z=-2.2 (x=85.9)
+PASS  bridge seam has no vertical step at lateral offset z=-2.2
+PASS  van crosses the bridge at lateral offset z=2.2 (x=85.9)
+PASS  bridge seam has no vertical step at lateral offset z=2.2
+PASS  van crosses the bridge westbound (x=34.4)
+PASS  westbound bridge seam has no vertical step
+PASS  player walks from grass onto the rally road near the four-gate gate 1 (moved 8.9m)
+PASS  player can jump near the four-gate gate 1
+PASS  player walks from grass onto the rally road near the grand gate 1 (moved 9.1m)
+PASS  player can jump near the grand gate 1
+PASS  player starts from rest at the road lip and walks onto the shoulder (moved 12.2m)
+RUNTIME RESULT: 18 passed, 0 failed

@@ -22,6 +22,9 @@ public partial class Main
         internal string Mode => _game._controlMode.ToString();
         internal bool ModalOpen => _game._hud.ModalOpen;
         internal string ModalTitle => _game._hud.ModalTitleText;
+        internal Button FindModalButton(string name) =>
+            _game._hud.FindChildren("*", "Button", true, false).OfType<Button>()
+                .FirstOrDefault(button => button.Name == name);
         internal string ModalStatus => _game._hud.ModalStatusText;
         internal bool ModalStatusVisible => _game._hud.ModalStatusVisible;
         internal string ToastText => _game._hud.ToastText;

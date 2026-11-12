@@ -101,6 +101,16 @@ public partial class Main
                 _game._hud.ShowBigToast("SCENARIO: Patchwork City central plaza. The teal CITY JOBS board is behind you.", 6f, Palette.Teal);
                 return true;
             }
+            if (Main.HasUserArg("--academy-perf"))
+            {
+                _game.AddChild(new DrivingAcademyPerf { Main = _game });
+                return true;
+            }
+            if (Main.HasUserArg("--capture-academy"))
+            {
+                _game.AddChild(new DrivingAcademyCaptures { Main = _game });
+                return true;
+            }
             if (Main.HasUserArg("--capture-city"))
             {
                 _game._started = true;

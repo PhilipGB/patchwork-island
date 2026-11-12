@@ -65,6 +65,8 @@ public partial class RuntimeSelfTest : Node
                 reloading = await ReleaseChecks();
             else if (HasArg("--selftest-restore"))
                 reloading = await RestoreChecks();
+            else if (HasArg("--selftest-academy"))
+                await AcademyChecks();
             else
                 await FreshSessionChecks();
         }

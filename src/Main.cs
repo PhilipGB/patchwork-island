@@ -47,6 +47,7 @@ public partial class Main : Node3D, IGameplayHost
     private WorldMarker _marker;
     private MissionCatalog _catalog;
     private CityMissionCatalog _cityCatalog;
+    private DrivingAcademyCatalog _academyCatalog;
     private GameSession _gameSession;
     private GameData _data => _gameSession.Data;
     private MissionService _missions => _gameSession.Village;
@@ -94,6 +95,7 @@ public partial class Main : Node3D, IGameplayHost
     private FurnitureBuilder _furnitureBuilder;
     private readonly List<IBuildMode> _buildModes = new();
     private VanController _van;
+    private DrivingAcademyController _academy;
     private bool _buildMode;
     private bool _driving;
     private RaceController _races;
@@ -139,7 +141,7 @@ public partial class Main : Node3D, IGameplayHost
             (IsChapterTest && RuntimeSelfTest.ChapterPhase == 0) ||
             (IsRestoreTest && RuntimeSelfTest.RestorePhase == 0) ||
             (IsReleaseTest && RuntimeSelfTest.ReleasePhase == 0) ||
-            IsCityTest)
+            IsCityTest || IsAcademyTest)
             DeleteSelfTestSaves("selftest-save.json");
         else if (IsRecoveryTest && RuntimeSelfTest.RecoveryPhase == 0)
             DeleteSelfTestSaves("selftest-recovery-save.json");
@@ -181,6 +183,14 @@ public partial class Main : Node3D, IGameplayHost
         _van.Initialize(_world.VanSpawn, 0f, _hud);
         _van.EnterRequested += EnterVan;
         _van.Crashed += OnVanCrashed;
+
+        _academy = new DrivingAcademyController { Name = "DrivingAcademy" };
+        AddChild(_academy);
+        _academy.Initialize(_gameSession, _world, _hud, _player, _van, _rig, _audio, this);
+        _van.SetEntryGate(() => _academy.CanDriveRegularVan,
+            () => _academy.CanDriveRegularVan
+                ? "E: Drive the delivery van"
+                : "E: Driving licence needed — visit the school");
 
         _city = new CityWorldAdapter { ProcessMode = ProcessModeEnum.Pausable };
         AddChild(_city);
@@ -271,7 +281,14 @@ public partial class Main : Node3D, IGameplayHost
         if (!CityMissionCatalog.Validate(_cityCatalog, out string cityError))
             throw new InvalidDataException("City job content is incomplete: " + cityError);
 
-        _gameSession = new GameSession(_catalog, _cityCatalog, new GameData());
+        string academyJson = Godot.FileAccess.GetFileAsString(
+            "res://data/driving_academy_lessons.json");
+        if (string.IsNullOrWhiteSpace(academyJson))
+            throw new InvalidDataException(
+                "res://data/driving_academy_lessons.json is missing or empty.");
+        _academyCatalog = DrivingAcademyCatalog.FromJson(academyJson);
+
+        _gameSession = new GameSession(_catalog, _cityCatalog, _academyCatalog, new GameData());
     }
 
     private void ShowFatalContentError(string message)
@@ -321,11 +338,12 @@ public partial class Main : Node3D, IGameplayHost
     private static bool IsHotfixTest => HasUserArg("--selftest-hotfix");
     private static bool IsRestoreTest => HasUserArg("--selftest-restore");
     private static bool IsCityTest => HasUserArg("--selftest-city");
+    private static bool IsAcademyTest => HasUserArg("--selftest-academy");
 
     private static bool IsSelfTest =>
         HasUserArg("--selftest-quality") || HasUserArg("--selftest") || HasUserArg("--selftest-resume") || IsRecoveryTest ||
         IsLivingTest || IsRallyTest || IsChapterTest || IsFinaleTest || IsTraversalTest ||
-        IsReleaseTest || IsHotfixTest || IsRestoreTest || IsCityTest;
+        IsReleaseTest || IsHotfixTest || IsRestoreTest || IsCityTest || IsAcademyTest;
 
     private static bool IsSelfTestResume => HasUserArg("--selftest-resume");
 
@@ -342,6 +360,11 @@ public partial class Main : Node3D, IGameplayHost
     /// existing scenario/capture/self-test command lines, never by accident in
     /// a normal player session.
     /// </summary>
+    internal GameSession RtSession => _gameSession;
+    internal DrivingAcademyController RtAcademy => _academy;
+    internal void RtOpenDrivingSchool() => _academy.OpenSchool();
+    internal void RtSaveForAcademyTest() => SaveGame(SaveReason.Autosave);
+
     internal static bool DeveloperMode =>
         OS.HasFeature("editor") || HasUserArg("--dev") || IsDeveloperRun();
 
@@ -1108,12 +1131,24 @@ public partial class Main : Node3D, IGameplayHost
     private void SyncControlMode()
     {
         if (_hud == null || _player == null || _van == null) return;
-        var mode = ControlModeRules.Resolve(_started, _hud.ModalOpen, _buildMode, _driving);
+        var mode = ControlModeRules.Resolve(_started, _hud.ModalOpen, _buildMode, _driving,
+            _academy?.Active == true);
         var previous = _controlMode;
         _controlMode = mode;
 
         _player.SetControlEnabled(ControlModeRules.PlayerProcessesInput(mode));
-        _van.SetInputEnabled(ControlModeRules.VehicleProcessesInput(mode));
+        _van.SetInputEnabled(ControlModeRules.VehicleProcessesInput(mode) &&
+                             _academy?.Active != true);
+        if (_academy?.Active == true)
+        {
+            _player.SetControlEnabled(false);
+            _academy.SetInputEnabled(mode == ControlMode.Academy ||
+                                     (mode == ControlMode.Walking && !_hud.ModalOpen));
+        }
+        else
+        {
+            _academy?.SetInputEnabled(false);
+        }
         GetTree().Paused = ControlModeRules.PausesWorld(mode);
 
         var mouse = ControlModeRules.CapturesMouse(mode)
@@ -1213,6 +1248,13 @@ public partial class Main : Node3D, IGameplayHost
 
     private void EnterVan()
     {
+        if (!_academy.CanDriveRegularVan)
+        {
+            _hud.ShowInfo("DRIVING LICENCE NEEDED",
+                "New drivers must earn a licence at the Driving School in the west of the village. " +
+                "The learner car is free to use once you enrol.");
+            return;
+        }
         if (!_started || _hud.ModalOpen || _buildMode || _driving) return;
         if (_vehicleSwitchCooldown > 0f) return;
         if (_player.GlobalPosition.DistanceTo(_van.GlobalPosition) > 5.2f)
@@ -1726,10 +1768,21 @@ public partial class Main : Node3D, IGameplayHost
                 if (_hud.ModalDismissible)
                     _hud.CloseModal();
             }
+            else if (_academy?.Active == true)
+            {
+                _academy.ShowPauseMenu();
+            }
             else
             {
                 _hud.ShowPauseMenu(ResumeGame, SaveNow, OpenSettingsFromPause, ConfirmNewGame, ReturnToTitle, QuitGame);
             }
+            GetViewport().SetInputAsHandled();
+            return;
+        }
+
+        if (_academy?.Active == true && @event.IsActionPressed("reset_vehicle"))
+        {
+            _academy.ResetStage();
             GetViewport().SetInputAsHandled();
             return;
         }
@@ -2120,6 +2173,13 @@ public partial class Main : Node3D, IGameplayHost
 
     private void RefreshObjectiveUi()
     {
+        // The academy is an isolated venue: a town job compass pointed at
+        // village coordinates would be both wrong and confusing there.
+        if (_academy?.Active == true)
+        {
+            _hud.SetDestination(null, 0, 0, null);
+            return;
+        }
         if (!_hasDestination)
         {
             _hud.SetDestination(null, 0, 0, null);

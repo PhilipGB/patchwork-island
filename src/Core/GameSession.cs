@@ -11,14 +11,18 @@ public sealed class GameSession
 {
     private readonly MissionCatalog _villageCatalog;
     private readonly CityMissionCatalog _cityCatalog;
+    private readonly DrivingAcademyCatalog _academyCatalog;
     public GameData Data { get; private set; }
     public MissionService Village { get; private set; }
     public CityMissionService City { get; private set; }
+    public DrivingAcademyService Academy { get; private set; }
 
-    public GameSession(MissionCatalog villageCatalog, CityMissionCatalog cityCatalog, GameData data)
+    public GameSession(MissionCatalog villageCatalog, CityMissionCatalog cityCatalog,
+        DrivingAcademyCatalog academyCatalog, GameData data)
     {
         _villageCatalog = villageCatalog ?? throw new ArgumentNullException(nameof(villageCatalog));
         _cityCatalog = cityCatalog ?? throw new ArgumentNullException(nameof(cityCatalog));
+        _academyCatalog = academyCatalog ?? throw new ArgumentNullException(nameof(academyCatalog));
         ReplaceData(data);
     }
 
@@ -29,8 +33,10 @@ public sealed class GameSession
         // session graph intact rather than publishing a partially rebound save.
         var village = new MissionService(data, _villageCatalog);
         var city = new CityMissionService(data, _cityCatalog);
+        var academy = new DrivingAcademyService(data, _academyCatalog);
         Data = data;
         Village = village;
         City = city;
+        Academy = academy;
     }
 }

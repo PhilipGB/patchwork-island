@@ -59,6 +59,19 @@ public sealed class GameData
     public int CitySeed { get; set; } = 20261111;
     public double CityLogicalSeconds { get; set; }
 
+    // v1.5 driving academy. The legacy permit keeps pre-v5 campaigns playable
+    // and is deliberately separate from an earned official licence.
+    public bool AcademyEnrolled { get; set; }
+    public List<string> AcademyCompletedLessons { get; set; } = new();
+    public string AcademyActiveStage { get; set; } = "";
+    public bool AcademyTestPassed { get; set; }
+    public bool DrivingLicenceIssued { get; set; }
+    public bool AcademyGraduationRewardClaimed { get; set; }
+    public bool LegacyVanPermit { get; set; }
+    public int AcademyHelperStep { get; set; }
+    public int AcademyHelperRoundsPaid { get; set; }
+    public int AcademyTestAttempts { get; set; }
+
     public long SavedAtUnix { get; set; }
 
     public void Normalise()
@@ -90,6 +103,11 @@ public sealed class GameData
             CityLogicalSeconds = 0;
         if (SchemaVersion <= 0) SchemaVersion = 1;
         ActiveMission ??= "";
+        AcademyCompletedLessons ??= new();
+        AcademyActiveStage ??= "";
+        AcademyHelperStep = Math.Clamp(AcademyHelperStep, 0, DrivingAcademyRules.HelperConeCount - 1);
+        if (AcademyHelperRoundsPaid < 0) AcademyHelperRoundsPaid = 0;
+        if (AcademyTestAttempts < 0) AcademyTestAttempts = 0;
         NormaliseRepairPickups();
     }
 

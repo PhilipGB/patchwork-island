@@ -129,6 +129,7 @@ godot --headless --path . -- --selftest-traversal
 godot --headless --path . -- --selftest-release
 godot --headless --path . -- --selftest-restore
 godot --headless --path . -- --selftest-city
+godot --headless --path . -- --selftest-academy
 ```
 
 These use isolated `user://selftest-save.json` and
@@ -361,3 +362,36 @@ reduced-motion toggles are persisted. Reduced motion stops marker bobbing.
 Bundled music, UI/world effects and vehicle loops are routed through separate
 audio buses. Visual confirmations also support play with sound disabled. The HUD, title, job board and
 furniture catalogue are tuned for 1280×720 and scale to larger windows.
+
+## v1.5.0 Driving Academy verification
+
+```text
+dotnet run --project tests/PatchworkIsland.Tests.csproj -> 145 passed, 0 failed
+godot --headless --path . -- --selftest                  -> 286 passed, 0 failed
+godot --headless --path . -- --selftest-resume           -> 21 passed, 0 failed
+godot --headless --path . -- --selftest-recovery         -> 101 passed, 0 failed
+godot --headless --path . -- --selftest-living           -> 238 passed, 0 failed
+godot --headless --path . -- --selftest-rally            -> 10 passed, 0 failed
+godot --headless --path . -- --selftest-chapter          -> 217 passed, 0 failed
+godot --headless --path . -- --selftest-hotfix           -> 48 passed, 0 failed
+godot --headless --path . -- --selftest-finale           -> 140 passed, 0 failed
+godot --headless --path . -- --selftest-traversal        -> 18 passed, 0 failed
+godot --headless --path . -- --selftest-release          -> 40 passed, 0 failed
+godot --headless --path . -- --selftest-restore          -> 54 passed, 0 failed
+godot --headless --path . -- --selftest-city             -> 138 passed, 0 failed
+godot --headless --path . -- --selftest-academy          -> 62 passed, 0 failed
+xvfb-run ... godot --path . -- --selftest-quality        -> 22 passed, 0 failed
+```
+
+Schema 5 adds academy state and `LegacyVanPermit`; v1–v4 saves migrate
+automatically. The licence gate applies to new v5 saves only.
+
+The exported Linux binary was booted and passed the same 13 phases, plus the
+packaged graphical quality gate (**22/22**) and packaged graphical academy
+(**62/62**), under Xvfb with disposable XDG directories. The exact binary hash
+and logs are in `evidence/v15_academy/packaged/`.
+
+The fresh-save `--dev --playthrough` run earns the licence with real input, then
+completes M01–M15; it stops at M16 on a pre-existing walkthrough
+NPC-approach/route-planner limitation. That limitation is recorded in
+`docs/DRIVING_ACADEMY_REPORT.md` and is not claimed as a passing full campaign.

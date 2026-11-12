@@ -3140,3 +3140,40 @@ User requested fixes, a Linux all-mission playthrough, clarity/performance work,
 - Remote fetch initially failed on system SSH proxy configuration ownership.
   Per-command `core.sshCommand=ssh -F /dev/null` works; no global SSH settings
   changed. `origin/main` still matches the reviewed base.
+
+## P25 — v1.5.0 Driving Academy — PASS (implementation)
+
+- Added `scenes/academy/` (11 authored scenes), `ui/academy/icons/`, the
+  lesson content contract and the numbered cone yard.
+- School office/yard placed and scaled `0.75` at `(32, 48)` on the open south
+  lawn; footprint tested clear of island edges, buildings, stations and props.
+- Added schema 5 (v1–v4 migration with `LegacyVanPermit`), strict academy
+  validation, and `GameSession` rebinding for village, city and academy.
+- Added one-time 15-coin enrolment, repeatable 3-coin cone job, six spatial
+  lessons, free retries, final assessment (3 minor / 0 major), one-time 5-coin
+  graduation gift and persisted licence.
+- New v5 saves gate the regular van behind the earned licence; migrated saves
+  keep a legacy permit without a false licence.
+- Added isolated venue load/unload at `(2000, 0, 0)`, safe return/Resume,
+  academy HUD/UI, dedicated controller/service/rules and the C02 crate focus fix.
+- CI now runs source and exported-binary graphical checks under Xvfb with
+  disposable XDG directories.
+
+Final verification at the PR head (logs and hashes in `evidence/v15_academy/`):
+
+- Build: 0 warnings, 0 errors.
+- Pure tests: **145 passed, 0 failed**.
+- Source runtime, 13 phases: **1373 passed, 0 failed** (base 286, resume 21,
+  recovery 101, living 238, rally 10, chapter 217, hotfix 48, finale 140,
+  traversal 18, release 40, restore 54, city 138, academy 62).
+- Source graphical quality (Xvfb): **22 passed, 0 failed**.
+- Exported Linux binary: boot exit 0; all 13 phases **1373 passed, 0 failed**;
+  packaged graphical quality **22/22** and packaged graphical academy **62/62**.
+- Fresh-save graphical walkthrough: licence earned through real input, then
+  M01–M15 completed. Stopped at M16 on a pre-existing walkthrough
+  NPC-approach/route-planner limitation; recorded as **PARTIAL** for C03/E03,
+  not claimed as a full-campaign pass.
+- 720p/1080p evidence: 16 screenshots; GPU performance recorded on the AMD
+  Radeon 890M. Windows gameplay startup remains **NOT TESTED**.
+- PR opened against #34's branch; #34 itself was not modified, merged, tagged or
+  released.

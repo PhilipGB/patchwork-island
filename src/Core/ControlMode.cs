@@ -8,6 +8,7 @@ public enum ControlMode
     Title,
     Walking,
     Driving,
+    Academy,
     Building,
     Modal,
 }
@@ -18,21 +19,24 @@ public enum ControlMode
 /// </summary>
 public static class ControlModeRules
 {
-    public static ControlMode Resolve(bool started, bool modalOpen, bool building, bool driving)
+    public static ControlMode Resolve(bool started, bool modalOpen, bool building,
+        bool driving, bool academy = false)
     {
         if (!started) return ControlMode.Title;
         if (modalOpen) return ControlMode.Modal;
         if (building) return ControlMode.Building;
+        if (academy) return ControlMode.Academy;
         if (driving) return ControlMode.Driving;
         return ControlMode.Walking;
     }
 
     public static bool PlayerProcessesInput(ControlMode mode) => mode == ControlMode.Walking;
 
-    public static bool VehicleProcessesInput(ControlMode mode) => mode == ControlMode.Driving;
+    public static bool VehicleProcessesInput(ControlMode mode) =>
+        mode is ControlMode.Driving or ControlMode.Academy;
 
     public static bool CapturesMouse(ControlMode mode) =>
-        mode is ControlMode.Walking or ControlMode.Driving;
+        mode is ControlMode.Walking or ControlMode.Driving or ControlMode.Academy;
 
     public static bool PausesWorld(ControlMode mode) =>
         mode is ControlMode.Title or ControlMode.Modal;

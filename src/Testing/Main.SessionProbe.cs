@@ -20,8 +20,9 @@ public partial class Main
         internal void ConfirmNewGame() => _game.ConfirmNewGame();
         internal void RequestNewGameFromTitle() => _game.StartNewGameFromTitle();
         internal SaveResult StartNewGameFromTitleConfirmed() =>
-            _game.BeginNewGameFromTitle(CharacterCustomisation.DefaultPreset);
-        internal SaveResult StartNewGameFromTitleConfirmed(string preset) => _game.BeginNewGameFromTitle(preset);
+            GrantLegacyForFixture(_game.BeginNewGameFromTitle(CharacterCustomisation.DefaultPreset));
+        internal SaveResult StartNewGameFromTitleConfirmed(string preset) =>
+            GrantLegacyForFixture(_game.BeginNewGameFromTitle(preset));
         internal SaveResult StartNewGame(string preset) => _game.ResetSession(preset);
         internal void OpenClothesShop() => _game.VillageStations.InteractClothesShop();
         internal bool PressModalButton(string name)
@@ -66,7 +67,21 @@ public partial class Main
         internal void CloseModal() => _game._hud.CloseModal();
         internal bool SaveNow() => _game.SaveGame(SaveReason.Manual).Success;
         internal bool ForceAutosave() => _game.SaveGame(SaveReason.Autosave).Success;
-        internal SaveResult StartNewGame() => _game.ResetSession();
+        internal SaveResult StartNewGame() => GrantLegacyForFixture(_game.ResetSession());
+
+        /// <summary>
+        /// Existing runtime phases model pre-v1.5 campaigns. The licence gate is
+        /// covered separately by FreshSessionChecks and the academy phase.
+        /// </summary>
+        private SaveResult GrantLegacyForFixture(SaveResult result)
+        {
+            if (result.Success && _game._data != null)
+            {
+                _game._data.LegacyVanPermit = true;
+                _game.SaveGame(SaveReason.Autosave);
+            }
+            return result;
+        }
         internal int Coins => _game._data.Coins;
         internal string CoinText => _game._hud.CoinText;
         internal int CompletedCount => _game._data.CompletedMissions.Count;

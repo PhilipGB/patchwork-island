@@ -1,0 +1,19 @@
+# Driving Academy source gates, exact head
+
+pure-tests  RESULT: 145 passed, 0 failed
+runtime-base       RUNTIME RESULT: 286 passed, 0 failed
+runtime-resume     RUNTIME RESULT: 21 passed, 0 failed
+runtime-recovery   RUNTIME RESULT: 101 passed, 0 failed
+runtime-living     RUNTIME RESULT: 238 passed, 0 failed
+runtime-rally      RUNTIME RESULT: 10 passed, 0 failed
+runtime-chapter    RUNTIME RESULT: 217 passed, 0 failed
+runtime-hotfix     RUNTIME RESULT: 48 passed, 0 failed
+runtime-finale     RUNTIME RESULT: 140 passed, 0 failed
+runtime-traversal  RUNTIME RESULT: 18 passed, 0 failed
+runtime-release    RUNTIME RESULT: 40 passed, 0 failed
+runtime-restore    RUNTIME RESULT: 54 passed, 0 failed
+runtime-city       CITY RUNTIME RESULT: 138 passed, 0 failed
+runtime-academy    RUNTIME RESULT: 62 passed, 0 failed
+quality              QUALITY RESULT: 22 passed, 0 failed
+capture-720          ACADEMY SHOT x8
+capture-1080         ACADEMY SHOT x8

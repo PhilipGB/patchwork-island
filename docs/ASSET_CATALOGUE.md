@@ -36,3 +36,15 @@ interpolation from the original 13 source control points, width 8 m, shoulders
 
 The 18 user-provided tour images are in `references/`, alongside
 `docs/layout_top_down.png` and the numerical manifest.
+
+## Driving Academy (v1.5.0)
+
+- `scenes/academy/DrivingAcademyCourse.tscn`: authored 224 × 196 m course with
+  ground/road collision, markings, signs, lights and 27 gameplay markers.
+- `scenes/academy/DrivingSchoolOffice.tscn`: solid school exterior with
+  `EnrollmentInteraction` and `EntranceApproach`.
+- `scenes/academy/DrivingSchoolYard.tscn`: three numbered authored cones.
+- `scenes/academy/assets/TrainingCar_Visual.tscn`: learner car visual.
+- `scenes/academy/assets/{PracticeGate,StopSign,GiveWaySign,SpeedSign,TrafficLight,TrafficCone,AcademyInstructor}.tscn`.
+- `ui/academy/icons/*.svg` and mirrors in `assets/icons/` for the HUD.
+- `data/driving_academy_lessons.json`: lesson/marker content contract.

@@ -60,7 +60,11 @@ internal sealed class CityGameplayController
             var station = AddCityStation($"CityCrateStation_{crate}", $"C02_Crate_{crate}",
                 "E: Collect stock crate", () => InteractCityCrate(crate),
                 () => CityCratePrompt(crate));
+            // C02 crates only take E focus while C02 is the active city job,
+            // the road is open, C02 is unfinished and this crate is unconsumed.
             station.AvailableProvider = () => _data.CityRoadOpen &&
+                _cityMissions.ActiveMission?.Id == "C02" &&
+                !_data.CompletedCityMissions.Contains("C02") &&
                 _cityMissions.Progress("C02", $"crate_{crate}") <= 0;
         }
         AddCityStation("CityStallStation", "C02_Stall", "E: Market stall", InteractCityMarketStall,

@@ -36,7 +36,7 @@ public static class SaveService
     /// The persistence contract, deliberately separate from the game release
     /// version. Increment this only when the saved data shape changes.
     /// </summary>
-    public const int CurrentVersion = 4;
+    public const int CurrentVersion = 5;
     public const string DefaultFileName = "save.json";
 
     // Narrow test seam for deterministic write failures. It is process-local,
@@ -192,6 +192,14 @@ public static class SaveService
                     data.CityLogicalSeconds = 0;
                     if (data.CitySeed == 0) data.CitySeed = 20261111;
                     data.SchemaVersion = 4;
+                    break;
+
+                case 4:
+                    // Schema 4 predates the driving academy. Every existing
+                    // campaign keeps the van access it already had, but that is
+                    // a legacy permit, not an earned official licence.
+                    data.LegacyVanPermit = true;
+                    data.SchemaVersion = 5;
                     break;
 
                 default:

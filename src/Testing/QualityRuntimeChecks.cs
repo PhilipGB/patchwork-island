@@ -142,6 +142,41 @@ public partial class QualityRuntimeChecks : Node
                     x == 480f ? "small-step assist cannot climb a one-metre wall" : "small-step assist rejects blocked headroom");
             }
             tall.QueueFree(); low.QueueFree(); ceiling.QueueFree();
+            // Academy graphical input/UI lifecycle on the actual rendered venue.
+            var academy = Main.RtAcademy;
+            var academyService = Main.RtSession.Academy;
+            Main.Probe.Data.Coins = 15;
+            var world = Main.GetNode<WorldSceneAdapter>("Village");
+            Main.Probe.TeleportPlayer(world.SchoolMarker("EntranceApproach").GlobalPosition +
+                new Vector3(0, 0.1f, -1.2f), Mathf.Pi);
+            await Wait(.6);
+            Main.RtOpenDrivingSchool();
+            await Wait(.4);
+            Check(Main.Probe.ModalTitle == "DRIVING SCHOOL" &&
+                  Main.Probe.FindModalButton("AcademyEnrol") != null,
+                "academy office renders its enrolment UI");
+            Main.Probe.PressModalButton("AcademyEnrol");
+            await Wait(.5);
+            Check(academyService.Enrolled, "academy enrolment click is accepted");
+            Main.Probe.PressModalButton("AcademyStart_L01");
+            await Wait(.8);
+            Check(academy.Active && academy.TrainingCar != null,
+                "academy lesson renders the learner car and HUD");
+            academy.TestPlaceCar(academy.TestMarker("Lesson01_Accelerate"),
+                academy.TestMarkerYaw("Lesson01_Accelerate"), 3f);
+            await Wait(.3);
+            academy.TestPlaceCar(academy.TestMarker("Lesson01_Stop"),
+                academy.TestMarkerYaw("Lesson01_Stop"), 0f);
+            await Wait(1.8);
+            Check(academyService.LessonCompleted("L01"),
+                "academy lesson completes through the rendered scene");
+            Main.Probe.PressModalButton("AcademyBackToSchool");
+            await Wait(.6);
+            Check(!academy.Active && Main.Probe.PlayerVisible,
+                "academy returns to the walking town without an orphaned venue");
+            if (Main.Probe.ModalOpen) Main.Probe.CloseModal();
+            await Wait(.3);
+
             var audio = Main.GetNode<AudioManager>("AudioManager");
             audio.PlayMusic("rally", .3f);
             audio.StopAll();

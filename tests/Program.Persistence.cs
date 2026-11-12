@@ -76,7 +76,7 @@ internal static partial class Program
             }
         });
 
-        Run("incompatible newer schema 5 and 99 saves are rejected without modification", () =>
+        Run("incompatible newer schema 6 and 99 saves are rejected without modification", () =>
         {
             string dir = TempDirectory("patchwork-save-invalid");
             string path = Path.Combine(dir, SaveService.DefaultFileName);
@@ -85,7 +85,7 @@ internal static partial class Program
                 var missing = SaveService.Load(path);
                 Check(!missing.Success, "missing save is not loaded");
 
-                foreach (int version in new[] { 5, 99 })
+                foreach (int version in new[] { 6, 99 })
                 {
                     // These values are deliberately incompatible with the
                     // current GameData types. The schema must be classified

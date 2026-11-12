@@ -175,6 +175,13 @@ public partial class Hud : CanvasLayer
         _coinLabel.Text = text;
     }
 
+    /// <summary>Hide the town mission card/destination during an isolated lesson.</summary>
+    public void SetAcademyOverlay(bool active)
+    {
+        if (_missionCard != null) _missionCard.Visible = !active;
+        if (_destPanel != null) _destPanel.Visible = !active;
+    }
+
     public void SetNoMission()
     {
         _lastMissionIconName = "star";

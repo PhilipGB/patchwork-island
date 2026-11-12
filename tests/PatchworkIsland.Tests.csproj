@@ -37,6 +37,9 @@
     <Compile Include="../src/Core/RoadworksRules.cs" Link="Core/RoadworksRules.cs" />
     <Compile Include="../src/Core/CityLayout.cs" Link="Core/CityLayout.cs" />
     <Compile Include="../src/Core/CitySimulation.cs" Link="Core/CitySimulation.cs" />
+    <Compile Include="../src/Core/DrivingAcademyCatalog.cs" Link="Core/DrivingAcademyCatalog.cs" />
+    <Compile Include="../src/Core/DrivingAcademyRules.cs" Link="Core/DrivingAcademyRules.cs" />
+    <Compile Include="../src/Core/DrivingAcademyService.cs" Link="Core/DrivingAcademyService.cs" />
     <Compile Include="../src/Core/CityMissionCatalog.cs" Link="Core/CityMissionCatalog.cs" />
     <Compile Include="../src/Core/CityMissionService.cs" Link="Core/CityMissionService.cs" />
     <Compile Include="../src/Npc/NpcDefinition.cs" Link="Npc/NpcDefinition.cs" />

@@ -149,14 +149,28 @@ public partial class CityRuntimeSelfTest : Node
         Expect(Main.Probe.Data.Coins == wallet + 20, "courier pays its 20 coins once");
         Expect(!cityMissions.TurnInAtBoard().Success, "courier cannot be turned in twice");
 
+        Interactable Crate(int index) => GetTree().GetNodesInGroup("interactable")
+            .OfType<Interactable>().FirstOrDefault(n => n.Name == $"CityCrateStation_{index}");
+
+        Expect(!Crate(0).IsAvailable(), "C02 crates take no focus with no active C02");
         Expect(cityMissions.StartMission("C02").Success, "C02 starts independently");
-        for (int i = 0; i < 6; i++)
+        Expect(Crate(0).IsAvailable(), "C02 crates take focus when C02 is active");
+        Expect(cityMissions.CollectMarketCrate(0).Success, "market crate 0 collected");
+        Expect(!Crate(0).IsAvailable(), "a consumed crate loses E focus immediately");
+        Expect(Crate(1).IsAvailable(), "the next unconsumed crate keeps focus");
+        Expect(cityMissions.StartMission("C03").Success, "switch away from C02");
+        Expect(!Crate(1).IsAvailable(), "crates lose focus while another city job is active");
+        Expect(cityMissions.StartMission("C02").Success, "switch back to C02");
+        Expect(Crate(1).IsAvailable(), "crates regain focus with C02 restored");
+        for (int i = 1; i < 6; i++)
             Expect(cityMissions.CollectMarketCrate(i).Success, $"market crate {i} collected");
         Expect(!cityMissions.AnswerMarketStock(5).Success, "market rejects 5");
         Expect(cityMissions.AnswerMarketStock(6).Success, "2 × 3 = 6 is accepted");
         wallet = Main.Probe.Data.Coins;
         Expect(cityMissions.TurnInAtBoard().Success, "market stock-up turns in");
         Expect(Main.Probe.Data.Coins == wallet + 24, "market stock-up pays 24 coins");
+        Expect(!Crate(0).IsAvailable() && !Crate(5).IsAvailable(),
+            "completed C02 keeps every crate out of the E scan");
 
         Expect(cityMissions.StartMission("C03").Success, "C03 starts independently");
         Expect(!cityMissions.RepairCabinet(1, "amber").Success, "cabinet 1 rejects amber");

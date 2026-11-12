@@ -383,6 +383,21 @@ public partial class RuntimeSelfTest
         await Wait(0.25f);
         Expect(!Main.Probe.Paused && Main.Probe.Mode == "Walking", "leaving the shop resumes walking");
 
+        // New v5 saves must earn a licence before the regular van unlocks.
+        Expect(!Main.Probe.Data.LegacyVanPermit && !Main.Probe.Data.DrivingLicenceIssued,
+            "a new v5 save starts without regular van access");
+        Main.Probe.EnterVan();
+        await Wait(0.25f);
+        Expect(!Main.Probe.VanControlled &&
+               Main.Probe.ModalTitle == "DRIVING LICENCE NEEDED",
+            "the regular van is gated behind the driving licence");
+        Main.Probe.CloseModal();
+        await Wait(0.2f);
+
+        // The rest of this legacy runtime fixture keeps van-driving coverage by
+        // marking the save as an older campaign, not by granting a licence.
+        Main.Probe.Data.LegacyVanPermit = true;
+
         // Driving pause: input, physics and race timer must all stop.
         Main.Probe.EnterVan();
         await Wait(0.3f);

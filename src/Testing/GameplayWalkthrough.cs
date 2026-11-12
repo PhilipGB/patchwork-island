@@ -19,6 +19,7 @@ public partial class GameplayWalkthrough : Node
     private CameraRig Rig => Main.GetNode<CameraRig>("CameraRig");
     private Hud Hud => Main.GetNode<Hud>("Hud");
     private VanController Van => Main.GetNode<VanController>("Van");
+    private DrivingAcademyController Academy => Main.RtAcademy;
     private readonly Dictionary<Vector2I, bool> _walkable = new();
     private readonly HashSet<Vector2I> _blocked = new();
     private string _stage = "boot";
@@ -39,6 +40,12 @@ public partial class GameplayWalkthrough : Node
             await Wait(1);
             if (Main.Probe.CanContinue) await Button("Continue adventure");
             else { await Button("Start adventure"); await Button("Choose_boy"); }
+            if (!Main.Probe.Data.DrivingLicenceIssued && !Main.Probe.Data.LegacyVanPermit)
+            {
+                _stage = "academy";
+                Log("earning the driving licence before M05");
+                await CompleteAcademy();
+            }
             if (Van.Driven)
             {
                 Stop();
@@ -291,6 +298,198 @@ public partial class GameplayWalkthrough : Node
             if (!socket.Placed) throw new Exception("socket click did not place " + socket.SocketId);
         }
     }
+    private async Task CompleteAcademy()
+    {
+        var service = Main.RtSession.Academy;
+        if (!service.Enrolled)
+        {
+            int guard = 0;
+            while (Main.Probe.Coins < 15 && guard++ < 12)
+            {
+                for (int cone = 1; cone <= 3; cone++)
+                    await Use($"AcademyConeStation_{cone}");
+                await Wait(.2f);
+            }
+            if (Main.Probe.Coins < 15) throw new Exception("cone job did not reach enrolment cost");
+            await Use("DrivingSchoolStation");
+            await Wait(.3f);
+            await Button("AcademyEnrol");
+            await Wait(.5f);
+        }
+
+        foreach (string id in new[] { "L01", "L02", "L03", "L04", "L05", "L06" })
+        {
+            if (service.LessonCompleted(id)) continue;
+            await StartAcademyStage(id);
+            switch (id)
+            {
+                case "L01":
+                    Input.ActionPress("move_forward");
+                    await Wait(1.4f);
+                    Input.ActionRelease("move_forward");
+                    GD.Print($"ACADEMY WALK L01 after accel car={Academy.TrainingCar?.GlobalPosition} " +
+                             $"speed={Academy.TrainingCar?.Speed} stage={Academy.CurrentStage}");
+                    await DriveTraining(Academy.TestMarker("Lesson01_Stop"));
+                    await Wait(1.8f);
+                    break;
+                case "L02":
+                    await DriveTraining(Academy.TestMarker("Lesson02_Gate01"));
+                    await DriveTraining(Academy.TestMarker("Lesson02_Gate02"));
+                    await DriveTraining(Academy.TestMarker("Lesson02_Gate02") + new Vector3(20, 0, 0));
+                    await DriveTraining(Academy.TestMarker("Lesson02_Gate03"));
+                    break;
+                case "L03":
+                    await DriveTraining(Academy.TestMarker("Lesson03_StopApproach"));
+                    await Wait(2.4f);
+                    GD.Print($"ACADEMY L03 after hold step={Academy.TestStep} " +
+                             $"car={Academy.TrainingCar?.GlobalPosition} speed={Academy.TrainingCar?.Speed} " +
+                             $"done={Main.RtSession.Academy.LessonCompleted("L03")}");
+                    await DriveTraining(Academy.TestMarker("Lesson03_AfterStop"));
+                    GD.Print($"ACADEMY L03 after release step={Academy.TestStep} " +
+                             $"car={Academy.TrainingCar?.GlobalPosition} " +
+                             $"done={Main.RtSession.Academy.LessonCompleted("L03")}");
+                    break;
+                case "L04":
+                    await DriveTraining(Academy.TestMarker("Lesson04_TrafficLight") + new Vector3(0, 0, -8));
+                    await WaitForGreen();
+                    await Wait(4.2f);
+                    await DriveTraining(Academy.TestMarker("Lesson04_Crossing"));
+                    await DriveTraining(Academy.TestMarker("Lesson04_GiveWay"));
+                    break;
+                case "L05":
+                    await DriveTraining(Academy.TestMarker("Lesson05_Start"));
+                    await ReverseTraining(2.6f);
+                    await Wait(.4f);
+                    await DriveTraining(Academy.TestMarker("Lesson05_ParkingTarget"));
+                    await Wait(2.2f);
+                    break;
+                case "L06":
+                    await DriveTraining(Academy.TestMarker("Lesson06_Checkpoint01"));
+                    await DriveTraining(Academy.VenueOrigin + new Vector3(74, 0, -68));
+                    await DriveTraining(Academy.TestMarker("Lesson06_Checkpoint02"));
+                    await DriveTraining(Academy.VenueOrigin + new Vector3(74, 0, 68));
+                    await DriveTraining(Academy.TestMarker("Lesson06_Checkpoint03"));
+                    await DriveTraining(Academy.VenueOrigin + new Vector3(-74, 0, 68));
+                    await DriveTraining(Academy.TestMarker("Lesson06_Checkpoint04"));
+                    break;
+            }
+            await Wait(.5f);
+            if (!service.LessonCompleted(id)) throw new Exception(id + " did not complete");
+            if (Main.Probe.ModalOpen) await Button("AcademyBackToSchool");
+            await Wait(.5f);
+        }
+
+        await StartAcademyStage("TEST01");
+        await DriveTraining(Academy.VenueOrigin + new Vector3(0, 0, -68));
+        await DriveTraining(Academy.TestMarker("Final_Stop") + new Vector3(0, 0, -6));
+        await Wait(2.4f);
+        await WaitForGreen();
+        await Wait(4.2f);
+        await DriveTraining(Academy.TestMarker("Final_Stop") + new Vector3(0, 0, 9));
+        await DriveTraining(Academy.TestMarker("Final_Crossing") + new Vector3(9, 0, 0));
+        await DriveTraining(Academy.VenueOrigin);
+        await DriveTraining(Academy.VenueOrigin + new Vector3(0, 0, 68));
+        await DriveTraining(Academy.VenueOrigin + new Vector3(-32, 0, 68));
+        await DriveTraining(Academy.TestMarker("Final_Park"));
+        await Wait(2.6f);
+        GD.Print($"ACADEMY TEST FINAL step={Academy.TestStep} car={Academy.TrainingCar?.GlobalPosition} " +
+                 $"speed={Academy.TrainingCar?.Speed} yaw={Academy.TrainingCar?.RotationDegrees.Y} " +
+                 $"modal={Main.Probe.ModalOpen} title={Main.Probe.ModalTitle}");
+        if (!Main.Probe.Data.DrivingLicenceIssued)
+            throw new Exception($"final academy test did not issue the licence " +
+                $"(major={AchievementErrors()})");
+
+        if (Main.Probe.ModalOpen) await Button("AcademyBackToSchool");
+        await Wait(.5f);
+        await Dismiss();
+        Log("driving licence earned");
+    }
+
+    private async Task StartAcademyStage(string id)
+    {
+        if (!Main.Probe.ModalOpen)
+        {
+            await Use("DrivingSchoolStation");
+            await Wait(.3f);
+        }
+        if (!Main.Probe.PressModalButton("AcademyStart_" + id))
+            throw new Exception("academy start button missing for " + id);
+        await Wait(.6f);
+        if (!Academy.Active) throw new Exception("academy stage did not load " + id);
+    }
+
+    private string AchievementErrors() =>
+        $"major={Academy.MajorErrors} minor={Academy.MinorErrors} stage={Academy.CurrentStage}";
+
+    private async Task WaitForGreen()
+    {
+        for (int i = 0; i < 160 && Academy.Light != AcademyLight.Green; i++)
+            await Wait(.1f);
+        if (Academy.Light != AcademyLight.Green)
+            throw new Exception("traffic light never turned green");
+        await Wait(.2f);
+    }
+
+    private async Task DriveTraining(Vector3 point)
+    {
+        var car = Academy.TrainingCar ?? throw new Exception("learner car missing");
+        for (int tick = 0; Horizontal(car.GlobalPosition, point) > 2.6f; tick++)
+        {
+            if (tick > 900) throw new Exception("learner car stuck " + point + " at " + car.GlobalPosition);
+            if (tick > 0 && tick % 120 == 0)
+            {
+                GD.Print($"ACADEMY DRIVE recover tick={tick} car={car.GlobalPosition} " +
+                         $"speed={car.Speed} target={point}");
+                Stop();
+                Input.ActionPress("move_back");
+                await Wait(0.8f);
+                Input.ActionRelease("move_back");
+                Stop();
+            }
+            var to = point - car.GlobalPosition;
+            float distance = to.Length();
+            float desired = Mathf.Atan2(-to.X, -to.Z);
+            float angle = Mathf.Wrap(desired - car.Rotation.Y, -Mathf.Pi, Mathf.Pi);
+            Stop();
+            Input.ActionPress(angle > 0 ? "move_left" : "move_right",
+                Mathf.Clamp(Mathf.Abs(angle) * 2.4f, 0, 1));
+            if (distance < 9f && car.Speed > 2f)
+                Input.ActionPress("move_back", .7f);
+            else if (Mathf.Abs(angle) < .5f)
+                Input.ActionPress("move_forward", car.Speed > 7.2f ? 0 : .45f);
+            else if (car.Speed > .2f) Input.ActionPress("move_back", .55f);
+            else if (car.Speed < -.2f) Input.ActionPress("move_forward", .55f);
+            await Wait(.06f);
+            if (Main.Probe.ModalOpen || Academy.CurrentStage.Length == 0)
+            {
+                GD.Print($"ACADEMY DRIVE break tick={tick} modal={Main.Probe.ModalOpen} " +
+                         $"title={Main.Probe.ModalTitle} stage={Academy.CurrentStage} car={car.GlobalPosition}");
+                break;
+            }
+        }
+        Stop();
+        for (int i = 0; i < 60 && !Main.Probe.ModalOpen && car.Speed > .2f; i++)
+        {
+            Input.ActionPress("move_back", .8f);
+            await Wait(.08f);
+            Input.ActionRelease("move_back");
+            await Wait(.04f);
+        }
+        Stop();
+        for (int i = 0; i < 40 && Mathf.Abs(car.Speed) > .2f; i++) await Wait(.1f);
+    }
+
+    private async Task ReverseTraining(float seconds)
+    {
+        var car = Academy.TrainingCar ?? throw new Exception("learner car missing");
+        Stop();
+        Input.ActionPress("move_back");
+        for (float elapsed = 0; elapsed < seconds; elapsed += .1f) await Wait(.1f);
+        Input.ActionRelease("move_back");
+        for (int i = 0; i < 40 && Mathf.Abs(car.Speed) > .2f; i++) await Wait(.1f);
+        Stop();
+    }
+
     private async Task Race(bool grand)
     {
         await Use(Van.FindChild("VanEntry", true, false) as Interactable ?? throw new Exception("van entry"));

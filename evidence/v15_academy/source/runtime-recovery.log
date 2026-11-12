@@ -1,0 +1,191 @@
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+
+Unicode parsing error, some characters were replaced with � (U+FFFD): Invalid UTF-8 leading byte (b7)
+[WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 158 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.
+[CITY SCENE] res://scenes/city/CityDistrict.tscn: 36 buildings, 36 HLOD proxies, 9 cells, 15 job markers, 4 vehicle routes, 11 pedestrian routes.
+PASS  nine-mission seed save written
+Unicode parsing error, some characters were replaced with � (U+FFFD): Invalid UTF-8 leading byte (b7)
+[WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 158 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.
+[CITY SCENE] res://scenes/city/CityDistrict.tscn: 36 buildings, 36 HLOD proxies, 9 cells, 15 job markers, 4 vehicle routes, 11 pedestrian routes.
+PASS  seed save offers Continue
+PASS  loaded seed matches memory
+PASS  new game confirmation opens from title
+PASS  cancelled confirmation returns to title
+PASS  cancelled confirmation leaves the save untouched
+Save failed (recoverable I/O): System.IO.IOException: injected save failure
+   at PatchworkIsland.SaveService.InjectTestWriteFailure(String path) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 57
+   at PatchworkIsland.SaveService.Save(GameData data, String path, MissionCatalog catalog, Boolean allowNewerReplacement) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 94
+   at PatchworkIsland.SaveService.TrySave(GameData data, String path, MissionCatalog catalog, Boolean allowNewerReplacement) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 127
+Save failed (recoverable I/O): System.IO.IOException: injected save failure
+   at PatchworkIsland.SaveService.InjectTestWriteFailure(String path) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 57
+   at PatchworkIsland.SaveService.Save(GameData data, String path, MissionCatalog catalog, Boolean allowNewerReplacement) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 94
+   at PatchworkIsland.SaveService.TrySave(GameData data, String path, MissionCatalog catalog, Boolean allowNewerReplacement) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 127
+PASS  failed New Game reports failure
+PASS  failed New Game runs the new in-memory session
+PASS  failed New Game is not marked persisted
+PASS  failed New Game preserves the previous save
+Save failed (recoverable I/O): System.IO.IOException: injected save failure
+   at PatchworkIsland.SaveService.InjectTestWriteFailure(String path) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 57
+   at PatchworkIsland.SaveService.Save(GameData data, String path, MissionCatalog catalog, Boolean allowNewerReplacement) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 94
+   at PatchworkIsland.SaveService.TrySave(GameData data, String path, MissionCatalog catalog, Boolean allowNewerReplacement) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 127
+PASS  failed return-to-title asks before discarding
+PASS  return anyway shows the title
+PASS  Continue is still offered for the persisted save, not discarded memory
+PASS  title explains that Continue reloads the persisted village
+PASS  discarding the new session leaves the save untouched
+PASS  Continue requested a persisted-session reload
+Unicode parsing error, some characters were replaced with � (U+FFFD): Invalid UTF-8 leading byte (b7)
+[WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 158 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.
+[CITY SCENE] res://scenes/city/CityDistrict.tscn: 36 buildings, 36 HLOD proxies, 9 cells, 15 job markers, 4 vehicle routes, 11 pedestrian routes.
+PASS  Continue restored the persisted nine-mission village
+PASS  reloaded village matches memory
+PASS  Continue rebuilt bridge, swings and park
+PASS  Continue restored the saved player position
+PASS  Continue restored the active mission
+PASS  Continue reload restores the saved girl character
+PASS  Continue reload restores the saved outfit ownership and appearance
+PASS  loaded save remains continuable
+PASS  Continue reload does not overwrite the persisted save
+PASS  settings modal opens from pause
+Save failed (recoverable I/O): System.IO.IOException: injected settings failure
+   at PatchworkIsland.SaveService.InjectTestWriteFailure(String path) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 57
+   at PatchworkIsland.SaveService.Save(GameData data, String path, MissionCatalog catalog, Boolean allowNewerReplacement) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 94
+   at PatchworkIsland.SaveService.TrySave(GameData data, String path, MissionCatalog catalog, Boolean allowNewerReplacement) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 127
+PASS  settings failure is shown inside the modal
+PASS  settings change takes effect in memory before persistence
+PASS  settings failure keeps the modal open
+PASS  settings returns to pause after failure
+Save failed (recoverable I/O): System.IO.IOException: injected autosave failure
+   at PatchworkIsland.SaveService.InjectTestWriteFailure(String path) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 57
+   at PatchworkIsland.SaveService.Save(GameData data, String path, MissionCatalog catalog, Boolean allowNewerReplacement) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 94
+   at PatchworkIsland.SaveService.TrySave(GameData data, String path, MissionCatalog catalog, Boolean allowNewerReplacement) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 127
+PASS  autosave failure is reported
+PASS  first autosave warning survives a settings failure
+PASS  autosave succeeds after recovery
+PASS  settings retry replaces the failure message
+PASS  settings retry applies the persisted value
+PASS  settings returns to pause after success
+PASS  unsaved gameplay movement changed the live session
+Save failed (recoverable I/O): System.IO.IOException: injected return failure
+   at PatchworkIsland.SaveService.InjectTestWriteFailure(String path) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 57
+   at PatchworkIsland.SaveService.Save(GameData data, String path, MissionCatalog catalog, Boolean allowNewerReplacement) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 94
+   at PatchworkIsland.SaveService.TrySave(GameData data, String path, MissionCatalog catalog, Boolean allowNewerReplacement) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 127
+PASS  failed return offers discard
+PASS  discarded movement leaves Continue pointing at the persisted save
+PASS  failed return leaves the disk save unchanged
+Unicode parsing error, some characters were replaced with � (U+FFFD): Invalid UTF-8 leading byte (b7)
+[WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 158 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.
+[CITY SCENE] res://scenes/city/CityDistrict.tscn: 36 buildings, 36 HLOD proxies, 9 cells, 15 job markers, 4 vehicle routes, 11 pedestrian routes.
+PASS  Continue after discard restores persisted progress
+PASS  Continue after discard restores the persisted player position
+PASS  Continue after discard restores the active mission
+PASS  successful return keeps the current session continuable
+PASS  successful New Game persists
+PASS  successful New Game starts at zero progress
+PASS  successful New Game is marked persisted
+PASS  successful New Game is on disk
+PASS  title continues the successful new session
+PASS  Continue restores the successful new session, not the previous village
+Unicode parsing error, some characters were replaced with � (U+FFFD): Invalid UTF-8 leading byte (b7)
+[WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 158 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.
+[CITY SCENE] res://scenes/city/CityDistrict.tscn: 36 buildings, 36 HLOD proxies, 9 cells, 15 job markers, 4 vehicle routes, 11 pedestrian routes.
+PASS  missing save shows no false Continue
+PASS  no save is present for the first-ever attempt
+Save failed (recoverable I/O): System.IO.IOException: injected first-save failure
+   at PatchworkIsland.SaveService.InjectTestWriteFailure(String path) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 57
+   at PatchworkIsland.SaveService.Save(GameData data, String path, MissionCatalog catalog, Boolean allowNewerReplacement) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 94
+   at PatchworkIsland.SaveService.TrySave(GameData data, String path, MissionCatalog catalog, Boolean allowNewerReplacement) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 127
+Save failed (recoverable I/O): System.IO.IOException: injected first-save failure
+   at PatchworkIsland.SaveService.InjectTestWriteFailure(String path) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 57
+   at PatchworkIsland.SaveService.Save(GameData data, String path, MissionCatalog catalog, Boolean allowNewerReplacement) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 94
+   at PatchworkIsland.SaveService.TrySave(GameData data, String path, MissionCatalog catalog, Boolean allowNewerReplacement) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 127
+PASS  failed first-ever New Game reports failure
+PASS  failed first-ever New Game still runs
+PASS  failed first-ever save creates no false Continue state
+PASS  failed first-ever save writes no file
+Save failed (recoverable I/O): System.IO.IOException: injected first-save failure
+   at PatchworkIsland.SaveService.InjectTestWriteFailure(String path) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 57
+   at PatchworkIsland.SaveService.Save(GameData data, String path, MissionCatalog catalog, Boolean allowNewerReplacement) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 94
+   at PatchworkIsland.SaveService.TrySave(GameData data, String path, MissionCatalog catalog, Boolean allowNewerReplacement) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 127
+PASS  failed first-ever return asks before discarding
+PASS  failed first-ever session has no Continue after discard
+PASS  no-save discard does not promise a Continue that does not exist
+PASS  no-save Start adventure asks for a character
+PASS  choosing a character resets a discarded session when no save exists
+PASS  Start adventure writes the fresh no-save session
+PASS  backup-only recovery seed prepared
+Unicode parsing error, some characters were replaced with � (U+FFFD): Invalid UTF-8 leading byte (b7)
+[WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 158 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.
+[CITY SCENE] res://scenes/city/CityDistrict.tscn: 36 buildings, 36 HLOD proxies, 9 cells, 15 job markers, 4 vehicle routes, 11 pedestrian routes.
+PASS  backup recovery offers Continue
+PASS  recovered backup matches memory
+Save failed (recoverable I/O): System.IO.IOException: injected backup replacement failure
+   at PatchworkIsland.SaveService.InjectTestWriteFailure(String path) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 57
+   at PatchworkIsland.SaveService.Save(GameData data, String path, MissionCatalog catalog, Boolean allowNewerReplacement) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 94
+   at PatchworkIsland.SaveService.TrySave(GameData data, String path, MissionCatalog catalog, Boolean allowNewerReplacement) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 127
+Save failed (recoverable I/O): System.IO.IOException: injected backup replacement failure
+   at PatchworkIsland.SaveService.InjectTestWriteFailure(String path) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 57
+   at PatchworkIsland.SaveService.Save(GameData data, String path, MissionCatalog catalog, Boolean allowNewerReplacement) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 94
+   at PatchworkIsland.SaveService.TrySave(GameData data, String path, MissionCatalog catalog, Boolean allowNewerReplacement) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 127
+PASS  failed New Game after recovery is reported
+PASS  failed recovery reset is in memory
+PASS  failed write does not create a main save
+PASS  failed write leaves the recovered backup untouched
+Save failed (recoverable I/O): System.IO.IOException: injected backup replacement failure
+   at PatchworkIsland.SaveService.InjectTestWriteFailure(String path) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 57
+   at PatchworkIsland.SaveService.Save(GameData data, String path, MissionCatalog catalog, Boolean allowNewerReplacement) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 94
+   at PatchworkIsland.SaveService.TrySave(GameData data, String path, MissionCatalog catalog, Boolean allowNewerReplacement) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 127
+PASS  recovered backup discard is confirmed
+PASS  recovered backup remains continuable after discard
+Unicode parsing error, some characters were replaced with � (U+FFFD): Invalid UTF-8 leading byte (b7)
+[WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 158 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.
+[CITY SCENE] res://scenes/city/CityDistrict.tscn: 36 buildings, 36 HLOD proxies, 9 cells, 15 job markers, 4 vehicle routes, 11 pedestrian routes.
+PASS  Continue after recovered backup restores the backup village
+PASS  recovered Continue matches memory
+Unicode parsing error, some characters were replaced with � (U+FFFD): Invalid UTF-8 leading byte (b7)
+[WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 158 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.
+[CITY SCENE] res://scenes/city/CityDistrict.tscn: 36 buildings, 36 HLOD proxies, 9 cells, 15 job markers, 4 vehicle routes, 11 pedestrian routes.
+PASS  unsupported newer save has no Continue
+PASS  newer save is protected before confirmation
+PASS  title explains the newer save
+PASS  newer save is untouched on load
+PASS  newer-save replacement confirmation opens
+PASS  cancelled confirmation grants no replacement permission
+PASS  cancelled confirmation leaves newer save untouched
+Save failed (recoverable I/O): System.IO.IOException: injected newer replacement failure
+   at PatchworkIsland.SaveService.InjectTestWriteFailure(String path) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 57
+   at PatchworkIsland.SaveService.Save(GameData data, String path, MissionCatalog catalog, Boolean allowNewerReplacement) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 94
+   at PatchworkIsland.SaveService.TrySave(GameData data, String path, MissionCatalog catalog, Boolean allowNewerReplacement) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 127
+PASS  failed newer-save replacement is reported
+PASS  failed replacement keeps the confirmed permission for Save Now
+PASS  newer replacement session is in memory
+PASS  failed replacement leaves newer save untouched
+PASS  failed replacement creates no misleading preserved copy
+Save failed (recoverable I/O): System.IO.IOException: injected newer replacement failure
+   at PatchworkIsland.SaveService.InjectTestWriteFailure(String path) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 57
+   at PatchworkIsland.SaveService.Save(GameData data, String path, MissionCatalog catalog, Boolean allowNewerReplacement) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 94
+   at PatchworkIsland.SaveService.TrySave(GameData data, String path, MissionCatalog catalog, Boolean allowNewerReplacement) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 127
+PASS  newer replacement discard is confirmed
+PASS  discard clears replacement permission and keeps newer protection
+PASS  newer-save discard notice explains the protected file
+PASS  discard leaves newer save untouched
+Save failed (recoverable I/O): System.IO.IOException: injected newer replacement failure
+   at PatchworkIsland.SaveService.InjectTestWriteFailure(String path) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 57
+   at PatchworkIsland.SaveService.Save(GameData data, String path, MissionCatalog catalog, Boolean allowNewerReplacement) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 94
+   at PatchworkIsland.SaveService.TrySave(GameData data, String path, MissionCatalog catalog, Boolean allowNewerReplacement) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 127
+PASS  second confirmed replacement regains retry permission
+PASS  Save Now retries and replaces the newer save
+PASS  successful replacement clears newer protection and permission
+PASS  replacement save records the new session
+PASS  replacement file is a current-schema save
+PASS  exactly one preserved newer-version copy exists
+PASS  preserved copy matches the original newer save
+PASS  successful replacement session is continuable
+PASS  Continue loads the successful replacement session
+Unicode parsing error, some characters were replaced with � (U+FFFD): Invalid UTF-8 leading byte (b7)
+[WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 158 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.
+[CITY SCENE] res://scenes/city/CityDistrict.tscn: 36 buildings, 36 HLOD proxies, 9 cells, 15 job markers, 4 vehicle routes, 11 pedestrian routes.
+PASS  replacement session survives a relaunch
+PASS  relaunched replacement is a normal save
+PASS  Continue after relaunch restores the replacement new game
+RUNTIME RESULT: 101 passed, 0 failed

@@ -33,6 +33,9 @@ public partial class VanController : CharacterBody3D
     private bool _autopilot;
     private IReadOnlyList<RallyCourse.Point> _autopilotPath;
     private int _autopilotIndex;
+    private string _visualPath = VisualTemplate.VanPath;
+    private bool _deliveryTrim = true;
+    private bool _applyVertexColours = true;
 
     public bool Autopilot => _autopilot;
 
@@ -59,9 +62,14 @@ public partial class VanController : CharacterBody3D
 
     public void StopAutopilot() => _autopilot = false;
 
-    public void Initialize(Vector3 parkingPosition, float parkingYaw, Hud hud)
+    public void Initialize(Vector3 parkingPosition, float parkingYaw, Hud hud,
+        string visualPath = null, bool deliveryTrim = true, string name = "Van",
+        bool applyVertexColours = true)
     {
-        Name = "Van";
+        Name = name;
+        _visualPath = string.IsNullOrWhiteSpace(visualPath) ? VisualTemplate.VanPath : visualPath;
+        _deliveryTrim = deliveryTrim;
+        _applyVertexColours = applyVertexColours;
         _parkingPosition = parkingPosition;
         _parkingYaw = parkingYaw;
         CollisionLayer = 4;        // layer 3
@@ -92,6 +100,16 @@ public partial class VanController : CharacterBody3D
         _entry.SetPrompt(() => Driven ? "E: Exit the van" : "E: Drive the delivery van");
     }
 
+    /// <summary>Replace the entry availability/prompt, e.g. a licence gate.</summary>
+    public void SetEntryGate(Func<bool> allowed, Func<string> prompt)
+    {
+        if (_entry == null) return;
+        _entry.AvailableProvider = () => !Driven && (allowed?.Invoke() ?? true);
+        _entry.SetPrompt(() => Driven
+            ? "E: Exit the van"
+            : prompt?.Invoke() ?? "E: Drive the delivery van");
+    }
+
     public event Action EnterRequested;
 
     public bool HasEngineAudio => _engineIdle != null && _engineDrive != null;
@@ -110,9 +128,10 @@ public partial class VanController : CharacterBody3D
     {
         _visual = new Node3D { Name = "VanVisual" };
         AddChild(_visual);
-        Node3D template = VisualTemplate.Instantiate(_visual, "Visual", VisualTemplate.VanPath);
-        VisualTemplatePath = VisualTemplate.VanPath;
-        VisualTemplate.ApplyVertexColours(template, VisualTemplate.VertexColourMaterial());
+        Node3D template = VisualTemplate.Instantiate(_visual, "Visual", _visualPath);
+        VisualTemplatePath = _visualPath;
+        if (_applyVertexColours)
+            VisualTemplate.ApplyVertexColours(template, VisualTemplate.VertexColourMaterial());
         _wheelPivots.Clear();
         _wheelPivots.AddRange(VisualTemplate.BuildWheelPivots(template));
 
@@ -127,11 +146,14 @@ public partial class VanController : CharacterBody3D
         groundShadow.Scale = new Vector3(1.18f, 1f, 1.78f);
         groundShadow.CastShadow = GeometryInstance3D.ShadowCastingSetting.Off;
 
-        // Postal identity sits flush on the rear cargo door and both sides.
-        AddPostalMark(_visual, -1.105f, 1.3f, 0.25f, -1);
-        AddPostalMark(_visual, 1.105f, 1.3f, 0.25f, 1);
-        Geo.Label(_visual, new Vector3(0, 1.05f, 1.83f), "PATCHWORK POST", 42, Palette.Navy,
-            false, 0.0055f, 6, null, "VanRearText");
+        if (_deliveryTrim)
+        {
+            // Postal identity sits flush on the rear cargo door and both sides.
+            AddPostalMark(_visual, -1.105f, 1.3f, 0.25f, -1);
+            AddPostalMark(_visual, 1.105f, 1.3f, 0.25f, 1);
+            Geo.Label(_visual, new Vector3(0, 1.05f, 1.83f), "PATCHWORK POST", 42, Palette.Navy,
+                false, 0.0055f, 6, null, "VanRearText");
+        }
 
         // The authored van has a closed cabin, so the driver figure is kept as
         // an optional hidden node rather than rebuilt from boxes.
@@ -139,14 +161,17 @@ public partial class VanController : CharacterBody3D
         _visual.AddChild(_driverFigure);
         _driverFigure.Visible = false;
 
-        // A small friendly antenna flag so the van reads from a distance. It
-        // must not throw a detached blob shadow beside the van.
-        var antenna = Geo.Cylinder(_visual, new Vector3(0.78f, 2.12f, 0.68f), 0.03f, 0.03f, 0.6f,
-            Palette.Navy, 5);
-        antenna.CastShadow = GeometryInstance3D.ShadowCastingSetting.Off;
-        var antennaFlag = Geo.Box(_visual, new Vector3(0.78f, 2.42f, 0.68f),
-            new Vector3(0.42f, 0.26f, 0.04f), Palette.Red);
-        antennaFlag.CastShadow = GeometryInstance3D.ShadowCastingSetting.Off;
+        if (_deliveryTrim)
+        {
+            // A small friendly antenna flag so the van reads from a distance. It
+            // must not throw a detached blob shadow beside the van.
+            var antenna = Geo.Cylinder(_visual, new Vector3(0.78f, 2.12f, 0.68f), 0.03f, 0.03f, 0.6f,
+                Palette.Navy, 5);
+            antenna.CastShadow = GeometryInstance3D.ShadowCastingSetting.Off;
+            var antennaFlag = Geo.Box(_visual, new Vector3(0.78f, 2.42f, 0.68f),
+                new Vector3(0.42f, 0.26f, 0.04f), Palette.Red);
+            antennaFlag.CastShadow = GeometryInstance3D.ShadowCastingSetting.Off;
+        }
     }
 
     private static void AddPostalMark(Node parent, float x, float y, float z, int side)
@@ -205,6 +230,15 @@ public partial class VanController : CharacterBody3D
     {
         InputEnabled = enabled;
         if (!enabled) _steerInput = 0f;
+    }
+
+    public void TeleportTo(Vector3 position, float yawDegrees)
+    {
+        GlobalPosition = position + Vector3.Up * 0.12f;
+        Rotation = new Vector3(0, Mathf.DegToRad(yawDegrees), 0);
+        Velocity = Vector3.Zero;
+        Speed = 0f;
+        _steerInput = 0f;
     }
 
     public void ResetToParking()

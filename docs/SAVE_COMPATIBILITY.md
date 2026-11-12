@@ -71,3 +71,12 @@ Every new persisted counter or pickup is bounded and allow-listed:
    race time and NPC visuals remain coherent.
 7. M20 complete and festival seen: one-time festival does not reopen after
    quit/relaunch; M01–M10 remain complete.
+
+## Schema 5 — Driving Academy
+
+Schema 5 adds academy enrolment, completed lessons, active stage, test/licence
+state, graduation reward, helper progress/rounds, test attempts and
+`LegacyVanPermit`. All v1–v4 saves migrate with `LegacyVanPermit = true` so the
+existing campaign keeps van access; they never receive a false official licence.
+New v5 saves start with neither permit nor licence. Academy-local world
+coordinates are never written to the town/city snapshots.

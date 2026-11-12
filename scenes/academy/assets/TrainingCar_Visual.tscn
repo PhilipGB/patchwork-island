@@ -1,0 +1,212 @@
+[gd_scene load_steps=25 format=3]
+
+[sub_resource type="StandardMaterial3D" id="mat_navy"]
+albedo_color = Color(0.098, 0.2196, 0.298, 1)
+roughness = 0.85
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="mat_teal"]
+albedo_color = Color(0.1412, 0.651, 0.6353, 1)
+roughness = 0.85
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="mat_yellow"]
+albedo_color = Color(0.9725, 0.8078, 0.3216, 1)
+roughness = 0.85
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="mat_cream"]
+albedo_color = Color(1, 0.9412, 0.8196, 1)
+roughness = 0.85
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="mat_orange"]
+albedo_color = Color(0.9333, 0.5686, 0.2941, 1)
+roughness = 0.85
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="mat_red"]
+albedo_color = Color(0.8471, 0.3137, 0.3333, 1)
+roughness = 0.85
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="mat_white"]
+albedo_color = Color(0.9608, 0.9686, 0.9294, 1)
+roughness = 0.85
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="mat_grass"]
+albedo_color = Color(0.5765, 0.7294, 0.451, 1)
+roughness = 0.85
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="mat_steel"]
+albedo_color = Color(0.4431, 0.5294, 0.5765, 1)
+roughness = 0.85
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="mat_black"]
+albedo_color = Color(0.1333, 0.1765, 0.2196, 1)
+roughness = 0.85
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="mat_glass"]
+albedo_color = Color(0.5333, 0.7255, 0.7922, 1)
+roughness = 0.85
+metallic = 0.0
+
+[sub_resource type="BoxMesh" id="mesh_box_1"]
+size = Vector3(1.92, 0.45, 3.75)
+
+[sub_resource type="BoxMesh" id="mesh_box_2"]
+size = Vector3(2.04, 0.75, 3.8)
+
+[sub_resource type="BoxMesh" id="mesh_box_3"]
+size = Vector3(1.78, 0.84, 2)
+
+[sub_resource type="BoxMesh" id="mesh_box_4"]
+size = Vector3(1.5, 0.64, 0.1)
+
+[sub_resource type="BoxMesh" id="mesh_box_5"]
+size = Vector3(1.5, 0.58, 0.1)
+
+[sub_resource type="BoxMesh" id="mesh_box_6"]
+size = Vector3(0.08, 0.49, 1.32)
+
+[sub_resource type="BoxMesh" id="mesh_box_7"]
+size = Vector3(1.8, 0.17, 0.7)
+
+[sub_resource type="BoxMesh" id="mesh_box_8"]
+size = Vector3(1.92, 0.15, 0.17)
+
+[sub_resource type="BoxMesh" id="mesh_box_9"]
+size = Vector3(0.4, 0.22, 0.1)
+
+[sub_resource type="BoxMesh" id="mesh_box_10"]
+size = Vector3(0.35, 0.22, 0.09)
+
+[sub_resource type="BoxMesh" id="mesh_box_11"]
+size = Vector3(1, 0.58, 0.14)
+
+[sub_resource type="BoxMesh" id="mesh_box_12"]
+size = Vector3(0.24, 0.22, 0.22)
+
+[sub_resource type="CylinderMesh" id="wheel_mesh"]
+top_radius = 0.43
+bottom_radius = 0.43
+height = 0.26
+radial_segments = 12
+
+[node name="TrainingCar_Visual" type="Node3D"]
+
+[node name="Undercarriage" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.48, 0)
+mesh = SubResource("mesh_box_1")
+material_override = SubResource("mat_navy")
+
+[node name="Body" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.83, 0)
+mesh = SubResource("mesh_box_2")
+material_override = SubResource("mat_yellow")
+
+[node name="Cabin" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.5, -0.25)
+mesh = SubResource("mesh_box_3")
+material_override = SubResource("mat_cream")
+
+[node name="Windshield" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.5, -1.32)
+mesh = SubResource("mesh_box_4")
+material_override = SubResource("mat_glass")
+
+[node name="RearGlass" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.5, 0.81)
+mesh = SubResource("mesh_box_5")
+material_override = SubResource("mat_glass")
+
+[node name="LeftWindow" type="MeshInstance3D" parent="."]
+position = Vector3(-0.9, 1.53, -0.27)
+mesh = SubResource("mesh_box_6")
+material_override = SubResource("mat_glass")
+
+[node name="RightWindow" type="MeshInstance3D" parent="."]
+position = Vector3(0.9, 1.53, -0.27)
+mesh = SubResource("mesh_box_6")
+material_override = SubResource("mat_glass")
+
+[node name="Bonnet" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.04, -1.59)
+mesh = SubResource("mesh_box_7")
+material_override = SubResource("mat_teal")
+
+[node name="RearAccent" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.95, 1.88)
+mesh = SubResource("mesh_box_8")
+material_override = SubResource("mat_teal")
+
+[node name="HeadlampL" type="MeshInstance3D" parent="."]
+position = Vector3(-0.64, 0.72, -1.95)
+mesh = SubResource("mesh_box_9")
+material_override = SubResource("mat_white")
+
+[node name="HeadlampR" type="MeshInstance3D" parent="."]
+position = Vector3(0.64, 0.72, -1.95)
+mesh = SubResource("mesh_box_9")
+material_override = SubResource("mat_white")
+
+[node name="TailL" type="MeshInstance3D" parent="."]
+position = Vector3(-0.65, 0.78, 1.95)
+mesh = SubResource("mesh_box_10")
+material_override = SubResource("mat_red")
+
+[node name="TailR" type="MeshInstance3D" parent="."]
+position = Vector3(0.65, 0.78, 1.95)
+mesh = SubResource("mesh_box_10")
+material_override = SubResource("mat_red")
+
+[node name="RoofPlate" type="MeshInstance3D" parent="."]
+position = Vector3(0, 2.15, 0.1)
+mesh = SubResource("mesh_box_11")
+material_override = SubResource("mat_white")
+
+[node name="MirrorL" type="MeshInstance3D" parent="."]
+position = Vector3(-1.15, 1.44, -0.65)
+mesh = SubResource("mesh_box_12")
+material_override = SubResource("mat_black")
+
+[node name="MirrorR" type="MeshInstance3D" parent="."]
+position = Vector3(1.15, 1.44, -0.65)
+mesh = SubResource("mesh_box_12")
+material_override = SubResource("mat_black")
+
+[node name="LearnerFront" type="Label3D" parent="."]
+position = Vector3(-0.25, 2.02, -0.005)
+text = "L"
+font_size = 68
+pixel_size = 0.009
+modulate = Color(0.0784, 0.1725, 0.2471, 1)
+outline_size = 3
+
+[node name="WheelFL" type="MeshInstance3D" parent="."]
+position = Vector3(-1.01, 0.45, -1.19)
+rotation_degrees = Vector3(0, 0, 90)
+mesh = SubResource("wheel_mesh")
+material_override = SubResource("mat_black")
+
+[node name="WheelFR" type="MeshInstance3D" parent="."]
+position = Vector3(1.01, 0.45, -1.19)
+rotation_degrees = Vector3(0, 0, 90)
+mesh = SubResource("wheel_mesh")
+material_override = SubResource("mat_black")
+
+[node name="WheelRL" type="MeshInstance3D" parent="."]
+position = Vector3(-1.01, 0.45, 1.18)
+rotation_degrees = Vector3(0, 0, 90)
+mesh = SubResource("wheel_mesh")
+material_override = SubResource("mat_black")
+
+[node name="WheelRR" type="MeshInstance3D" parent="."]
+position = Vector3(1.01, 0.45, 1.18)
+rotation_degrees = Vector3(0, 0, 90)
+mesh = SubResource("wheel_mesh")
+material_override = SubResource("mat_black")

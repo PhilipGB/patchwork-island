@@ -28,6 +28,13 @@ public partial class WorldSceneAdapter : WorldModel
 
     public Vector3 GetAnchorPosition(string id) => RequireAnchor(id).GlobalPosition;
 
+    public Node3D SchoolOffice => RequireNode<Node3D>("DrivingSchoolOffice");
+    public Node3D SchoolYard => RequireNode<Node3D>("DrivingSchoolYard");
+    public Marker3D SchoolMarker(string path) =>
+        RequireNode<Marker3D>("DrivingSchoolOffice/" + path);
+    public Marker3D YardMarker(string path) =>
+        RequireNode<Marker3D>("DrivingSchoolYard/" + path);
+
     public IReadOnlyList<NpcPoint> GetNpcPatrol(string id) =>
         _npcRoutes.TryGetValue(id, out var points) ? points : null;
 
