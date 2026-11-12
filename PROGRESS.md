@@ -2943,15 +2943,19 @@ south verge) and re-captured.
   coverage is green.
 - Human composition/visual sign-off of the city screenshots is still open.
 - Windows export/startup is **NOT TESTED**.
-- PR [#32](https://github.com/PhilipGB/patchwork-island/pull/32) is open and
-  stacked on #31. Run
-  [43134342686](https://github.com/PhilipGB/patchwork-island/actions/runs/43134342686)
-  passed `build-test` (13m52s) and `windows-tests` (1m13s) after the city-phase
-  timeout was raised from 180 s to 420 s for the full outer-loop drive.
-- The v1.4.0 test release uses the packaged Linux and Windows exports in
-  `dist/`: the Linux package booted and passed all twelve runtime phases, and
-  the Windows PE32+ executable reports version `1.4.0.0`. Windows startup is
-  still **NOT TESTED**.
+- PR [#31](https://github.com/PhilipGB/patchwork-island/pull/31) merged into
+  `main` as `bfe081f`; PR
+  [#32](https://github.com/PhilipGB/patchwork-island/pull/32) was retargeted to
+  `main`, passed CI against the merged base (run
+  [43138249374](https://github.com/PhilipGB/patchwork-island/actions/runs/43138249374)),
+  and merged as `318c74f`. `main` CI at `318c74f` also passed (run
+  [43139935654](https://github.com/PhilipGB/patchwork-island/actions/runs/43139935654)).
+- **v1.4.1** is published as a pre-release at `318c74f`:
+  [release](https://github.com/PhilipGB/patchwork-island/releases/tag/v1.4.1).
+  The v1.4.0 tag/release remains at `21b226e` and was not moved.
+- The v1.4.1 release artifact was exported from `main` at `318c74f` and its
+  Linux package booted and passed all twelve runtime phases (1297/1297, city
+  126/126). Windows startup is still **NOT TESTED**.
 - The approach road still crosses the rally meadow visually at z=0. It is flush
   and below the rally surface, and the rally/autopilot tests pass, but it is a
   deliberate layout compromise rather than a separate ring road.
