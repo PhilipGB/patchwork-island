@@ -2944,8 +2944,10 @@ south verge) and re-captured.
 - Human composition/visual sign-off of the city screenshots is still open.
 - Windows export/startup is **NOT TESTED**.
 - PR [#32](https://github.com/PhilipGB/patchwork-island/pull/32) is open and
-  stacked on #31. Exact-head CI for the current PR head passes `build-test` and
-  `windows-tests` (see the PR checks).
+  stacked on #31. Run
+  [43134342686](https://github.com/PhilipGB/patchwork-island/actions/runs/43134342686)
+  passed `build-test` (13m52s) and `windows-tests` (1m13s) after the city-phase
+  timeout was raised from 180 s to 420 s for the full outer-loop drive.
 - The v1.4.0 test release uses the packaged Linux and Windows exports in
   `dist/`: the Linux package booted and passed all twelve runtime phases, and
   the Windows PE32+ executable reports version `1.4.0.0`. Windows startup is
