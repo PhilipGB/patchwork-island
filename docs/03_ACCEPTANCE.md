@@ -55,7 +55,7 @@
   (132 pure; 1300 runtime assertions across 12 source phases and 1300 in a
   packaged build). Exact-head CI for the current PR head passes
   `build-test` and `windows-tests` (see the
-  [PR checks](https://github.com/PhilipGB/patchwork-island/pull/32/checks)).
+  [PR checks](https://github.com/PhilipGB/patchwork-island/pull/33/checks)).
   See `PROGRESS.md` for exact counts.
 
 ## Performance targets
