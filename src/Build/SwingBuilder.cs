@@ -16,7 +16,7 @@ public partial class SwingBuilder : Node3D, IBuildMode
     private MissionService _missions;
     private CameraRig _camera;
     private Hud _hud;
-    private WorldBuilder _world;
+    private WorldModel _world;
     private Action _onComplete;
     private Action<bool> _onBuildModeChanged;
     private Action _onProgress;
@@ -28,7 +28,7 @@ public partial class SwingBuilder : Node3D, IBuildMode
     private string _selected = "rope";
 
     public void Initialize(GameData data, MissionService missions, CameraRig camera, Hud hud,
-        WorldBuilder world, Action onComplete, Action<bool> onBuildModeChanged, Action onProgress)
+        WorldModel world, Action onComplete, Action<bool> onBuildModeChanged, Action onProgress)
     {
         _data = data;
         _missions = missions;

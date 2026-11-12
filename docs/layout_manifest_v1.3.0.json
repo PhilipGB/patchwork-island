@@ -1,6 +1,6 @@
 {
   "source": "PhilipGB/patchwork-island tag v1.3.0",
-  "coordinates": "Godot units, x east-west, y up, z north-south; sourced from WorldBuilder.cs",
+  "coordinates": "Godot units, x east-west, y up, z north-south; authored in scenes/world/Town.tscn and scenes/world/assets/",
   "town_bounds": {
     "west": -55,
     "east": 95,
@@ -609,13 +609,12 @@
       -13.5
     ]
   },
-  "exact_baking": "tools/SceneBakeTool.cs + scenes/tools/SceneBakeTool.tscn produce the authoritative scene content using the original WorldBuilder in the target source checkout",
   "limitations": [
-    "Town_Preview is a static starter; attach no gameplay scripts and do not add it to Main while the old world is also rendered",
-    "Only the bake tool regenerates exact legacy procedural foliage, mesh content and full landmark visuals",
-    "Some finale interaction anchors/props are runtime-owned by Main or world build systems and must be migrated through an adapter, not replaced by decorative preview nodes",
-    "RallyRoad.obj is editor-preview-only with NO collision; use baked RallyRoad or retain original RallyRoadBuilder at runtime",
-    "Procedural buildings carry text and decorative approximations; exact bake restores native Geo.Triangle gables, correct collision and font/label style"
+    "Town_Preview.tscn is an editor-only preview; it is not loaded at runtime and carries no gameplay scripts",
+    "Edit scenes/world/Town.tscn and scenes/world/assets/ directly; there is no regeneration step",
+    "Some finale interaction anchors/props are runtime-owned by Main and the world build systems; their positions come from scene markers, not decorative preview nodes",
+    "RallyRoad_Collidable.tscn supplies the runtime rally-road collision",
+    "Authored asset scenes are the only source of truth for building geometry, collision and text"
   ],
   "visual_glitches_from_screenshots": [
     "Extremely close third-person camera inside player house can obscure the avatar and clip against interior geometry",
@@ -965,5 +964,6 @@
       ]
     ]
   },
-  "rally_rival_route_generated_from": "RallyCourse.Sample(i / 32f), i=0..31"
+  "rally_rival_route_generated_from": "RallyCourse.Sample(i / 32f), i=0..31",
+  "scene_authority": "scenes/world/Town.tscn is the runtime level, assembled from scenes/world/assets/; there is no bake step or procedural WorldBuilder"
 }

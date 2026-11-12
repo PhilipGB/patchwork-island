@@ -74,7 +74,7 @@ Suggested scene tree/modules; adjust pragmatically:
 
 ```
 Main.tscn
-├── World (WorldBuilder / static props, river, buildings, collision)
+├── World (authored Town.tscn via WorldSceneAdapter / static props, river, buildings, collision)
 ├── Player (CharacterBody3D, CameraRig, interaction sensor)
 ├── Van (simple arcade vehicle)
 ├── Interactables (collectables, stations, doors, triggers)

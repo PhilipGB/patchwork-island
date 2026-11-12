@@ -1,12 +1,18 @@
 # Agent handoff — v1.3.0 scene-based world migration
 
+> **Completed and superseded (v1.3.0).** `WorldBuilder`, `SceneBakeTool` and
+> `scenes/world/baked/` have been removed. The canonical runtime scene is
+> `scenes/world/Town.tscn`, exposed through `WorldSceneAdapter : WorldModel`.
+> Read `docs/CANONICAL_TOWN.md` for the current architecture. The migration
+> instructions below are retained as a historical record.
+
 Implement a genuine Godot editor-editable town without changing gameplay or
 schema-3 save semantics. Baseline tag: v1.2.1. Do not merge or release solely
 because the static town preview looks acceptable.
 
 ## Architecture
 
-Current `Main.cs` constructs `WorldBuilder`, calls `Build()` and reads many
+At migration time, `Main.cs` constructed `WorldBuilder`, called `Build()` and read many
 mutable properties: `BridgeBarrier`, `FinishedBridge`, `CelebrationDecor`,
 `FestivalDecor`, `RallyPodium`, `PipCarBroken/Fixed`, `SwingFrames`, `ParkPads`,
 `HousePads`, `GardenPads`, `BookSpawnPoints`, `RepairPartSpawnPoints`,
@@ -45,7 +51,7 @@ Keep these contracts while migrating. Recommended pattern:
 
 ## Required deterministic parity checks
 
-1. `Town_Baked` imports and opens in Godot 4.7.2 .NET with no missing resources.
+1. `Town.tscn` and its reusable asset scenes import and open in Godot 4.7.2 .NET with no missing resources. (The historical `Town_Baked` snapshot was removed after migration.)
 2. Source-instance placement, yaw, wall dimensions and doors match the
    `layout_manifest_v1.2.1.json` values, with at most 0.01 m tolerance.
    The canonical v1.3.0 scene is checked against

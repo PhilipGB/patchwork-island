@@ -8,20 +8,20 @@ own home. Every completed job visibly changes the island.
 This repository contains the complete Godot 4.7.2 .NET / C# source, automated
 tests, real-input GUI evidence and release build instructions.
 
-## v1.3.0 source status — migration implemented, not released
+## v1.3.0 source status — asset-driven town, not released
 
-**The static town now comes from an editor-editable Godot scene.** The exact
-v1.2.1 geometry is baked into `scenes/world/baked/Town_Baked.tscn` and its
-reusable `parts/*.tscn`; `src/World/WorldSceneAdapter.cs` instantiates and
-validates it at runtime. Schema stays **3**, all 20 missions, pickups, build
-sockets, NPC/traffic routes, driving, cosmetics and save-recovery behaviour are
-retained.
+**The static town is authored directly in Godot scenes.** `scenes/world/Town.tscn`
+is the runtime level, assembled from the reusable scenes in
+`scenes/world/assets/`; `src/World/WorldSceneAdapter.cs` instantiates it and
+populates the `WorldModel` data contract. There is no procedural `WorldBuilder`,
+no bake tool and no baked snapshot. Schema stays **3**, all 20 missions, pickups,
+build sockets, NPC/traffic routes, driving, cosmetics and save-recovery
+behaviour are retained.
 
-- Bake executed with Godot 4.7.2 .NET: 32 reusable roots and 488 town roots.
 - 75 gameplay anchors, six building centres/yaws/wall dimensions and all
   NPC/traffic waypoints are checked at load; missing or moved content fails
   loudly.
-- Source runtime **1124 assertions** and pure rules **111 tests** pass; every
+- Source runtime **1171 assertions** and pure rules **123 tests** pass; every
   packaged Linux runtime phase also passes with zero leaked unsafe references.
 - New `--selftest-restore` restores partial M03/M07/M08/M10/M15/M18/M20 worlds;
   `--selftest-release` restores a v1.2.1-shaped 158-coin save with outfits,
@@ -179,7 +179,7 @@ godot --headless --path . --editor --quit
 godot --headless --path . --quit-after 120
 ```
 
-The dependency-free runner currently has **111 tests** covering mission
+The dependency-free runner currently has **123 tests** covering mission
 prerequisites and unlocks, exactly-once rewards, duplicate pickups, mission
 switching, hints, bridge/swing socket rules, grocery and park budgets, house
 costs and free starter fallback, ordered checkpoints, optional race bonuses
@@ -196,7 +196,7 @@ rejection), and two-file scene-parity checks for all 75 anchors, building
 centres/wall sizes, required dynamic roots, rally collision and NPC/traffic
 markers.
 
-Godot runtime integration checks (**1124 assertions across eleven phases**)
+Godot runtime integration checks (**1171 assertions across eleven phases**)
 execute the real scene headlessly:
 
 ```bash
@@ -322,7 +322,7 @@ and SFX settings; the game remains fully playable with sound off.
 
 - `dotnet build PatchworkIsland.sln`: 0 errors, 0 warnings.
 - Pure tests: **111 passed, 0 failed**.
-- Runtime: **1124 passed, 0 failed** across eleven phases (pause/modal,
+- Runtime: **1171 passed, 0 failed** across eleven phases (pause/modal,
   resume, recovery, living village, rally, chapter two, M18 relaunch hotfix,
   finale, traversal, v1.1/v1.2.1 migration, partial-world restoration).
 - Packaged Linux x64 booted headlessly and passed all eleven phases with exit 0
@@ -358,7 +358,7 @@ src/Core/                 pure rules, mission/save/race/control logic
 src/Build/                bridge, swings, park and furniture builders
 src/Player/               player and camera
 src/Vehicle/              delivery van
-src/World/                procedural village and interactables
+src/World/                scene adapter, world data contract and interactables
 src/UI/                   HUD, job board, shop, grocery and furniture UI
 data/missions.json        authoritative runtime mission content
 tests/                    dependency-free .NET test runner

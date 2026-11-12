@@ -3,7 +3,7 @@
 ## Existing architecture to preserve
 
 - `src/Main.cs` orchestrates scene transitions, saves, gameplay stations and modal controls.
-- `src/World/WorldBuilder.cs` procedurally constructs roads, buildings, landmarks and rally gates.
+- `src/World/WorldSceneAdapter.cs` instantiates the authored `scenes/world/Town.tscn`; `src/World/WorldModel.cs` is the runtime data contract. There is no procedural world builder or bake step.
 - `src/Player/PlayerController.cs` owns player movement and model geometry.
 - `src/Core/MissionCatalog.cs`, `MissionService.cs`, `MissionIntegrity.cs`, `SaveValidation.cs` own authored missions and deterministic state/rules.
 - `src/UI/JobBoardUi.cs` renders the existing 10-job list.

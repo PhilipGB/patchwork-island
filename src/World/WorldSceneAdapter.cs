@@ -10,11 +10,10 @@ namespace PatchworkIsland;
 ///
 /// Static scenery is instantiated from <see cref="TownScenePath"/>; gameplay
 /// positions are read from scene-owned markers, building DoorMarkers and gate
-/// nodes. The adapter keeps the WorldBuilder-facing API used by Main and the
-/// build systems but never falls back to procedural geometry or hard-coded
-/// coordinates for placement.
+/// nodes. The adapter exposes the WorldModel API used by Main and the build
+/// systems; there is no procedural fallback or bake step.
 /// </summary>
-public partial class WorldSceneAdapter : WorldBuilder
+public partial class WorldSceneAdapter : WorldModel
 {
     public const string TownScenePath = "res://scenes/world/Town.tscn";
 

@@ -3,7 +3,6 @@
   "baseline_game": "v1.2.1",
   "candidate_scene": "scenes/world/Town_Assets.tscn",
   "runtime_scene": "scenes/world/Town.tscn",
-  "existing_baked_scene_in_repo": "scenes/world/baked/Town_Baked.tscn",
   "runtime_status": "canonical_scene_wired",
   "static_roots": [
     {
@@ -242,9 +241,8 @@
     "Resolve world positions from Node3D.GlobalTransform and child Marker3D",
     "Stable IDs are separate from world coordinates",
     "Use scene-authored NPC and traffic route markers, not catalogue coordinates",
-    "Never copy/bake dynamic bridge/swing/furniture states into Town_Assets",
-    "Do not call WorldBuilder.Build in runtime",
-    "Do not rerun SceneBakeTool on authored scene",
+    "Edit scenes/world/Town.tscn and scenes/world/assets directly; there is no bake step",
+    "Never copy dynamic bridge/swing/furniture states into the authored town",
     "Playground interaction positions come from Playground/WorksiteMarker, never C# coordinates",
     "Gable ends belong on the ridge ends (GableEast/GableWest), not the eave walls",
     "Panel-mounted sign and banner text uses two fixed faces; floating status labels may billboard",
