@@ -1,0 +1,42 @@
+[gd_scene load_steps=7 format=3]
+
+[sub_resource type="StandardMaterial3D" id="mat_brick"]
+albedo_color = Color(0.74118, 0.46275, 0.35686, 1)
+metallic = 0.0
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="mat_dark"]
+albedo_color = Color(0.15686, 0.21569, 0.27843, 1)
+metallic = 0.0
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="mat_glass"]
+albedo_color = Color(0.40784, 0.7098, 0.77647, 1)
+metallic = 0.25
+roughness = 0.23
+
+[sub_resource type="BoxMesh" id="box_1"]
+size = Vector3(25, 32, 21)
+material = SubResource("mat_brick")
+
+[sub_resource type="BoxMesh" id="box_2"]
+size = Vector3(26, 0.8, 22)
+material = SubResource("mat_dark")
+
+[sub_resource type="BoxMesh" id="box_3"]
+size = Vector3(24, 20.8, 0.12)
+material = SubResource("mat_glass")
+
+[node name="BrickLoftsHLOD" type="Node3D"]
+
+[node name="Silhouette" type="MeshInstance3D" parent="."]
+position = Vector3(0, 16.0, 0)
+mesh = SubResource("box_1")
+
+[node name="Roof" type="MeshInstance3D" parent="."]
+position = Vector3(0, 32.4, 0)
+mesh = SubResource("box_2")
+
+[node name="FacadeTint" type="MeshInstance3D" parent="."]
+position = Vector3(0, 16.96, 10.6)
+mesh = SubResource("box_3")

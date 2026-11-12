@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "status": "runtime; independent from the village mission catalogue",
+  "world": "Patchwork City",
+  "missions": [
+    {
+      "id": "C01",
+      "title": "City Courier",
+      "short": "Load three numbered parcels and deliver them in order 1, 2, 3.",
+      "category": "number_order",
+      "site": "city_centre",
+      "goal": "Collect the three numbered parcels at the depot, then drive or walk to stops 1, 2 and 3 in ascending order. Return to CITY JOBS.",
+      "rewardCoins": 20,
+      "prerequisites": [],
+      "hints": [
+        "Start City Courier at the CITY JOBS board in the central plaza.",
+        "Load all three parcels at the depot south of the board.",
+        "Deliver parcel 1 to the MARKET stop first, then 2, then 3."
+      ],
+      "steps": [
+        "Load three numbered parcels at the depot",
+        "Deliver to stop 1, then stop 2, then stop 3",
+        "Return to the CITY JOBS board"
+      ],
+      "learning": ["read numbers 1–3", "follow ascending order", "match a number to a place"]
+    },
+    {
+      "id": "C02",
+      "title": "Market Stock-Up",
+      "short": "Collect six crates and check 2 × 3 at the market stalls.",
+      "category": "counting_multiplication",
+      "site": "city_market",
+      "goal": "Collect six stock crates, then answer how many crates two stalls with three each need. Return to CITY JOBS.",
+      "rewardCoins": 24,
+      "prerequisites": [],
+      "hints": [
+        "Start Market Stock-Up at the CITY JOBS board.",
+        "Collect all six crates in the south-east market plaza.",
+        "At the stall, count 2 groups of 3. 2 × 3 = 6."
+      ],
+      "steps": [
+        "Collect six market crates",
+        "Answer 2 × 3 at the market stall",
+        "Return to the CITY JOBS board"
+      ],
+      "learning": ["count to six", "see 2 groups of 3", "read a simple multiplication"]
+    },
+    {
+      "id": "C03",
+      "title": "Signals and Signs",
+      "short": "Repair cabinets 1–3 with red, amber and green, then talk to the engineer.",
+      "category": "reading_sequencing",
+      "site": "city_signals",
+      "goal": "Visit the three numbered signal cabinets in order and choose red, amber, green. Then find the city engineer for sign-off.",
+      "rewardCoins": 28,
+      "prerequisites": [],
+      "hints": [
+        "Start Signals and Signs at the CITY JOBS board.",
+        "Cabinet 1 needs RED, cabinet 2 needs AMBER, cabinet 3 needs GREEN.",
+        "After all three are fixed, talk to the engineer beside cabinet 3."
+      ],
+      "steps": [
+        "Repair cabinet 1 with red",
+        "Repair cabinet 2 with amber",
+        "Repair cabinet 3 with green",
+        "Talk to the city engineer"
+      ],
+      "learning": ["read colour words", "follow a three-step sequence", "match a signal colour to its order"]
+    }
+  ]
+}

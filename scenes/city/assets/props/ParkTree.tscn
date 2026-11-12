@@ -1,0 +1,29 @@
+[gd_scene load_steps=5 format=3]
+
+[sub_resource type="StandardMaterial3D" id="mat_brick"]
+albedo_color = Color(0.74118, 0.46275, 0.35686, 1)
+metallic = 0.0
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="mat_tree"]
+albedo_color = Color(0.25882, 0.53333, 0.46275, 1)
+metallic = 0.0
+roughness = 0.8
+
+[sub_resource type="BoxMesh" id="box_1"]
+size = Vector3(1, 5, 1)
+material = SubResource("mat_brick")
+
+[sub_resource type="BoxMesh" id="box_2"]
+size = Vector3(7, 7, 7)
+material = SubResource("mat_tree")
+
+[node name="ParkTree" type="Node3D"]
+
+[node name="Trunk" type="MeshInstance3D" parent="."]
+position = Vector3(0, 2.5, 0)
+mesh = SubResource("box_1")
+
+[node name="Crown" type="MeshInstance3D" parent="."]
+position = Vector3(0, 7, 0)
+mesh = SubResource("box_2")

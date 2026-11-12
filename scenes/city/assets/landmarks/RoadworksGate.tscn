@@ -1,0 +1,61 @@
+[gd_scene load_steps=9 format=3]
+
+[sub_resource type="StandardMaterial3D" id="mat_orange"]
+albedo_color = Color(0.95686, 0.62353, 0.32157, 1)
+metallic = 0.0
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="mat_dark"]
+albedo_color = Color(0.15686, 0.21569, 0.27843, 1)
+metallic = 0.0
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="mat_red"]
+albedo_color = Color(0.83922, 0.41961, 0.33725, 1)
+metallic = 0.0
+roughness = 0.8
+
+[sub_resource type="BoxMesh" id="box_1"]
+size = Vector3(14, 1.2, 0.55)
+material = SubResource("mat_orange")
+
+[sub_resource type="BoxMesh" id="box_2"]
+size = Vector3(1, 2, 1)
+material = SubResource("mat_dark")
+
+[sub_resource type="BoxMesh" id="box_3"]
+size = Vector3(1, 0.5, 1)
+material = SubResource("mat_red")
+
+[sub_resource type="BoxMesh" id="box_4"]
+size = Vector3(1, 2, 1)
+material = SubResource("mat_dark")
+
+[sub_resource type="BoxMesh" id="box_5"]
+size = Vector3(1, 0.5, 1)
+material = SubResource("mat_red")
+
+[node name="RoadworksGate" type="Node3D"]
+
+[node name="BarrierBeam" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.5, 0)
+mesh = SubResource("box_1")
+
+[node name="Foot0" type="MeshInstance3D" parent="."]
+position = Vector3(-6, 1, 0)
+mesh = SubResource("box_2")
+
+[node name="WarningLamp0" type="MeshInstance3D" parent="."]
+position = Vector3(-6, 2.5, 0)
+mesh = SubResource("box_3")
+
+[node name="Foot1" type="MeshInstance3D" parent="."]
+position = Vector3(6, 1, 0)
+mesh = SubResource("box_4")
+
+[node name="WarningLamp1" type="MeshInstance3D" parent="."]
+position = Vector3(6, 2.5, 0)
+mesh = SubResource("box_5")
+
+[node name="GateMarker" type="Marker3D" parent="."]
+position = Vector3(0, 0, 0)

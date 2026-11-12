@@ -2645,3 +2645,344 @@ procedural builder, bake tool or baked snapshot to keep in sync.
 
 - Human visual sign-off, one continuous M01–M20 sitting and Windows startup
   remain **NOT TESTED**.
+
+## P24 — v1.4.0 City Expansion — test release published
+
+**Branch/worktree:** `v1.4.0-city-expansion`, based on `0dbd0c6`
+(`v1.3.0-asset-driven`). The PR is stacked on open PR #31. The verified source
+is published as the **v1.4.0 test pre-release** from `21b226e`
+(<https://github.com/PhilipGB/patchwork-island/releases/tag/v1.4.0>). The
+working tree also contains the local, gitignored `dist/` 1.4.0 builds.
+
+Source version is **1.4.0**; save schema is **4**. The village remains the
+M01–M20 game. The city is a second authored space reached only through the new
+M21 gate job.
+
+### Delivered
+
+- **M21 Roadworks Rescue** — three safety cones, two barrier panels and one
+  toolbox are authored pickups at the workshop. Delivering them to the town-side
+  worksite opens a 3 + 2 + 1 counting and loading-order task. Completion pays 25
+  coins once, hides the barrier and fences, disables every gate collision shape
+  and persists the open road. The operation is idempotent on every load.
+- **Drivable town-to-city join** — authored bridge/causeway in
+  `scenes/city/TownCityApproach.tscn`, terrain east-wall opening, a physical
+  gate at world `x=96`, and return driving. The approach surfaces are flush with
+  the rally ground; the earlier raised slab/guard-rail line across the rally was
+  found by the regression suite and removed.
+- **Independent city jobs** — C01 City Courier (numbered/order delivery), C02
+  Market Stock-Up (six crates and 2 × 3) and C03 Signals and Signs (red/amber/
+  green sequence plus engineer sign-off). Separate catalogue, separate save
+  fields, shared coin wallet, exactly-once rewards.
+- **Tiered city runtime** — authored detail and 36 HLOD proxies in nine cells,
+  18 m hysteresis, near/mid actor pool, no city Node3Ds or collision while the
+  district is hidden. A deterministic 24-vehicle / 42-pedestrian logical
+  simulation advances O(1) while the city is offscreen.
+- **City board and UI** — a separate teal CITY JOBS board at local `(0,0.4,22)`
+  facing the plaza, with C01–C03 cards, wallet, progress and accessible keyboard
+  focus. The village board's second tab now reads `New adventures (11–21)`.
+- **Save schema 4** — city roadworks flags, completed city jobs, city counters,
+  city seed and logical clock. Schema 3 migrates without changing town
+  progression. Newer schemas remain untouched and protected.
+- **Tests** — pure rules/save/scene contracts and `--selftest-city` with real
+  scene reloads, the physical gate at full van speed, mid-drive save/continue,
+  LOD/actor cleanup and return trips.
+- **CI** — `--selftest-city` added to the source runtime list and to the
+  packaged Linux smoke check in `.github/workflows/build-and-test.yml`.
+
+### City regression found and fixed during the gate
+
+The first full run after adding the city exposed `--selftest-rally` and
+`--selftest-finale` failures: the gate at world `x=90` and the raised approach
+slab sat on the eastern edge of the authored rally circuit. The van hit the
+gate/fence in the M05/M09/M19 autopilot runs. The fix:
+
+- moved the gate to world `x=96`, just east of the island boundary and clear of
+  the rally's paved width;
+- lowered every approach surface below the rally surface (top ≈ 0.01 m versus
+  rally top ≈ 0.022 m) and lowered the approach collision to the same floor;
+- shortened the visible guard rails to the bridge/causeway, moved the notice
+  sign and crew to the south verge, and added a gate apron under the fences;
+- updated the city gate-stop thresholds and the scene-contract regression.
+
+After the fix, M05 **19.03 s**, M09 **18.98 s**, M19 **22.32 s**, all four/six
+gates in order with the optional bonus. No village mission or rally rule
+changed.
+
+### Post-PR playtest fix — M21 delivery interaction
+
+A playtest with **6 / 6** supplies showed the HUD still pointing back to the
+workshop, and pressing E there could not deliver because the items were already
+collected.
+
+Root cause: `Main.InteractRoadworks()` checked `SuppliesDelivered` but never
+called `MissionService.DeliverRoadworksSupplies()`. The objective router also
+used only the already-delivered flag, so it kept selecting the workshop until a
+delivery that could never happen.
+
+Fix:
+
+- the real gate interaction now calls `DeliverRoadworksSupplies()` when all six
+  are carried, consumes them once, saves, shows the delivery toast and opens the
+  crew loading check;
+- the objective switches to `ROADWORKS DELIVERY` at the closed gate as soon as
+  `HasAllSupplies` is true, before delivery (and `ROADWORKS CREW` afterwards);
+- the progress row says “Now drive to the closed CITY ROAD gate” at 6/6;
+- the roadworks station radius is 5.0 m so the prompt is reachable from the
+  bridge approach.
+
+Regression coverage in `--selftest-city` now uses the **real interaction**:
+all six carried → objective points at the gate → E delivers and consumes the
+items → the loading-check modal opens. City runtime count rose from 76 to 82.
+
+### City traversal remediation — sidewalks, plazas and NPC routes
+
+A driving playtest reported that the van still could not enter the city and that
+raised paved areas crossed the grid, stalling NPC cars.
+
+Captured in the running scene before the fix:
+
+```text
+CITY_DEFECT van_entry x=182.16 y=0.05 z=0.00 speed=0.00
+```
+
+- `evidence/v14_city/defects/p24_01_city_entry_side.png` …
+  `p24_07_city_grid_overview.png`
+- `evidence/v14_city/defects/city-defects-before.log`
+
+Root causes:
+
+- every 4 m sidewalk strip was a continuous 350 m mesh/collider at 0.33 m,
+  crossing all four perpendicular roads and sealing the city entrance;
+- the nine 68 m plaza slabs overlapped the 24 m roads by 6 m on each side;
+- building footprints at ±18 m plots extended up to 5 m into the roads;
+- lane dashes and crosswalks floated 0.2 m above the road and cast detached
+  shadows;
+- the approach/city seam had a 7 cm collision lip.
+
+Implemented:
+
+- rebuilt all 16 sidewalk strips as 81 authored segments between road crossings,
+  with a 16 m entrance gap in the westmost strip at z=0;
+- shrank the nine plazas and shared collision to 56 m so they stop at the road
+  edge;
+- scaled the 36 building instances to 0.62 and copied that scale to their HLOD
+  proxies;
+- lowered city road surfaces/base collision to 0.01–0.02 m and markings to
+  0.04–0.045 m; disabled shadow casting on 152 road-marking meshes;
+- moved the board, benches, trees and city-job roots onto the 0.29 m plaza;
+- restored the traffic signals to the 0.3 m sidewalk level.
+
+New regressions: the van crosses the former entrance barrier (`x > 188`), every
+near city car stays on the road grid and at least two keep moving through
+intersections, and the player walks from the road onto the central plaza. Pure
+scene contracts reject sidewalk segments crossing a road or plazas overlapping
+one. City runtime is now **124 passed, 0 failed** at that point; the long-hold and outer-loop follow-ups raise it to **126**.
+
+After-fix evidence:
+
+- `evidence/v14_city/defects-fixed/p24_01_city_entry_side.png` …
+  `p24_07_city_grid_overview.png`
+- `evidence/v14_city/defects-fixed/city-defects-after.log`
+
+The after-fix van log reaches `x=189.35` on the city road; the car log shows
+continued movement along the inner and outer routes. Full analysis:
+`docs/CITY_TRAVERSAL_REMEDIATION.md`.
+
+### Review follow-up — traversal, traffic and activation
+
+The PR review requested stronger evidence and policy decisions:
+
+- **Full traversal:** the city selftest now drives the van with a sustained
+  throttle autopilot from the approach through the first intersection, around
+  the central block and back out. It asserts all four phases (entered, first
+  intersection, central block, returned).
+- **Traffic policy:** city NPC traffic is explicitly cooperative/decorative.
+  Cars collide with static geometry but not with the player/van and yield when
+  the player is ahead. Static yield tests and a controlled stop/stream test
+  cover the policy.
+- **Reconciliation:** near cars keep a bounded 18 m visual lag. A yielding car
+  is not snapped forward through the player; its lag is stored and applied when
+  it streams back in. Mid actors follow logical pose directly, and near actors
+  catch up with bounded speed. The test holds, streams out, returns and
+  re-yields a car.
+- **Collision scope:** city-ground collision now uses the authored square
+  district footprint (local ±180 m) instead of a 185 m circle, which clipped
+  the outer carriageway corners at ~187 m. Visibility remains 335 m for
+  HLOD/streaming. At the town centre the district stays visible with zero
+  active collision bodies. The new outer-loop test checks all eight
+  carriageway edge/corner points, the worst corner, and a full driven loop.
+- **Boundary follow-up:** a second review pass found the circular activation
+  could still switch off at the outer carriageway corners. The footprint now
+  keeps ~48 m of margin beyond every drivable edge; a pure scene contract and
+  the driven outer-loop test cover it.
+- **Weak assertion:** the car regression now requires at least two near cars and
+  at least two moving cars.
+
+City runtime is now **126 passed, 0 failed**; the full source total is
+**1297 passed, 0 failed**.
+
+### Verification — source
+
+```text
+dotnet build PatchworkIsland.sln                         -> 0 warnings, 0 errors
+dotnet run --project tests/PatchworkIsland.Tests.csproj  -> 132 passed, 0 failed
+godot --headless --path . --editor --quit                -> exit 0
+godot --headless --path . --quit-after 120               -> exit 0
+--selftest                284 passed, 0 failed
+--selftest-resume          21 passed, 0 failed
+--selftest-recovery       101 passed, 0 failed
+--selftest-living         238 passed, 0 failed
+--selftest-rally           10 passed, 0 failed
+--selftest-chapter        217 passed, 0 failed
+--selftest-hotfix          48 passed, 0 failed
+--selftest-finale         140 passed, 0 failed
+--selftest-traversal       18 passed, 0 failed
+--selftest-release         40 passed, 0 failed
+--selftest-restore         54 passed, 0 failed
+--selftest-city            126 passed, 0 failed
+```
+
+Source runtime total: **1297 passed, 0 failed**, all twelve phases exit 0.
+Every process exits 0; the known Mono shutdown resource warnings are unchanged.
+
+### Packaged Linux 1.4.0 — CityFix
+
+A release export was produced from the city-grid remediation commit and tested
+from the local package:
+
+```text
+dist/linux/PatchworkIsland.x86_64        163,784,744 bytes
+sha256 1c7e17d3451f0d63cb9ba96c18e84489d884b43578d30f1ab9037dd8d1cecf61
+dist/windows/PatchworkIsland.exe         199,621,024 bytes
+sha256 b8e197c95c399c8bee66a939cdcd0664d16ffee17725c6930ada4f8bcd2a90e9
+```
+
+The packaged binary booted headlessly and passed all twelve runtime phases with
+the same counts as source:
+
+```text
+boot 0
+--selftest              284 passed, 0 failed
+--selftest-resume        21 passed, 0 failed
+--selftest-recovery     101 passed, 0 failed
+--selftest-living       238 passed, 0 failed
+--selftest-rally         10 passed, 0 failed
+--selftest-chapter      217 passed, 0 failed
+--selftest-hotfix        48 passed, 0 failed
+--selftest-finale       140 passed, 0 failed
+--selftest-traversal     18 passed, 0 failed
+--selftest-release       40 passed, 0 failed
+--selftest-restore       54 passed, 0 failed
+--selftest-city          126 passed, 0 failed
+```
+
+Packaged total: **1297 passed, 0 failed**, all phases exit 0. The matching local
+CityFix ZIPs and `SHA256SUMS.v1.4.0-cityfix` are in the gitignored `dist/`.
+The existing GitHub v1.4.0 pre-release remains pinned to the earlier `21b226e`
+build; this remediation should be published as a new v1.4.1 tag/release.
+
+### Performance — real AMD Radeon 890M
+
+Final-tree probe, vsync disabled, 240 frames per stage. Full method and
+caveats: `docs/05_CITY_PERFORMANCE.md`; raw data:
+`evidence/city_perf_1280x720.jsonl`, `evidence/city_perf_1920x1080.jsonl`.
+
+| Resolution | Stage | p50 ms | p95 ms | Draw calls | Primitives | Physics | Detail/HLOD | Near/mid actors |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| 1280×720 | town-only | 1.752 | 2.909 | 1343 | 27,774 | 10 | 0 / 0 | 0 / 0 |
+| 1280×720 | city approach | 2.132 | 3.246 | 611 | 8,900 | 10 | 0 / 16 | 0 / 20 |
+| 1280×720 | city street | 2.875 | 4.509 | 1255 | 18,292 | 19 | 20 / 16 | 19 / 17 |
+| 1280×720 | return to town | 1.750 | 3.354 | 1333 | 27,048 | 10 | 0 / 0 | 0 / 0 |
+| 1920×1080 | town-only | 2.978 | 4.864 | 1343 | 27,798 | 10 | 0 / 0 | 0 / 0 |
+| 1920×1080 | city approach | 2.474 | 4.397 | 611 | 8,704 | 10 | 0 / 16 | 0 / 21 |
+| 1920×1080 | city street | 3.360 | 5.601 | 1255 | 18,438 | 24 | 20 / 16 | 19 / 17 |
+| 1920×1080 | return to town | 3.059 | 4.944 | 1333 | 27,102 | 10 | 0 / 0 | 0 / 0 |
+
+- Hidden-city logical catch-up: **0.002–0.003 ms** for 1,800 s, zero actor nodes.
+- Town-only and return stages: zero city actors, zero city physics and zero
+  detailed/HLOD city content.
+- Performance target 60 fps at 720p: **PASS** in these stages (worst p95
+  4.51 ms). A same-method v1.3.0 baseline comparison was **not** run, so the
+  “no more than +1.0 ms in town” target is **NOT INDEPENDENTLY
+  BASELINE-COMPARED**. A >33 ms transition hitch was not observed but is not
+  instrumented.
+- Real Radeon 890M on one Linux/Mesa machine; Windows and other GPUs remain
+  **NOT TESTED**.
+
+### Visual evidence
+
+Final real GPU screenshots are in:
+
+- `evidence/v14_city/720/` — ten 1280×720 captures.
+- `evidence/v14_city/1080/` — ten 1920×1080 captures.
+
+Views: closed and open roadworks gate with readable signage, city approach,
+city street, HLOD overview, plaza and board, CITY JOBS modal, C01 progress,
+C03 cabinets/engineer, and the return to the village. The first capture round
+found mirrored board text and an unreadable side-on roadworks sign; both were
+fixed (board labels face the plaza; the sign faces the approaching driver on the
+south verge) and re-captured.
+
+### Compatibility and docs
+
+- `docs/CITY_EXPANSION_COMPATIBILITY.md` — schema 3 → 4 migration, city fields,
+  exactly-once rules, town invariants and validation.
+- `docs/05_CITY_PERFORMANCE.md` — method, raw results, targets and caveats.
+- `docs/04_COORDINATES_AND_AUTHORING.md` — city origin, board/interaction
+  coordinates, gate/causeway, flush-surface rule, job markers and routes.
+- `docs/03_ACCEPTANCE.md` — city acceptance checklist.
+- `docs/SAVE_COMPATIBILITY.md`, `README.md` and `README_RUN.md` — schema 4 and
+  v1.4.0 status.
+- `data/city_jobs_proposed.json` remains the input proposal;
+  `data/city_missions.json` is the runtime catalogue.
+
+### Not claimed / remaining gaps
+
+- No continuous human M01–M21 → C01–C03 sitting. Automated real-UI and runtime
+  coverage is green.
+- Human composition/visual sign-off of the city screenshots is still open.
+- Windows export/startup is **NOT TESTED**.
+- PR [#32](https://github.com/PhilipGB/patchwork-island/pull/32) is open and
+  stacked on #31. Run
+  [43134342686](https://github.com/PhilipGB/patchwork-island/actions/runs/43134342686)
+  passed `build-test` (13m52s) and `windows-tests` (1m13s) after the city-phase
+  timeout was raised from 180 s to 420 s for the full outer-loop drive.
+- The v1.4.0 test release uses the packaged Linux and Windows exports in
+  `dist/`: the Linux package booted and passed all twelve runtime phases, and
+  the Windows PE32+ executable reports version `1.4.0.0`. Windows startup is
+  still **NOT TESTED**.
+- The approach road still crosses the rally meadow visually at z=0. It is flush
+  and below the rally surface, and the rally/autopilot tests pass, but it is a
+  deliberate layout compromise rather than a separate ring road.
+
+### v1.4.0 test release — PASS
+
+Published as a GitHub pre-release from annotated tag **`v1.4.0`** at
+**`21b226e`**:
+<https://github.com/PhilipGB/patchwork-island/releases/tag/v1.4.0>.
+
+Release assets:
+
+```text
+PatchworkIsland-1.4.0-Linux-x86_64.zip
+PatchworkIsland-1.4.0-Windows-x86_64.zip
+README.txt
+SHA256SUMS
+```
+
+Hashes:
+
+```text
+19bc6ee6c7b87172c68fa03ee70980aafc56fa7d3c34f2c54c12a2757f3058dd  linux/PatchworkIsland.x86_64
+bd0632feceaa34ef8800522d6e9e8c6c2ef47f4fb3642e0cd8c4a56d246728a7  windows/PatchworkIsland.exe
+3bf67da64ef80669841dac68439d7cb2f599deadbc8cadd02ee4cf1803422dba  PatchworkIsland-1.4.0-Linux-x86_64.zip
+56542f617d831656bc5c5f7ff8269754902973aed46f325ab5fadae2df920577  PatchworkIsland-1.4.0-Windows-x86_64.zip
+```
+
+The packaged Linux binary booted headlessly (exit 0) and passed all twelve
+runtime phases (**1253 passed, 0 failed**). The extracted ZIP binary was
+byte-identical and passed its boot and `--selftest-city` (**82/0**) checks. The
+Windows export is a self-contained PE32+ x86-64 executable reporting file and
+product version `1.4.0.0`; **Windows startup is NOT TESTED**. The release is
+marked pre-release so it does not replace v1.3.0 as the latest stable release.

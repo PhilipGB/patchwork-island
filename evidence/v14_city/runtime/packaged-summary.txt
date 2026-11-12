@@ -1,0 +1,13 @@
+boot=0
+base=0
+resume=0
+recovery=0
+living=0
+rally=0
+chapter=0
+hotfix=0
+finale=0
+traversal=0
+release=0
+restore=0
+city=0

@@ -43,6 +43,17 @@ public partial class VanController : CharacterBody3D
         _autopilot = true;
     }
 
+    /// <summary>Test-only route autopilot used for the city traversal regression.</summary>
+    public void StartRouteAutopilot(IReadOnlyList<Vector3> points)
+    {
+        if (points == null || points.Count < 2) return;
+        var path = new List<RallyCourse.Point>(points.Count);
+        foreach (var point in points) path.Add(new RallyCourse.Point(point.X, point.Z));
+        _autopilotPath = path;
+        _autopilotIndex = 1 % path.Count;
+        _autopilot = true;
+    }
+
     public void StopAutopilot() => _autopilot = false;
 
     public void Initialize(Vector3 parkingPosition, float parkingYaw, Hud hud)
@@ -199,6 +210,13 @@ public partial class VanController : CharacterBody3D
         Rotation = new Vector3(0, _parkingYaw, 0);
         Speed = 0;
         Velocity = Vector3.Zero;
+    }
+
+    /// <summary>Non-shipping physics test seam used by the city runtime selftest.</summary>
+    internal void TestLaunch(float speed)
+    {
+        Speed = speed;
+        Velocity = new Vector3(0, Velocity.Y, 0);
     }
 
     public List<Vector3> GetExitCandidates()

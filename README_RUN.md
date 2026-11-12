@@ -1,13 +1,13 @@
 # Patchwork Island — run and test guide
 
-> Status: v1.3.0 asset-driven town — implemented in source, **not tagged or
-> released**. The static town is `scenes/world/Town.tscn`, assembled from
-> `scenes/world/assets/` and instantiated by `WorldSceneAdapter`. There is no
-> bake step and no procedural `WorldBuilder`. All v1.2.1 gameplay and schema-3
-> saves are retained. Source runtime **1171 assertions**, pure rules **123
-> tests** and every packaged Linux phase pass. See `PROGRESS.md` and
-> `ACCEPTANCE.md` for the gate and remaining gaps. The v1.2.1 release notes
-> remain under `docs/`.
+> Status: v1.4.0 City Expansion — **test build published** as GitHub
+> pre-release [`v1.4.0`](https://github.com/PhilipGB/patchwork-island/releases/tag/v1.4.0)
+> from commit `21b226e`. The static town is `scenes/world/Town.tscn`; the city is authored
+> in `scenes/city/` and loaded by `CityWorldAdapter`. There is no bake step and
+> no procedural `WorldBuilder` or city generator. All v1.2.1/v1.3.0 gameplay,
+> M01–M20 semantics and schema-3 saves are retained; schema 4 adds city state.
+> See `PROGRESS.md` and `docs/03_ACCEPTANCE.md` for the gate and remaining gaps.
+> The v1.2.1 release notes remain under `docs/`.
 
 ## Prerequisites
 
@@ -67,22 +67,24 @@ godot --headless --path . --quit-after 120
 dotnet run --project tests/PatchworkIsland.Tests.csproj
 ```
 
-The runner currently has **123 tests** and covers mission catalog, prerequisites,
+The runner currently has **132 tests** and covers mission catalog, prerequisites,
 unlocks, duplicate pickups, exactly-once rewards, mission switching, hints,
 bridge/swing snapping (including rejected unknown part types), grocery and park
 budgets, furniture costs/starter fallback/purchase caps, ordered checkpoints,
 optional race-bonus boundaries, persisted-clock bonus verification and invalid
-bonus rejection, the full ten-job graph, JSON round-trips, structural save
-validation, corrupt/backup recovery, newer-save preservation, deterministic
-in-process failed-write/retry, race-time restoration and saturation,
-post-completion furniture rearrangement, save-feedback throttling, settings
-feedback isolation, persisted/discarded session state, newer-replacement
-permission, control-mode precedence, clothing defaults, purchase and ownership
-rules, equip restrictions, clothing save round-trips, older-save defaults,
-mission-catalogue integrity, a complete-field comparison of
-`MISSIONS.json`/`data/missions.json` that rejects duplicate properties at any
-depth, and scene-parity checks for all 75 anchors, building centres/wall sizes,
-required dynamic roots, rally collision and NPC/traffic markers.
+bonus rejection, the full twenty-job graph, M21 roadworks quantities/order,
+city job exactly-once rewards, city save validation, deterministic city
+simulation, scene contracts, JSON round-trips, structural save validation,
+corrupt/backup recovery, newer-save preservation, deterministic in-process
+failed-write/retry, race-time restoration and saturation, post-completion
+furniture rearrangement, save-feedback throttling, settings feedback isolation,
+persisted/discarded session state, newer-replacement permission, control-mode
+precedence, clothing defaults, purchase and ownership rules, equip
+restrictions, clothing save round-trips, older-save defaults, mission-catalogue
+integrity, a complete-field comparison of `MISSIONS.json`/`data/missions.json`
+that rejects duplicate properties at any depth, and scene-parity checks for all
+75 anchors, building centres/wall sizes, required dynamic roots, rally collision
+and NPC/traffic markers.
 
 ## Godot runtime integration tests
 
@@ -98,11 +100,18 @@ godot --headless --path . -- --selftest-finale
 godot --headless --path . -- --selftest-traversal
 godot --headless --path . -- --selftest-release
 godot --headless --path . -- --selftest-restore
+godot --headless --path . -- --selftest-city
 ```
 
 These use isolated `user://selftest-save.json` and
-`user://selftest-recovery-save.json` files and run **1171 assertions across
-eleven phases**. The first two cover title/modal pause, pausable player/van/world
+`user://selftest-recovery-save.json` files and total **1297 assertions across
+twelve phases** on the v1.4.0 tree. The city phase loads the real authored
+district, proves the closed road gating, C01–C03 state flow, physical gate
+open/close, logical-while-hidden simulation, LOD/actor cleanup, a mid-drive save
+and a return trip. Run `--selftest` before `--selftest-resume`: the fresh phase
+creates the driving save that the resume phase continues.
+
+The first two phases cover title/modal pause, pausable player/van/world
 processing, stopped physics and race timers, Pause→Settings→Pause,
 Title→Settings→Title, New Game confirmation cancellation, the character
 chooser, real clothes-shop Buy/Wear buttons, wallet updates, insufficient
@@ -201,18 +210,21 @@ godot --headless --path . --export-release "Linux" dist/linux/PatchworkIsland.x8
 ```
 
 Both exports are single-file, self-contained builds (no Godot or .NET install
-required on the player machine). `export_presets.cfg` is committed. The Linux
-export was launched and played. The Windows x64 export was produced and
-inspected but **startup was not tested** because this environment has no Windows
-runtime or Wine. See `dist/SHA256SUMS` and `dist/README.txt`.
+required on the player machine). `export_presets.cfg` is committed. The v1.4.0
+test build is published as a GitHub pre-release at
+<https://github.com/PhilipGB/patchwork-island/releases/tag/v1.4.0>.
+The packaged Linux binary was launched, booted and passed all twelve runtime
+phases from the exported ZIP. The Windows x64 export is a PE32+ 1.4.0.0
+executable, but **startup was not tested** because this environment has no
+Windows runtime or Wine.
 
-## Final verification
+## Final verification — v1.4.0 source tree
 
 ```text
 dotnet build PatchworkIsland.sln                         -> 0 warnings, 0 errors
-dotnet run --project tests/PatchworkIsland.Tests.csproj -> 123 passed, 0 failed
+dotnet run --project tests/PatchworkIsland.Tests.csproj -> 132 passed, 0 failed
 godot --headless --path . --editor --quit                -> exit 0
-godot --headless --path . --quit-after 120               -> exit 0, 0 unsafe leaks
+godot --headless --path . --quit-after 120               -> exit 0
 godot --headless --path . -- --selftest                  -> 284 passed, 0 failed
 godot --headless --path . -- --selftest-resume           -> 21 passed, 0 failed
 godot --headless --path . -- --selftest-recovery         -> 101 passed, 0 failed
@@ -224,31 +236,24 @@ godot --headless --path . -- --selftest-finale           -> 140 passed, 0 failed
 godot --headless --path . -- --selftest-traversal        -> 18 passed, 0 failed
 godot --headless --path . -- --selftest-release          -> 40 passed, 0 failed
 godot --headless --path . -- --selftest-restore          -> 54 passed, 0 failed
+godot --headless --path . -- --selftest-city             -> 126 passed, 0 failed
 godot --headless --path . --export-release "Linux" ...    -> exit 0
-dist/linux/PatchworkIsland.x86_64 (all runtime phases)    -> 1171 passed, 0 failed
-dist/linux/PatchworkIsland.x86_64 --headless --quit-after 120 -> exit 0
+packaged Linux v1.4.0 (all runtime phases)                -> 1297 passed, 0 failed
+packaged Linux --headless --quit-after 120                -> exit 0
 ```
 
-The new phases cover M11–M15, M16–M20, a partial-M18 save/relaunch, six-gate
-rally, real bridge/road traversal, a schema 2 v1.1.0 save (137 coins) and a
-schema 3 v1.2.1-shaped save (158 coins, outfits, bridge, swings, park and
-furniture). `--selftest-restore` reloads seven partial construction/finale
-worlds. The packaged Linux executable passed the same phases, every process exit
-code 0 with zero leaked unsafe references.
+The new city phase covers the authored district, M21 gate/collider, C01–C03
+state flow, LOD/actor cleanup and a mid-drive save/continue. `--selftest-restore`
+still reloads seven partial construction/finale worlds. The v1.4.0 packaged
+Linux executable passed the same phases from a temp export, every process exit
+code 0.
 
-The v1.3.0 Linux export is an ELF x86-64 executable. The v1.3.0 Windows export
-was rebuilt from this tree, but startup remains **NOT TESTED** because this
-environment has no Windows runtime or Wine. The previous v1.0.2, v1.1.0 and
-v1.2.x verification remains recorded in `ACCEPTANCE.md`.
-
-Real AMD Radeon 890M measurements for the scene-backed world: 720p mean
-16.68–16.71 ms / p95 17.21–17.26 ms and 1080p mean 16.68 ms / p95 17.21 ms over
-600 frames. The v1.2.1 procedural baseline in the same environment was
-16.67–16.71 ms / p95 17.17–17.26 ms with identical 3394 draw calls and 66069
-primitives, so the migration adds no measurable GPU cost. Packaged audio is
-unchanged from v1.2.1; human listening remains **PASS** from the v1.2.0
-verification and was not separately re-auditioned. Child usability testing
-remains a manual follow-up.
+Real AMD Radeon 890M measurements for the city-aware world are in
+`docs/05_CITY_PERFORMANCE.md`. The v1.3.0 scene-backed numbers remain recorded in
+`PROGRESS.md` for historical comparison. Packaged audio is unchanged from
+v1.2.1; human listening remains **PASS** from the v1.2.0 verification and was
+not separately re-auditioned. Child usability testing remains a manual
+follow-up.
 
 The v1.3.0 migration keeps the v1.2.1 hotfix, legacy-save pickup normalisation,
 terminal off-island traffic stop and P15.1 bridge work. Traversal still runs 18
@@ -270,6 +275,9 @@ godot --path . -- --scenario-m08   # M07 + playground done, park active
 godot --path . -- --scenario-m09   # M05 done, bonus race active in the meadow
 godot --path . -- --scenario-m10   # M08 + park done, furniture job active
 godot --path . -- --scenario-final # nine jobs done, M10 active; finish for celebration
+godot --path . -- --scenario-city  # roadworks done, road open, city plaza; CITY JOBS behind you
+godot --path . -- --capture-city   # ten city screenshots; add --resolution 1920x1080
+godot --path . -- --city-perf      # city stage metrics; add --perf-1080 for 1080p
 ```
 
 They do not alter unlock tests or normal play.
@@ -285,16 +293,18 @@ Writes are atomic (temporary file, flush, move). An unreadable or structurally
 invalid save is renamed `save.json.corrupt-<timestamp>` and the backup is loaded
 if possible.
 
-Save schema versions are separate from game release versions. v1.2.1 writes
-schema **3**. Schema 1 migrates through schema 2; missing character fields
+Save schema versions are separate from game release versions. v1.4.0 writes
+schema **4**. Schema 1 migrates through schema 2 and 3; missing character fields
 default to **Boy + Everyday**. Schema 2 (v1.1.0) keeps coins, outfits,
 cosmetics, bridge/park/furniture state, player/van snapshots and
 `CelebrationSeen`; the new `FestivalSeen` starts false and M11 unlocks
-immediately. The next save rewrites at schema 3 and keeps the original as
-`.bak`. A schema 4 or newer save is **never** loaded, downgraded, discarded or
-overwritten automatically. The title screen explains the incompatibility, and
-an ordinary autosave refuses to touch it. Only an explicitly confirmed New Game
-may replace it, and a `save.json.newer-vN-<timestamp>` copy is kept first.
+immediately. Schema 3 (v1.2.1/v1.3.0) keeps all village progress and adds a
+closed city road, an empty city board and a deterministic city seed. The next
+save rewrites at schema 4 and keeps the original as `.bak`. A schema 5 or newer
+save is **never** loaded, downgraded, discarded or overwritten automatically.
+The title screen explains the incompatibility, and an ordinary autosave refuses
+to touch it. Only an explicitly confirmed New Game may replace it, and a
+`save.json.newer-vN-<timestamp>` copy is kept first.
 
 Settings, player/van positions, missions, bridge/swing parts, park/furniture
 placements, wallet, inventory, character preset, owned outfits, equipped outfit

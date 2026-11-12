@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 
@@ -35,7 +36,7 @@ public static class SaveService
     /// The persistence contract, deliberately separate from the game release
     /// version. Increment this only when the saved data shape changes.
     /// </summary>
-    public const int CurrentVersion = 3;
+    public const int CurrentVersion = 4;
     public const string DefaultFileName = "save.json";
 
     // Narrow test seam for deterministic write failures. It is process-local,
@@ -144,8 +145,10 @@ public static class SaveService
     /// Upgrades a supported older save in memory to the current schema. Schema
     /// 1 predates character customisation, so its missing fields are filled by
     /// Normalise with Boy + Everyday + no purchases. 2 predates the separate
-    /// v1.2 festival marker, which defaults to false. All progression fields are
-    /// left intact. The file is only rewritten at the current schema by the next save.
+    /// v1.2 festival marker, which defaults to false. 3 predates the city
+    /// expansion; its city fields default to closed/empty and the deterministic
+    /// city clock starts at zero. All progression fields are left intact. The
+    /// file is only rewritten at the current schema by the next save.
     /// </summary>
     public static GameData Migrate(GameData data)
     {
@@ -172,6 +175,23 @@ public static class SaveService
                     // CelebrationSeen keeps its original M10 meaning.
                     data.FestivalSeen = false;
                     data.SchemaVersion = 3;
+                    break;
+
+                case 3:
+                    // Schema 3 predates the city expansion. Normalise has
+                    // already supplied an empty city board, a closed road and
+                    // a deterministic default simulation seed. No town state
+                    // is inferred or rewritten.
+                    data.ActiveCityMission = "";
+                    data.CompletedCityMissions ??= new List<string>();
+                    data.CityMissionProgress ??= new Dictionary<string, Dictionary<string, int>>();
+                    data.CityRoadworksCompleted = false;
+                    data.CityRoadworksRewardClaimed = false;
+                    data.CityRoadOpen = false;
+                    data.CityVisited = false;
+                    data.CityLogicalSeconds = 0;
+                    if (data.CitySeed == 0) data.CitySeed = 20261111;
+                    data.SchemaVersion = 4;
                     break;
 
                 default:

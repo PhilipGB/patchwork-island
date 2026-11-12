@@ -21,12 +21,24 @@ public partial class Main : Node3D
     private CameraRig _rig;
     private WorldMarker _marker;
     private MissionCatalog _catalog;
+    private CityMissionCatalog _cityCatalog;
     private GameData _data;
     private MissionService _missions;
+    private CityMissionService _cityMissions;
+    private CityWorldAdapter _city;
+    private TownCityRoadworks _roadworks;
+    private Interactable _roadworksStation;
+    private Interactable _cityJobStation;
+    private readonly List<Interactable> _cityJobStations = new();
+    private bool _cityWelcomeShown;
+    private float _cityMissionObjectiveRefresh;
+    private bool _cityUiOpen;
+    private bool _suppressScenarioSaves;
     private readonly HashSet<string> _implemented = new()
     {
         "M01", "M02", "M03", "M04", "M05", "M06", "M07", "M08", "M09", "M10",
         "M11", "M12", "M13", "M14", "M15", "M16", "M17", "M18", "M19", "M20",
+        "M21",
     };
     private readonly List<Pickup> _pickups = new();
     private readonly List<NpcActor> _npcs = new();
@@ -111,7 +123,8 @@ public partial class Main : Node3D
             (IsHotfixTest && RuntimeSelfTest.HotfixPhase == 0) ||
             (IsChapterTest && RuntimeSelfTest.ChapterPhase == 0) ||
             (IsRestoreTest && RuntimeSelfTest.RestorePhase == 0) ||
-            (IsReleaseTest && RuntimeSelfTest.ReleasePhase == 0))
+            (IsReleaseTest && RuntimeSelfTest.ReleasePhase == 0) ||
+            IsCityTest)
             DeleteSelfTestSaves("selftest-save.json");
         else if (IsRecoveryTest && RuntimeSelfTest.RecoveryPhase == 0)
             DeleteSelfTestSaves("selftest-recovery-save.json");
@@ -154,14 +167,26 @@ public partial class Main : Node3D
         _van.EnterRequested += EnterVan;
         _van.Crashed += OnVanCrashed;
 
+        _city = new CityWorldAdapter { ProcessMode = ProcessModeEnum.Pausable };
+        AddChild(_city);
+        _city.Build();
+        _city.RestoreSimulation(_data.CitySeed, _data.CityLogicalSeconds);
+
+        _roadworks = new TownCityRoadworks();
+        AddChild(_roadworks);
+        _roadworks.Build();
+
         CreateBuilderSystems();
         CreateStations();
+        CreateCityStations();
         CreateChapterTwoWorldVisuals();
         SpawnPickups();
         SpawnVillagers();
         SpawnTraffic();
         RestoreSavedState();
+        ApplyCityPersistedState();
         ReconcileRestoredProgress();
+        ReconcileCityProgress();
         RefreshMissionState();
 
         SyncControlMode();
@@ -223,6 +248,51 @@ public partial class Main : Node3D
                 "SCENARIO: final job active. Furnish the house to trigger the village celebration.", 5f);
             return;
         }
+        if (HasUserArg("--scenario-roadworks"))
+        {
+            CompleteVillageForScenario();
+            BeginScenario(new Vector3(78f, 0.5f, 5.0f), -Mathf.Pi / 2f,
+                "SCENARIO: all 20 village jobs complete. Roadworks Rescue is ready at the closed gate.", 6f);
+            return;
+        }
+        if (HasUserArg("--scenario-city"))
+        {
+            CompleteVillageForScenario();
+            _data.CompletedMissions.Add(RoadworksRules.MissionId);
+            _data.SetMissionCounter(RoadworksRules.MissionId, RoadworksRules.SuppliesDeliveredKey, 1);
+            _data.SetMissionCounter(RoadworksRules.MissionId, RoadworksRules.TaskDoneKey, 1);
+            _data.CityRoadworksCompleted = true;
+            _data.CityRoadworksRewardClaimed = true;
+            _data.CityRoadOpen = true;
+            _roadworks.SetRoadState(true, false);
+            _player.Teleport(new Vector3(CityLayout.WorldX(0f), 0.5f, CityLayout.WorldZ(28f)),
+                0f);
+            _rig.SetView(0f, 20f, 9.5f);
+            _started = true;
+            SyncControlMode();
+            RefreshMissionState();
+            _hud.ShowBigToast("SCENARIO: Patchwork City central plaza. The teal CITY JOBS board is behind you.", 6f, Palette.Teal);
+            return;
+        }
+        if (HasUserArg("--capture-city"))
+        {
+            _started = true;
+            _hud.CloseModal();
+            _player.SetControlEnabled(false);
+            SyncControlMode();
+            _ = CaptureCity();
+            return;
+        }
+        if (HasUserArg("--capture-city-defects"))
+        {
+            _started = true;
+            _hud.CloseModal();
+            _hud.Visible = false;
+            _player.SetControlEnabled(false);
+            SyncControlMode();
+            _ = CaptureCityDefects();
+            return;
+        }
         if (HasUserArg("--capture-title"))
         {
             _hud.ShowTitleScreen(false, false, null, StartAdventure, null, QuitGame);
@@ -276,6 +346,33 @@ public partial class Main : Node3D
             _ = RunPerformanceProbe();
             return;
         }
+        if (HasUserArg("--city-probe"))
+        {
+            _started = true;
+            _hud.CloseModal();
+            _player.SetControlEnabled(false);
+            SyncControlMode();
+            _ = RunCityProbe();
+            return;
+        }
+        if (HasUserArg("--city-perf"))
+        {
+            _started = true;
+            _hud.CloseModal();
+            _player.SetControlEnabled(false);
+            SyncControlMode();
+            _ = RunCityPerformanceProbe();
+            return;
+        }
+        if (IsCityTest)
+        {
+            _started = true;
+            _hud.CloseModal();
+            SyncControlMode();
+            var cityTest = new CityRuntimeSelfTest { Name = "CityRuntimeSelfTest", Main = this };
+            AddChild(cityTest);
+            return;
+        }
         ShowTitle();
         if (IsSelfTest)
         {
@@ -323,6 +420,26 @@ public partial class Main : Node3D
         _hud.ShowBigToast(message, seconds);
     }
 
+    /// <summary>
+    /// Developer/capture setup only. It marks the required chain complete so a
+    /// screenshot or probe can reach the city without replaying twenty jobs;
+    /// it is never used by the normal save/migration path.
+    /// </summary>
+    private void CompleteVillageForScenario()
+    {
+        _suppressScenarioSaves = true;
+        for (int i = 1; i <= 20; i++)
+        {
+            string id = $"M{i:00}";
+            if (!_data.CompletedMissions.Contains(id))
+                _data.CompletedMissions.Add(id);
+        }
+        _data.CelebrationSeen = true;
+        _data.FestivalSeen = true;
+        _missions = new MissionService(_data, _catalog);
+        _cityMissions = new CityMissionService(_data, _cityCatalog);
+    }
+
     private void LoadMissionContent()
     {
         string json = Godot.FileAccess.GetFileAsString("res://data/missions.json");
@@ -331,8 +448,17 @@ public partial class Main : Node3D
         _catalog = MissionCatalog.FromJson(json);
         if (!MissionIntegrity.ValidateCatalog(_catalog, out string error))
             throw new InvalidDataException("Mission content is incomplete: " + error);
+
+        string cityJson = Godot.FileAccess.GetFileAsString("res://data/city_missions.json");
+        if (string.IsNullOrWhiteSpace(cityJson))
+            throw new InvalidDataException("res://data/city_missions.json is missing or empty.");
+        _cityCatalog = CityMissionCatalog.FromJson(cityJson);
+        if (!CityMissionCatalog.Validate(_cityCatalog, out string cityError))
+            throw new InvalidDataException("City job content is incomplete: " + cityError);
+
         _data = new GameData();
         _missions = new MissionService(_data, _catalog);
+        _cityMissions = new CityMissionService(_data, _cityCatalog);
     }
 
     private void ShowFatalContentError(string message)
@@ -381,11 +507,12 @@ public partial class Main : Node3D
     private static bool IsReleaseTest => HasUserArg("--selftest-release");
     private static bool IsHotfixTest => HasUserArg("--selftest-hotfix");
     private static bool IsRestoreTest => HasUserArg("--selftest-restore");
+    private static bool IsCityTest => HasUserArg("--selftest-city");
 
     private static bool IsSelfTest =>
         HasUserArg("--selftest") || HasUserArg("--selftest-resume") || IsRecoveryTest ||
         IsLivingTest || IsRallyTest || IsChapterTest || IsFinaleTest || IsTraversalTest ||
-        IsReleaseTest || IsHotfixTest || IsRestoreTest;
+        IsReleaseTest || IsHotfixTest || IsRestoreTest || IsCityTest;
 
     private static bool IsSelfTestResume => HasUserArg("--selftest-resume");
 
@@ -543,10 +670,17 @@ public partial class Main : Node3D
             Valid = true,
         };
         _data.Driving = _driving;
+        if (_city != null)
+        {
+            _data.CitySeed = _city.Seed == 0 ? _data.CitySeed : _city.Seed;
+            _data.CityLogicalSeconds = _city.LogicalSeconds;
+        }
     }
 
     private SaveResult SaveGame(SaveReason reason)
     {
+        if (_suppressScenarioSaves)
+            return SaveResult.Ok();
         if (_world == null || _player == null || _van == null)
             return SaveResult.Invalid("The game world is not ready yet.");
         if (_session.NewerSavePresent && !_session.NewerReplacementAuthorized)
@@ -988,6 +1122,556 @@ public partial class Main : Node3D
         RefreshMissionState();
     }
 
+    private void CreateCityStations()
+    {
+        _roadworksStation = Interactable.Create(this, _roadworks.InteractionPosition,
+            "E: Roadworks notice", InteractRoadworks, null, true, 5.0f, "RoadworksStation");
+        _roadworksStation.SetPrompt(RoadworksPrompt);
+
+        _cityJobStation = Interactable.Create(this, _city.BoardInteraction,
+            "E: Read CITY JOBS", OpenCityJobBoard,
+            () => _data.CityRoadOpen, true, 3.6f, "CityJobBoardStation");
+        _cityJobStation.SetPrompt(() => _data.CityRoadOpen
+            ? "E: Read the CITY JOBS board"
+            : "CITY JOBS — road still closed");
+
+        AddCityStation("CityDepotStation", "C01_Depot", "E: City depot", InteractCityDepot,
+            () => CityDepotPrompt());
+        for (int i = 1; i <= 3; i++)
+        {
+            int stop = i;
+            AddCityStation($"CityStopStation_{stop}", $"C01_Stop{stop}",
+                $"E: Parcel stop {stop}", () => InteractCityStop(stop),
+                () => CityStopPrompt(stop));
+        }
+        for (int i = 0; i < 6; i++)
+        {
+            int crate = i;
+            AddCityStation($"CityCrateStation_{crate}", $"C02_Crate_{crate}",
+                "E: Collect stock crate", () => InteractCityCrate(crate),
+                () => CityCratePrompt(crate));
+        }
+        AddCityStation("CityStallStation", "C02_Stall", "E: Market stall", InteractCityMarketStall,
+            () => _cityMissions.ActiveMission?.Id == "C02"
+                ? "E: Check the market stock"
+                : "E: Market stall");
+        for (int i = 1; i <= 3; i++)
+        {
+            int cabinet = i;
+            AddCityStation($"CityCabinetStation_{cabinet}", $"C03_Cabinet{cabinet}",
+                $"E: Signal cabinet {cabinet}", () => InteractCityCabinet(cabinet),
+                () => CityCabinetPrompt(cabinet));
+        }
+        AddCityStation("CityEngineerStation", "C03_Engineer", "E: Talk to the engineer",
+            InteractCityEngineer, CityEngineerPrompt);
+        RefreshCityJobVisuals();
+    }
+
+    private void AddCityStation(string name, string markerId, string fallbackPrompt,
+        Action action, Func<string> prompt)
+    {
+        var station = Interactable.Create(this, _city.JobPoint(markerId),
+            fallbackPrompt, action, null, true, 3.6f, name);
+        station.SetPrompt(prompt);
+        _cityJobStations.Add(station);
+    }
+
+    private string RoadworksPrompt()
+    {
+        if (_data.IsCompleted(RoadworksRules.MissionId))
+            return "E: Roadworks — CITY ROAD OPEN";
+        if (_data.ActiveMission == RoadworksRules.MissionId)
+        {
+            if (RoadworksRules.SuppliesDelivered(_data))
+                return "E: Help the crew finish the roadworks";
+            return RoadworksRules.HasAllSupplies(_data)
+                ? "E: Deliver roadworks supplies"
+                : "E: Roadworks supplies needed";
+        }
+        return _missions.GetStatus(RoadworksRules.MissionId) == MissionStatus.Available
+            ? "E: Read the roadworks notice"
+            : "CITY ROAD CLOSED — finish all 20 village jobs";
+    }
+
+    private void InteractRoadworks()
+    {
+        if (_data.IsCompleted(RoadworksRules.MissionId))
+        {
+            _hud.ShowBigToast("The city road is open. Drive east to the CITY JOBS board.", 4f, Palette.Success);
+            return;
+        }
+        if (_data.ActiveMission != RoadworksRules.MissionId)
+        {
+            if (_missions.GetStatus(RoadworksRules.MissionId) != MissionStatus.Available)
+            {
+                _hud.ShowInfo("CITY ROAD CLOSED",
+                    "The roadworks crew is waiting for every village job to be finished. " +
+                    "Complete all 20 required village jobs, then come back. Optional practice races are never required.");
+                return;
+            }
+            var start = _missions.StartMission(RoadworksRules.MissionId);
+            if (!start.Success)
+            {
+                _hud.ShowHint(start.Message);
+                return;
+            }
+            SaveGame(SaveReason.MissionStart);
+            RefreshMissionState();
+            _hud.ShowBigToast(start.Message + " Collect 3 cones, 2 barrier panels and 1 toolbox from the workshop.", 6f, Palette.Yellow);
+            return;
+        }
+        if (!RoadworksRules.SuppliesDelivered(_data))
+        {
+            if (!RoadworksRules.HasAllSupplies(_data))
+            {
+                _hud.ShowHint(
+                    $"The crew needs 3 cones, 2 barrier panels and 1 toolbox. " +
+                    $"Delivered {RoadworksRules.SupplyProgress(_data)} of {RoadworksRules.SupplyTotal}. " +
+                    "The marked pickups are beside the WORKSHOP.");
+                return;
+            }
+
+            var delivered = _missions.DeliverRoadworksSupplies();
+            if (!delivered.Success)
+            {
+                _hud.ShowHint(delivered.Message);
+                return;
+            }
+            RefreshMissionState();
+            SaveGame(SaveReason.Autosave);
+            _hud.ShowBigToast(delivered.Message, 4f, Palette.Orange);
+            _audio?.PlaySfx("coin_collect", -7f);
+            ShowRoadworksTask();
+            return;
+        }
+        ShowRoadworksTask();
+    }
+
+    private void ShowRoadworksTask()
+    {
+        var body = _hud.OpenModal("Roadworks loading check", new Vector2(720, 520), Palette.Orange);
+        UiKit.Label(body, "The crew has every delivery. Help them check the load.", 24, Palette.Navy);
+        UiKit.Label(body, "3 safety cones + 2 barrier panels + 1 toolbox = ?", 21, Palette.Navy);
+        int? selectedTotal = null;
+        var order = new List<string>();
+        var status = UiKit.Label(body, "", 18, Palette.Red);
+        var orderLabel = UiKit.Label(body, "Load order: (not chosen)", 19, Palette.Blue);
+
+        var totalRow = UiKit.HBox(body, 10);
+        foreach (int value in new[] { 5, 6, 7 })
+        {
+            int captured = value;
+            var button = UiKit.Button(totalRow, value.ToString(), 24, new Vector2(0, 52),
+                Palette.Cream, Palette.Orange);
+            button.Name = $"RoadworksTotal_{value}";
+            button.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+            button.Pressed += () =>
+            {
+                selectedTotal = captured;
+                status.Text = $"You chose {captured}. Now choose the loading order.";
+                status.AddThemeColorOverride("font_color", Palette.Blue);
+            };
+        }
+
+        UiKit.Label(body, "Choose the order the crew should load the three kinds.", 19, Palette.Navy);
+        var orderRow = UiKit.HBox(body, 8);
+        foreach (string kind in new[] { "cones", "panels", "toolbox" })
+        {
+            string captured = kind;
+            var button = UiKit.Button(orderRow, RoadworksRules.LabelFor(kind), 19,
+                new Vector2(0, 48), Palette.Cream, Palette.Teal);
+            button.Name = $"RoadworksOrder_{kind}";
+            button.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+            button.Pressed += () =>
+            {
+                if (!order.Contains(captured)) order.Add(captured);
+                orderLabel.Text = "Load order: " + RoadworksRules.OrderLabel(order);
+            };
+        }
+
+        var check = UiKit.Button(body, "Check with the crew", 22, new Vector2(0, 54),
+            new Color("DFF6E3"), Palette.Success);
+        check.Name = "RoadworksCheck";
+        check.Pressed += () =>
+        {
+            if (!selectedTotal.HasValue)
+            {
+                status.Text = "Choose the total first: 3 + 2 + 1.";
+                status.AddThemeColorOverride("font_color", Palette.Red);
+                return;
+            }
+            var result = _missions.CompleteRoadworksTask(selectedTotal.Value, order);
+            if (!result.Success)
+            {
+                status.Text = result.Message;
+                status.AddThemeColorOverride("font_color", Palette.Red);
+                return;
+            }
+            _hud.CloseModal();
+            if (result.Completion != null)
+                OnMissionCompleted(result.Completion);
+        };
+    }
+
+    private void OpenCityJobBoard()
+    {
+        if (!_started) return;
+        if (!_data.CityRoadOpen)
+        {
+            _hud.ShowInfo("CITY JOBS", "The city road is closed. Finish Roadworks Rescue in the village first.");
+            return;
+        }
+        CityJobBoardUi.Show(_hud, _cityMissions, StartCityMissionFromBoard, TurnInCityJob);
+    }
+
+    private void StartCityMissionFromBoard(string missionId)
+    {
+        if (_missions.ActiveMission != null)
+        {
+            _hud.SetModalStatus("Finish or switch your village job first. City jobs are independent.", true);
+            return;
+        }
+        var result = _cityMissions.StartMission(missionId);
+        if (!result.Success)
+        {
+            _hud.SetModalStatus(result.Message, true);
+            return;
+        }
+        _hud.CloseModal();
+        RefreshMissionState();
+        RefreshCityJobVisuals();
+        SaveGame(SaveReason.MissionStart);
+        string hint = result.Mission.Hints.FirstOrDefault() ?? "Follow the glowing city marker.";
+        _hud.ShowBigToast($"{result.Message} {hint}", 5.5f, Palette.Teal);
+    }
+
+    private void TurnInCityJob()
+    {
+        var result = _cityMissions.TurnInAtBoard();
+        if (!result.Success)
+        {
+            _hud.SetModalStatus(result.Message, true);
+            return;
+        }
+        _hud.CloseModal();
+        OnCityMissionCompleted(result);
+    }
+
+    private void OnCityMissionCompleted(CityMissionCompletionResult result)
+    {
+        RefreshMissionState();
+        RefreshCityJobVisuals();
+        string detail = result.Mission.Id switch
+        {
+            "C01" => "Parcels 1, 2 and 3 delivered in number order. The city depot is proud of you!",
+            "C02" => "2 stalls × 3 crates = 6. Every market stall is stocked!",
+            "C03" => "Red → amber → green, then the engineer's sign-off. City signals are safe again!",
+            _ => result.Message,
+        };
+        _hud.ShowSuccess(result.Mission.Title, result.CoinsAwarded, detail, () => { });
+        _audio?.PlaySfx("mission_complete");
+        _audio?.PlaySfx("coin_collect", -7f);
+        var save = SaveGame(SaveReason.MissionCompleted);
+        if (!save.Success)
+            _hud.SetModalStatus("The city job is complete in this session, but it could not be saved yet.", true);
+    }
+
+    private void ShowCityOutcome(CityProgressOutcome outcome)
+    {
+        if (outcome.Completed && outcome.Completion != null)
+        {
+            OnCityMissionCompleted(outcome.Completion);
+            return;
+        }
+        if (outcome.Success)
+        {
+            _hud.ShowBigToast(outcome.Message, 3.8f, Palette.Teal);
+            _audio?.PlaySfx("ui_confirm");
+        }
+        else
+        {
+            _hud.ShowHint(outcome.Message);
+        }
+        RefreshCityJobVisuals();
+        RefreshMissionState();
+        SaveGame(SaveReason.Autosave);
+    }
+
+    private void InteractCityDepot() => ShowCityOutcome(_cityMissions.LoadCourierParcels());
+
+    private void InteractCityStop(int stop) =>
+        ShowCityOutcome(_cityMissions.DeliverCourierStop(stop));
+
+    private void InteractCityCrate(int index) =>
+        ShowCityOutcome(_cityMissions.CollectMarketCrate(index));
+
+    private void InteractCityCabinet(int cabinet)
+    {
+        if (_cityMissions.ActiveMission?.Id != "C03")
+        {
+            _hud.ShowHint("Start Signals and Signs at the CITY JOBS board first.");
+            return;
+        }
+        var body = _hud.OpenModal($"Signal cabinet {cabinet}", new Vector2(640, 390), Palette.Teal);
+        UiKit.Label(body, "Which colour does this cabinet need?", 23, Palette.Navy);
+        var status = UiKit.Label(body, "", 18, Palette.Red);
+        var row = UiKit.HBox(body, 10);
+        foreach (var (colour, label, swatch) in new[]
+                 {
+                     ("red", "RED", Palette.Red),
+                     ("amber", "AMBER", Palette.Yellow),
+                     ("green", "GREEN", Palette.Grass),
+                 })
+        {
+            var button = UiKit.Button(row, label, 21, new Vector2(0, 52), Palette.Cream, swatch);
+            button.Name = $"Cabinet_{colour}";
+            button.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+            string captured = colour;
+            button.Pressed += () =>
+            {
+                var outcome = _cityMissions.RepairCabinet(cabinet, captured);
+                if (!outcome.Success)
+                {
+                    status.Text = outcome.Message;
+                    return;
+                }
+                _hud.CloseModal();
+                ShowCityOutcome(outcome);
+            };
+        }
+    }
+
+    private void InteractCityMarketStall()
+    {
+        if (_cityMissions.ActiveMission?.Id != "C02")
+        {
+            _hud.ShowHint("Start Market Stock-Up at the CITY JOBS board first.");
+            return;
+        }
+        if (_cityMissions.C02Crates < 6)
+        {
+            _hud.ShowHint($"Collect all six crates first. You have {_cityMissions.C02Crates}.");
+            return;
+        }
+        var body = _hud.OpenModal("Market stalls", new Vector2(640, 390), Palette.Teal);
+        UiKit.Label(body, "2 stalls each need 3 crates. How many crates altogether?", 23, Palette.Navy);
+        var status = UiKit.Label(body, "", 18, Palette.Red);
+        var row = UiKit.HBox(body, 10);
+        foreach (int value in new[] { 5, 6, 7 })
+        {
+            int captured = value;
+            var button = UiKit.Button(row, value.ToString(), 24, new Vector2(0, 52),
+                Palette.Cream, Palette.Teal);
+            button.Name = $"MarketAnswer_{value}";
+            button.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+            button.Pressed += () =>
+            {
+                var outcome = _cityMissions.AnswerMarketStock(captured);
+                if (!outcome.Success)
+                {
+                    status.Text = outcome.Message;
+                    return;
+                }
+                _hud.CloseModal();
+                ShowCityOutcome(outcome);
+            };
+        }
+    }
+
+    private void InteractCityEngineer()
+    {
+        var outcome = _cityMissions.TalkToEngineer();
+        if (!outcome.Success)
+        {
+            _hud.ShowHint(outcome.Message);
+            return;
+        }
+        if (outcome.Completed && outcome.Completion != null)
+            OnCityMissionCompleted(outcome.Completion);
+        else
+            ShowCityOutcome(outcome);
+    }
+
+    private string CityDepotPrompt()
+    {
+        if (_cityMissions.ActiveMission?.Id != "C01") return "E: City depot";
+        return _cityMissions.HasCourierParcels
+            ? "E: City depot — parcels loaded"
+            : "E: Load the three numbered parcels";
+    }
+
+    private string CityStopPrompt(int stop)
+    {
+        if (_cityMissions.ActiveMission?.Id != "C01") return $"E: Parcel stop {stop}";
+        if (!_cityMissions.HasCourierParcels) return "E: Collect parcels at the depot first";
+        int expected = _cityMissions.C01Stops + 1;
+        if (stop < expected) return $"E: Parcel {stop} already delivered";
+        return stop == expected
+            ? $"E: Deliver parcel {stop}"
+            : $"E: Parcel stop {stop} — parcel {expected} is next";
+    }
+
+    private string CityCratePrompt(int index)
+    {
+        if (_cityMissions.ActiveMission?.Id != "C02") return "E: Market stock crate";
+        return _cityMissions.Progress("C02", $"crate_{index}") > 0
+            ? "E: Crate already collected"
+            : "E: Collect stock crate";
+    }
+
+    private string CityCabinetPrompt(int cabinet)
+    {
+        if (_cityMissions.ActiveMission?.Id != "C03") return $"E: Signal cabinet {cabinet}";
+        if (_cityMissions.Progress("C03", $"cabinet_{cabinet}") > 0)
+            return $"E: Signal cabinet {cabinet} — fixed";
+        int expected = _cityMissions.C03Cabinets + 1;
+        return cabinet == expected
+            ? $"E: Repair cabinet {cabinet}"
+            : $"E: Cabinet {expected} is next";
+    }
+
+    private string CityEngineerPrompt()
+    {
+        if (_cityMissions.ActiveMission?.Id != "C03") return "E: City engineer";
+        return _cityMissions.C03Cabinets >= 3
+            ? "E: Talk to the city engineer"
+            : "E: Engineer — repair all three cabinets first";
+    }
+
+    private void RefreshCityJobVisuals()
+    {
+        var parcels = _city.JobProp("C01_DepotParcels");
+        if (parcels != null)
+            parcels.Visible = !_data.CompletedCityMissions.Contains("C01") &&
+                              !_cityMissions.HasCourierParcels;
+        for (int i = 0; i < 6; i++)
+        {
+            var crate = _city.JobProp($"C02_Crate_{i}");
+            if (crate != null)
+                crate.Visible = _cityMissions.Progress("C02", $"crate_{i}") <= 0;
+        }
+        for (int i = 1; i <= 3; i++)
+        {
+            var cabinet = _city.JobProp($"C03_Cabinet{i}");
+            var body = cabinet?.GetNodeOrNull<MeshInstance3D>("Body");
+            if (body == null) continue;
+            bool fixedCabinet = _cityMissions.Progress("C03", $"cabinet_{i}") > 0;
+            body.MaterialOverride = fixedCabinet
+                ? Geo.Mat(Palette.Grass)
+                : Geo.Mat(Palette.Stone);
+            if (cabinet.GetNodeOrNull<MeshInstance3D>("LensRed") is { } red)
+                red.MaterialOverride = Geo.Mat(Palette.Red);
+            if (cabinet.GetNodeOrNull<MeshInstance3D>("LensAmber") is { } amber)
+                amber.MaterialOverride = Geo.Mat(Palette.Yellow);
+            if (cabinet.GetNodeOrNull<MeshInstance3D>("LensGreen") is { } green)
+                green.MaterialOverride = Geo.Mat(Palette.Grass);
+        }
+    }
+
+    private void ApplyCityPersistedState()
+    {
+        if (_data.IsCompleted(RoadworksRules.MissionId))
+        {
+            _data.CityRoadworksCompleted = true;
+            _data.CityRoadworksRewardClaimed = true;
+            _data.CityRoadOpen = true;
+        }
+        _roadworks.SetRoadState(_data.CityRoadOpen, false);
+        _city.RestoreSimulation(_data.CitySeed, _data.CityLogicalSeconds);
+        RefreshCityJobVisuals();
+    }
+
+    private void ReconcileCityProgress()
+    {
+        if (_missions.ActiveMission?.Id == RoadworksRules.MissionId &&
+            MissionRules.IsObjectiveComplete(_data, RoadworksRules.MissionId))
+        {
+            var result = _missions.CompleteActive();
+            if (result.Success)
+            {
+                _data.CityRoadworksCompleted = true;
+                _data.CityRoadworksRewardClaimed = true;
+                _data.CityRoadOpen = true;
+                _roadworks.SetRoadState(true, false);
+                _recoveredJobNote = $"Recovered a finished city road job: {result.Message}";
+            }
+        }
+        if (_cityMissions.ActiveMission != null &&
+            CityMissionService.ObjectiveComplete(_data, _cityMissions.ActiveMission.Id))
+        {
+            var result = _cityMissions.ReconcileActiveObjective();
+            if (result.Success)
+                _recoveredJobNote = $"Recovered a finished city job: {result.Message}";
+        }
+    }
+
+    private void RefreshCityMissionState()
+    {
+        var mission = _cityMissions.ActiveMission;
+        if (mission == null) return;
+        _hud.SetMission(mission.Title, mission.Short, CityJobBoardUi.IconFor(mission.Id),
+            CityProgressRows(mission.Id));
+
+        switch (mission.Id)
+        {
+            case "C01":
+                if (!_cityMissions.HasCourierParcels)
+                    SetObjective(_city.JobPoint("C01_Depot"), "CITY DEPOT", "delivery", Palette.Teal);
+                else if (_cityMissions.C01Stops >= 3)
+                    SetObjective(_city.BoardApproach, "CITY JOBS", "star", Palette.Teal);
+                else
+                    SetObjective(_city.JobPoint($"C01_Stop{_cityMissions.C01Stops + 1}"),
+                        $"PARCEL {_cityMissions.C01Stops + 1}", "delivery", Palette.Teal);
+                break;
+            case "C02":
+                if (_cityMissions.C02Crates < 6)
+                {
+                    for (int i = 0; i < 6; i++)
+                    {
+                        if (_cityMissions.Progress("C02", $"crate_{i}") > 0) continue;
+                        SetObjective(_city.JobPoint($"C02_Crate_{i}"), "STOCK CRATE", "basket", Palette.Teal);
+                        break;
+                    }
+                }
+                else if (!_cityMissions.HasMarketAnswer)
+                    SetObjective(_city.JobPoint("C02_Stall"), "MARKET STALL", "market_maths", Palette.Teal);
+                else
+                    SetObjective(_city.BoardApproach, "CITY JOBS", "star", Palette.Teal);
+                break;
+            case "C03":
+                if (_cityMissions.C03Cabinets < 3)
+                    SetObjective(_city.JobPoint($"C03_Cabinet{_cityMissions.C03Cabinets + 1}"),
+                        $"SIGNAL CABINET {_cityMissions.C03Cabinets + 1}", "road_signs", Palette.Teal);
+                else
+                    SetObjective(_city.JobPoint("C03_Engineer"), "CITY ENGINEER", "neighbours", Palette.Teal);
+                break;
+        }
+        RefreshObjectiveUi();
+    }
+
+    private List<(string Icon, string Text)> CityProgressRows(string id)
+    {
+        var rows = new List<(string, string)>();
+        switch (id)
+        {
+            case "C01":
+                rows.Add(("parcel", _cityMissions.HasCourierParcels
+                    ? "3 parcels loaded"
+                    : "Load parcels at the depot"));
+                rows.Add(("star", $"Stops in order: {_cityMissions.C01Stops} / 3"));
+                break;
+            case "C02":
+                rows.Add(("basket", $"Crates: {_cityMissions.C02Crates} / 6"));
+                rows.Add(("star", _cityMissions.HasMarketAnswer ? "2 × 3 = 6 checked" : "Then check 2 × 3 at the stall"));
+                break;
+            case "C03":
+                rows.Add(("road_signs", $"Cabinets fixed: {_cityMissions.C03Cabinets} / 3"));
+                rows.Add(("star", "Order: RED → AMBER → GREEN"));
+                break;
+        }
+        return rows;
+    }
+
     private void CreateChapterTwoWorldVisuals()
     {
         foreach (var root in _world.SignSocketRoots)
@@ -1397,6 +2081,50 @@ public partial class Main : Node3D
         SpawnParcelPickups();
         SpawnBookPickups();
         SpawnRepairParts();
+        SpawnRoadworksPickups();
+    }
+
+    private void SpawnRoadworksPickups()
+    {
+        var positions = new[]
+        {
+            new Vector3(20.5f, 0.2f, -5.4f),
+            new Vector3(22.2f, 0.2f, -5.4f),
+            new Vector3(23.9f, 0.2f, -5.4f),
+            new Vector3(26.4f, 0.2f, -5.0f),
+            new Vector3(28.4f, 0.2f, -5.0f),
+            new Vector3(30.2f, 0.2f, -5.0f),
+        };
+        string[] items = { "safety_cone", "safety_cone", "safety_cone",
+            "barrier_panel", "barrier_panel", "toolbox" };
+        int[] required = { 3, 3, 3, 2, 2, 1 };
+        for (int i = 0; i < items.Length; i++)
+        {
+            string item = items[i];
+            int max = required[i];
+            string pickupId = RoadworksRules.SupplyPickupIds[i];
+            var pickup = Pickup.Create(this, positions[i], pickupId, item,
+                RoadworksRules.MissionId, max, OnRoadworksSupplyPicked,
+                () => $"E: Pick up {MissionService.ItemName(item).ToLowerInvariant()}",
+                () => _missions.GetStatus(RoadworksRules.MissionId) != MissionStatus.Active);
+            _pickups.Add(pickup);
+        }
+    }
+
+    private void OnRoadworksSupplyPicked(Pickup pickup)
+    {
+        var result = _missions.CollectPickup(pickup.PickupId, pickup.ItemType,
+            RoadworksRules.MissionId, pickup.Required);
+        if (!result.Success)
+        {
+            _hud.ShowHint(result.Message);
+            return;
+        }
+        pickup.CollectVisual();
+        _hud.ShowBigToast(result.Message, 3f, Palette.Orange);
+        _audio?.PlaySfx("coin_collect", -7f);
+        RefreshMissionState();
+        SaveGame(SaveReason.Autosave);
     }
 
     private void SpawnParcelPickups()
@@ -1975,6 +2703,13 @@ public partial class Main : Node3D
             _hud.ShowBigToast("Finish this build first, then choose another job.", 2.6f, Palette.Lavender);
             return;
         }
+        if (_cityMissions?.ActiveMission != null)
+        {
+            _hud.ShowBigToast(
+                $"{_cityMissions.ActiveMission.Title} is in progress at Patchwork City. " +
+                "Finish it before starting a village job.", 4f, Palette.Teal);
+            return;
+        }
         var active = _missions.ActiveMission;
         bool showChapterTwo = active != null
             ? string.CompareOrdinal(active.Id, "M11") >= 0
@@ -1985,6 +2720,11 @@ public partial class Main : Node3D
 
     private void StartMissionFromBoard(string missionId)
     {
+        if (_cityMissions?.ActiveMission != null)
+        {
+            _hud.SetModalStatus("Finish your city job first. Village and city jobs are independent.", true);
+            return;
+        }
         _practiceRaceActive = false;
         var result = _missions.StartMission(missionId);
         _hud.CloseModal();
@@ -2008,13 +2748,28 @@ public partial class Main : Node3D
     private void ShowCurrentHint()
     {
         if (!_started) return;
+        if (_cityMissions?.ActiveMission != null)
+        {
+            var cityMission = _cityMissions.ActiveMission;
+            var hint = cityMission.Hints != null && cityMission.Hints.Count > 0
+                ? cityMission.Hints[Math.Min(_cityMissions.CityHintStep(cityMission.Id),
+                    cityMission.Hints.Count - 1)]
+                : "Follow the teal city marker.";
+            _hud.ShowHint(hint);
+            return;
+        }
         if (_missions.ActiveMission == null)
         {
+            if (_data.CityRoadOpen)
+            {
+                _hud.ShowHint("The road east is open. The teal CITY JOBS board is in Patchwork City's central plaza.");
+                return;
+            }
             _hud.ShowHint("Find the bright yellow JOBS board near the town hall. It is marked with a star.");
             return;
         }
-        var hint = _missions.GetNextHint(_missions.ActiveMission.Id);
-        _hud.ShowHint(hint.Text);
+        var level = _missions.GetNextHint(_missions.ActiveMission.Id);
+        _hud.ShowHint(level.Text);
     }
 
     private void OnTargetChanged(Interactable target)
@@ -2422,11 +3177,23 @@ public partial class Main : Node3D
             return;
         }
 
+        if (_cityMissions?.ActiveMission != null)
+        {
+            RefreshCityMissionState();
+            return;
+        }
+
         var mission = _missions.ActiveMission;
         if (mission == null)
         {
             _hud.SetNoMission();
-            SetObjective(_world.JobBoard, "JOBS BOARD", "star", Palette.Yellow);
+            if (_data.CityRoadOpen &&
+                _data.CompletedCityMissions.Count < _cityCatalog.Missions.Count)
+                SetObjective(_city.BoardApproach, "CITY JOBS", "delivery", Palette.Teal);
+            else if (_data.CityRoadOpen)
+                SetObjective(_city.DistrictCentre, "PATCHWORK CITY", "star", Palette.Teal);
+            else
+                SetObjective(_world.JobBoard, "JOBS BOARD", "star", Palette.Yellow);
             return;
         }
 
@@ -2628,6 +3395,23 @@ public partial class Main : Node3D
                 }
                 break;
             }
+            case "M21":
+            {
+                if (RoadworksRules.SuppliesDelivered(_data))
+                {
+                    SetObjective(_roadworks.InteractionPosition, "ROADWORKS CREW", "road_signs", Palette.Orange);
+                }
+                else if (RoadworksRules.HasAllSupplies(_data))
+                {
+                    SetObjective(_roadworks.InteractionPosition, "ROADWORKS DELIVERY", "road_signs", Palette.Yellow);
+                }
+                else
+                {
+                    SetObjective(_world.WorkshopDoor + new Vector3(0, 0, 8f),
+                        "ROADWORKS SUPPLIES", "road_signs", Palette.Orange);
+                }
+                break;
+            }
             default:
                 SetObjective(_world.JobBoard, "JOBS BOARD", "star", Palette.Yellow);
                 break;
@@ -2803,6 +3587,20 @@ public partial class Main : Node3D
             rows.Add(("star", $"Lanterns {lanterns} / 3"));
             rows.Add(("star", "Invite, then tables, then lanterns"));
         }
+        else if (missionId == RoadworksRules.MissionId)
+        {
+            rows.Add(("road_signs", RoadworksRules.SuppliesDelivered(_data)
+                ? "Supplies delivered 6 / 6"
+                : $"Supplies {RoadworksRules.SupplyProgress(_data)} / {RoadworksRules.SupplyTotal}"));
+            rows.Add(("star", _data.GetItem("safety_cone") + " cones · " +
+                               _data.GetItem("barrier_panel") + " panels · " +
+                               _data.GetItem("toolbox") + " toolbox"));
+            rows.Add(("star", RoadworksRules.SuppliesDelivered(_data)
+                ? "Now finish the 3 + 2 + 1 loading check"
+                : RoadworksRules.HasAllSupplies(_data)
+                    ? "Now drive to the closed CITY ROAD gate"
+                    : "Deliver all six items to the closed gate"));
+        }
         else
         {
             rows.Add(("star", "Follow the glowing marker"));
@@ -2919,9 +3717,9 @@ public partial class Main : Node3D
         {
             if (!GodotObject.IsInstanceValid(pickup)) continue;
             bool completed = _data.IsCompleted(pickup.MissionId);
-            pickup.Visible = !completed;
-            if (completed) pickup.Visible = false;
-            pickup.SetProcess(!completed);
+            bool hidden = pickup.HiddenProvider?.Invoke() == true;
+            pickup.Visible = !completed && !hidden;
+            pickup.SetProcess(!completed && !hidden);
         }
     }
 
@@ -2963,11 +3761,21 @@ public partial class Main : Node3D
                 ? $"Six grand gates in {result.RaceSeconds:0.0}s — an optional medal bonus +{result.BonusCoins}!"
                 : $"Six grand gates finished in {result.RaceSeconds:0.0}s. Finishing is the win — Pip is a friendly rival!",
             "M20" => "Three invitations, two tables and three lanterns — the village festival is ready!",
+            "M21" => "3 cones + 2 barrier panels + 1 toolbox = 6. The crew finished the loading check and the CITY ROAD IS OPEN!",
             _ => result.Message,
         };
+        if (result.Mission.Id == RoadworksRules.MissionId)
+        {
+            _data.CityRoadworksCompleted = true;
+            _data.CityRoadworksRewardClaimed = true;
+            _data.CityRoadOpen = true;
+            _roadworks.SetRoadState(true, true);
+        }
         Action afterSuccess = () => { };
         if (result.Mission.Id == "M20")
             afterSuccess = () => Callable.From(ShowVillageFestival).CallDeferred();
+        else if (result.Mission.Id == RoadworksRules.MissionId)
+            afterSuccess = () => Callable.From(ShowCityRoadOpened).CallDeferred();
         else if (result.OriginalChapterComplete && _data.CelebrationSeen == false)
             afterSuccess = () => Callable.From(ShowVillageCelebration).CallDeferred();
         _hud.ShowSuccess(result.Mission.Title, result.TotalCoins, detail, afterSuccess);
@@ -3035,6 +3843,20 @@ public partial class Main : Node3D
         var save = SaveGame(SaveReason.Celebration);
         if (!save.Success)
             _hud.SetModalStatus("The celebration is shown, but it could not be saved yet. Use Save now.", true);
+    }
+
+    private void ShowCityRoadOpened()
+    {
+        var body = _hud.OpenModal("CITY ROAD OPEN!", new Vector2(760, 470), Palette.Success);
+        UiKit.Icon(body, "road_signs", 48);
+        UiKit.Label(body, "The roadworks crew has finished. The barrier is gone and the bridge to Patchwork City is open.", 22, Palette.Navy);
+        UiKit.Label(body,
+            "Drive east over the new bridge. At the city's central plaza, press E at the teal CITY JOBS board. " +
+            "City jobs C01, C02 and C03 are separate from the village board and pay into the same wallet.",
+            19, new Color("5C6B7A"));
+        var button = UiKit.Button(body, "Drive to the city", 21, new Vector2(0, 54),
+            new Color("DFF6E3"), Palette.Success);
+        button.Pressed += () => _hud.CloseModal();
     }
 
     private void ShowVillageFestival()
@@ -3333,12 +4155,17 @@ public partial class Main : Node3D
             _data.EquippedOutfit = CharacterCustomisation.DefaultOutfit;
         }
         _missions = new MissionService(_data, _catalog);
+        _cityMissions = new CityMissionService(_data, _cityCatalog);
+        _city?.RestoreSimulation(_data.CitySeed, 0);
+        _roadworks?.SetRoadState(false, false);
+        _cityWelcomeShown = false;
         _saveNotice = "";
         _recoveredJobNote = "";
 
         if (_world.BridgeBarrier != null) _world.BridgeBarrier.Visible = true;
         if (_world.CelebrationDecor != null) _world.CelebrationDecor.Visible = false;
         if (_world.GoldCourseFlag != null) _world.GoldCourseFlag.Visible = false;
+        RefreshCityJobVisuals();
 
         CreateBuilderSystems();
         foreach (var pickup in _pickups)
@@ -3466,6 +4293,33 @@ public partial class Main : Node3D
                 _hud.SetPrompt(null);
         }
 
+        Vector3 cityFocus = _driving ? _van.GlobalPosition : _player.GlobalPosition;
+        float citySpeed = _driving
+            ? Mathf.Abs(_van.Speed)
+            : new Vector2(_player.Velocity.X, _player.Velocity.Z).Length();
+        _city?.SetFocusActors(_player.GlobalPosition, _van.GlobalPosition, _driving);
+        _city?.UpdateCity(delta, cityFocus, citySpeed, _rig.GlobalPosition.Y, true);
+        if (!_data.CityVisited && CityLayout.IsInCity(cityFocus.X, cityFocus.Z))
+        {
+            _data.CityVisited = true;
+            _cityWelcomeShown = true;
+            _hud.ShowBigToast(
+                "Welcome to Patchwork City! Find the teal CITY JOBS board in the central plaza.",
+                6f, Palette.Teal);
+            SaveGame(SaveReason.Autosave);
+            RefreshMissionState();
+        }
+
+        if (_cityMissions?.ActiveMission != null)
+        {
+            _cityMissionObjectiveRefresh -= (float)delta;
+            if (_cityMissionObjectiveRefresh <= 0f)
+            {
+                _cityMissionObjectiveRefresh = 0.5f;
+                RefreshCityMissionState();
+            }
+        }
+
         if (_driving) return;
 
         bool indoor = IsInsidePlayerHouse(_player.GlobalPosition);
@@ -3492,7 +4346,9 @@ public partial class Main : Node3D
     {
         Vector3 p = _player.GlobalPosition;
         Vector3 safe;
-        if (p.X < 45f)
+        if (CityLayout.IsInCity(p.X, p.Z))
+            safe = new Vector3(CityLayout.WorldX(0f), 0.5f, CityLayout.WorldZ(24f));
+        else if (p.X < 45f)
             safe = new Vector3(35.5f, 0.5f, Mathf.Clamp(p.Z, -46f, 46f));
         else
             safe = new Vector3(54.5f, 0.5f, Mathf.Clamp(p.Z, -46f, 46f));
@@ -3552,6 +4408,80 @@ public partial class Main : Node3D
     internal ProcessModeEnum RtPlayerProcessMode => _player.ProcessMode;
     internal ProcessModeEnum RtVanProcessMode => _van.ProcessMode;
     internal ProcessModeEnum RtWorldProcessMode => _world.ProcessMode;
+    internal CityWorldAdapter RtCity => _city;
+    internal TownCityRoadworks RtRoadworks => _roadworks;
+    internal CityMissionService RtCityMissions => _cityMissions;
+    internal GameData RtData => _data;
+    internal MissionService RtMissions => _missions;
+    internal Vector3 RtCityBoardPosition => _city.BoardInteraction;
+    internal Vector3 RtCityDistrictCentre => _city.DistrictCentre;
+
+    internal void RtSuppressSaves() => _suppressScenarioSaves = true;
+
+    internal Vector3 RtDestination => _destination;
+
+    internal string RtDestinationLabel => _destLabel;
+
+    internal void RtInteractRoadworks() => InteractRoadworks();
+
+    internal void RtSetRoadState(bool open)
+    {
+        if (open)
+        {
+            if (!_data.CompletedMissions.Contains(RoadworksRules.MissionId))
+                _data.CompletedMissions.Add(RoadworksRules.MissionId);
+            _data.SetMissionCounter(RoadworksRules.MissionId,
+                RoadworksRules.SuppliesDeliveredKey, 1);
+            _data.SetMissionCounter(RoadworksRules.MissionId,
+                RoadworksRules.TaskDoneKey, 1);
+        }
+        _data.CityRoadOpen = open;
+        _data.CityRoadworksCompleted = open;
+        _data.CityRoadworksRewardClaimed = open;
+        _roadworks.SetRoadState(open, false);
+        RefreshMissionState();
+    }
+
+    internal void RtTeleportPlayer(Vector3 position, float yaw = 0f)
+    {
+        _driving = false;
+        _van.SetDriven(false);
+        _player.Visible = true;
+        _player.Teleport(position, yaw);
+        _rig.SetTarget(_player, false, 8.2f, 18f, 1.55f, true);
+        _rig.SetView(Mathf.RadToDeg(yaw), 20f, 9f);
+        SyncControlMode();
+    }
+
+    internal void RtTeleportVan(Vector3 position, float yaw = 0f)
+    {
+        _van.GlobalPosition = position;
+        _van.Rotation = new Vector3(0, yaw, 0);
+        _van.SetDriven(true);
+        _driving = true;
+        _player.Visible = false;
+        _rig.SetTarget(_van, true, 10.6f, 20f, 1.5f, true);
+        SyncControlMode();
+    }
+
+    internal void RtLaunchVan(float speed) => _van.TestLaunch(speed);
+    internal float RtVanSpeed => _van.Speed;
+
+    internal void RtStartVanRoute(IReadOnlyList<Vector3> points) => _van.StartRouteAutopilot(points);
+    internal void RtStopVanRoute() => _van.StopAutopilot();
+
+    internal void RtProbeCityLod(Vector3 position, float speed)
+    {
+        _city.SetFocusActors(position, position, true);
+        _city.UpdateCity(0.6, position, speed, 8f, true);
+        _city.UpdateCity(0.6, position, speed, 8f, true);
+    }
+
+    internal void RtRefreshMissionState() => RefreshMissionState();
+    internal string RtCityStats => _city?.StatsLine() ?? "no city";
+    internal int RtCityActiveCollisionBodies => _city?.ActiveDistrictCollisionBodies ?? 0;
+    internal bool RtCityGroundCollisionActive => _city?.GroundCollisionActive == true;
+    internal int RtCityActorNodes => _city?.ActiveVisualActors ?? 0;
     internal bool RtWorldIsCanonicalScene =>
         _world?.Town != null &&
         _world.Town.SceneFilePath == WorldSceneAdapter.TownScenePath &&
@@ -4266,6 +5196,292 @@ public partial class Main : Node3D
 
     private static string DeveloperCaptureDirectory =>
         ProjectSettings.GlobalizePath("user://dev-captures");
+
+    private async Task RunCityProbe()
+    {
+        try
+        {
+            CompleteVillageForScenario();
+            _data.CityRoadOpen = true;
+            _data.CityRoadworksCompleted = true;
+            _data.CityRoadworksRewardClaimed = true;
+            _roadworks.SetRoadState(true, false);
+            _player.Teleport(new Vector3(CityLayout.WorldX(0f), 0.5f, CityLayout.WorldZ(28f)), 0f);
+            _rig.SetView(0f, 20f, 9.5f);
+            await Wait(2.2f);
+            GD.Print($"CITY_PROBE city {_city.StatsLine()} " +
+                     $"collision={_city.ActiveDistrictCollisionBodies} " +
+                     $"vehicles={_city.ActorPool?.VisualVehicleCount} peds={_city.ActorPool?.VisualPedestrianCount} " +
+                     $"nearV={_city.ActorPool?.NearVehicleCount} nearP={_city.ActorPool?.NearPedestrianCount}");
+            var board = _city.BoardInteraction;
+            GD.Print($"CITY_PROBE board={board} roadworks={_roadworks.RoadOpen} " +
+                     $"barrier={_roadworks.BarrierVisible} collider={_roadworks.ColliderEnabled}");
+            double logical = _city.LogicalSeconds;
+            _player.Teleport(new Vector3(-38f, 0.3f, 9.5f), 0f);
+            _rig.SetView(0f, 20f, 8.2f);
+            await Wait(2.2f);
+            GD.Print($"CITY_PROBE town {_city.StatsLine()} logicalDelta={_city.LogicalSeconds - logical:0.00} " +
+                     $"townVisible={_city.DistrictVisible}");
+        }
+        catch (Exception ex)
+        {
+            GD.PrintErr($"City probe failed: {ex}");
+        }
+        GetTree().Quit();
+    }
+
+    private async Task RunCityPerformanceProbe()
+    {
+        var results = new List<string>();
+        try
+        {
+            CompleteVillageForScenario();
+            _data.CityRoadOpen = true;
+            _data.CityRoadworksCompleted = true;
+            _data.CityRoadworksRewardClaimed = true;
+            _roadworks.SetRoadState(true, false);
+            _hud.Visible = false;
+            if (!DisplayServer.GetName().Equals("headless", StringComparison.OrdinalIgnoreCase))
+                DisplayServer.WindowSetVsyncMode(DisplayServer.VSyncMode.Disabled);
+            Vector2I window = DisplayServer.WindowGetSize();
+            string resolution = $"{window.X}x{window.Y}";
+
+            async Task<string> Measure(string stage, Vector3 position, float yaw, bool cityVisibility)
+            {
+                _player.Teleport(position, yaw);
+                _rig.SetView(Mathf.RadToDeg(yaw), 20f, 9.2f);
+                _rig.Snap();
+                await Wait(1.4f);
+                var frameMs = new List<double>(240);
+                ulong previous = Time.GetTicksUsec();
+                for (int i = 0; i < 240; i++)
+                {
+                    await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+                    ulong now = Time.GetTicksUsec();
+                    frameMs.Add((now - previous) / 1000.0);
+                    previous = now;
+                }
+                frameMs.Sort();
+                double p50 = frameMs[frameMs.Count / 2];
+                double p95 = frameMs[Math.Min(frameMs.Count - 1, (int)(frameMs.Count * 0.95))];
+                double avg = frameMs.Average();
+                int draw = (int)Performance.GetMonitor(Performance.Monitor.RenderTotalDrawCallsInFrame);
+                int primitives = (int)Performance.GetMonitor(Performance.Monitor.RenderTotalPrimitivesInFrame);
+                int physics = (int)Performance.GetMonitor(Performance.Monitor.Physics3DActiveObjects);
+                int objects = (int)Performance.GetMonitor(Performance.Monitor.ObjectNodeCount);
+                string line = $"{{\"resolution\":\"{resolution}\",\"stage\":\"{stage}\"," +
+                              $"\"frame_ms_p50\":{p50:0.000},\"frame_ms_p95\":{p95:0.000}," +
+                              $"\"frame_ms_avg\":{avg:0.000},\"fps_p50\":{1000.0 / Math.Max(0.001, p50):0.0}," +
+                              $"\"draw_calls\":{draw},\"primitives\":{primitives}," +
+                              $"\"physics_active\":{physics},\"object_nodes\":{objects}," +
+                              $"\"city\":\"{_city.StatsLine()}\"," +
+                              $"\"actor_near\":{_city.ActorPool?.NearVehicleCount + _city.ActorPool?.NearPedestrianCount}," +
+                              $"\"actor_mid\":{_city.ActorPool?.MidVehicleCount + _city.ActorPool?.MidPedestrianCount}," +
+                              $"\"district_visible\":{(_city.DistrictVisible ? "true" : "false")}}}";
+                GD.Print("CITY_PERF " + line);
+                return line;
+            }
+
+            results.Add(await Measure("town-only", new Vector3(-38f, 0.3f, 9.5f), 0f, false));
+            results.Add(await Measure("city-approach", new Vector3(120f, 0.4f, 0f), -Mathf.Pi / 2f, true));
+            results.Add(await Measure("city-street", new Vector3(CityLayout.WorldX(0f), 0.4f,
+                CityLayout.WorldZ(18f)), 0f, true));
+            results.Add(await Measure("return-to-town", new Vector3(-38f, 0.3f, 9.5f), 0f, false));
+
+            // Measure the bounded logical catch-up cost without agents/nodes.
+            var probe = new CitySimulation(_city.Simulation.VehicleRoutes,
+                _city.Simulation.PedestrianRoutes, _city.Seed);
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            probe.Advance(1800.0);
+            sw.Stop();
+            var catchup = $"{{\"logical_catchup_30min_ms\":{sw.Elapsed.TotalMilliseconds:0.000}," +
+                          $"\"logical_seconds\":{probe.LogicalSeconds:0.0}," +
+                          $"\"active_actor_nodes\":{_city.ActorPool?.VisualVehicleCount + _city.ActorPool?.VisualPedestrianCount}}}";
+            GD.Print("CITY_PERF " + catchup);
+            results.Add(catchup);
+
+            string directory = Path.Combine(ProjectSettings.GlobalizePath("res://"), "evidence");
+            Directory.CreateDirectory(directory);
+            string file = Path.Combine(directory, $"city_perf_{resolution}.jsonl");
+            File.WriteAllLines(file, results);
+            GD.Print($"CITY_PERF_FILE {file}");
+        }
+        catch (Exception ex)
+        {
+            GD.PrintErr($"City performance probe failed: {ex}");
+        }
+        GetTree().Quit();
+    }
+
+    private async Task CaptureCityDefects()
+    {
+        try
+        {
+            CompleteVillageForScenario();
+            _data.CityRoadOpen = true;
+            _data.CityRoadworksCompleted = true;
+            _data.CityRoadworksRewardClaimed = true;
+            _roadworks.SetRoadState(true, false);
+            _hud.Visible = false;
+            _player.Teleport(new Vector3(170f, 0.5f, 0f), -Mathf.Pi / 2f);
+            _rig.SetView(-90f, 20f, 9f);
+            _rig.Snap();
+            await Wait(1.2f);
+
+            // Approach and city entrance: the west sidewalk strip crosses z=0.
+            await SnapFreeCamera(new Vector3(170f, 4.2f, 9f), new Vector3(202f, 0.5f, 0f),
+                "p24_01_city_entry_side.png");
+            await SnapFreeCamera(new Vector3(185f, 18f, 7f), new Vector3(198f, 0f, 0f),
+                "p24_02_city_entry_overhead.png");
+
+            // Real van physics: launch east at full speed from the town side.
+            RtTeleportVan(new Vector3(170f, 0.4f, 0f), -Mathf.Pi / 2f);
+            RtLaunchVan(11.5f);
+            for (int i = 0; i < 8; i++)
+            {
+                await Wait(0.5f);
+                GD.Print($"CITY_DEFECT van_t{i} x={_van.GlobalPosition.X:0.00} " +
+                         $"y={_van.GlobalPosition.Y:0.00} speed={_van.Speed:0.00}");
+            }
+            GD.Print($"CITY_DEFECT ground_185={RtWorldRayHit(new Vector3(185f, 2f, 0f), new Vector3(185f, -1f, 0f), 1u)} " +
+                     $"ground_190={RtWorldRayHit(new Vector3(190f, 2f, 0f), new Vector3(190f, -1f, 0f), 1u)} " +
+                     $"ground_200={RtWorldRayHit(new Vector3(200f, 2f, 0f), new Vector3(200f, -1f, 0f), 1u)}");
+            GD.Print($"CITY_DEFECT forward_190={RtWorldRayHit(new Vector3(190f, 1f, 0f), new Vector3(205f, 1f, 0f), 1u)} " +
+                     $"forward_191={RtWorldRayHit(new Vector3(191f, 1f, 0f), new Vector3(205f, 1f, 0f), 1u)}");
+            await SnapFreeCamera(_van.GlobalPosition + new Vector3(-7f, 5f, 9f),
+                _van.GlobalPosition + new Vector3(6f, 0.8f, 0f),
+                "p24_03_van_stopped_at_entry.png");
+
+            // Overhead intersection: continuous sidewalk bands cross both roads.
+            await SnapFreeCamera(new Vector3(CityLayout.WorldX(-40f), 26f, CityLayout.WorldZ(-16f)),
+                new Vector3(CityLayout.WorldX(-40f), 0f, CityLayout.WorldZ(-40f)),
+                "p24_04_intersection_overhead.png");
+
+            // Activate the city actors near the inner route and record car poses.
+            RtTeleportPlayer(new Vector3(CityLayout.WorldX(-40f), 0.5f, CityLayout.WorldZ(-20f)), 0f);
+            await Wait(2.2f);
+            var before = _city.ActorPool.GetChildren().OfType<CityVehicleVisual>()
+                .Select(v => (Id: v.AgentId, Tier: v.Tier, Position: v.GlobalPosition,
+                    Progress: v.Progress, Speed: v.Speed))
+                .ToList();
+            foreach (var v in before)
+                GD.Print($"CITY_DEFECT car_before id={v.Id} tier={v.Tier} " +
+                         $"pos=({v.Position.X:0.0},{v.Position.Y:0.0},{v.Position.Z:0.0}) " +
+                         $"progress={v.Progress:0.00} speed={v.Speed:0.00}");
+
+            await SnapFreeCamera(new Vector3(CityLayout.WorldX(-52f), 8f, CityLayout.WorldZ(-44f)),
+                new Vector3(CityLayout.WorldX(24f), 0.5f, CityLayout.WorldZ(-44f)),
+                "p24_05_sidewalk_crossing_cars.png");
+            await Wait(4.0f);
+
+            var after = _city.ActorPool.GetChildren().OfType<CityVehicleVisual>()
+                .Select(v => (Id: v.AgentId, Tier: v.Tier, Position: v.GlobalPosition,
+                    Progress: v.Progress, Speed: v.Speed))
+                .ToList();
+            foreach (var v in after)
+                GD.Print($"CITY_DEFECT car_after id={v.Id} tier={v.Tier} " +
+                         $"pos=({v.Position.X:0.0},{v.Position.Y:0.0},{v.Position.Z:0.0}) " +
+                         $"progress={v.Progress:0.00} speed={v.Speed:0.00}");
+
+            var target = after
+                .Where(v => v.Tier == CityActorTier.Near)
+                .OrderBy(v => v.Position.DistanceTo(
+                    new Vector3(CityLayout.WorldX(-26f), 0.5f, CityLayout.WorldZ(-44f))))
+                .FirstOrDefault();
+            if (target.Position != Vector3.Zero)
+            {
+                await SnapFreeCamera(target.Position + new Vector3(5.5f, 4.2f, 7f),
+                    target.Position + new Vector3(0f, 0.7f, 0f),
+                    "p24_06_stuck_city_car_close.png");
+            }
+
+            // Wide grid view: sidewalk bands and plaza slabs visibly cross roads.
+            await SnapFreeCamera(new Vector3(CityLayout.WorldX(0f), 135f, CityLayout.WorldZ(210f)),
+                new Vector3(CityLayout.WorldX(0f), 0f, CityLayout.WorldZ(0f)),
+                "p24_07_city_grid_overview.png");
+        }
+        catch (Exception ex)
+        {
+            GD.PrintErr($"City defect capture failed: {ex}");
+        }
+        GetTree().Quit();
+    }
+
+    private async Task CaptureCity()
+    {
+        try
+        {
+            CompleteVillageForScenario();
+            _data.CompletedMissions.Add(RoadworksRules.MissionId);
+            _data.SetMissionCounter(RoadworksRules.MissionId, RoadworksRules.SuppliesDeliveredKey, 1);
+            _data.SetMissionCounter(RoadworksRules.MissionId, RoadworksRules.TaskDoneKey, 1);
+            _data.CityRoadworksCompleted = true;
+            _data.CityRoadworksRewardClaimed = true;
+            _data.CityRoadOpen = false;
+            _roadworks.SetRoadState(false, false);
+            RefreshMissionState();
+            _hud.Visible = false;
+
+            await SnapFreeCamera(new Vector3(80f, 3.6f, 7f), new Vector3(97f, 1.2f, 0f),
+                "p16_01_roadworks_closed.png");
+
+            _data.CityRoadOpen = true;
+            _roadworks.SetRoadState(true, false);
+            await Wait(0.4f);
+            await SnapFreeCamera(new Vector3(80f, 3.6f, 7f), new Vector3(97f, 1.2f, 0f),
+                "p16_02_roadworks_open.png");
+            _player.Teleport(new Vector3(122f, 0.5f, 0f), -Mathf.Pi / 2f);
+            await Wait(0.8f);
+            await SnapFreeCamera(new Vector3(112f, 5.2f, 12f), new Vector3(150f, 0.6f, 0f),
+                "p16_03_city_approach.png");
+
+            _player.Teleport(new Vector3(CityLayout.WorldX(-80f), 0.5f, CityLayout.WorldZ(-40f)),
+                Mathf.Pi);
+            _rig.SetView(180f, 22f, 10f);
+            await Wait(0.8f);
+            await Snap("p16_04_city_street.png", DeveloperCaptureDirectory);
+            await SnapFreeCamera(new Vector3(CityLayout.WorldX(0f), 125f, CityLayout.WorldZ(285f)),
+                new Vector3(CityLayout.WorldX(0f), 0f, CityLayout.WorldZ(0f)),
+                "p16_05_city_hlod_overview.png");
+
+            _player.Teleport(new Vector3(CityLayout.WorldX(0f), 0.5f, CityLayout.WorldZ(18f)),
+                Mathf.Pi);
+            _rig.SetView(180f, 18f, 8.0f);
+            await Wait(0.8f);
+            await Snap("p16_06_city_jobs_plaza.png", DeveloperCaptureDirectory);
+
+            _hud.Visible = true;
+            CityJobBoardUi.Show(_hud, _cityMissions, _ => { }, null);
+            await Wait(0.5f);
+            await Snap("p16_07_city_jobs_board.png", DeveloperCaptureDirectory);
+            _hud.CloseModal();
+            await Wait(0.25f);
+
+            _cityMissions.StartMission("C01");
+            _cityMissions.LoadCourierParcels();
+            _cityMissions.DeliverCourierStop(1);
+            _cityMissions.DeliverCourierStop(2);
+            RefreshMissionState();
+            await Wait(0.4f);
+            await Snap("p16_08_city_courier_progress.png", DeveloperCaptureDirectory);
+
+            _player.Teleport(new Vector3(CityLayout.WorldX(80f), 0.5f, CityLayout.WorldZ(8f)),
+                0f);
+            _rig.SetView(0f, 18f, 7.5f);
+            await Wait(0.8f);
+            await Snap("p16_09_city_cabinets.png", DeveloperCaptureDirectory);
+            _hud.Visible = false;
+            _player.Teleport(new Vector3(30f, 0.5f, 0f), Mathf.Pi / 2f);
+            await Wait(0.6f);
+            await SnapFreeCamera(new Vector3(40f, 4.2f, 6.5f), new Vector3(12f, 1f, 0f),
+                "p16_10_return_town.png");
+        }
+        catch (Exception ex)
+        {
+            GD.PrintErr($"City capture failed: {ex}");
+        }
+        GetTree().Quit();
+    }
 
     private async Task CaptureTitle()
     {

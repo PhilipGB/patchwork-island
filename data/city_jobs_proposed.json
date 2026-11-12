@@ -1,0 +1,82 @@
+{
+  "status": "design-only: not existing runtime mission schema",
+  "newTownUnlock": {
+    "id": "T_CITY_ROADWORKS",
+    "title": "Roadworks Rescue",
+    "requires": "all required town jobs, inspect current mission graph",
+    "steps": [
+      {
+        "action": "deliver",
+        "items": {
+          "safety_cone": 3,
+          "barrier_panel": 2,
+          "toolbox": 1
+        }
+      },
+      {
+        "action": "order",
+        "sequence": [
+          "cones",
+          "panels",
+          "toolbox"
+        ]
+      },
+      {
+        "action": "speak",
+        "target": "crew_foreman"
+      }
+    ],
+    "rewardCoins": 25,
+    "persist": [
+      "roadOpen",
+      "completed",
+      "rewardClaimed"
+    ]
+  },
+  "cityJobs": [
+    {
+      "id": "C01",
+      "title": "City Courier",
+      "skill": "number ordering",
+      "steps": [
+        "accept at CityJobBoard",
+        "deliver parcels to three numbered locations in ascending order",
+        "return to board"
+      ],
+      "rewardCoins": 20
+    },
+    {
+      "id": "C02",
+      "title": "Market Stock-Up",
+      "skill": "counting and multiplication",
+      "steps": [
+        "collect a list of crates",
+        "match 2 x 3 packages to stalls",
+        "return to manager"
+      ],
+      "rewardCoins": 24
+    },
+    {
+      "id": "C03",
+      "title": "Signals and Signs",
+      "skill": "reading and sequencing",
+      "steps": [
+        "locate three broken signal cabinets",
+        "choose red amber green in order",
+        "talk to engineer"
+      ],
+      "rewardCoins": 28
+    },
+    {
+      "id": "C04",
+      "title": "Hospital Express",
+      "skill": "reading addresses",
+      "steps": [
+        "collect supplies",
+        "drive to hospital",
+        "deliver correctly"
+      ],
+      "rewardCoins": 26
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+[gd_scene load_steps=4 format=3]
+
+[sub_resource type="StandardMaterial3D" id="mat_red"]
+albedo_color = Color(0.83922, 0.41961, 0.33725, 1)
+metallic = 0.1
+roughness = 0.7
+
+[sub_resource type="StandardMaterial3D" id="mat_dark"]
+albedo_color = Color(0.15686, 0.21569, 0.27843, 1)
+metallic = 0.2
+roughness = 0.7
+
+[sub_resource type="BoxMesh" id="box_mesh"]
+size = Vector3(1.2, 0.7, 0.55)
+material = SubResource("mat_red")
+
+[sub_resource type="BoxMesh" id="handle_mesh"]
+size = Vector3(0.5, 0.12, 0.12)
+material = SubResource("mat_dark")
+
+[node name="Pickup_Toolbox" type="Node3D"]
+
+[node name="Box" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.42, 0)
+mesh = SubResource("box_mesh")
+
+[node name="Handle" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.86, 0)
+mesh = SubResource("handle_mesh")
+
+[node name="Latch" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.55, 0.3)
+mesh = SubResource("handle_mesh")

@@ -1,0 +1,256 @@
+[gd_scene load_steps=22 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/city/assets/landmarks/RoadworksGate.tscn" id="ext_1"]
+
+[sub_resource type="StandardMaterial3D" id="mat_dark"]
+albedo_color = Color(0.15686, 0.21569, 0.27843, 1)
+metallic = 0.0
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="mat_orange"]
+albedo_color = Color(0.95686, 0.5451, 0.26275, 1)
+metallic = 0.0
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="mat_yellow"]
+albedo_color = Color(1, 0.82353, 0.24706, 1)
+metallic = 0.0
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="mat_cream"]
+albedo_color = Color(0.89412, 0.83137, 0.67451, 1)
+metallic = 0.0
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="mat_skin"]
+albedo_color = Color(0.96078, 0.78824, 0.60784, 1)
+metallic = 0.0
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="mat_blue"]
+albedo_color = Color(0.14902, 0.4549, 0.92549, 1)
+metallic = 0.0
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="mat_green"]
+albedo_color = Color(0.1451, 0.48235, 0.27843, 1)
+metallic = 0.0
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="mat_apron"]
+albedo_color = Color(0.52941, 0.55294, 0.58431, 1)
+metallic = 0.0
+roughness = 0.9
+
+[sub_resource type="BoxMesh" id="box_apron"]
+size = Vector3(5, 0.3, 18)
+material = SubResource("mat_apron")
+
+[sub_resource type="BoxMesh" id="box_post"]
+size = Vector3(0.22, 3.4, 0.22)
+material = SubResource("mat_dark")
+
+[sub_resource type="BoxMesh" id="box_notice"]
+size = Vector3(3.8, 1.9, 0.18)
+material = SubResource("mat_yellow")
+
+[sub_resource type="BoxMesh" id="box_fence"]
+size = Vector3(0.5, 1.8, 2.8)
+material = SubResource("mat_orange")
+
+[sub_resource type="BoxMesh" id="box_head"]
+size = Vector3(0.46, 0.46, 0.46)
+material = SubResource("mat_skin")
+
+[sub_resource type="BoxMesh" id="box_body"]
+size = Vector3(0.62, 0.95, 0.36)
+material = SubResource("mat_orange")
+
+[sub_resource type="BoxMesh" id="box_leg"]
+size = Vector3(0.22, 0.78, 0.24)
+material = SubResource("mat_dark")
+
+[sub_resource type="BoxMesh" id="box_arm"]
+size = Vector3(0.18, 0.72, 0.2)
+material = SubResource("mat_orange")
+
+[sub_resource type="BoxMesh" id="box_helmet"]
+size = Vector3(0.58, 0.22, 0.58)
+material = SubResource("mat_yellow")
+
+[sub_resource type="BoxShape3D" id="shape_gate"]
+size = Vector3(0.8, 3.2, 16.6)
+
+[sub_resource type="BoxShape3D" id="shape_fence_n"]
+size = Vector3(1.2, 2.0, 2.8)
+
+[sub_resource type="BoxShape3D" id="shape_fence_s"]
+size = Vector3(1.2, 2.0, 2.8)
+
+[node name="TownCityRoadworks" type="Node3D"]
+
+[node name="RoadClosed" parent="." instance=ExtResource("ext_1")]
+rotation = Vector3(0, 1.5708, 0)
+
+[node name="GateCollision" type="StaticBody3D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="GateShape" type="CollisionShape3D" parent="GateCollision"]
+position = Vector3(0, 1.6, 0)
+shape = SubResource("shape_gate")
+
+[node name="GateApron" type="MeshInstance3D" parent="."]
+position = Vector3(0, -0.135, 0)
+mesh = SubResource("box_apron")
+
+[node name="FenceNorth" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.9, -8.35)
+mesh = SubResource("box_fence")
+
+[node name="FenceSouth" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.9, 8.35)
+mesh = SubResource("box_fence")
+
+[node name="FenceNorthShape" type="CollisionShape3D" parent="GateCollision"]
+position = Vector3(0, 1.0, -8.35)
+shape = SubResource("shape_fence_n")
+
+[node name="FenceSouthShape" type="CollisionShape3D" parent="GateCollision"]
+position = Vector3(0, 1.0, 8.35)
+shape = SubResource("shape_fence_s")
+
+[node name="NoticePost" type="MeshInstance3D" parent="."]
+position = Vector3(-2.28, 1.7, 8.48)
+mesh = SubResource("box_post")
+
+[node name="NoticeBoard" type="MeshInstance3D" parent="."]
+position = Vector3(-2.5, 2.55, 8.5)
+rotation = Vector3(0, -1.45, 0)
+mesh = SubResource("box_notice")
+
+[node name="ClosedLabel" type="Label3D" parent="."]
+position = Vector3(-2.6, 2.55, 8.512)
+rotation = Vector3(0, -1.45, 0)
+pixel_size = 0.008
+text = "CITY ROAD\nCLOSED"
+font_size = 72
+outline_size = 12
+double_sided = false
+modulate = Color(0.15294, 0.21176, 0.29412, 1)
+
+[node name="OpenLabel" type="Label3D" parent="."]
+position = Vector3(-2.601, 2.55, 8.5121)
+rotation = Vector3(0, -1.45, 0)
+pixel_size = 0.008
+text = "ROAD\nOPEN"
+font_size = 72
+outline_size = 12
+double_sided = false
+modulate = Color(0.1451, 0.48235, 0.27843, 1)
+visible = false
+
+[node name="CrewForeman" type="Node3D" parent="."]
+position = Vector3(-4.8, 0.2, 8.9)
+
+[node name="Body" type="MeshInstance3D" parent="CrewForeman"]
+position = Vector3(0, 1.1, 0)
+mesh = SubResource("box_body")
+
+[node name="Head" type="MeshInstance3D" parent="CrewForeman"]
+position = Vector3(0, 1.82, 0)
+mesh = SubResource("box_head")
+
+[node name="Helmet" type="MeshInstance3D" parent="CrewForeman"]
+position = Vector3(0, 2.02, 0)
+mesh = SubResource("box_helmet")
+
+[node name="LegL" type="MeshInstance3D" parent="CrewForeman"]
+position = Vector3(-0.16, 0.39, 0)
+mesh = SubResource("box_leg")
+
+[node name="LegR" type="MeshInstance3D" parent="CrewForeman"]
+position = Vector3(0.16, 0.39, 0)
+mesh = SubResource("box_leg")
+
+[node name="ArmL" type="MeshInstance3D" parent="CrewForeman"]
+position = Vector3(-0.42, 1.15, 0)
+mesh = SubResource("box_arm")
+
+[node name="ArmR" type="MeshInstance3D" parent="CrewForeman"]
+position = Vector3(0.42, 1.15, 0)
+mesh = SubResource("box_arm")
+
+[node name="CrewWorkerA" type="Node3D" parent="."]
+position = Vector3(-6.0, 0.2, 9.7)
+
+[node name="Body" type="MeshInstance3D" parent="CrewWorkerA"]
+position = Vector3(0, 1.1, 0)
+mesh = SubResource("box_body")
+
+[node name="Head" type="MeshInstance3D" parent="CrewWorkerA"]
+position = Vector3(0, 1.82, 0)
+mesh = SubResource("box_head")
+
+[node name="Helmet" type="MeshInstance3D" parent="CrewWorkerA"]
+position = Vector3(0, 2.02, 0)
+mesh = SubResource("box_helmet")
+
+[node name="LegL" type="MeshInstance3D" parent="CrewWorkerA"]
+position = Vector3(-0.16, 0.39, 0)
+mesh = SubResource("box_leg")
+
+[node name="LegR" type="MeshInstance3D" parent="CrewWorkerA"]
+position = Vector3(0.16, 0.39, 0)
+mesh = SubResource("box_leg")
+
+[node name="ArmL" type="MeshInstance3D" parent="CrewWorkerA"]
+position = Vector3(-0.42, 1.15, 0)
+mesh = SubResource("box_arm")
+
+[node name="ArmR" type="MeshInstance3D" parent="CrewWorkerA"]
+position = Vector3(0.42, 1.15, 0)
+mesh = SubResource("box_arm")
+
+[node name="CrewWorkerB" type="Node3D" parent="."]
+position = Vector3(-3.6, 0.2, 10.0)
+
+[node name="Body" type="MeshInstance3D" parent="CrewWorkerB"]
+position = Vector3(0, 1.1, 0)
+mesh = SubResource("box_body")
+
+[node name="Head" type="MeshInstance3D" parent="CrewWorkerB"]
+position = Vector3(0, 1.82, 0)
+mesh = SubResource("box_head")
+
+[node name="Helmet" type="MeshInstance3D" parent="CrewWorkerB"]
+position = Vector3(0, 2.02, 0)
+mesh = SubResource("box_helmet")
+
+[node name="LegL" type="MeshInstance3D" parent="CrewWorkerB"]
+position = Vector3(-0.16, 0.39, 0)
+mesh = SubResource("box_leg")
+
+[node name="LegR" type="MeshInstance3D" parent="CrewWorkerB"]
+position = Vector3(0.16, 0.39, 0)
+mesh = SubResource("box_leg")
+
+[node name="ArmL" type="MeshInstance3D" parent="CrewWorkerB"]
+position = Vector3(-0.42, 1.15, 0)
+mesh = SubResource("box_arm")
+
+[node name="ArmR" type="MeshInstance3D" parent="CrewWorkerB"]
+position = Vector3(0.42, 1.15, 0)
+mesh = SubResource("box_arm")
+
+[node name="TownSideStop" type="Marker3D" parent="."]
+position = Vector3(-6, 0, 0)
+
+[node name="CitySideStop" type="Marker3D" parent="."]
+position = Vector3(14, 0, 0)
+
+[node name="RoadworksInteraction" type="Marker3D" parent="."]
+position = Vector3(-2.6, 0.2, 4.8)
+
+[node name="CrewWorkZone" type="Marker3D" parent="."]
+position = Vector3(-4.8, 0.2, 9.2)

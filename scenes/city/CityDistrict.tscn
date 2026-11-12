@@ -1,0 +1,2771 @@
+[gd_scene load_steps=223 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/city/assets/buildings/BrickLofts.tscn" id="ext_1"]
+
+[ext_resource type="PackedScene" path="res://scenes/city/assets/buildings/GlassOffice.tscn" id="ext_2"]
+
+[ext_resource type="PackedScene" path="res://scenes/city/assets/buildings/MarketHall.tscn" id="ext_3"]
+
+[ext_resource type="PackedScene" path="res://scenes/city/assets/buildings/CornerHotel.tscn" id="ext_4"]
+
+[ext_resource type="PackedScene" path="res://scenes/city/assets/props/StreetBench.tscn" id="ext_5"]
+
+[ext_resource type="PackedScene" path="res://scenes/city/assets/props/ParkTree.tscn" id="ext_6"]
+
+[ext_resource type="PackedScene" path="res://scenes/city/assets/buildings/CityHospital.tscn" id="ext_7"]
+
+[ext_resource type="PackedScene" path="res://scenes/city/assets/buildings/CivicTower.tscn" id="ext_8"]
+
+[ext_resource type="PackedScene" path="res://scenes/city/assets/buildings/LibraryCentre.tscn" id="ext_9"]
+
+[ext_resource type="PackedScene" path="res://scenes/city/assets/buildings/ArtsCentre.tscn" id="ext_10"]
+
+[ext_resource type="PackedScene" path="res://scenes/city/assets/buildings/RooftopGardens.tscn" id="ext_11"]
+
+[ext_resource type="PackedScene" path="res://scenes/city/assets/buildings/MetroOffices.tscn" id="ext_12"]
+
+[ext_resource type="PackedScene" path="res://scenes/city/assets/buildings/SkylineApartments.tscn" id="ext_13"]
+
+[ext_resource type="PackedScene" path="res://scenes/city/assets/buildings/ClockTower.tscn" id="ext_14"]
+
+[ext_resource type="PackedScene" path="res://scenes/city/assets/props/TrafficLight.tscn" id="ext_15"]
+
+[ext_resource type="PackedScene" path="res://scenes/city/assets/landmarks/CityJobBoard.tscn" id="ext_16"]
+
+[sub_resource type="StandardMaterial3D" id="mat_ground"]
+albedo_color = Color(0.46275, 0.60784, 0.51373, 1)
+metallic = 0.0
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="mat_road"]
+albedo_color = Color(0.2, 0.23922, 0.29412, 1)
+metallic = 0.0
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="mat_sidewalk"]
+albedo_color = Color(0.61569, 0.66667, 0.70196, 1)
+metallic = 0.0
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="mat_mark"]
+albedo_color = Color(0.97255, 0.93333, 0.88235, 1)
+metallic = 0.0
+roughness = 0.8
+
+[sub_resource type="BoxMesh" id="box_1"]
+size = Vector3(360, 0.4, 360)
+material = SubResource("mat_ground")
+
+[sub_resource type="BoxMesh" id="box_2"]
+size = Vector3(24, 0.16, 350)
+material = SubResource("mat_road")
+
+[sub_resource type="BoxMesh" id="box_3"]
+size = Vector3(350, 0.17, 24)
+material = SubResource("mat_road")
+
+[sub_resource type="BoxMesh" id="box_4"]
+size = Vector3(4, 0.3, 350)
+material = SubResource("mat_sidewalk")
+
+[sub_resource type="BoxMesh" id="box_5"]
+size = Vector3(350, 0.3, 4)
+material = SubResource("mat_sidewalk")
+
+[sub_resource type="BoxMesh" id="box_6"]
+size = Vector3(4, 0.3, 350)
+material = SubResource("mat_sidewalk")
+
+[sub_resource type="BoxMesh" id="box_7"]
+size = Vector3(350, 0.3, 4)
+material = SubResource("mat_sidewalk")
+
+[sub_resource type="BoxMesh" id="box_8"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_9"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_10"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_11"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_12"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_13"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_14"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_15"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_16"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_17"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_18"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_19"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_20"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_21"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_22"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_23"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_24"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_25"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_26"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_27"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_28"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_29"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_30"]
+size = Vector3(24, 0.16, 350)
+material = SubResource("mat_road")
+
+[sub_resource type="BoxMesh" id="box_31"]
+size = Vector3(350, 0.17, 24)
+material = SubResource("mat_road")
+
+[sub_resource type="BoxMesh" id="box_32"]
+size = Vector3(4, 0.3, 350)
+material = SubResource("mat_sidewalk")
+
+[sub_resource type="BoxMesh" id="box_33"]
+size = Vector3(350, 0.3, 4)
+material = SubResource("mat_sidewalk")
+
+[sub_resource type="BoxMesh" id="box_34"]
+size = Vector3(4, 0.3, 350)
+material = SubResource("mat_sidewalk")
+
+[sub_resource type="BoxMesh" id="box_35"]
+size = Vector3(350, 0.3, 4)
+material = SubResource("mat_sidewalk")
+
+[sub_resource type="BoxMesh" id="box_36"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_37"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_38"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_39"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_40"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_41"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_42"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_43"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_44"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_45"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_46"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_47"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_48"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_49"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_50"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_51"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_52"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_53"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_54"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_55"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_56"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_57"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_58"]
+size = Vector3(24, 0.16, 350)
+material = SubResource("mat_road")
+
+[sub_resource type="BoxMesh" id="box_59"]
+size = Vector3(350, 0.17, 24)
+material = SubResource("mat_road")
+
+[sub_resource type="BoxMesh" id="box_60"]
+size = Vector3(4, 0.3, 350)
+material = SubResource("mat_sidewalk")
+
+[sub_resource type="BoxMesh" id="box_61"]
+size = Vector3(350, 0.3, 4)
+material = SubResource("mat_sidewalk")
+
+[sub_resource type="BoxMesh" id="box_62"]
+size = Vector3(4, 0.3, 350)
+material = SubResource("mat_sidewalk")
+
+[sub_resource type="BoxMesh" id="box_63"]
+size = Vector3(350, 0.3, 4)
+material = SubResource("mat_sidewalk")
+
+[sub_resource type="BoxMesh" id="box_64"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_65"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_66"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_67"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_68"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_69"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_70"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_71"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_72"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_73"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_74"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_75"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_76"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_77"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_78"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_79"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_80"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_81"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_82"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_83"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_84"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_85"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_86"]
+size = Vector3(24, 0.16, 350)
+material = SubResource("mat_road")
+
+[sub_resource type="BoxMesh" id="box_87"]
+size = Vector3(350, 0.17, 24)
+material = SubResource("mat_road")
+
+[sub_resource type="BoxMesh" id="box_88"]
+size = Vector3(4, 0.3, 350)
+material = SubResource("mat_sidewalk")
+
+[sub_resource type="BoxMesh" id="box_89"]
+size = Vector3(350, 0.3, 4)
+material = SubResource("mat_sidewalk")
+
+[sub_resource type="BoxMesh" id="box_90"]
+size = Vector3(4, 0.3, 350)
+material = SubResource("mat_sidewalk")
+
+[sub_resource type="BoxMesh" id="box_91"]
+size = Vector3(350, 0.3, 4)
+material = SubResource("mat_sidewalk")
+
+[sub_resource type="BoxMesh" id="box_92"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_93"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_94"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_95"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_96"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_97"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_98"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_99"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_100"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_101"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_102"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_103"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_104"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_105"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_106"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_107"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_108"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_109"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_110"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_111"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_112"]
+size = Vector3(0.4, 0.04, 8)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_113"]
+size = Vector3(8, 0.04, 0.4)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_114"]
+size = Vector3(56, 0.34, 56)
+material = SubResource("mat_sidewalk")
+
+[sub_resource type="BoxMesh" id="box_115"]
+size = Vector3(56, 0.34, 56)
+material = SubResource("mat_sidewalk")
+
+[sub_resource type="BoxMesh" id="box_116"]
+size = Vector3(56, 0.34, 56)
+material = SubResource("mat_sidewalk")
+
+[sub_resource type="BoxMesh" id="box_117"]
+size = Vector3(56, 0.34, 56)
+material = SubResource("mat_sidewalk")
+
+[sub_resource type="BoxMesh" id="box_118"]
+size = Vector3(56, 0.34, 56)
+material = SubResource("mat_sidewalk")
+
+[sub_resource type="BoxMesh" id="box_119"]
+size = Vector3(56, 0.34, 56)
+material = SubResource("mat_sidewalk")
+
+[sub_resource type="BoxMesh" id="box_120"]
+size = Vector3(56, 0.34, 56)
+material = SubResource("mat_sidewalk")
+
+[sub_resource type="BoxMesh" id="box_121"]
+size = Vector3(56, 0.34, 56)
+material = SubResource("mat_sidewalk")
+
+[sub_resource type="BoxMesh" id="box_122"]
+size = Vector3(56, 0.34, 56)
+material = SubResource("mat_sidewalk")
+
+[sub_resource type="BoxMesh" id="box_123"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_124"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_125"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_126"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_127"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_128"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_129"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_130"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_131"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_132"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_133"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_134"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_135"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_136"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_137"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_138"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_139"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_140"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_141"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_142"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_143"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_144"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_145"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_146"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_147"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_148"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_149"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_150"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_151"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_152"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_153"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_154"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_155"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_156"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_157"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_158"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_159"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_160"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_161"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_162"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_163"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_164"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_165"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_166"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_167"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_168"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_169"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_170"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_171"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_172"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_173"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_174"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_175"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_176"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_177"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_178"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_179"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_180"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_181"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_182"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_183"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_184"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_185"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxMesh" id="box_186"]
+size = Vector3(2, 0.05, 14)
+material = SubResource("mat_mark")
+
+[sub_resource type="BoxShape3D" id="city_ground_base_shape"]
+size = Vector3(360, 0.28, 360)
+
+[sub_resource type="BoxShape3D" id="city_plaza_shape"]
+size = Vector3(56, 0.34, 56)
+
+[sub_resource type="BoxShape3D" id="city_sidewalk_ns_shape"]
+size = Vector3(4, 0.3, 350)
+
+[sub_resource type="BoxShape3D" id="city_sidewalk_ew_shape"]
+size = Vector3(350, 0.3, 4)
+
+
+[sub_resource type="BoxMesh" id="city_sidewalk_ns_43"]
+size = Vector3(4, 0.3, 43)
+material = SubResource("mat_sidewalk")
+
+[sub_resource type="BoxShape3D" id="city_sidewalk_ns_43_shape"]
+size = Vector3(4, 0.3, 43)
+
+[sub_resource type="BoxMesh" id="city_sidewalk_ns_56"]
+size = Vector3(4, 0.3, 56)
+material = SubResource("mat_sidewalk")
+
+[sub_resource type="BoxShape3D" id="city_sidewalk_ns_56_shape"]
+size = Vector3(4, 0.3, 56)
+
+[sub_resource type="BoxMesh" id="city_sidewalk_ns_20"]
+size = Vector3(4, 0.3, 20)
+material = SubResource("mat_sidewalk")
+
+[sub_resource type="BoxShape3D" id="city_sidewalk_ns_20_shape"]
+size = Vector3(4, 0.3, 20)
+
+[sub_resource type="BoxMesh" id="city_sidewalk_ew_43"]
+size = Vector3(43, 0.3, 4)
+material = SubResource("mat_sidewalk")
+
+[sub_resource type="BoxShape3D" id="city_sidewalk_ew_43_shape"]
+size = Vector3(43, 0.3, 4)
+
+[sub_resource type="BoxMesh" id="city_sidewalk_ew_56"]
+size = Vector3(56, 0.3, 4)
+material = SubResource("mat_sidewalk")
+
+[sub_resource type="BoxShape3D" id="city_sidewalk_ew_56_shape"]
+size = Vector3(56, 0.3, 4)
+
+[sub_resource type="BoxMesh" id="city_sidewalk_ew_20"]
+size = Vector3(20, 0.3, 4)
+material = SubResource("mat_sidewalk")
+
+[sub_resource type="BoxShape3D" id="city_sidewalk_ew_20_shape"]
+size = Vector3(20, 0.3, 4)
+
+[node name="CityDistrict" type="Node3D"]
+
+[node name="DistrictBase" type="MeshInstance3D" parent="."]
+position = Vector3(0, -0.3, 0)
+mesh = SubResource("box_1")
+
+[node name="NorthSouthRoad_0" type="MeshInstance3D" parent="."]
+position = Vector3(-120, -0.06, 0)
+mesh = SubResource("box_2")
+
+[node name="EastWestRoad_0" type="MeshInstance3D" parent="."]
+position = Vector3(0, -0.06, -120)
+mesh = SubResource("box_3")
+
+
+
+
+[node name="NSDash_0_0" type="MeshInstance3D" parent="."]
+position = Vector3(-120, 0.04, -160)
+mesh = SubResource("box_8")
+cast_shadow = 0
+
+[node name="EWDash_0_0" type="MeshInstance3D" parent="."]
+position = Vector3(-160, 0.045, -120)
+mesh = SubResource("box_9")
+cast_shadow = 0
+
+[node name="NSDash_0_1" type="MeshInstance3D" parent="."]
+position = Vector3(-120, 0.04, -128)
+mesh = SubResource("box_10")
+cast_shadow = 0
+
+[node name="EWDash_0_1" type="MeshInstance3D" parent="."]
+position = Vector3(-128, 0.045, -120)
+mesh = SubResource("box_11")
+cast_shadow = 0
+
+[node name="NSDash_0_2" type="MeshInstance3D" parent="."]
+position = Vector3(-120, 0.04, -96)
+mesh = SubResource("box_12")
+cast_shadow = 0
+
+[node name="EWDash_0_2" type="MeshInstance3D" parent="."]
+position = Vector3(-96, 0.045, -120)
+mesh = SubResource("box_13")
+cast_shadow = 0
+
+[node name="NSDash_0_3" type="MeshInstance3D" parent="."]
+position = Vector3(-120, 0.04, -64)
+mesh = SubResource("box_14")
+cast_shadow = 0
+
+[node name="EWDash_0_3" type="MeshInstance3D" parent="."]
+position = Vector3(-64, 0.045, -120)
+mesh = SubResource("box_15")
+cast_shadow = 0
+
+[node name="NSDash_0_4" type="MeshInstance3D" parent="."]
+position = Vector3(-120, 0.04, -32)
+mesh = SubResource("box_16")
+cast_shadow = 0
+
+[node name="EWDash_0_4" type="MeshInstance3D" parent="."]
+position = Vector3(-32, 0.045, -120)
+mesh = SubResource("box_17")
+cast_shadow = 0
+
+[node name="NSDash_0_5" type="MeshInstance3D" parent="."]
+position = Vector3(-120, 0.04, 0)
+mesh = SubResource("box_18")
+cast_shadow = 0
+
+[node name="EWDash_0_5" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.045, -120)
+mesh = SubResource("box_19")
+cast_shadow = 0
+
+[node name="NSDash_0_6" type="MeshInstance3D" parent="."]
+position = Vector3(-120, 0.04, 32)
+mesh = SubResource("box_20")
+cast_shadow = 0
+
+[node name="EWDash_0_6" type="MeshInstance3D" parent="."]
+position = Vector3(32, 0.045, -120)
+mesh = SubResource("box_21")
+cast_shadow = 0
+
+[node name="NSDash_0_7" type="MeshInstance3D" parent="."]
+position = Vector3(-120, 0.04, 64)
+mesh = SubResource("box_22")
+cast_shadow = 0
+
+[node name="EWDash_0_7" type="MeshInstance3D" parent="."]
+position = Vector3(64, 0.045, -120)
+mesh = SubResource("box_23")
+cast_shadow = 0
+
+[node name="NSDash_0_8" type="MeshInstance3D" parent="."]
+position = Vector3(-120, 0.04, 96)
+mesh = SubResource("box_24")
+cast_shadow = 0
+
+[node name="EWDash_0_8" type="MeshInstance3D" parent="."]
+position = Vector3(96, 0.045, -120)
+mesh = SubResource("box_25")
+cast_shadow = 0
+
+[node name="NSDash_0_9" type="MeshInstance3D" parent="."]
+position = Vector3(-120, 0.04, 128)
+mesh = SubResource("box_26")
+cast_shadow = 0
+
+[node name="EWDash_0_9" type="MeshInstance3D" parent="."]
+position = Vector3(128, 0.045, -120)
+mesh = SubResource("box_27")
+cast_shadow = 0
+
+[node name="NSDash_0_10" type="MeshInstance3D" parent="."]
+position = Vector3(-120, 0.04, 160)
+mesh = SubResource("box_28")
+cast_shadow = 0
+
+[node name="EWDash_0_10" type="MeshInstance3D" parent="."]
+position = Vector3(160, 0.045, -120)
+mesh = SubResource("box_29")
+cast_shadow = 0
+
+[node name="NorthSouthRoad_1" type="MeshInstance3D" parent="."]
+position = Vector3(-40, -0.06, 0)
+mesh = SubResource("box_30")
+
+[node name="EastWestRoad_1" type="MeshInstance3D" parent="."]
+position = Vector3(0, -0.06, -40)
+mesh = SubResource("box_31")
+
+
+
+
+[node name="NSDash_1_0" type="MeshInstance3D" parent="."]
+position = Vector3(-40, 0.04, -160)
+mesh = SubResource("box_36")
+cast_shadow = 0
+
+[node name="EWDash_1_0" type="MeshInstance3D" parent="."]
+position = Vector3(-160, 0.045, -40)
+mesh = SubResource("box_37")
+cast_shadow = 0
+
+[node name="NSDash_1_1" type="MeshInstance3D" parent="."]
+position = Vector3(-40, 0.04, -128)
+mesh = SubResource("box_38")
+cast_shadow = 0
+
+[node name="EWDash_1_1" type="MeshInstance3D" parent="."]
+position = Vector3(-128, 0.045, -40)
+mesh = SubResource("box_39")
+cast_shadow = 0
+
+[node name="NSDash_1_2" type="MeshInstance3D" parent="."]
+position = Vector3(-40, 0.04, -96)
+mesh = SubResource("box_40")
+cast_shadow = 0
+
+[node name="EWDash_1_2" type="MeshInstance3D" parent="."]
+position = Vector3(-96, 0.045, -40)
+mesh = SubResource("box_41")
+cast_shadow = 0
+
+[node name="NSDash_1_3" type="MeshInstance3D" parent="."]
+position = Vector3(-40, 0.04, -64)
+mesh = SubResource("box_42")
+cast_shadow = 0
+
+[node name="EWDash_1_3" type="MeshInstance3D" parent="."]
+position = Vector3(-64, 0.045, -40)
+mesh = SubResource("box_43")
+cast_shadow = 0
+
+[node name="NSDash_1_4" type="MeshInstance3D" parent="."]
+position = Vector3(-40, 0.04, -32)
+mesh = SubResource("box_44")
+cast_shadow = 0
+
+[node name="EWDash_1_4" type="MeshInstance3D" parent="."]
+position = Vector3(-32, 0.045, -40)
+mesh = SubResource("box_45")
+cast_shadow = 0
+
+[node name="NSDash_1_5" type="MeshInstance3D" parent="."]
+position = Vector3(-40, 0.04, 0)
+mesh = SubResource("box_46")
+cast_shadow = 0
+
+[node name="EWDash_1_5" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.045, -40)
+mesh = SubResource("box_47")
+cast_shadow = 0
+
+[node name="NSDash_1_6" type="MeshInstance3D" parent="."]
+position = Vector3(-40, 0.04, 32)
+mesh = SubResource("box_48")
+cast_shadow = 0
+
+[node name="EWDash_1_6" type="MeshInstance3D" parent="."]
+position = Vector3(32, 0.045, -40)
+mesh = SubResource("box_49")
+cast_shadow = 0
+
+[node name="NSDash_1_7" type="MeshInstance3D" parent="."]
+position = Vector3(-40, 0.04, 64)
+mesh = SubResource("box_50")
+cast_shadow = 0
+
+[node name="EWDash_1_7" type="MeshInstance3D" parent="."]
+position = Vector3(64, 0.045, -40)
+mesh = SubResource("box_51")
+cast_shadow = 0
+
+[node name="NSDash_1_8" type="MeshInstance3D" parent="."]
+position = Vector3(-40, 0.04, 96)
+mesh = SubResource("box_52")
+cast_shadow = 0
+
+[node name="EWDash_1_8" type="MeshInstance3D" parent="."]
+position = Vector3(96, 0.045, -40)
+mesh = SubResource("box_53")
+cast_shadow = 0
+
+[node name="NSDash_1_9" type="MeshInstance3D" parent="."]
+position = Vector3(-40, 0.04, 128)
+mesh = SubResource("box_54")
+cast_shadow = 0
+
+[node name="EWDash_1_9" type="MeshInstance3D" parent="."]
+position = Vector3(128, 0.045, -40)
+mesh = SubResource("box_55")
+cast_shadow = 0
+
+[node name="NSDash_1_10" type="MeshInstance3D" parent="."]
+position = Vector3(-40, 0.04, 160)
+mesh = SubResource("box_56")
+cast_shadow = 0
+
+[node name="EWDash_1_10" type="MeshInstance3D" parent="."]
+position = Vector3(160, 0.045, -40)
+mesh = SubResource("box_57")
+cast_shadow = 0
+
+[node name="NorthSouthRoad_2" type="MeshInstance3D" parent="."]
+position = Vector3(40, -0.06, 0)
+mesh = SubResource("box_58")
+
+[node name="EastWestRoad_2" type="MeshInstance3D" parent="."]
+position = Vector3(0, -0.06, 40)
+mesh = SubResource("box_59")
+
+
+
+
+[node name="NSDash_2_0" type="MeshInstance3D" parent="."]
+position = Vector3(40, 0.04, -160)
+mesh = SubResource("box_64")
+cast_shadow = 0
+
+[node name="EWDash_2_0" type="MeshInstance3D" parent="."]
+position = Vector3(-160, 0.045, 40)
+mesh = SubResource("box_65")
+cast_shadow = 0
+
+[node name="NSDash_2_1" type="MeshInstance3D" parent="."]
+position = Vector3(40, 0.04, -128)
+mesh = SubResource("box_66")
+cast_shadow = 0
+
+[node name="EWDash_2_1" type="MeshInstance3D" parent="."]
+position = Vector3(-128, 0.045, 40)
+mesh = SubResource("box_67")
+cast_shadow = 0
+
+[node name="NSDash_2_2" type="MeshInstance3D" parent="."]
+position = Vector3(40, 0.04, -96)
+mesh = SubResource("box_68")
+cast_shadow = 0
+
+[node name="EWDash_2_2" type="MeshInstance3D" parent="."]
+position = Vector3(-96, 0.045, 40)
+mesh = SubResource("box_69")
+cast_shadow = 0
+
+[node name="NSDash_2_3" type="MeshInstance3D" parent="."]
+position = Vector3(40, 0.04, -64)
+mesh = SubResource("box_70")
+cast_shadow = 0
+
+[node name="EWDash_2_3" type="MeshInstance3D" parent="."]
+position = Vector3(-64, 0.045, 40)
+mesh = SubResource("box_71")
+cast_shadow = 0
+
+[node name="NSDash_2_4" type="MeshInstance3D" parent="."]
+position = Vector3(40, 0.04, -32)
+mesh = SubResource("box_72")
+cast_shadow = 0
+
+[node name="EWDash_2_4" type="MeshInstance3D" parent="."]
+position = Vector3(-32, 0.045, 40)
+mesh = SubResource("box_73")
+cast_shadow = 0
+
+[node name="NSDash_2_5" type="MeshInstance3D" parent="."]
+position = Vector3(40, 0.04, 0)
+mesh = SubResource("box_74")
+cast_shadow = 0
+
+[node name="EWDash_2_5" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.045, 40)
+mesh = SubResource("box_75")
+cast_shadow = 0
+
+[node name="NSDash_2_6" type="MeshInstance3D" parent="."]
+position = Vector3(40, 0.04, 32)
+mesh = SubResource("box_76")
+cast_shadow = 0
+
+[node name="EWDash_2_6" type="MeshInstance3D" parent="."]
+position = Vector3(32, 0.045, 40)
+mesh = SubResource("box_77")
+cast_shadow = 0
+
+[node name="NSDash_2_7" type="MeshInstance3D" parent="."]
+position = Vector3(40, 0.04, 64)
+mesh = SubResource("box_78")
+cast_shadow = 0
+
+[node name="EWDash_2_7" type="MeshInstance3D" parent="."]
+position = Vector3(64, 0.045, 40)
+mesh = SubResource("box_79")
+cast_shadow = 0
+
+[node name="NSDash_2_8" type="MeshInstance3D" parent="."]
+position = Vector3(40, 0.04, 96)
+mesh = SubResource("box_80")
+cast_shadow = 0
+
+[node name="EWDash_2_8" type="MeshInstance3D" parent="."]
+position = Vector3(96, 0.045, 40)
+mesh = SubResource("box_81")
+cast_shadow = 0
+
+[node name="NSDash_2_9" type="MeshInstance3D" parent="."]
+position = Vector3(40, 0.04, 128)
+mesh = SubResource("box_82")
+cast_shadow = 0
+
+[node name="EWDash_2_9" type="MeshInstance3D" parent="."]
+position = Vector3(128, 0.045, 40)
+mesh = SubResource("box_83")
+cast_shadow = 0
+
+[node name="NSDash_2_10" type="MeshInstance3D" parent="."]
+position = Vector3(40, 0.04, 160)
+mesh = SubResource("box_84")
+cast_shadow = 0
+
+[node name="EWDash_2_10" type="MeshInstance3D" parent="."]
+position = Vector3(160, 0.045, 40)
+mesh = SubResource("box_85")
+cast_shadow = 0
+
+[node name="NorthSouthRoad_3" type="MeshInstance3D" parent="."]
+position = Vector3(120, -0.06, 0)
+mesh = SubResource("box_86")
+
+[node name="EastWestRoad_3" type="MeshInstance3D" parent="."]
+position = Vector3(0, -0.06, 120)
+mesh = SubResource("box_87")
+
+
+
+
+[node name="NSDash_3_0" type="MeshInstance3D" parent="."]
+position = Vector3(120, 0.04, -160)
+mesh = SubResource("box_92")
+cast_shadow = 0
+
+[node name="EWDash_3_0" type="MeshInstance3D" parent="."]
+position = Vector3(-160, 0.045, 120)
+mesh = SubResource("box_93")
+cast_shadow = 0
+
+[node name="NSDash_3_1" type="MeshInstance3D" parent="."]
+position = Vector3(120, 0.04, -128)
+mesh = SubResource("box_94")
+cast_shadow = 0
+
+[node name="EWDash_3_1" type="MeshInstance3D" parent="."]
+position = Vector3(-128, 0.045, 120)
+mesh = SubResource("box_95")
+cast_shadow = 0
+
+[node name="NSDash_3_2" type="MeshInstance3D" parent="."]
+position = Vector3(120, 0.04, -96)
+mesh = SubResource("box_96")
+cast_shadow = 0
+
+[node name="EWDash_3_2" type="MeshInstance3D" parent="."]
+position = Vector3(-96, 0.045, 120)
+mesh = SubResource("box_97")
+cast_shadow = 0
+
+[node name="NSDash_3_3" type="MeshInstance3D" parent="."]
+position = Vector3(120, 0.04, -64)
+mesh = SubResource("box_98")
+cast_shadow = 0
+
+[node name="EWDash_3_3" type="MeshInstance3D" parent="."]
+position = Vector3(-64, 0.045, 120)
+mesh = SubResource("box_99")
+cast_shadow = 0
+
+[node name="NSDash_3_4" type="MeshInstance3D" parent="."]
+position = Vector3(120, 0.04, -32)
+mesh = SubResource("box_100")
+cast_shadow = 0
+
+[node name="EWDash_3_4" type="MeshInstance3D" parent="."]
+position = Vector3(-32, 0.045, 120)
+mesh = SubResource("box_101")
+cast_shadow = 0
+
+[node name="NSDash_3_5" type="MeshInstance3D" parent="."]
+position = Vector3(120, 0.04, 0)
+mesh = SubResource("box_102")
+cast_shadow = 0
+
+[node name="EWDash_3_5" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.045, 120)
+mesh = SubResource("box_103")
+cast_shadow = 0
+
+[node name="NSDash_3_6" type="MeshInstance3D" parent="."]
+position = Vector3(120, 0.04, 32)
+mesh = SubResource("box_104")
+cast_shadow = 0
+
+[node name="EWDash_3_6" type="MeshInstance3D" parent="."]
+position = Vector3(32, 0.045, 120)
+mesh = SubResource("box_105")
+cast_shadow = 0
+
+[node name="NSDash_3_7" type="MeshInstance3D" parent="."]
+position = Vector3(120, 0.04, 64)
+mesh = SubResource("box_106")
+cast_shadow = 0
+
+[node name="EWDash_3_7" type="MeshInstance3D" parent="."]
+position = Vector3(64, 0.045, 120)
+mesh = SubResource("box_107")
+cast_shadow = 0
+
+[node name="NSDash_3_8" type="MeshInstance3D" parent="."]
+position = Vector3(120, 0.04, 96)
+mesh = SubResource("box_108")
+cast_shadow = 0
+
+[node name="EWDash_3_8" type="MeshInstance3D" parent="."]
+position = Vector3(96, 0.045, 120)
+mesh = SubResource("box_109")
+cast_shadow = 0
+
+[node name="NSDash_3_9" type="MeshInstance3D" parent="."]
+position = Vector3(120, 0.04, 128)
+mesh = SubResource("box_110")
+cast_shadow = 0
+
+[node name="EWDash_3_9" type="MeshInstance3D" parent="."]
+position = Vector3(128, 0.045, 120)
+mesh = SubResource("box_111")
+cast_shadow = 0
+
+[node name="NSDash_3_10" type="MeshInstance3D" parent="."]
+position = Vector3(120, 0.04, 160)
+mesh = SubResource("box_112")
+cast_shadow = 0
+
+[node name="EWDash_3_10" type="MeshInstance3D" parent="."]
+position = Vector3(160, 0.045, 120)
+mesh = SubResource("box_113")
+cast_shadow = 0
+
+[node name="NSSidewalk_0_0_S0" type="MeshInstance3D" parent="."]
+position = Vector3(-134, 0.18, -153.5)
+mesh = SubResource("city_sidewalk_ns_43")
+
+[node name="NSSidewalk_0_0_S1" type="MeshInstance3D" parent="."]
+position = Vector3(-134, 0.18, -80)
+mesh = SubResource("city_sidewalk_ns_56")
+
+[node name="NSSidewalk_0_0_S2" type="MeshInstance3D" parent="."]
+position = Vector3(-134, 0.18, -18)
+mesh = SubResource("city_sidewalk_ns_20")
+
+[node name="NSSidewalk_0_0_S3" type="MeshInstance3D" parent="."]
+position = Vector3(-134, 0.18, 18)
+mesh = SubResource("city_sidewalk_ns_20")
+
+[node name="NSSidewalk_0_0_S4" type="MeshInstance3D" parent="."]
+position = Vector3(-134, 0.18, 80)
+mesh = SubResource("city_sidewalk_ns_56")
+
+[node name="NSSidewalk_0_0_S5" type="MeshInstance3D" parent="."]
+position = Vector3(-134, 0.18, 153.5)
+mesh = SubResource("city_sidewalk_ns_43")
+
+[node name="NSSidewalk_0_1_S0" type="MeshInstance3D" parent="."]
+position = Vector3(-106, 0.18, -153.5)
+mesh = SubResource("city_sidewalk_ns_43")
+
+[node name="NSSidewalk_0_1_S1" type="MeshInstance3D" parent="."]
+position = Vector3(-106, 0.18, -80)
+mesh = SubResource("city_sidewalk_ns_56")
+
+[node name="NSSidewalk_0_1_S2" type="MeshInstance3D" parent="."]
+position = Vector3(-106, 0.18, 0)
+mesh = SubResource("city_sidewalk_ns_56")
+
+[node name="NSSidewalk_0_1_S3" type="MeshInstance3D" parent="."]
+position = Vector3(-106, 0.18, 80)
+mesh = SubResource("city_sidewalk_ns_56")
+
+[node name="NSSidewalk_0_1_S4" type="MeshInstance3D" parent="."]
+position = Vector3(-106, 0.18, 153.5)
+mesh = SubResource("city_sidewalk_ns_43")
+
+[node name="NSSidewalk_1_0_S0" type="MeshInstance3D" parent="."]
+position = Vector3(-54, 0.18, -153.5)
+mesh = SubResource("city_sidewalk_ns_43")
+
+[node name="NSSidewalk_1_0_S1" type="MeshInstance3D" parent="."]
+position = Vector3(-54, 0.18, -80)
+mesh = SubResource("city_sidewalk_ns_56")
+
+[node name="NSSidewalk_1_0_S2" type="MeshInstance3D" parent="."]
+position = Vector3(-54, 0.18, 0)
+mesh = SubResource("city_sidewalk_ns_56")
+
+[node name="NSSidewalk_1_0_S3" type="MeshInstance3D" parent="."]
+position = Vector3(-54, 0.18, 80)
+mesh = SubResource("city_sidewalk_ns_56")
+
+[node name="NSSidewalk_1_0_S4" type="MeshInstance3D" parent="."]
+position = Vector3(-54, 0.18, 153.5)
+mesh = SubResource("city_sidewalk_ns_43")
+
+[node name="NSSidewalk_1_1_S0" type="MeshInstance3D" parent="."]
+position = Vector3(-26, 0.18, -153.5)
+mesh = SubResource("city_sidewalk_ns_43")
+
+[node name="NSSidewalk_1_1_S1" type="MeshInstance3D" parent="."]
+position = Vector3(-26, 0.18, -80)
+mesh = SubResource("city_sidewalk_ns_56")
+
+[node name="NSSidewalk_1_1_S2" type="MeshInstance3D" parent="."]
+position = Vector3(-26, 0.18, 0)
+mesh = SubResource("city_sidewalk_ns_56")
+
+[node name="NSSidewalk_1_1_S3" type="MeshInstance3D" parent="."]
+position = Vector3(-26, 0.18, 80)
+mesh = SubResource("city_sidewalk_ns_56")
+
+[node name="NSSidewalk_1_1_S4" type="MeshInstance3D" parent="."]
+position = Vector3(-26, 0.18, 153.5)
+mesh = SubResource("city_sidewalk_ns_43")
+
+[node name="NSSidewalk_2_0_S0" type="MeshInstance3D" parent="."]
+position = Vector3(26, 0.18, -153.5)
+mesh = SubResource("city_sidewalk_ns_43")
+
+[node name="NSSidewalk_2_0_S1" type="MeshInstance3D" parent="."]
+position = Vector3(26, 0.18, -80)
+mesh = SubResource("city_sidewalk_ns_56")
+
+[node name="NSSidewalk_2_0_S2" type="MeshInstance3D" parent="."]
+position = Vector3(26, 0.18, 0)
+mesh = SubResource("city_sidewalk_ns_56")
+
+[node name="NSSidewalk_2_0_S3" type="MeshInstance3D" parent="."]
+position = Vector3(26, 0.18, 80)
+mesh = SubResource("city_sidewalk_ns_56")
+
+[node name="NSSidewalk_2_0_S4" type="MeshInstance3D" parent="."]
+position = Vector3(26, 0.18, 153.5)
+mesh = SubResource("city_sidewalk_ns_43")
+
+[node name="NSSidewalk_2_1_S0" type="MeshInstance3D" parent="."]
+position = Vector3(54, 0.18, -153.5)
+mesh = SubResource("city_sidewalk_ns_43")
+
+[node name="NSSidewalk_2_1_S1" type="MeshInstance3D" parent="."]
+position = Vector3(54, 0.18, -80)
+mesh = SubResource("city_sidewalk_ns_56")
+
+[node name="NSSidewalk_2_1_S2" type="MeshInstance3D" parent="."]
+position = Vector3(54, 0.18, 0)
+mesh = SubResource("city_sidewalk_ns_56")
+
+[node name="NSSidewalk_2_1_S3" type="MeshInstance3D" parent="."]
+position = Vector3(54, 0.18, 80)
+mesh = SubResource("city_sidewalk_ns_56")
+
+[node name="NSSidewalk_2_1_S4" type="MeshInstance3D" parent="."]
+position = Vector3(54, 0.18, 153.5)
+mesh = SubResource("city_sidewalk_ns_43")
+
+[node name="NSSidewalk_3_0_S0" type="MeshInstance3D" parent="."]
+position = Vector3(106, 0.18, -153.5)
+mesh = SubResource("city_sidewalk_ns_43")
+
+[node name="NSSidewalk_3_0_S1" type="MeshInstance3D" parent="."]
+position = Vector3(106, 0.18, -80)
+mesh = SubResource("city_sidewalk_ns_56")
+
+[node name="NSSidewalk_3_0_S2" type="MeshInstance3D" parent="."]
+position = Vector3(106, 0.18, 0)
+mesh = SubResource("city_sidewalk_ns_56")
+
+[node name="NSSidewalk_3_0_S3" type="MeshInstance3D" parent="."]
+position = Vector3(106, 0.18, 80)
+mesh = SubResource("city_sidewalk_ns_56")
+
+[node name="NSSidewalk_3_0_S4" type="MeshInstance3D" parent="."]
+position = Vector3(106, 0.18, 153.5)
+mesh = SubResource("city_sidewalk_ns_43")
+
+[node name="NSSidewalk_3_1_S0" type="MeshInstance3D" parent="."]
+position = Vector3(134, 0.18, -153.5)
+mesh = SubResource("city_sidewalk_ns_43")
+
+[node name="NSSidewalk_3_1_S1" type="MeshInstance3D" parent="."]
+position = Vector3(134, 0.18, -80)
+mesh = SubResource("city_sidewalk_ns_56")
+
+[node name="NSSidewalk_3_1_S2" type="MeshInstance3D" parent="."]
+position = Vector3(134, 0.18, 0)
+mesh = SubResource("city_sidewalk_ns_56")
+
+[node name="NSSidewalk_3_1_S3" type="MeshInstance3D" parent="."]
+position = Vector3(134, 0.18, 80)
+mesh = SubResource("city_sidewalk_ns_56")
+
+[node name="NSSidewalk_3_1_S4" type="MeshInstance3D" parent="."]
+position = Vector3(134, 0.18, 153.5)
+mesh = SubResource("city_sidewalk_ns_43")
+
+[node name="EWSidewalk_0_0_S0" type="MeshInstance3D" parent="."]
+position = Vector3(-153.5, 0.18, -134)
+mesh = SubResource("city_sidewalk_ew_43")
+
+[node name="EWSidewalk_0_0_S1" type="MeshInstance3D" parent="."]
+position = Vector3(-80, 0.18, -134)
+mesh = SubResource("city_sidewalk_ew_56")
+
+[node name="EWSidewalk_0_0_S2" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.18, -134)
+mesh = SubResource("city_sidewalk_ew_56")
+
+[node name="EWSidewalk_0_0_S3" type="MeshInstance3D" parent="."]
+position = Vector3(80, 0.18, -134)
+mesh = SubResource("city_sidewalk_ew_56")
+
+[node name="EWSidewalk_0_0_S4" type="MeshInstance3D" parent="."]
+position = Vector3(153.5, 0.18, -134)
+mesh = SubResource("city_sidewalk_ew_43")
+
+[node name="EWSidewalk_0_1_S0" type="MeshInstance3D" parent="."]
+position = Vector3(-153.5, 0.18, -106)
+mesh = SubResource("city_sidewalk_ew_43")
+
+[node name="EWSidewalk_0_1_S1" type="MeshInstance3D" parent="."]
+position = Vector3(-80, 0.18, -106)
+mesh = SubResource("city_sidewalk_ew_56")
+
+[node name="EWSidewalk_0_1_S2" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.18, -106)
+mesh = SubResource("city_sidewalk_ew_56")
+
+[node name="EWSidewalk_0_1_S3" type="MeshInstance3D" parent="."]
+position = Vector3(80, 0.18, -106)
+mesh = SubResource("city_sidewalk_ew_56")
+
+[node name="EWSidewalk_0_1_S4" type="MeshInstance3D" parent="."]
+position = Vector3(153.5, 0.18, -106)
+mesh = SubResource("city_sidewalk_ew_43")
+
+[node name="EWSidewalk_1_0_S0" type="MeshInstance3D" parent="."]
+position = Vector3(-153.5, 0.18, -54)
+mesh = SubResource("city_sidewalk_ew_43")
+
+[node name="EWSidewalk_1_0_S1" type="MeshInstance3D" parent="."]
+position = Vector3(-80, 0.18, -54)
+mesh = SubResource("city_sidewalk_ew_56")
+
+[node name="EWSidewalk_1_0_S2" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.18, -54)
+mesh = SubResource("city_sidewalk_ew_56")
+
+[node name="EWSidewalk_1_0_S3" type="MeshInstance3D" parent="."]
+position = Vector3(80, 0.18, -54)
+mesh = SubResource("city_sidewalk_ew_56")
+
+[node name="EWSidewalk_1_0_S4" type="MeshInstance3D" parent="."]
+position = Vector3(153.5, 0.18, -54)
+mesh = SubResource("city_sidewalk_ew_43")
+
+[node name="EWSidewalk_1_1_S0" type="MeshInstance3D" parent="."]
+position = Vector3(-153.5, 0.18, -26)
+mesh = SubResource("city_sidewalk_ew_43")
+
+[node name="EWSidewalk_1_1_S1" type="MeshInstance3D" parent="."]
+position = Vector3(-80, 0.18, -26)
+mesh = SubResource("city_sidewalk_ew_56")
+
+[node name="EWSidewalk_1_1_S2" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.18, -26)
+mesh = SubResource("city_sidewalk_ew_56")
+
+[node name="EWSidewalk_1_1_S3" type="MeshInstance3D" parent="."]
+position = Vector3(80, 0.18, -26)
+mesh = SubResource("city_sidewalk_ew_56")
+
+[node name="EWSidewalk_1_1_S4" type="MeshInstance3D" parent="."]
+position = Vector3(153.5, 0.18, -26)
+mesh = SubResource("city_sidewalk_ew_43")
+
+[node name="EWSidewalk_2_0_S0" type="MeshInstance3D" parent="."]
+position = Vector3(-153.5, 0.18, 26)
+mesh = SubResource("city_sidewalk_ew_43")
+
+[node name="EWSidewalk_2_0_S1" type="MeshInstance3D" parent="."]
+position = Vector3(-80, 0.18, 26)
+mesh = SubResource("city_sidewalk_ew_56")
+
+[node name="EWSidewalk_2_0_S2" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.18, 26)
+mesh = SubResource("city_sidewalk_ew_56")
+
+[node name="EWSidewalk_2_0_S3" type="MeshInstance3D" parent="."]
+position = Vector3(80, 0.18, 26)
+mesh = SubResource("city_sidewalk_ew_56")
+
+[node name="EWSidewalk_2_0_S4" type="MeshInstance3D" parent="."]
+position = Vector3(153.5, 0.18, 26)
+mesh = SubResource("city_sidewalk_ew_43")
+
+[node name="EWSidewalk_2_1_S0" type="MeshInstance3D" parent="."]
+position = Vector3(-153.5, 0.18, 54)
+mesh = SubResource("city_sidewalk_ew_43")
+
+[node name="EWSidewalk_2_1_S1" type="MeshInstance3D" parent="."]
+position = Vector3(-80, 0.18, 54)
+mesh = SubResource("city_sidewalk_ew_56")
+
+[node name="EWSidewalk_2_1_S2" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.18, 54)
+mesh = SubResource("city_sidewalk_ew_56")
+
+[node name="EWSidewalk_2_1_S3" type="MeshInstance3D" parent="."]
+position = Vector3(80, 0.18, 54)
+mesh = SubResource("city_sidewalk_ew_56")
+
+[node name="EWSidewalk_2_1_S4" type="MeshInstance3D" parent="."]
+position = Vector3(153.5, 0.18, 54)
+mesh = SubResource("city_sidewalk_ew_43")
+
+[node name="EWSidewalk_3_0_S0" type="MeshInstance3D" parent="."]
+position = Vector3(-153.5, 0.18, 106)
+mesh = SubResource("city_sidewalk_ew_43")
+
+[node name="EWSidewalk_3_0_S1" type="MeshInstance3D" parent="."]
+position = Vector3(-80, 0.18, 106)
+mesh = SubResource("city_sidewalk_ew_56")
+
+[node name="EWSidewalk_3_0_S2" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.18, 106)
+mesh = SubResource("city_sidewalk_ew_56")
+
+[node name="EWSidewalk_3_0_S3" type="MeshInstance3D" parent="."]
+position = Vector3(80, 0.18, 106)
+mesh = SubResource("city_sidewalk_ew_56")
+
+[node name="EWSidewalk_3_0_S4" type="MeshInstance3D" parent="."]
+position = Vector3(153.5, 0.18, 106)
+mesh = SubResource("city_sidewalk_ew_43")
+
+[node name="EWSidewalk_3_1_S0" type="MeshInstance3D" parent="."]
+position = Vector3(-153.5, 0.18, 134)
+mesh = SubResource("city_sidewalk_ew_43")
+
+[node name="EWSidewalk_3_1_S1" type="MeshInstance3D" parent="."]
+position = Vector3(-80, 0.18, 134)
+mesh = SubResource("city_sidewalk_ew_56")
+
+[node name="EWSidewalk_3_1_S2" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.18, 134)
+mesh = SubResource("city_sidewalk_ew_56")
+
+[node name="EWSidewalk_3_1_S3" type="MeshInstance3D" parent="."]
+position = Vector3(80, 0.18, 134)
+mesh = SubResource("city_sidewalk_ew_56")
+
+[node name="EWSidewalk_3_1_S4" type="MeshInstance3D" parent="."]
+position = Vector3(153.5, 0.18, 134)
+mesh = SubResource("city_sidewalk_ew_43")
+
+[node name="BlockPlaza_0_0" type="MeshInstance3D" parent="."]
+position = Vector3(-80, 0.12, -80)
+mesh = SubResource("box_114")
+
+[node name="Building_01_BrickLofts" parent="." instance=ExtResource("ext_1")]
+position = Vector3(-98, 0.29, -98)
+scale = Vector3(0.62, 0.62, 0.62)
+
+[node name="Building_02_GlassOffice" parent="." instance=ExtResource("ext_2")]
+position = Vector3(-62, 0.29, -98)
+scale = Vector3(0.62, 0.62, 0.62)
+
+[node name="Building_03_MarketHall" parent="." instance=ExtResource("ext_3")]
+position = Vector3(-98, 0.29, -62)
+scale = Vector3(0.62, 0.62, 0.62)
+
+[node name="Building_04_CornerHotel" parent="." instance=ExtResource("ext_4")]
+position = Vector3(-62, 0.29, -62)
+scale = Vector3(0.62, 0.62, 0.62)
+
+[node name="Bench_0_0" parent="." instance=ExtResource("ext_5")]
+position = Vector3(-80, 0.29, -54)
+
+[node name="Tree_0_0" parent="." instance=ExtResource("ext_6")]
+position = Vector3(-55, 0.29, -80)
+
+[node name="BlockPlaza_1_0" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.12, -80)
+mesh = SubResource("box_115")
+
+[node name="Building_05_CityHospital" parent="." instance=ExtResource("ext_7")]
+position = Vector3(-18, 0.29, -98)
+scale = Vector3(0.62, 0.62, 0.62)
+
+[node name="Building_06_CivicTower" parent="." instance=ExtResource("ext_8")]
+position = Vector3(18, 0.29, -98)
+scale = Vector3(0.62, 0.62, 0.62)
+
+[node name="Building_07_LibraryCentre" parent="." instance=ExtResource("ext_9")]
+position = Vector3(-18, 0.29, -62)
+scale = Vector3(0.62, 0.62, 0.62)
+
+[node name="Building_08_ArtsCentre" parent="." instance=ExtResource("ext_10")]
+position = Vector3(18, 0.29, -62)
+scale = Vector3(0.62, 0.62, 0.62)
+
+[node name="Bench_1_0" parent="." instance=ExtResource("ext_5")]
+position = Vector3(0, 0.29, -54)
+
+[node name="Tree_1_0" parent="." instance=ExtResource("ext_6")]
+position = Vector3(25, 0.29, -80)
+
+[node name="BlockPlaza_2_0" type="MeshInstance3D" parent="."]
+position = Vector3(80, 0.12, -80)
+mesh = SubResource("box_116")
+
+[node name="Building_09_RooftopGardens" parent="." instance=ExtResource("ext_11")]
+position = Vector3(62, 0.29, -98)
+scale = Vector3(0.62, 0.62, 0.62)
+
+[node name="Building_10_MetroOffices" parent="." instance=ExtResource("ext_12")]
+position = Vector3(98, 0.29, -98)
+scale = Vector3(0.62, 0.62, 0.62)
+
+[node name="Building_11_BrickLofts" parent="." instance=ExtResource("ext_1")]
+position = Vector3(62, 0.29, -62)
+scale = Vector3(0.62, 0.62, 0.62)
+
+[node name="Building_12_SkylineApartments" parent="." instance=ExtResource("ext_13")]
+position = Vector3(98, 0.29, -62)
+scale = Vector3(0.62, 0.62, 0.62)
+
+[node name="Bench_2_0" parent="." instance=ExtResource("ext_5")]
+position = Vector3(80, 0.29, -54)
+
+[node name="Tree_2_0" parent="." instance=ExtResource("ext_6")]
+position = Vector3(105, 0.29, -80)
+
+[node name="BlockPlaza_0_1" type="MeshInstance3D" parent="."]
+position = Vector3(-80, 0.12, 0)
+mesh = SubResource("box_117")
+
+[node name="Building_13_CornerHotel" parent="." instance=ExtResource("ext_4")]
+position = Vector3(-98, 0.29, -18)
+scale = Vector3(0.62, 0.62, 0.62)
+
+[node name="Building_14_MetroOffices" parent="." instance=ExtResource("ext_12")]
+position = Vector3(-62, 0.29, -18)
+scale = Vector3(0.62, 0.62, 0.62)
+
+[node name="Building_15_MarketHall" parent="." instance=ExtResource("ext_3")]
+position = Vector3(-98, 0.29, 18)
+scale = Vector3(0.62, 0.62, 0.62)
+
+[node name="Building_16_BrickLofts" parent="." instance=ExtResource("ext_1")]
+position = Vector3(-62, 0.29, 18)
+scale = Vector3(0.62, 0.62, 0.62)
+
+[node name="Bench_0_1" parent="." instance=ExtResource("ext_5")]
+position = Vector3(-80, 0.29, 26)
+
+[node name="Tree_0_1" parent="." instance=ExtResource("ext_6")]
+position = Vector3(-55, 0.29, 0)
+
+[node name="BlockPlaza_1_1" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.12, 0)
+mesh = SubResource("box_118")
+
+[node name="Building_17_CivicTower" parent="." instance=ExtResource("ext_8")]
+position = Vector3(-18, 0.29, -18)
+scale = Vector3(0.62, 0.62, 0.62)
+
+[node name="Building_18_LibraryCentre" parent="." instance=ExtResource("ext_9")]
+position = Vector3(18, 0.29, -18)
+scale = Vector3(0.62, 0.62, 0.62)
+
+[node name="Building_19_ArtsCentre" parent="." instance=ExtResource("ext_10")]
+position = Vector3(-18, 0.29, 18)
+scale = Vector3(0.62, 0.62, 0.62)
+
+[node name="Building_20_ClockTower" parent="." instance=ExtResource("ext_14")]
+position = Vector3(18, 0.29, 18)
+scale = Vector3(0.62, 0.62, 0.62)
+
+[node name="Bench_1_1" parent="." instance=ExtResource("ext_5")]
+position = Vector3(0, 0.29, 26)
+
+[node name="Tree_1_1" parent="." instance=ExtResource("ext_6")]
+position = Vector3(25, 0.29, 0)
+
+[node name="BlockPlaza_2_1" type="MeshInstance3D" parent="."]
+position = Vector3(80, 0.12, 0)
+mesh = SubResource("box_119")
+
+[node name="Building_21_SkylineApartments" parent="." instance=ExtResource("ext_13")]
+position = Vector3(62, 0.29, -18)
+scale = Vector3(0.62, 0.62, 0.62)
+
+[node name="Building_22_GlassOffice" parent="." instance=ExtResource("ext_2")]
+position = Vector3(98, 0.29, -18)
+scale = Vector3(0.62, 0.62, 0.62)
+
+[node name="Building_23_RooftopGardens" parent="." instance=ExtResource("ext_11")]
+position = Vector3(62, 0.29, 18)
+scale = Vector3(0.62, 0.62, 0.62)
+
+[node name="Building_24_CityHospital" parent="." instance=ExtResource("ext_7")]
+position = Vector3(98, 0.29, 18)
+scale = Vector3(0.62, 0.62, 0.62)
+
+[node name="Bench_2_1" parent="." instance=ExtResource("ext_5")]
+position = Vector3(80, 0.29, 26)
+
+[node name="Tree_2_1" parent="." instance=ExtResource("ext_6")]
+position = Vector3(105, 0.29, 0)
+
+[node name="BlockPlaza_0_2" type="MeshInstance3D" parent="."]
+position = Vector3(-80, 0.12, 80)
+mesh = SubResource("box_120")
+
+[node name="Building_25_BrickLofts" parent="." instance=ExtResource("ext_1")]
+position = Vector3(-98, 0.29, 62)
+scale = Vector3(0.62, 0.62, 0.62)
+
+[node name="Building_26_RooftopGardens" parent="." instance=ExtResource("ext_11")]
+position = Vector3(-62, 0.29, 62)
+scale = Vector3(0.62, 0.62, 0.62)
+
+[node name="Building_27_LibraryCentre" parent="." instance=ExtResource("ext_9")]
+position = Vector3(-98, 0.29, 98)
+scale = Vector3(0.62, 0.62, 0.62)
+
+[node name="Building_28_CornerHotel" parent="." instance=ExtResource("ext_4")]
+position = Vector3(-62, 0.29, 98)
+scale = Vector3(0.62, 0.62, 0.62)
+
+[node name="Bench_0_2" parent="." instance=ExtResource("ext_5")]
+position = Vector3(-80, 0.29, 106)
+
+[node name="Tree_0_2" parent="." instance=ExtResource("ext_6")]
+position = Vector3(-55, 0.29, 80)
+
+[node name="BlockPlaza_1_2" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.12, 80)
+mesh = SubResource("box_121")
+
+[node name="Building_29_MetroOffices" parent="." instance=ExtResource("ext_12")]
+position = Vector3(-18, 0.29, 62)
+scale = Vector3(0.62, 0.62, 0.62)
+
+[node name="Building_30_SkylineApartments" parent="." instance=ExtResource("ext_13")]
+position = Vector3(18, 0.29, 62)
+scale = Vector3(0.62, 0.62, 0.62)
+
+[node name="Building_31_GlassOffice" parent="." instance=ExtResource("ext_2")]
+position = Vector3(-18, 0.29, 98)
+scale = Vector3(0.62, 0.62, 0.62)
+
+[node name="Building_32_ArtsCentre" parent="." instance=ExtResource("ext_10")]
+position = Vector3(18, 0.29, 98)
+scale = Vector3(0.62, 0.62, 0.62)
+
+[node name="Bench_1_2" parent="." instance=ExtResource("ext_5")]
+position = Vector3(0, 0.29, 106)
+
+[node name="Tree_1_2" parent="." instance=ExtResource("ext_6")]
+position = Vector3(25, 0.29, 80)
+
+[node name="BlockPlaza_2_2" type="MeshInstance3D" parent="."]
+position = Vector3(80, 0.12, 80)
+mesh = SubResource("box_122")
+
+[node name="Building_33_CityHospital" parent="." instance=ExtResource("ext_7")]
+position = Vector3(62, 0.29, 62)
+scale = Vector3(0.62, 0.62, 0.62)
+
+[node name="Building_34_MarketHall" parent="." instance=ExtResource("ext_3")]
+position = Vector3(98, 0.29, 62)
+scale = Vector3(0.62, 0.62, 0.62)
+
+[node name="Building_35_ClockTower" parent="." instance=ExtResource("ext_14")]
+position = Vector3(62, 0.29, 98)
+scale = Vector3(0.62, 0.62, 0.62)
+
+[node name="Building_36_CivicTower" parent="." instance=ExtResource("ext_8")]
+position = Vector3(98, 0.29, 98)
+scale = Vector3(0.62, 0.62, 0.62)
+
+[node name="Bench_2_2" parent="." instance=ExtResource("ext_5")]
+position = Vector3(80, 0.29, 106)
+
+[node name="Tree_2_2" parent="." instance=ExtResource("ext_6")]
+position = Vector3(105, 0.29, 80)
+
+[node name="Crosswalk_0_0_0" type="MeshInstance3D" parent="."]
+position = Vector3(-127, 0.045, -104)
+mesh = SubResource("box_123")
+cast_shadow = 0
+
+[node name="Crosswalk_0_0_1" type="MeshInstance3D" parent="."]
+position = Vector3(-123, 0.045, -104)
+mesh = SubResource("box_124")
+cast_shadow = 0
+
+[node name="Crosswalk_0_0_2" type="MeshInstance3D" parent="."]
+position = Vector3(-119, 0.045, -104)
+mesh = SubResource("box_125")
+cast_shadow = 0
+
+[node name="Crosswalk_0_0_3" type="MeshInstance3D" parent="."]
+position = Vector3(-115, 0.045, -104)
+mesh = SubResource("box_126")
+cast_shadow = 0
+
+[node name="Signal_0_0" parent="." instance=ExtResource("ext_15")]
+position = Vector3(-104, 0.3, -104)
+
+[node name="Crosswalk_0_1_0" type="MeshInstance3D" parent="."]
+position = Vector3(-127, 0.045, -24)
+mesh = SubResource("box_127")
+cast_shadow = 0
+
+[node name="Crosswalk_0_1_1" type="MeshInstance3D" parent="."]
+position = Vector3(-123, 0.045, -24)
+mesh = SubResource("box_128")
+cast_shadow = 0
+
+[node name="Crosswalk_0_1_2" type="MeshInstance3D" parent="."]
+position = Vector3(-119, 0.045, -24)
+mesh = SubResource("box_129")
+cast_shadow = 0
+
+[node name="Crosswalk_0_1_3" type="MeshInstance3D" parent="."]
+position = Vector3(-115, 0.045, -24)
+mesh = SubResource("box_130")
+cast_shadow = 0
+
+[node name="Signal_0_1" parent="." instance=ExtResource("ext_15")]
+position = Vector3(-104, 0.3, -24)
+
+[node name="Crosswalk_0_2_0" type="MeshInstance3D" parent="."]
+position = Vector3(-127, 0.045, 56)
+mesh = SubResource("box_131")
+cast_shadow = 0
+
+[node name="Crosswalk_0_2_1" type="MeshInstance3D" parent="."]
+position = Vector3(-123, 0.045, 56)
+mesh = SubResource("box_132")
+cast_shadow = 0
+
+[node name="Crosswalk_0_2_2" type="MeshInstance3D" parent="."]
+position = Vector3(-119, 0.045, 56)
+mesh = SubResource("box_133")
+cast_shadow = 0
+
+[node name="Crosswalk_0_2_3" type="MeshInstance3D" parent="."]
+position = Vector3(-115, 0.045, 56)
+mesh = SubResource("box_134")
+cast_shadow = 0
+
+[node name="Signal_0_2" parent="." instance=ExtResource("ext_15")]
+position = Vector3(-104, 0.3, 56)
+
+[node name="Crosswalk_0_3_0" type="MeshInstance3D" parent="."]
+position = Vector3(-127, 0.045, 136)
+mesh = SubResource("box_135")
+cast_shadow = 0
+
+[node name="Crosswalk_0_3_1" type="MeshInstance3D" parent="."]
+position = Vector3(-123, 0.045, 136)
+mesh = SubResource("box_136")
+cast_shadow = 0
+
+[node name="Crosswalk_0_3_2" type="MeshInstance3D" parent="."]
+position = Vector3(-119, 0.045, 136)
+mesh = SubResource("box_137")
+cast_shadow = 0
+
+[node name="Crosswalk_0_3_3" type="MeshInstance3D" parent="."]
+position = Vector3(-115, 0.045, 136)
+mesh = SubResource("box_138")
+cast_shadow = 0
+
+[node name="Signal_0_3" parent="." instance=ExtResource("ext_15")]
+position = Vector3(-104, 0.3, 136)
+
+[node name="Crosswalk_1_0_0" type="MeshInstance3D" parent="."]
+position = Vector3(-47, 0.045, -104)
+mesh = SubResource("box_139")
+cast_shadow = 0
+
+[node name="Crosswalk_1_0_1" type="MeshInstance3D" parent="."]
+position = Vector3(-43, 0.045, -104)
+mesh = SubResource("box_140")
+cast_shadow = 0
+
+[node name="Crosswalk_1_0_2" type="MeshInstance3D" parent="."]
+position = Vector3(-39, 0.045, -104)
+mesh = SubResource("box_141")
+cast_shadow = 0
+
+[node name="Crosswalk_1_0_3" type="MeshInstance3D" parent="."]
+position = Vector3(-35, 0.045, -104)
+mesh = SubResource("box_142")
+cast_shadow = 0
+
+[node name="Signal_1_0" parent="." instance=ExtResource("ext_15")]
+position = Vector3(-24, 0.3, -104)
+
+[node name="Crosswalk_1_1_0" type="MeshInstance3D" parent="."]
+position = Vector3(-47, 0.045, -24)
+mesh = SubResource("box_143")
+cast_shadow = 0
+
+[node name="Crosswalk_1_1_1" type="MeshInstance3D" parent="."]
+position = Vector3(-43, 0.045, -24)
+mesh = SubResource("box_144")
+cast_shadow = 0
+
+[node name="Crosswalk_1_1_2" type="MeshInstance3D" parent="."]
+position = Vector3(-39, 0.045, -24)
+mesh = SubResource("box_145")
+cast_shadow = 0
+
+[node name="Crosswalk_1_1_3" type="MeshInstance3D" parent="."]
+position = Vector3(-35, 0.045, -24)
+mesh = SubResource("box_146")
+cast_shadow = 0
+
+[node name="Signal_1_1" parent="." instance=ExtResource("ext_15")]
+position = Vector3(-24, 0.3, -24)
+
+[node name="Crosswalk_1_2_0" type="MeshInstance3D" parent="."]
+position = Vector3(-47, 0.045, 56)
+mesh = SubResource("box_147")
+cast_shadow = 0
+
+[node name="Crosswalk_1_2_1" type="MeshInstance3D" parent="."]
+position = Vector3(-43, 0.045, 56)
+mesh = SubResource("box_148")
+cast_shadow = 0
+
+[node name="Crosswalk_1_2_2" type="MeshInstance3D" parent="."]
+position = Vector3(-39, 0.045, 56)
+mesh = SubResource("box_149")
+cast_shadow = 0
+
+[node name="Crosswalk_1_2_3" type="MeshInstance3D" parent="."]
+position = Vector3(-35, 0.045, 56)
+mesh = SubResource("box_150")
+cast_shadow = 0
+
+[node name="Signal_1_2" parent="." instance=ExtResource("ext_15")]
+position = Vector3(-24, 0.3, 56)
+
+[node name="Crosswalk_1_3_0" type="MeshInstance3D" parent="."]
+position = Vector3(-47, 0.045, 136)
+mesh = SubResource("box_151")
+cast_shadow = 0
+
+[node name="Crosswalk_1_3_1" type="MeshInstance3D" parent="."]
+position = Vector3(-43, 0.045, 136)
+mesh = SubResource("box_152")
+cast_shadow = 0
+
+[node name="Crosswalk_1_3_2" type="MeshInstance3D" parent="."]
+position = Vector3(-39, 0.045, 136)
+mesh = SubResource("box_153")
+cast_shadow = 0
+
+[node name="Crosswalk_1_3_3" type="MeshInstance3D" parent="."]
+position = Vector3(-35, 0.045, 136)
+mesh = SubResource("box_154")
+cast_shadow = 0
+
+[node name="Signal_1_3" parent="." instance=ExtResource("ext_15")]
+position = Vector3(-24, 0.3, 136)
+
+[node name="Crosswalk_2_0_0" type="MeshInstance3D" parent="."]
+position = Vector3(33, 0.045, -104)
+mesh = SubResource("box_155")
+cast_shadow = 0
+
+[node name="Crosswalk_2_0_1" type="MeshInstance3D" parent="."]
+position = Vector3(37, 0.045, -104)
+mesh = SubResource("box_156")
+cast_shadow = 0
+
+[node name="Crosswalk_2_0_2" type="MeshInstance3D" parent="."]
+position = Vector3(41, 0.045, -104)
+mesh = SubResource("box_157")
+cast_shadow = 0
+
+[node name="Crosswalk_2_0_3" type="MeshInstance3D" parent="."]
+position = Vector3(45, 0.045, -104)
+mesh = SubResource("box_158")
+cast_shadow = 0
+
+[node name="Signal_2_0" parent="." instance=ExtResource("ext_15")]
+position = Vector3(56, 0.3, -104)
+
+[node name="Crosswalk_2_1_0" type="MeshInstance3D" parent="."]
+position = Vector3(33, 0.045, -24)
+mesh = SubResource("box_159")
+cast_shadow = 0
+
+[node name="Crosswalk_2_1_1" type="MeshInstance3D" parent="."]
+position = Vector3(37, 0.045, -24)
+mesh = SubResource("box_160")
+cast_shadow = 0
+
+[node name="Crosswalk_2_1_2" type="MeshInstance3D" parent="."]
+position = Vector3(41, 0.045, -24)
+mesh = SubResource("box_161")
+cast_shadow = 0
+
+[node name="Crosswalk_2_1_3" type="MeshInstance3D" parent="."]
+position = Vector3(45, 0.045, -24)
+mesh = SubResource("box_162")
+cast_shadow = 0
+
+[node name="Signal_2_1" parent="." instance=ExtResource("ext_15")]
+position = Vector3(56, 0.3, -24)
+
+[node name="Crosswalk_2_2_0" type="MeshInstance3D" parent="."]
+position = Vector3(33, 0.045, 56)
+mesh = SubResource("box_163")
+cast_shadow = 0
+
+[node name="Crosswalk_2_2_1" type="MeshInstance3D" parent="."]
+position = Vector3(37, 0.045, 56)
+mesh = SubResource("box_164")
+cast_shadow = 0
+
+[node name="Crosswalk_2_2_2" type="MeshInstance3D" parent="."]
+position = Vector3(41, 0.045, 56)
+mesh = SubResource("box_165")
+cast_shadow = 0
+
+[node name="Crosswalk_2_2_3" type="MeshInstance3D" parent="."]
+position = Vector3(45, 0.045, 56)
+mesh = SubResource("box_166")
+cast_shadow = 0
+
+[node name="Signal_2_2" parent="." instance=ExtResource("ext_15")]
+position = Vector3(56, 0.3, 56)
+
+[node name="Crosswalk_2_3_0" type="MeshInstance3D" parent="."]
+position = Vector3(33, 0.045, 136)
+mesh = SubResource("box_167")
+cast_shadow = 0
+
+[node name="Crosswalk_2_3_1" type="MeshInstance3D" parent="."]
+position = Vector3(37, 0.045, 136)
+mesh = SubResource("box_168")
+cast_shadow = 0
+
+[node name="Crosswalk_2_3_2" type="MeshInstance3D" parent="."]
+position = Vector3(41, 0.045, 136)
+mesh = SubResource("box_169")
+cast_shadow = 0
+
+[node name="Crosswalk_2_3_3" type="MeshInstance3D" parent="."]
+position = Vector3(45, 0.045, 136)
+mesh = SubResource("box_170")
+cast_shadow = 0
+
+[node name="Signal_2_3" parent="." instance=ExtResource("ext_15")]
+position = Vector3(56, 0.3, 136)
+
+[node name="Crosswalk_3_0_0" type="MeshInstance3D" parent="."]
+position = Vector3(113, 0.045, -104)
+mesh = SubResource("box_171")
+cast_shadow = 0
+
+[node name="Crosswalk_3_0_1" type="MeshInstance3D" parent="."]
+position = Vector3(117, 0.045, -104)
+mesh = SubResource("box_172")
+cast_shadow = 0
+
+[node name="Crosswalk_3_0_2" type="MeshInstance3D" parent="."]
+position = Vector3(121, 0.045, -104)
+mesh = SubResource("box_173")
+cast_shadow = 0
+
+[node name="Crosswalk_3_0_3" type="MeshInstance3D" parent="."]
+position = Vector3(125, 0.045, -104)
+mesh = SubResource("box_174")
+cast_shadow = 0
+
+[node name="Signal_3_0" parent="." instance=ExtResource("ext_15")]
+position = Vector3(136, 0.3, -104)
+
+[node name="Crosswalk_3_1_0" type="MeshInstance3D" parent="."]
+position = Vector3(113, 0.045, -24)
+mesh = SubResource("box_175")
+cast_shadow = 0
+
+[node name="Crosswalk_3_1_1" type="MeshInstance3D" parent="."]
+position = Vector3(117, 0.045, -24)
+mesh = SubResource("box_176")
+cast_shadow = 0
+
+[node name="Crosswalk_3_1_2" type="MeshInstance3D" parent="."]
+position = Vector3(121, 0.045, -24)
+mesh = SubResource("box_177")
+cast_shadow = 0
+
+[node name="Crosswalk_3_1_3" type="MeshInstance3D" parent="."]
+position = Vector3(125, 0.045, -24)
+mesh = SubResource("box_178")
+cast_shadow = 0
+
+[node name="Signal_3_1" parent="." instance=ExtResource("ext_15")]
+position = Vector3(136, 0.3, -24)
+
+[node name="Crosswalk_3_2_0" type="MeshInstance3D" parent="."]
+position = Vector3(113, 0.045, 56)
+mesh = SubResource("box_179")
+cast_shadow = 0
+
+[node name="Crosswalk_3_2_1" type="MeshInstance3D" parent="."]
+position = Vector3(117, 0.045, 56)
+mesh = SubResource("box_180")
+cast_shadow = 0
+
+[node name="Crosswalk_3_2_2" type="MeshInstance3D" parent="."]
+position = Vector3(121, 0.045, 56)
+mesh = SubResource("box_181")
+cast_shadow = 0
+
+[node name="Crosswalk_3_2_3" type="MeshInstance3D" parent="."]
+position = Vector3(125, 0.045, 56)
+mesh = SubResource("box_182")
+cast_shadow = 0
+
+[node name="Signal_3_2" parent="." instance=ExtResource("ext_15")]
+position = Vector3(136, 0.3, 56)
+
+[node name="Crosswalk_3_3_0" type="MeshInstance3D" parent="."]
+position = Vector3(113, 0.045, 136)
+mesh = SubResource("box_183")
+cast_shadow = 0
+
+[node name="Crosswalk_3_3_1" type="MeshInstance3D" parent="."]
+position = Vector3(117, 0.045, 136)
+mesh = SubResource("box_184")
+cast_shadow = 0
+
+[node name="Crosswalk_3_3_2" type="MeshInstance3D" parent="."]
+position = Vector3(121, 0.045, 136)
+mesh = SubResource("box_185")
+cast_shadow = 0
+
+[node name="Crosswalk_3_3_3" type="MeshInstance3D" parent="."]
+position = Vector3(125, 0.045, 136)
+mesh = SubResource("box_186")
+cast_shadow = 0
+
+[node name="Signal_3_3" parent="." instance=ExtResource("ext_15")]
+position = Vector3(136, 0.3, 136)
+
+[node name="CityGround" type="StaticBody3D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="BaseShape" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(0, -0.13, 0)
+shape = SubResource("city_ground_base_shape")
+
+[node name="PlazaShape_0" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(-80, 0.12, -80)
+shape = SubResource("city_plaza_shape")
+
+[node name="PlazaShape_1" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(0, 0.12, -80)
+shape = SubResource("city_plaza_shape")
+
+[node name="PlazaShape_2" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(80, 0.12, -80)
+shape = SubResource("city_plaza_shape")
+
+[node name="PlazaShape_3" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(-80, 0.12, 0)
+shape = SubResource("city_plaza_shape")
+
+[node name="PlazaShape_4" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(0, 0.12, 0)
+shape = SubResource("city_plaza_shape")
+
+[node name="PlazaShape_5" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(80, 0.12, 0)
+shape = SubResource("city_plaza_shape")
+
+[node name="PlazaShape_6" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(-80, 0.12, 80)
+shape = SubResource("city_plaza_shape")
+
+[node name="PlazaShape_7" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(0, 0.12, 80)
+shape = SubResource("city_plaza_shape")
+
+[node name="PlazaShape_8" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(80, 0.12, 80)
+shape = SubResource("city_plaza_shape")
+
+
+
+
+
+
+
+
+
+
+[node name="SidewalkShape_NSSidewalk_0_0_S0" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(-134, 0.18, -153.5)
+shape = SubResource("city_sidewalk_ns_43_shape")
+
+[node name="SidewalkShape_NSSidewalk_0_0_S1" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(-134, 0.18, -80)
+shape = SubResource("city_sidewalk_ns_56_shape")
+
+[node name="SidewalkShape_NSSidewalk_0_0_S2" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(-134, 0.18, -18)
+shape = SubResource("city_sidewalk_ns_20_shape")
+
+[node name="SidewalkShape_NSSidewalk_0_0_S3" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(-134, 0.18, 18)
+shape = SubResource("city_sidewalk_ns_20_shape")
+
+[node name="SidewalkShape_NSSidewalk_0_0_S4" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(-134, 0.18, 80)
+shape = SubResource("city_sidewalk_ns_56_shape")
+
+[node name="SidewalkShape_NSSidewalk_0_0_S5" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(-134, 0.18, 153.5)
+shape = SubResource("city_sidewalk_ns_43_shape")
+
+[node name="SidewalkShape_NSSidewalk_0_1_S0" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(-106, 0.18, -153.5)
+shape = SubResource("city_sidewalk_ns_43_shape")
+
+[node name="SidewalkShape_NSSidewalk_0_1_S1" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(-106, 0.18, -80)
+shape = SubResource("city_sidewalk_ns_56_shape")
+
+[node name="SidewalkShape_NSSidewalk_0_1_S2" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(-106, 0.18, 0)
+shape = SubResource("city_sidewalk_ns_56_shape")
+
+[node name="SidewalkShape_NSSidewalk_0_1_S3" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(-106, 0.18, 80)
+shape = SubResource("city_sidewalk_ns_56_shape")
+
+[node name="SidewalkShape_NSSidewalk_0_1_S4" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(-106, 0.18, 153.5)
+shape = SubResource("city_sidewalk_ns_43_shape")
+
+[node name="SidewalkShape_NSSidewalk_1_0_S0" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(-54, 0.18, -153.5)
+shape = SubResource("city_sidewalk_ns_43_shape")
+
+[node name="SidewalkShape_NSSidewalk_1_0_S1" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(-54, 0.18, -80)
+shape = SubResource("city_sidewalk_ns_56_shape")
+
+[node name="SidewalkShape_NSSidewalk_1_0_S2" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(-54, 0.18, 0)
+shape = SubResource("city_sidewalk_ns_56_shape")
+
+[node name="SidewalkShape_NSSidewalk_1_0_S3" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(-54, 0.18, 80)
+shape = SubResource("city_sidewalk_ns_56_shape")
+
+[node name="SidewalkShape_NSSidewalk_1_0_S4" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(-54, 0.18, 153.5)
+shape = SubResource("city_sidewalk_ns_43_shape")
+
+[node name="SidewalkShape_NSSidewalk_1_1_S0" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(-26, 0.18, -153.5)
+shape = SubResource("city_sidewalk_ns_43_shape")
+
+[node name="SidewalkShape_NSSidewalk_1_1_S1" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(-26, 0.18, -80)
+shape = SubResource("city_sidewalk_ns_56_shape")
+
+[node name="SidewalkShape_NSSidewalk_1_1_S2" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(-26, 0.18, 0)
+shape = SubResource("city_sidewalk_ns_56_shape")
+
+[node name="SidewalkShape_NSSidewalk_1_1_S3" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(-26, 0.18, 80)
+shape = SubResource("city_sidewalk_ns_56_shape")
+
+[node name="SidewalkShape_NSSidewalk_1_1_S4" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(-26, 0.18, 153.5)
+shape = SubResource("city_sidewalk_ns_43_shape")
+
+[node name="SidewalkShape_NSSidewalk_2_0_S0" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(26, 0.18, -153.5)
+shape = SubResource("city_sidewalk_ns_43_shape")
+
+[node name="SidewalkShape_NSSidewalk_2_0_S1" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(26, 0.18, -80)
+shape = SubResource("city_sidewalk_ns_56_shape")
+
+[node name="SidewalkShape_NSSidewalk_2_0_S2" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(26, 0.18, 0)
+shape = SubResource("city_sidewalk_ns_56_shape")
+
+[node name="SidewalkShape_NSSidewalk_2_0_S3" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(26, 0.18, 80)
+shape = SubResource("city_sidewalk_ns_56_shape")
+
+[node name="SidewalkShape_NSSidewalk_2_0_S4" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(26, 0.18, 153.5)
+shape = SubResource("city_sidewalk_ns_43_shape")
+
+[node name="SidewalkShape_NSSidewalk_2_1_S0" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(54, 0.18, -153.5)
+shape = SubResource("city_sidewalk_ns_43_shape")
+
+[node name="SidewalkShape_NSSidewalk_2_1_S1" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(54, 0.18, -80)
+shape = SubResource("city_sidewalk_ns_56_shape")
+
+[node name="SidewalkShape_NSSidewalk_2_1_S2" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(54, 0.18, 0)
+shape = SubResource("city_sidewalk_ns_56_shape")
+
+[node name="SidewalkShape_NSSidewalk_2_1_S3" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(54, 0.18, 80)
+shape = SubResource("city_sidewalk_ns_56_shape")
+
+[node name="SidewalkShape_NSSidewalk_2_1_S4" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(54, 0.18, 153.5)
+shape = SubResource("city_sidewalk_ns_43_shape")
+
+[node name="SidewalkShape_NSSidewalk_3_0_S0" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(106, 0.18, -153.5)
+shape = SubResource("city_sidewalk_ns_43_shape")
+
+[node name="SidewalkShape_NSSidewalk_3_0_S1" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(106, 0.18, -80)
+shape = SubResource("city_sidewalk_ns_56_shape")
+
+[node name="SidewalkShape_NSSidewalk_3_0_S2" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(106, 0.18, 0)
+shape = SubResource("city_sidewalk_ns_56_shape")
+
+[node name="SidewalkShape_NSSidewalk_3_0_S3" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(106, 0.18, 80)
+shape = SubResource("city_sidewalk_ns_56_shape")
+
+[node name="SidewalkShape_NSSidewalk_3_0_S4" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(106, 0.18, 153.5)
+shape = SubResource("city_sidewalk_ns_43_shape")
+
+[node name="SidewalkShape_NSSidewalk_3_1_S0" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(134, 0.18, -153.5)
+shape = SubResource("city_sidewalk_ns_43_shape")
+
+[node name="SidewalkShape_NSSidewalk_3_1_S1" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(134, 0.18, -80)
+shape = SubResource("city_sidewalk_ns_56_shape")
+
+[node name="SidewalkShape_NSSidewalk_3_1_S2" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(134, 0.18, 0)
+shape = SubResource("city_sidewalk_ns_56_shape")
+
+[node name="SidewalkShape_NSSidewalk_3_1_S3" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(134, 0.18, 80)
+shape = SubResource("city_sidewalk_ns_56_shape")
+
+[node name="SidewalkShape_NSSidewalk_3_1_S4" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(134, 0.18, 153.5)
+shape = SubResource("city_sidewalk_ns_43_shape")
+
+[node name="SidewalkShape_EWSidewalk_0_0_S0" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(-153.5, 0.18, -134)
+shape = SubResource("city_sidewalk_ew_43_shape")
+
+[node name="SidewalkShape_EWSidewalk_0_0_S1" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(-80, 0.18, -134)
+shape = SubResource("city_sidewalk_ew_56_shape")
+
+[node name="SidewalkShape_EWSidewalk_0_0_S2" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(0, 0.18, -134)
+shape = SubResource("city_sidewalk_ew_56_shape")
+
+[node name="SidewalkShape_EWSidewalk_0_0_S3" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(80, 0.18, -134)
+shape = SubResource("city_sidewalk_ew_56_shape")
+
+[node name="SidewalkShape_EWSidewalk_0_0_S4" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(153.5, 0.18, -134)
+shape = SubResource("city_sidewalk_ew_43_shape")
+
+[node name="SidewalkShape_EWSidewalk_0_1_S0" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(-153.5, 0.18, -106)
+shape = SubResource("city_sidewalk_ew_43_shape")
+
+[node name="SidewalkShape_EWSidewalk_0_1_S1" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(-80, 0.18, -106)
+shape = SubResource("city_sidewalk_ew_56_shape")
+
+[node name="SidewalkShape_EWSidewalk_0_1_S2" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(0, 0.18, -106)
+shape = SubResource("city_sidewalk_ew_56_shape")
+
+[node name="SidewalkShape_EWSidewalk_0_1_S3" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(80, 0.18, -106)
+shape = SubResource("city_sidewalk_ew_56_shape")
+
+[node name="SidewalkShape_EWSidewalk_0_1_S4" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(153.5, 0.18, -106)
+shape = SubResource("city_sidewalk_ew_43_shape")
+
+[node name="SidewalkShape_EWSidewalk_1_0_S0" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(-153.5, 0.18, -54)
+shape = SubResource("city_sidewalk_ew_43_shape")
+
+[node name="SidewalkShape_EWSidewalk_1_0_S1" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(-80, 0.18, -54)
+shape = SubResource("city_sidewalk_ew_56_shape")
+
+[node name="SidewalkShape_EWSidewalk_1_0_S2" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(0, 0.18, -54)
+shape = SubResource("city_sidewalk_ew_56_shape")
+
+[node name="SidewalkShape_EWSidewalk_1_0_S3" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(80, 0.18, -54)
+shape = SubResource("city_sidewalk_ew_56_shape")
+
+[node name="SidewalkShape_EWSidewalk_1_0_S4" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(153.5, 0.18, -54)
+shape = SubResource("city_sidewalk_ew_43_shape")
+
+[node name="SidewalkShape_EWSidewalk_1_1_S0" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(-153.5, 0.18, -26)
+shape = SubResource("city_sidewalk_ew_43_shape")
+
+[node name="SidewalkShape_EWSidewalk_1_1_S1" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(-80, 0.18, -26)
+shape = SubResource("city_sidewalk_ew_56_shape")
+
+[node name="SidewalkShape_EWSidewalk_1_1_S2" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(0, 0.18, -26)
+shape = SubResource("city_sidewalk_ew_56_shape")
+
+[node name="SidewalkShape_EWSidewalk_1_1_S3" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(80, 0.18, -26)
+shape = SubResource("city_sidewalk_ew_56_shape")
+
+[node name="SidewalkShape_EWSidewalk_1_1_S4" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(153.5, 0.18, -26)
+shape = SubResource("city_sidewalk_ew_43_shape")
+
+[node name="SidewalkShape_EWSidewalk_2_0_S0" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(-153.5, 0.18, 26)
+shape = SubResource("city_sidewalk_ew_43_shape")
+
+[node name="SidewalkShape_EWSidewalk_2_0_S1" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(-80, 0.18, 26)
+shape = SubResource("city_sidewalk_ew_56_shape")
+
+[node name="SidewalkShape_EWSidewalk_2_0_S2" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(0, 0.18, 26)
+shape = SubResource("city_sidewalk_ew_56_shape")
+
+[node name="SidewalkShape_EWSidewalk_2_0_S3" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(80, 0.18, 26)
+shape = SubResource("city_sidewalk_ew_56_shape")
+
+[node name="SidewalkShape_EWSidewalk_2_0_S4" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(153.5, 0.18, 26)
+shape = SubResource("city_sidewalk_ew_43_shape")
+
+[node name="SidewalkShape_EWSidewalk_2_1_S0" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(-153.5, 0.18, 54)
+shape = SubResource("city_sidewalk_ew_43_shape")
+
+[node name="SidewalkShape_EWSidewalk_2_1_S1" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(-80, 0.18, 54)
+shape = SubResource("city_sidewalk_ew_56_shape")
+
+[node name="SidewalkShape_EWSidewalk_2_1_S2" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(0, 0.18, 54)
+shape = SubResource("city_sidewalk_ew_56_shape")
+
+[node name="SidewalkShape_EWSidewalk_2_1_S3" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(80, 0.18, 54)
+shape = SubResource("city_sidewalk_ew_56_shape")
+
+[node name="SidewalkShape_EWSidewalk_2_1_S4" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(153.5, 0.18, 54)
+shape = SubResource("city_sidewalk_ew_43_shape")
+
+[node name="SidewalkShape_EWSidewalk_3_0_S0" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(-153.5, 0.18, 106)
+shape = SubResource("city_sidewalk_ew_43_shape")
+
+[node name="SidewalkShape_EWSidewalk_3_0_S1" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(-80, 0.18, 106)
+shape = SubResource("city_sidewalk_ew_56_shape")
+
+[node name="SidewalkShape_EWSidewalk_3_0_S2" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(0, 0.18, 106)
+shape = SubResource("city_sidewalk_ew_56_shape")
+
+[node name="SidewalkShape_EWSidewalk_3_0_S3" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(80, 0.18, 106)
+shape = SubResource("city_sidewalk_ew_56_shape")
+
+[node name="SidewalkShape_EWSidewalk_3_0_S4" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(153.5, 0.18, 106)
+shape = SubResource("city_sidewalk_ew_43_shape")
+
+[node name="SidewalkShape_EWSidewalk_3_1_S0" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(-153.5, 0.18, 134)
+shape = SubResource("city_sidewalk_ew_43_shape")
+
+[node name="SidewalkShape_EWSidewalk_3_1_S1" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(-80, 0.18, 134)
+shape = SubResource("city_sidewalk_ew_56_shape")
+
+[node name="SidewalkShape_EWSidewalk_3_1_S2" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(0, 0.18, 134)
+shape = SubResource("city_sidewalk_ew_56_shape")
+
+[node name="SidewalkShape_EWSidewalk_3_1_S3" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(80, 0.18, 134)
+shape = SubResource("city_sidewalk_ew_56_shape")
+
+[node name="SidewalkShape_EWSidewalk_3_1_S4" type="CollisionShape3D" parent="CityGround"]
+position = Vector3(153.5, 0.18, 134)
+shape = SubResource("city_sidewalk_ew_43_shape")
+
+[node name="CityJobBoard" parent="." instance=ExtResource("ext_16")]
+position = Vector3(0, 0.29, 22)
+rotation = Vector3(0, 3.14159, 0)
+
+[node name="CityArrival" type="Marker3D" parent="."]
+position = Vector3(-159, 0.29, 0)
+metadata/gameplay_id = "CityArrival"
+
+[node name="CityJobBoardAnchor" type="Marker3D" parent="."]
+position = Vector3(0, 0.29, 19)
+metadata/gameplay_id = "CityJobBoardAnchor"
+
+[node name="CityDepot" type="Marker3D" parent="."]
+position = Vector3(-78, 0.29, -48)
+metadata/gameplay_id = "CityDepot"
+
+[node name="CityHospital" type="Marker3D" parent="."]
+position = Vector3(-62, 0.29, -61)
+metadata/gameplay_id = "CityHospital"
+
+[node name="CityLibrary" type="Marker3D" parent="."]
+position = Vector3(-17, 0.29, -62)
+metadata/gameplay_id = "CityLibrary"
+
+[node name="CityMarket" type="Marker3D" parent="."]
+position = Vector3(-98, 0.29, -62)
+metadata/gameplay_id = "CityMarket"
+
+[node name="CityPark" type="Marker3D" parent="."]
+position = Vector3(31, 0.29, 95)
+metadata/gameplay_id = "CityPark"
+
+[node name="CityClockSquare" type="Marker3D" parent="."]
+position = Vector3(17, 0.29, 17)
+metadata/gameplay_id = "CityClockSquare"
+
+[node name="CityGarage" type="Marker3D" parent="."]
+position = Vector3(97, 0.29, 111)
+metadata/gameplay_id = "CityGarage"
+
+[node name="CityBridgeApproach" type="Marker3D" parent="."]
+position = Vector3(-160, 0.29, 0)
+metadata/gameplay_id = "CityBridgeApproach"
+
+[node name="CityReturnRoad" type="Marker3D" parent="."]
+position = Vector3(-175, 0.29, 0)
+metadata/gameplay_id = "CityReturnRoad"
+
+[node name="Route_0" type="Node3D" parent="."]
+
+[node name="Waypoint_00" type="Marker3D" parent="Route_0"]
+position = Vector3(-120, 0.29, -120)
+
+[node name="Waypoint_01" type="Marker3D" parent="Route_0"]
+position = Vector3(-40, 0.29, -120)
+
+[node name="Waypoint_02" type="Marker3D" parent="Route_0"]
+position = Vector3(40, 0.29, -120)
+
+[node name="Waypoint_03" type="Marker3D" parent="Route_0"]
+position = Vector3(120, 0.29, -120)
+
+[node name="Waypoint_04" type="Marker3D" parent="Route_0"]
+position = Vector3(120, 0.29, -40)
+
+[node name="Waypoint_05" type="Marker3D" parent="Route_0"]
+position = Vector3(40, 0.29, -40)
+
+[node name="Waypoint_06" type="Marker3D" parent="Route_0"]
+position = Vector3(-40, 0.29, -40)
+
+[node name="Waypoint_07" type="Marker3D" parent="Route_0"]
+position = Vector3(-120, 0.29, -40)
+
+[node name="Route_1" type="Node3D" parent="."]
+
+[node name="Waypoint_00" type="Marker3D" parent="Route_1"]
+position = Vector3(-40, 0.29, 40)
+
+[node name="Waypoint_01" type="Marker3D" parent="Route_1"]
+position = Vector3(40, 0.29, 40)
+
+[node name="Waypoint_02" type="Marker3D" parent="Route_1"]
+position = Vector3(120, 0.29, 40)
+
+[node name="Waypoint_03" type="Marker3D" parent="Route_1"]
+position = Vector3(120, 0.29, 120)
+
+[node name="Waypoint_04" type="Marker3D" parent="Route_1"]
+position = Vector3(40, 0.29, 120)
+
+[node name="Waypoint_05" type="Marker3D" parent="Route_1"]
+position = Vector3(-40, 0.29, 120)
+
+[node name="Waypoint_06" type="Marker3D" parent="Route_1"]
+position = Vector3(-120, 0.29, 120)
+
+[node name="Waypoint_07" type="Marker3D" parent="Route_1"]
+position = Vector3(-120, 0.29, 40)
+
+[node name="Route_2" type="Node3D" parent="."]
+
+[node name="Waypoint_00" type="Marker3D" parent="Route_2"]
+position = Vector3(0, 0.29, -103)
+
+[node name="Waypoint_01" type="Marker3D" parent="Route_2"]
+position = Vector3(0, 0.29, -75)
+
+[node name="Waypoint_02" type="Marker3D" parent="Route_2"]
+position = Vector3(0, 0.29, -45)
+
+[node name="Waypoint_03" type="Marker3D" parent="Route_2"]
+position = Vector3(0, 0.29, -15)
+
+[node name="Waypoint_04" type="Marker3D" parent="Route_2"]
+position = Vector3(0, 0.29, 15)
+
+[node name="Waypoint_05" type="Marker3D" parent="Route_2"]
+position = Vector3(0, 0.29, 45)
+
+[node name="Waypoint_06" type="Marker3D" parent="Route_2"]
+position = Vector3(0, 0.29, 75)
+
+[node name="Waypoint_07" type="Marker3D" parent="Route_2"]
+position = Vector3(0, 0.29, 103)

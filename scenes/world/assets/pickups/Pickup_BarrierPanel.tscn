@@ -1,0 +1,46 @@
+[gd_scene load_steps=6 format=3]
+
+[sub_resource type="StandardMaterial3D" id="mat_orange"]
+albedo_color = Color(0.95686, 0.5451, 0.26275, 1)
+metallic = 0.0
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="mat_cream"]
+albedo_color = Color(0.97255, 0.93333, 0.88235, 1)
+metallic = 0.0
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="mat_dark"]
+albedo_color = Color(0.15686, 0.21569, 0.27843, 1)
+metallic = 0.0
+roughness = 0.8
+
+[sub_resource type="BoxMesh" id="panel_mesh"]
+size = Vector3(1.8, 1.0, 0.12)
+material = SubResource("mat_orange")
+
+[sub_resource type="BoxMesh" id="stripe_mesh"]
+size = Vector3(1.4, 0.18, 0.14)
+material = SubResource("mat_cream")
+
+[sub_resource type="BoxMesh" id="leg_mesh"]
+size = Vector3(0.12, 1.2, 0.5)
+material = SubResource("mat_dark")
+
+[node name="Pickup_BarrierPanel" type="Node3D"]
+
+[node name="Panel" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.95, 0)
+mesh = SubResource("panel_mesh")
+
+[node name="Stripe" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.95, 0.08)
+mesh = SubResource("stripe_mesh")
+
+[node name="LegL" type="MeshInstance3D" parent="."]
+position = Vector3(-0.72, 0.6, 0)
+mesh = SubResource("leg_mesh")
+
+[node name="LegR" type="MeshInstance3D" parent="."]
+position = Vector3(0.72, 0.6, 0)
+mesh = SubResource("leg_mesh")

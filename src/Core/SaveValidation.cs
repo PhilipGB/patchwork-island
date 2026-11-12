@@ -25,6 +25,7 @@ public static class SaveValidation
     private static readonly HashSet<string> InventoryItems = new(StringComparer.Ordinal)
     {
         "apple", "wood", "stone", "blue_parcel", "orange_parcel",
+        "safety_cone", "barrier_panel", "toolbox",
     };
 
     private static readonly HashSet<string> PickupIds = new(StringComparer.Ordinal)
@@ -35,6 +36,8 @@ public static class SaveValidation
         "blue_parcel_0", "blue_parcel_1", "orange_parcel_0",
         "book_sun", "book_moon", "book_tree", "book_star",
         "part_tyre_0", "part_tyre_1", "part_lamp_0", "part_battery_0",
+        "roadworks_cone_0", "roadworks_cone_1", "roadworks_cone_2",
+        "roadworks_panel_0", "roadworks_panel_1", "roadworks_toolbox_0",
     };
 
     private static readonly Dictionary<string, int> InventoryMaximums = new(StringComparer.Ordinal)
@@ -44,6 +47,9 @@ public static class SaveValidation
         ["stone"] = 3,
         ["blue_parcel"] = 2,
         ["orange_parcel"] = 1,
+        ["safety_cone"] = RoadworksRules.ConeCount,
+        ["barrier_panel"] = RoadworksRules.PanelCount,
+        ["toolbox"] = RoadworksRules.ToolboxCount,
     };
 
     private static readonly Dictionary<string, Dictionary<string, int>> CounterMaximums = new(StringComparer.Ordinal)
@@ -109,7 +115,33 @@ public static class SaveValidation
             ["table_0"] = 1, ["table_1"] = 1,
             ["lantern_0"] = 1, ["lantern_1"] = 1, ["lantern_2"] = 1,
         },
+        ["M21"] = new()
+        {
+            [RoadworksRules.SuppliesDeliveredKey] = 1,
+            [RoadworksRules.TaskDoneKey] = 1,
+        },
     };
+
+    private static readonly Dictionary<string, Dictionary<string, int>> CityCounterMaximums =
+        new(StringComparer.Ordinal)
+        {
+            ["C01"] = new()
+            {
+                [CityMissionService.KeyLoaded] = 1,
+                ["stop_1"] = 1, ["stop_2"] = 1, ["stop_3"] = 1,
+            },
+            ["C02"] = new()
+            {
+                ["crate_0"] = 1, ["crate_1"] = 1, ["crate_2"] = 1,
+                ["crate_3"] = 1, ["crate_4"] = 1, ["crate_5"] = 1,
+                [CityMissionService.KeyAnswered] = 1,
+            },
+            ["C03"] = new()
+            {
+                ["cabinet_1"] = 1, ["cabinet_2"] = 1, ["cabinet_3"] = 1,
+                [CityMissionService.KeyEngineer] = 1,
+            },
+        };
 
     public static SaveValidationResult Validate(GameData data, MissionCatalog catalog = null)
     {
@@ -156,6 +188,9 @@ public static class SaveValidation
                     return SaveValidationResult.Fail($"Negative progress counter '{pair.Key}.{counter.Key}'.");
             }
         }
+
+        if (!ValidateCityState(data, out error))
+            return SaveValidationResult.Fail(error);
 
         if (!ValidatePlacements(data.ParkPlacements, ParkRules.Slots, ParkRules.Items, "park", true, out error))
             return SaveValidationResult.Fail(error);
@@ -212,6 +247,108 @@ public static class SaveValidation
         if (!CharacterCustomisation.Owns(data, equipped.Id))
         {
             error = $"The equipped outfit '{equipped.Id}' is not owned.";
+            return false;
+        }
+        return true;
+    }
+
+    private static bool ValidateCityState(GameData data, out string error)
+    {
+        error = "";
+        if (!double.IsFinite(data.CityLogicalSeconds) || data.CityLogicalSeconds < 0 ||
+            data.CityLogicalSeconds > 10_000_000_000d)
+        {
+            error = "The city simulation clock is invalid.";
+            return false;
+        }
+        if (data.CitySeed == 0)
+        {
+            error = "The city simulation seed is missing.";
+            return false;
+        }
+
+        var known = new HashSet<string>(CityMissionCatalog.RequiredIds, StringComparer.Ordinal);
+        if (!ValidateStrings(data.CompletedCityMissions, "completed city job", out error))
+            return false;
+        foreach (string id in data.CompletedCityMissions)
+        {
+            if (!known.Contains(id))
+            {
+                error = $"Unknown completed city job '{id}'.";
+                return false;
+            }
+            if (!CityMissionService.ObjectiveComplete(data, id))
+            {
+                error = $"City job '{id}' is marked complete but its progress is missing.";
+                return false;
+            }
+        }
+
+        if (!string.IsNullOrEmpty(data.ActiveCityMission))
+        {
+            if (!known.Contains(data.ActiveCityMission))
+            {
+                error = $"Unknown active city job '{data.ActiveCityMission}'.";
+                return false;
+            }
+            if (data.CompletedCityMissions.Contains(data.ActiveCityMission))
+            {
+                error = $"City job '{data.ActiveCityMission}' is both active and complete.";
+                return false;
+            }
+        }
+
+        foreach (var pair in data.CityMissionProgress)
+        {
+            if (!known.Contains(pair.Key) || pair.Value == null)
+            {
+                error = $"Invalid city job progress record '{pair.Key}'.";
+                return false;
+            }
+            if (!CityCounterMaximums.TryGetValue(pair.Key, out var allowed))
+            {
+                error = $"City job '{pair.Key}' cannot have progress counters.";
+                return false;
+            }
+            foreach (var counter in pair.Value)
+            {
+                if (!allowed.TryGetValue(counter.Key, out int max))
+                {
+                    error = $"Unknown city progress counter '{pair.Key}.{counter.Key}'.";
+                    return false;
+                }
+                if (counter.Value < 0 || counter.Value > max)
+                {
+                    error = $"Impossible city progress counter '{pair.Key}.{counter.Key}' = {counter.Value}.";
+                    return false;
+                }
+            }
+        }
+
+        bool m21Complete = data.IsCompleted(RoadworksRules.MissionId);
+        if (data.CityRoadworksCompleted && !m21Complete)
+        {
+            error = "The roadworks are complete before Roadworks Rescue is finished.";
+            return false;
+        }
+        if (data.CityRoadOpen && !data.CityRoadworksCompleted)
+        {
+            error = "The city road is open before the roadworks are complete.";
+            return false;
+        }
+        if (data.CityRoadworksRewardClaimed && !data.CityRoadworksCompleted)
+        {
+            error = "The roadworks reward is recorded before the job is complete.";
+            return false;
+        }
+        if (m21Complete && data.ActiveMission == RoadworksRules.MissionId)
+        {
+            error = "Roadworks Rescue cannot remain active after completion.";
+            return false;
+        }
+        if (m21Complete && !RoadworksRules.IsComplete(data))
+        {
+            error = "Roadworks Rescue is complete but its supply/task state is missing.";
             return false;
         }
         return true;
@@ -370,6 +507,7 @@ public static class SaveValidation
             "M18" => FinaleRules.M18Complete(data),
             "M19" => FinaleRules.M19Complete(data),
             "M20" => FinaleRules.M20Complete(data),
+            "M21" => RoadworksRules.IsComplete(data),
             _ => true,
         };
     }
@@ -538,9 +676,9 @@ public static class SaveValidation
             error = $"The {label} position contains a non-finite number.";
             return false;
         }
-        if (x < -150f || x > 150f || y < -15f || y > 100f || z < -150f || z > 150f)
+        if (x < -80f || x > 520f || y < -15f || y > 100f || z < -200f || z > 200f)
         {
-            error = $"The {label} position is outside the island.";
+            error = $"The {label} position is outside the playable island and city.";
             return false;
         }
         return true;

@@ -757,6 +757,63 @@
         "separateJobStock": true,
         "allowUndoDecorations": true
       }
+    },
+    {
+        "id": "M21",
+        "title": "Roadworks Rescue",
+        "short": "Deliver 3 cones, 2 barrier panels and a toolbox, then help the crew.",
+        "prerequisites": [
+            "M01",
+            "M02",
+            "M03",
+            "M04",
+            "M05",
+            "M06",
+            "M07",
+            "M08",
+            "M09",
+            "M10",
+            "M11",
+            "M12",
+            "M13",
+            "M14",
+            "M15",
+            "M16",
+            "M17",
+            "M18",
+            "M19",
+            "M20"
+        ],
+        "rewardCoins": 25,
+        "category": "city_access",
+        "site": "city_roadworks",
+        "goal": "Deliver the marked roadworks supplies to the town-side worksite, then solve the crew's 3 + 2 + 1 counting and loading-order task. Opening the road is the world effect.",
+        "mechanics": {
+            "items": {
+                "safety_cone": 3,
+                "barrier_panel": 2,
+                "toolbox": 1
+            },
+            "order": [
+                "cones",
+                "panels",
+                "toolbox"
+            ],
+            "total": 6,
+            "worldEffect": "open_city_road"
+        },
+        "learning": [
+            "count 3 + 2 + 1 = 6",
+            "read and follow an order",
+            "understand a lock opens only when finished"
+        ],
+        "hints": [
+            "Finish all twenty village jobs first. The roadworks notice is at the east end of the island.",
+            "Collect 3 safety cones, 2 barrier panels and 1 toolbox from the workshop pickups.",
+            "Press E at the roadworks notice beside the closed gate.",
+            "Count 3 + 2 + 1 = 6, then load cones, panels, toolbox in that order."
+        ],
+        "worldEffect": "city_road_open"
     }
   ]
 }

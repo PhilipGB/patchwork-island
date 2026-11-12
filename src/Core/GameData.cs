@@ -46,6 +46,19 @@ public sealed class GameData
     // which permanently means the original M01–M10 celebration.
     public bool FestivalSeen { get; set; }
 
+    // v1.4 city expansion. Town progress above remains the single source of
+    // truth for M01–M21; city jobs have their own ids, progress and wallet
+    // bookkeeping so they cannot alter the village mission graph.
+    public bool CityRoadworksCompleted { get; set; }
+    public bool CityRoadworksRewardClaimed { get; set; }
+    public bool CityRoadOpen { get; set; }
+    public bool CityVisited { get; set; }
+    public string ActiveCityMission { get; set; } = "";
+    public List<string> CompletedCityMissions { get; set; } = new();
+    public Dictionary<string, Dictionary<string, int>> CityMissionProgress { get; set; } = new();
+    public int CitySeed { get; set; } = 20261111;
+    public double CityLogicalSeconds { get; set; }
+
     public long SavedAtUnix { get; set; }
 
     public void Normalise()
@@ -68,6 +81,13 @@ public sealed class GameData
         Player ??= new();
         Van ??= new();
         Settings ??= new();
+        ActiveCityMission ??= "";
+        CompletedCityMissions ??= new();
+        CityMissionProgress ??= new();
+        if (CitySeed == 0) CitySeed = 20261111;
+        if (double.IsNaN(CityLogicalSeconds) || double.IsInfinity(CityLogicalSeconds) ||
+            CityLogicalSeconds < 0)
+            CityLogicalSeconds = 0;
         if (SchemaVersion <= 0) SchemaVersion = 1;
         ActiveMission ??= "";
         NormaliseRepairPickups();
@@ -154,6 +174,23 @@ public sealed class GameData
     public void IncrementMissionCounter(string missionId, string key, int amount = 1)
     {
         SetMissionCounter(missionId, key, GetMissionCounter(missionId, key) + amount);
+    }
+
+    public int GetCityMissionCounter(string missionId, string key)
+    {
+        if (!CityMissionProgress.TryGetValue(missionId, out var counters) || counters == null)
+            return 0;
+        return counters.TryGetValue(key, out int value) ? value : 0;
+    }
+
+    public void SetCityMissionCounter(string missionId, string key, int value)
+    {
+        if (!CityMissionProgress.TryGetValue(missionId, out var counters) || counters == null)
+        {
+            counters = new Dictionary<string, int>();
+            CityMissionProgress[missionId] = counters;
+        }
+        counters[key] = value;
     }
 
     public bool IsCompleted(string missionId) => CompletedMissions.Contains(missionId);

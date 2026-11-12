@@ -1,0 +1,258 @@
+[gd_scene load_steps=1 format=3]
+
+[node name="CityLife" type="Node3D"]
+
+[node name="V0_OuterClockwise" type="Node3D" parent="."]
+metadata/route_id = "V0"
+metadata/route_kind = "vehicle"
+metadata/route_speed = 7.2
+
+[node name="Waypoint_00" type="Marker3D" parent="V0_OuterClockwise"]
+position = Vector3(-116, 0.2, -116)
+
+[node name="Waypoint_01" type="Marker3D" parent="V0_OuterClockwise"]
+position = Vector3(116, 0.2, -116)
+
+[node name="Waypoint_02" type="Marker3D" parent="V0_OuterClockwise"]
+position = Vector3(116, 0.2, 116)
+
+[node name="Waypoint_03" type="Marker3D" parent="V0_OuterClockwise"]
+position = Vector3(-116, 0.2, 116)
+
+[node name="V1_OuterCounter" type="Node3D" parent="."]
+metadata/route_id = "V1"
+metadata/route_kind = "vehicle"
+metadata/route_speed = 6.4
+
+[node name="Waypoint_00" type="Marker3D" parent="V1_OuterCounter"]
+position = Vector3(-124, 0.2, 124)
+
+[node name="Waypoint_01" type="Marker3D" parent="V1_OuterCounter"]
+position = Vector3(124, 0.2, 124)
+
+[node name="Waypoint_02" type="Marker3D" parent="V1_OuterCounter"]
+position = Vector3(124, 0.2, -124)
+
+[node name="Waypoint_03" type="Marker3D" parent="V1_OuterCounter"]
+position = Vector3(-124, 0.2, -124)
+
+[node name="V2_InnerClockwise" type="Node3D" parent="."]
+metadata/route_id = "V2"
+metadata/route_kind = "vehicle"
+metadata/route_speed = 5.4
+
+[node name="Waypoint_00" type="Marker3D" parent="V2_InnerClockwise"]
+position = Vector3(-44, 0.2, -44)
+
+[node name="Waypoint_01" type="Marker3D" parent="V2_InnerClockwise"]
+position = Vector3(44, 0.2, -44)
+
+[node name="Waypoint_02" type="Marker3D" parent="V2_InnerClockwise"]
+position = Vector3(44, 0.2, 44)
+
+[node name="Waypoint_03" type="Marker3D" parent="V2_InnerClockwise"]
+position = Vector3(-44, 0.2, 44)
+
+[node name="V3_InnerCounter" type="Node3D" parent="."]
+metadata/route_id = "V3"
+metadata/route_kind = "vehicle"
+metadata/route_speed = 5.0
+
+[node name="Waypoint_00" type="Marker3D" parent="V3_InnerCounter"]
+position = Vector3(-36, 0.2, 36)
+
+[node name="Waypoint_01" type="Marker3D" parent="V3_InnerCounter"]
+position = Vector3(36, 0.2, 36)
+
+[node name="Waypoint_02" type="Marker3D" parent="V3_InnerCounter"]
+position = Vector3(36, 0.2, -36)
+
+[node name="Waypoint_03" type="Marker3D" parent="V3_InnerCounter"]
+position = Vector3(-36, 0.2, -36)
+
+[node name="P0_NW" type="Node3D" parent="."]
+metadata/route_id = "P0"
+metadata/route_kind = "pedestrian"
+metadata/route_speed = 1.1
+
+[node name="Waypoint_00" type="Marker3D" parent="P0_NW"]
+position = Vector3(-106, 0.2, -106)
+
+[node name="Waypoint_01" type="Marker3D" parent="P0_NW"]
+position = Vector3(-54, 0.2, -106)
+
+[node name="Waypoint_02" type="Marker3D" parent="P0_NW"]
+position = Vector3(-54, 0.2, -54)
+
+[node name="Waypoint_03" type="Marker3D" parent="P0_NW"]
+position = Vector3(-106, 0.2, -54)
+
+[node name="P1_N" type="Node3D" parent="."]
+metadata/route_id = "P1"
+metadata/route_kind = "pedestrian"
+metadata/route_speed = 1.0
+
+[node name="Waypoint_00" type="Marker3D" parent="P1_N"]
+position = Vector3(-26, 0.2, -106)
+
+[node name="Waypoint_01" type="Marker3D" parent="P1_N"]
+position = Vector3(26, 0.2, -106)
+
+[node name="Waypoint_02" type="Marker3D" parent="P1_N"]
+position = Vector3(26, 0.2, -54)
+
+[node name="Waypoint_03" type="Marker3D" parent="P1_N"]
+position = Vector3(-26, 0.2, -54)
+
+[node name="P2_NE" type="Node3D" parent="."]
+metadata/route_id = "P2"
+metadata/route_kind = "pedestrian"
+metadata/route_speed = 1.2
+
+[node name="Waypoint_00" type="Marker3D" parent="P2_NE"]
+position = Vector3(54, 0.2, -106)
+
+[node name="Waypoint_01" type="Marker3D" parent="P2_NE"]
+position = Vector3(106, 0.2, -106)
+
+[node name="Waypoint_02" type="Marker3D" parent="P2_NE"]
+position = Vector3(106, 0.2, -54)
+
+[node name="Waypoint_03" type="Marker3D" parent="P2_NE"]
+position = Vector3(54, 0.2, -54)
+
+[node name="P3_W" type="Node3D" parent="."]
+metadata/route_id = "P3"
+metadata/route_kind = "pedestrian"
+metadata/route_speed = 0.95
+
+[node name="Waypoint_00" type="Marker3D" parent="P3_W"]
+position = Vector3(-106, 0.2, -26)
+
+[node name="Waypoint_01" type="Marker3D" parent="P3_W"]
+position = Vector3(-54, 0.2, -26)
+
+[node name="Waypoint_02" type="Marker3D" parent="P3_W"]
+position = Vector3(-54, 0.2, 26)
+
+[node name="Waypoint_03" type="Marker3D" parent="P3_W"]
+position = Vector3(-106, 0.2, 26)
+
+[node name="P4_Centre" type="Node3D" parent="."]
+metadata/route_id = "P4"
+metadata/route_kind = "pedestrian"
+metadata/route_speed = 1.05
+
+[node name="Waypoint_00" type="Marker3D" parent="P4_Centre"]
+position = Vector3(-26, 0.2, -26)
+
+[node name="Waypoint_01" type="Marker3D" parent="P4_Centre"]
+position = Vector3(26, 0.2, -26)
+
+[node name="Waypoint_02" type="Marker3D" parent="P4_Centre"]
+position = Vector3(26, 0.2, 26)
+
+[node name="Waypoint_03" type="Marker3D" parent="P4_Centre"]
+position = Vector3(-26, 0.2, 26)
+
+[node name="P5_E" type="Node3D" parent="."]
+metadata/route_id = "P5"
+metadata/route_kind = "pedestrian"
+metadata/route_speed = 1.15
+
+[node name="Waypoint_00" type="Marker3D" parent="P5_E"]
+position = Vector3(54, 0.2, -26)
+
+[node name="Waypoint_01" type="Marker3D" parent="P5_E"]
+position = Vector3(106, 0.2, -26)
+
+[node name="Waypoint_02" type="Marker3D" parent="P5_E"]
+position = Vector3(106, 0.2, 26)
+
+[node name="Waypoint_03" type="Marker3D" parent="P5_E"]
+position = Vector3(54, 0.2, 26)
+
+[node name="P6_SW" type="Node3D" parent="."]
+metadata/route_id = "P6"
+metadata/route_kind = "pedestrian"
+metadata/route_speed = 1.0
+
+[node name="Waypoint_00" type="Marker3D" parent="P6_SW"]
+position = Vector3(-106, 0.2, 54)
+
+[node name="Waypoint_01" type="Marker3D" parent="P6_SW"]
+position = Vector3(-54, 0.2, 54)
+
+[node name="Waypoint_02" type="Marker3D" parent="P6_SW"]
+position = Vector3(-54, 0.2, 106)
+
+[node name="Waypoint_03" type="Marker3D" parent="P6_SW"]
+position = Vector3(-106, 0.2, 106)
+
+[node name="P7_S" type="Node3D" parent="."]
+metadata/route_id = "P7"
+metadata/route_kind = "pedestrian"
+metadata/route_speed = 1.1
+
+[node name="Waypoint_00" type="Marker3D" parent="P7_S"]
+position = Vector3(-26, 0.2, 54)
+
+[node name="Waypoint_01" type="Marker3D" parent="P7_S"]
+position = Vector3(26, 0.2, 54)
+
+[node name="Waypoint_02" type="Marker3D" parent="P7_S"]
+position = Vector3(26, 0.2, 106)
+
+[node name="Waypoint_03" type="Marker3D" parent="P7_S"]
+position = Vector3(-26, 0.2, 106)
+
+[node name="P8_SE" type="Node3D" parent="."]
+metadata/route_id = "P8"
+metadata/route_kind = "pedestrian"
+metadata/route_speed = 1.0
+
+[node name="Waypoint_00" type="Marker3D" parent="P8_SE"]
+position = Vector3(54, 0.2, 54)
+
+[node name="Waypoint_01" type="Marker3D" parent="P8_SE"]
+position = Vector3(106, 0.2, 54)
+
+[node name="Waypoint_02" type="Marker3D" parent="P8_SE"]
+position = Vector3(106, 0.2, 106)
+
+[node name="Waypoint_03" type="Marker3D" parent="P8_SE"]
+position = Vector3(54, 0.2, 106)
+
+[node name="P9_CrossingNW" type="Node3D" parent="."]
+metadata/route_id = "P9"
+metadata/route_kind = "pedestrian"
+metadata/route_speed = 0.9
+
+[node name="Waypoint_00" type="Marker3D" parent="P9_CrossingNW"]
+position = Vector3(-127, 0.3, -104)
+
+[node name="Waypoint_01" type="Marker3D" parent="P9_CrossingNW"]
+position = Vector3(-113, 0.3, -104)
+
+[node name="Waypoint_02" type="Marker3D" parent="P9_CrossingNW"]
+position = Vector3(-113, 0.3, -96)
+
+[node name="Waypoint_03" type="Marker3D" parent="P9_CrossingNW"]
+position = Vector3(-127, 0.3, -96)
+
+[node name="P10_CrossingSE" type="Node3D" parent="."]
+metadata/route_id = "P10"
+metadata/route_kind = "pedestrian"
+metadata/route_speed = 0.9
+
+[node name="Waypoint_00" type="Marker3D" parent="P10_CrossingSE"]
+position = Vector3(127, 0.3, 104)
+
+[node name="Waypoint_01" type="Marker3D" parent="P10_CrossingSE"]
+position = Vector3(113, 0.3, 104)
+
+[node name="Waypoint_02" type="Marker3D" parent="P10_CrossingSE"]
+position = Vector3(113, 0.3, 96)
+
+[node name="Waypoint_03" type="Marker3D" parent="P10_CrossingSE"]
+position = Vector3(127, 0.3, 96)

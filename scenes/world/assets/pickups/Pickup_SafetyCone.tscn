@@ -1,0 +1,40 @@
+[gd_scene load_steps=6 format=3]
+
+[sub_resource type="StandardMaterial3D" id="mat_orange"]
+albedo_color = Color(0.95686, 0.5451, 0.26275, 1)
+metallic = 0.0
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="mat_cream"]
+albedo_color = Color(0.97255, 0.93333, 0.88235, 1)
+metallic = 0.0
+roughness = 0.8
+
+[sub_resource type="CylinderMesh" id="cone_mesh"]
+top_radius = 0.08
+bottom_radius = 0.34
+height = 0.95
+radial_segments = 10
+material = SubResource("mat_orange")
+
+[sub_resource type="BoxMesh" id="band_mesh"]
+size = Vector3(0.52, 0.15, 0.52)
+material = SubResource("mat_cream")
+
+[sub_resource type="BoxMesh" id="base_mesh"]
+size = Vector3(0.8, 0.08, 0.8)
+material = SubResource("mat_orange")
+
+[node name="Pickup_SafetyCone" type="Node3D"]
+
+[node name="Cone" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.48, 0)
+mesh = SubResource("cone_mesh")
+
+[node name="Stripe" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.55, 0)
+mesh = SubResource("band_mesh")
+
+[node name="Base" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.04, 0)
+mesh = SubResource("base_mesh")
