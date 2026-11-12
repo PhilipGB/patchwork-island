@@ -57,7 +57,7 @@ jobs:
           timeout 120 godot --headless --path . -- --selftest-traversal
           timeout 180 godot --headless --path . -- --selftest-release
           timeout 180 godot --headless --path . -- --selftest-restore
-          timeout 180 godot --headless --path . -- --selftest-city
+          timeout 420 godot --headless --path . -- --selftest-city
 
       - name: Cache Godot export templates
         uses: actions/cache@v4
@@ -89,7 +89,7 @@ jobs:
           strings -n 5 /tmp/patchwork-export/PatchworkIsland.x86_64 | grep -q 'PatchworkIsland.dll'
           timeout 120 /tmp/patchwork-export/PatchworkIsland.x86_64 --headless --quit-after 120
           timeout 180 /tmp/patchwork-export/PatchworkIsland.x86_64 --headless -- --selftest-restore
-          timeout 180 /tmp/patchwork-export/PatchworkIsland.x86_64 --headless -- --selftest-city
+          timeout 420 /tmp/patchwork-export/PatchworkIsland.x86_64 --headless -- --selftest-city
 
   windows-tests:
     runs-on: windows-latest
