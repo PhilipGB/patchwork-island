@@ -30,7 +30,7 @@ public partial class CityRuntimeSelfTest : Node
     {
         try
         {
-            Main.RtSuppressSaves();
+            Main.Probe.SuppressSaves();
             await Wait(0.7f);
             SceneContractChecks();
             await TownLogicalChecks();
@@ -55,8 +55,8 @@ public partial class CityRuntimeSelfTest : Node
 
     private void SceneContractChecks()
     {
-        var city = Main.RtCity;
-        var road = Main.RtRoadworks;
+        var city = Main.Probe.City;
+        var road = Main.Probe.Roadworks;
         Expect(city != null, "CityWorldAdapter is built");
         if (city == null) return;
         Expect(city.BuildingCount == 36, "36 authored city buildings instantiated");
@@ -70,17 +70,17 @@ public partial class CityRuntimeSelfTest : Node
             "CITY JOBS interaction follows its authored marker off the road");
         Expect(road != null && road.BarrierVisible, "closed road starts with the authored barrier visible");
         Expect(road != null && road.ColliderEnabled, "closed road starts with physical collision");
-        Expect(Main.RtCityMissions.GetStatus("C01") == CityMissionStatus.Available,
+        Expect(Main.Probe.CityMissions.GetStatus("C01") == CityMissionStatus.Available,
             "C01 is on the independent city catalogue");
-        Expect(Main.RtCityMissions.GetStatus("C02") == CityMissionStatus.Available,
+        Expect(Main.Probe.CityMissions.GetStatus("C02") == CityMissionStatus.Available,
             "C02 is on the independent city catalogue");
-        Expect(Main.RtCityMissions.GetStatus("C03") == CityMissionStatus.Available,
+        Expect(Main.Probe.CityMissions.GetStatus("C03") == CityMissionStatus.Available,
             "C03 is on the independent city catalogue");
     }
 
     private async Task TownLogicalChecks()
     {
-        var city = Main.RtCity;
+        var city = Main.Probe.City;
         Expect(!city.DistrictVisible, "district is not rendered while the player is in town");
         Expect(city.ActiveVisualActors == 0, "no city actor Node3Ds exist while far away in town");
         double before = city.LogicalSeconds;
@@ -93,7 +93,7 @@ public partial class CityRuntimeSelfTest : Node
 
     private void RoadworksDeliveryChecks()
     {
-        var data = Main.RtData;
+        var data = Main.Probe.Data;
         data.ActiveMission = RoadworksRules.MissionId;
         data.SetMissionCounter(RoadworksRules.MissionId, RoadworksRules.SuppliesDeliveredKey, 0);
         data.SetMissionCounter(RoadworksRules.MissionId, RoadworksRules.TaskDoneKey, 0);
@@ -102,22 +102,22 @@ public partial class CityRuntimeSelfTest : Node
         data.AddItem("toolbox", RoadworksRules.ToolboxCount);
         Expect(RoadworksRules.HasAllSupplies(data),
             "roadworks delivery test starts with all six supplies carried");
-        Main.RtRefreshMissionState();
-        Expect(Main.RtDestinationLabel == "ROADWORKS DELIVERY",
+        Main.Probe.RefreshMissionState();
+        Expect(Main.Probe.DestinationLabel == "ROADWORKS DELIVERY",
             "all six carried supplies move the objective off the workshop");
-        Expect(Main.RtDestination.DistanceTo(Main.RtRoadworks.InteractionPosition) < 0.1f,
+        Expect(Main.Probe.Destination.DistanceTo(Main.Probe.Roadworks.InteractionPosition) < 0.1f,
             "the delivery objective points at the closed city gate");
 
-        Main.RtInteractRoadworks();
+        Main.Probe.InteractRoadworks();
         Expect(RoadworksRules.SuppliesDelivered(data),
             "the real worksite interaction delivers all six supplies");
         Expect(data.GetItem("safety_cone") == 0 &&
                data.GetItem("barrier_panel") == 0 &&
                data.GetItem("toolbox") == 0,
             "worksite delivery consumes the carried supplies exactly once");
-        Expect(Main.RtModalTitle == "Roadworks loading check",
+        Expect(Main.Probe.ModalTitle == "Roadworks loading check",
             "worksite delivery opens the crew loading check");
-        Main.RtCloseModal();
+        Main.Probe.CloseModal();
 
         data.ActiveMission = "";
         data.SetMissionCounter(RoadworksRules.MissionId, RoadworksRules.SuppliesDeliveredKey, 0);
@@ -126,14 +126,14 @@ public partial class CityRuntimeSelfTest : Node
 
     private void GateAndMissionsChecks()
     {
-        var cityMissions = Main.RtCityMissions;
+        var cityMissions = Main.Probe.CityMissions;
         var startClosed = cityMissions.StartMission("C01");
         Expect(!startClosed.Success, "city jobs are gated by the closed road");
-        Main.RtSetRoadState(true);
-        Expect(!Main.RtRoadworks.BarrierVisible, "completed roadworks remove the barrier visual");
-        Expect(!Main.RtRoadworks.ColliderEnabled, "completed roadworks disable the physical collider");
-        Main.RtRoadworks.SetRoadState(true, false);
-        Expect(Main.RtRoadworks.RoadOpen && !Main.RtRoadworks.ColliderEnabled,
+        Main.Probe.SetRoadState(true);
+        Expect(!Main.Probe.Roadworks.BarrierVisible, "completed roadworks remove the barrier visual");
+        Expect(!Main.Probe.Roadworks.ColliderEnabled, "completed roadworks disable the physical collider");
+        Main.Probe.Roadworks.SetRoadState(true, false);
+        Expect(Main.Probe.Roadworks.RoadOpen && !Main.Probe.Roadworks.ColliderEnabled,
             "road open state is idempotent");
 
         var c1 = cityMissions.StartMission("C01");
@@ -143,10 +143,10 @@ public partial class CityRuntimeSelfTest : Node
         Expect(cityMissions.DeliverCourierStop(1).Success, "courier accepts stop 1");
         Expect(cityMissions.DeliverCourierStop(2).Success, "courier accepts stop 2");
         Expect(cityMissions.DeliverCourierStop(3).Success, "courier accepts stop 3");
-        int wallet = Main.RtData.Coins;
+        int wallet = Main.Probe.Data.Coins;
         var c1Done = cityMissions.TurnInAtBoard();
         Expect(c1Done.Success, "courier turns in at the city board");
-        Expect(Main.RtData.Coins == wallet + 20, "courier pays its 20 coins once");
+        Expect(Main.Probe.Data.Coins == wallet + 20, "courier pays its 20 coins once");
         Expect(!cityMissions.TurnInAtBoard().Success, "courier cannot be turned in twice");
 
         Expect(cityMissions.StartMission("C02").Success, "C02 starts independently");
@@ -154,9 +154,9 @@ public partial class CityRuntimeSelfTest : Node
             Expect(cityMissions.CollectMarketCrate(i).Success, $"market crate {i} collected");
         Expect(!cityMissions.AnswerMarketStock(5).Success, "market rejects 5");
         Expect(cityMissions.AnswerMarketStock(6).Success, "2 × 3 = 6 is accepted");
-        wallet = Main.RtData.Coins;
+        wallet = Main.Probe.Data.Coins;
         Expect(cityMissions.TurnInAtBoard().Success, "market stock-up turns in");
-        Expect(Main.RtData.Coins == wallet + 24, "market stock-up pays 24 coins");
+        Expect(Main.Probe.Data.Coins == wallet + 24, "market stock-up pays 24 coins");
 
         Expect(cityMissions.StartMission("C03").Success, "C03 starts independently");
         Expect(!cityMissions.RepairCabinet(1, "amber").Success, "cabinet 1 rejects amber");
@@ -164,18 +164,18 @@ public partial class CityRuntimeSelfTest : Node
         Expect(!cityMissions.RepairCabinet(3, "green").Success, "cabinet 3 rejects out-of-order repair");
         Expect(cityMissions.RepairCabinet(2, "amber").Success, "cabinet 2 accepts amber");
         Expect(cityMissions.RepairCabinet(3, "green").Success, "cabinet 3 accepts green");
-        wallet = Main.RtData.Coins;
+        wallet = Main.Probe.Data.Coins;
         var engineer = cityMissions.TalkToEngineer();
         Expect(engineer.Success && engineer.Completed, "engineer sign-off completes C03");
-        Expect(Main.RtData.Coins == wallet + 28, "signals job pays 28 coins once");
-        Expect(Main.RtData.CompletedCityMissions.Count == 3,
+        Expect(Main.Probe.Data.Coins == wallet + 28, "signals job pays 28 coins once");
+        Expect(Main.Probe.Data.CompletedCityMissions.Count == 3,
             "three city jobs are persisted as distinct completions");
     }
 
     private async Task CityActivationChecks()
     {
-        var city = Main.RtCity;
-        Main.RtTeleportPlayer(new Vector3(CityLayout.WorldX(0f), 0.5f, CityLayout.WorldZ(28f)), 0f);
+        var city = Main.Probe.City;
+        Main.Probe.TeleportPlayer(new Vector3(CityLayout.WorldX(0f), 0.5f, CityLayout.WorldZ(28f)), 0f);
         await Wait(1.1f);
         Expect(city.DistrictVisible, "district activates near the city board");
         Expect(city.ActiveDistrictCollisionBodies > 0, "near city cells expose physical collision");
@@ -192,12 +192,12 @@ public partial class CityRuntimeSelfTest : Node
         Expect(city.DetailedVisible > 0, "near cells render detailed building meshes");
         Expect(city.HlodVisible > 0, "distant city cells render authored HLOD proxies");
 
-        Main.RtTeleportPlayer(new Vector3(CityLayout.WorldX(0f), 0.5f, CityLayout.WorldZ(34f)), 0f);
+        Main.Probe.TeleportPlayer(new Vector3(CityLayout.WorldX(0f), 0.5f, CityLayout.WorldZ(34f)), 0f);
         await Wait(0.5f);
         Input.ActionPress("move_forward");
         await Wait(2.0f);
         Input.ActionRelease("move_forward");
-        Expect(Main.RtPlayerPosition.Z < CityLayout.WorldZ(29f),
+        Expect(Main.Probe.PlayerPosition.Z < CityLayout.WorldZ(29f),
             "player walks from the road onto the central plaza");
     }
 
@@ -211,7 +211,7 @@ public partial class CityRuntimeSelfTest : Node
 
     private async Task CityTrafficCooperationChecks()
     {
-        var city = Main.RtCity;
+        var city = Main.Probe.City;
         var centre = new Vector3(CityLayout.WorldX(0f), 0.4f, CityLayout.WorldZ(0f));
         Vector3 forward = new(0f, 0f, -1f);
         Expect(CityVehicleVisual.ShouldYieldTo(centre, forward,
@@ -249,11 +249,11 @@ public partial class CityRuntimeSelfTest : Node
         car?.SetTestHold(false);
 
         // Stream the car out while the player is in town, then return.
-        Main.RtTeleportPlayer(new Vector3(-38f, 0.4f, 9.5f), 0f);
+        Main.Probe.TeleportPlayer(new Vector3(-38f, 0.4f, 9.5f), 0f);
         await Wait(1.0f);
         Expect(city.ActiveVisualActors == 0, "city actors stream out from town");
 
-        Main.RtTeleportPlayer(new Vector3(CityLayout.WorldX(0f), 0.4f, CityLayout.WorldZ(28f)), 0f);
+        Main.Probe.TeleportPlayer(new Vector3(CityLayout.WorldX(0f), 0.4f, CityLayout.WorldZ(28f)), 0f);
         await Wait(1.2f);
         var returned = city.ActorPool.GetChildren().OfType<CityVehicleVisual>()
             .FirstOrDefault(v => v.AgentId == id);
@@ -269,45 +269,45 @@ public partial class CityRuntimeSelfTest : Node
             returned.SetTestHold(false);
         }
 
-        Main.RtTeleportPlayer(new Vector3(CityLayout.WorldX(0f), 0.4f, CityLayout.WorldZ(28f)), 0f);
+        Main.Probe.TeleportPlayer(new Vector3(CityLayout.WorldX(0f), 0.4f, CityLayout.WorldZ(28f)), 0f);
         await Wait(0.4f);
     }
 
     private async Task HighSpeedAndReturnChecks()
     {
-        var city = Main.RtCity;
+        var city = Main.Probe.City;
         // Physical gate test at maximum van speed.
-        Main.RtSetRoadState(false);
-        Main.RtTeleportVan(new Vector3(80f, 0.4f, 0f), -Mathf.Pi / 2f);
-        Main.RtLaunchVan(11.5f);
+        Main.Probe.SetRoadState(false);
+        Main.Probe.TeleportVan(new Vector3(80f, 0.4f, 0f), -Mathf.Pi / 2f);
+        Main.Probe.LaunchVan(11.5f);
         await Wait(1.3f);
-        Expect(Main.RtVanPosition.X < 95.0f,
+        Expect(Main.Probe.VanPosition.X < 95.0f,
             "closed gate physically stops a full-speed van");
-        Main.RtSetRoadState(true);
-        Main.RtTeleportVan(new Vector3(80f, 0.4f, 0f), -Mathf.Pi / 2f);
-        Main.RtLaunchVan(11.5f);
+        Main.Probe.SetRoadState(true);
+        Main.Probe.TeleportVan(new Vector3(80f, 0.4f, 0f), -Mathf.Pi / 2f);
+        Main.Probe.LaunchVan(11.5f);
         await Wait(2.2f);
-        Expect(Main.RtVanPosition.X > 97.0f,
+        Expect(Main.Probe.VanPosition.X > 97.0f,
             "open gate lets the van drive onto the approach at full speed");
 
         // The city entrance must be drivable through the west sidewalk gap.
-        Main.RtTeleportVan(new Vector3(178f, 0.4f, 0f), -Mathf.Pi / 2f);
-        Main.RtLaunchVan(11.5f);
+        Main.Probe.TeleportVan(new Vector3(178f, 0.4f, 0f), -Mathf.Pi / 2f);
+        Main.Probe.LaunchVan(11.5f);
         await Wait(3.0f);
-        Expect(Main.RtVanPosition.X > 188.0f,
+        Expect(Main.Probe.VanPosition.X > 188.0f,
             "the van crosses the west sidewalk gap into the city road");
 
         Vector3 approach = new(118f, 0.4f, 0f);
-        Main.RtProbeCityLod(approach, 11.5f);
+        Main.Probe.ProbeCityLod(approach, 11.5f);
         Expect(city.DistrictVisible && city.ApproachVisible,
             "high-speed approach keeps the join and district active");
         Expect(city.DetailedVisible + city.HlodVisible > 0,
             "high-speed approach has a visible authored cell budget");
-        Main.RtProbeCityLod(new Vector3(CityLayout.WorldX(0f), 0.4f, CityLayout.WorldZ(0f)), 11.5f);
+        Main.Probe.ProbeCityLod(new Vector3(CityLayout.WorldX(0f), 0.4f, CityLayout.WorldZ(0f)), 11.5f);
         Expect(city.DetailedVisible > 0 && city.HlodVisible >= 0,
             "high-speed centre keeps detailed geometry near the player");
 
-        var cars = Main.RtCity.ActorPool.GetChildren().OfType<CityVehicleVisual>()
+        var cars = Main.Probe.City.ActorPool.GetChildren().OfType<CityVehicleVisual>()
             .Where(v => v.Tier == CityActorTier.Near).ToList();
         Expect(cars.Count >= 2, "at least two near city cars are active");
         var carStarts = cars.ToDictionary(v => v.AgentId, v => v.GlobalPosition);
@@ -320,7 +320,7 @@ public partial class CityRuntimeSelfTest : Node
             Expect(onRoad, $"city car {car.AgentId} stays on the road grid");
         }
         await Wait(2.5f);
-        var carEnds = Main.RtCity.ActorPool.GetChildren().OfType<CityVehicleVisual>()
+        var carEnds = Main.Probe.City.ActorPool.GetChildren().OfType<CityVehicleVisual>()
             .ToDictionary(v => v.AgentId, v => v.GlobalPosition);
         int moved = carStarts.Count(pair =>
             carEnds.TryGetValue(pair.Key, out Vector3 end) &&
@@ -328,29 +328,29 @@ public partial class CityRuntimeSelfTest : Node
         Expect(moved >= 2,
             "at least two near city cars keep moving through intersections");
 
-        Main.RtTeleportPlayer(new Vector3(0f, 0.4f, 0f), 0f);
+        Main.Probe.TeleportPlayer(new Vector3(0f, 0.4f, 0f), 0f);
         await Wait(0.9f);
         Expect(city.DistrictVisible, "distant city stays visible from the town centre");
         Expect(city.ActiveDistrictCollisionBodies == 0,
             "distant city keeps physical collision disabled at the town centre");
 
-        Main.RtTeleportPlayer(new Vector3(-38f, 0.4f, 9.5f), 0f);
+        Main.Probe.TeleportPlayer(new Vector3(-38f, 0.4f, 9.5f), 0f);
         await Wait(0.9f);
         Expect(!city.DistrictVisible, "returning to town hides the whole city district");
         Expect(city.ActiveVisualActors == 0, "returning to town destroys every visual city actor");
         Expect(city.ActiveDistrictCollisionBodies == 0, "returning to town disables offscreen city collision");
 
-        Main.RtSetRoadState(false);
-        Expect(Main.RtRoadworks.BarrierVisible && Main.RtRoadworks.ColliderEnabled,
+        Main.Probe.SetRoadState(false);
+        Expect(Main.Probe.Roadworks.BarrierVisible && Main.Probe.Roadworks.ColliderEnabled,
             "a fresh/closed state restores the gate exactly");
-        Main.RtSetRoadState(true);
+        Main.Probe.SetRoadState(true);
     }
 
     private async Task CityTraversalChecks()
     {
-        Main.RtSetRoadState(true);
-        Main.RtTeleportVan(new Vector3(180f, 0.4f, 0f), -Mathf.Pi / 2f);
-        Main.RtStartVanRoute(new[]
+        Main.Probe.SetRoadState(true);
+        Main.Probe.TeleportVan(new Vector3(180f, 0.4f, 0f), -Mathf.Pi / 2f);
+        Main.Probe.StartVanRoute(new[]
         {
             new Vector3(200f, 0.4f, 0f),
             new Vector3(200f, 0.4f, -40f),
@@ -368,17 +368,17 @@ public partial class CityRuntimeSelfTest : Node
         for (int i = 0; i < 170 && !returned; i++)
         {
             await Wait(0.5f);
-            Vector3 van = Main.RtVanPosition;
+            Vector3 van = Main.Probe.VanPosition;
             entered |= van.X > 188f;
             reachedFirst |= van.X > 195f && van.Z < -35f;
             reachedCentre |= van.X > 275f && van.Z < -35f;
             returned |= reachedCentre && van.X < 180f;
         }
-        Main.RtStopVanRoute();
+        Main.Probe.StopVanRoute();
         GD.Print($"CITY_TRAVERSAL entered={entered} first={reachedFirst} " +
-                 $"centre={reachedCentre} returned={returned} van={Main.RtVanPosition} " +
-                 $"speed={Main.RtVanSpeed:0.00}");
-        Main.RtTeleportPlayer(new Vector3(-38f, 0.4f, 9.5f), 0f);
+                 $"centre={reachedCentre} returned={returned} van={Main.Probe.VanPosition} " +
+                 $"speed={Main.Probe.VanSpeed:0.00}");
+        Main.Probe.TeleportPlayer(new Vector3(-38f, 0.4f, 9.5f), 0f);
         await Wait(0.4f);
 
         Expect(entered, "sustained driving enters the city road");
@@ -389,7 +389,7 @@ public partial class CityRuntimeSelfTest : Node
 
     private async Task CityOuterLoopCollisionChecks()
     {
-        var city = Main.RtCity;
+        var city = Main.Probe.City;
 
         // The outer carriageways end at local ±132; their corners are ~187 m
         // from the centre, outside the old 185 m circle. Every carriageway
@@ -405,7 +405,7 @@ public partial class CityRuntimeSelfTest : Node
                 $"outer road point ({point.X:0},{point.Z:0}) keeps city ground collision active");
 
         var corner = new Vector3(CityLayout.WorldX(132f), 0.4f, CityLayout.WorldZ(132f));
-        Main.RtProbeCityLod(corner, 8f);
+        Main.Probe.ProbeCityLod(corner, 8f);
         Expect(city.GroundCollisionActive,
             "outer carriageway corner activates city ground collision");
         Expect(city.ActiveDistrictCollisionBodies > 0,
@@ -413,9 +413,9 @@ public partial class CityRuntimeSelfTest : Node
 
         // Drive the full outer loop on the outer lane and assert that ground
         // collision stays on for every sample of the loop.
-        Main.RtTeleportVan(new Vector3(CityLayout.WorldX(0f), 0.4f,
+        Main.Probe.TeleportVan(new Vector3(CityLayout.WorldX(0f), 0.4f,
             CityLayout.WorldZ(-126f)), -Mathf.Pi / 2f);
-        Main.RtStartVanRoute(new[]
+        Main.Probe.StartVanRoute(new[]
         {
             new Vector3(CityLayout.WorldX(0f), 0.4f, CityLayout.WorldZ(-126f)),
             new Vector3(CityLayout.WorldX(126f), 0.4f, CityLayout.WorldZ(-126f)),
@@ -431,8 +431,8 @@ public partial class CityRuntimeSelfTest : Node
         for (int i = 0; i < 460 && !visited.All(v => v); i++)
         {
             await Wait(0.4f);
-            Vector3 van = Main.RtVanPosition;
-            alwaysActive &= Main.RtCityGroundCollisionActive;
+            Vector3 van = Main.Probe.VanPosition;
+            alwaysActive &= Main.Probe.CityGroundCollisionActive;
             furthest = Mathf.Max(furthest, CityLayout.DistanceToCityCentre(van.X, van.Z));
             float localX = van.X - CityLayout.OriginX;
             float localZ = van.Z - CityLayout.OriginZ;
@@ -441,10 +441,10 @@ public partial class CityRuntimeSelfTest : Node
             if (localX < -110f && localZ > 110f) visited[2] = true;
             if (localX < -110f && localZ < -110f) visited[3] = true;
         }
-        Main.RtStopVanRoute();
+        Main.Probe.StopVanRoute();
         GD.Print($"CITY_OUTER_LOOP active={alwaysActive} furthest={furthest:0.0} " +
                  $"corners={visited.Count(v => v)}/4");
-        Main.RtTeleportPlayer(new Vector3(-38f, 0.4f, 9.5f), 0f);
+        Main.Probe.TeleportPlayer(new Vector3(-38f, 0.4f, 9.5f), 0f);
         await Wait(0.4f);
 
         Expect(alwaysActive, "city ground collision stays active around the outer loop");
@@ -465,21 +465,28 @@ public partial class CityRuntimeSelfTest : Node
                 Driving = true,
                 Player = new PlayerSnapshot
                 {
-                    X = CityLayout.WorldX(0f), Y = 0.4f, Z = CityLayout.WorldZ(28f),
-                    RotationY = 1.2f, Valid = true,
+                    X = CityLayout.WorldX(0f),
+                    Y = 0.4f,
+                    Z = CityLayout.WorldZ(28f),
+                    RotationY = 1.2f,
+                    Valid = true,
                 },
                 Van = new VehicleSnapshot
                 {
-                    X = CityLayout.WorldX(-40f), Y = 0.4f, Z = CityLayout.WorldZ(0f),
-                    RotationY = -1.57f, Valid = true,
+                    X = CityLayout.WorldX(-40f),
+                    Y = 0.4f,
+                    Z = CityLayout.WorldZ(0f),
+                    RotationY = -1.57f,
+                    Valid = true,
                 },
             };
             data.CityMissionProgress["C01"] = new Dictionary<string, int>
             {
-                [CityMissionService.KeyLoaded] = 1, ["stop_1"] = 1,
+                [CityMissionService.KeyLoaded] = 1,
+                ["stop_1"] = 1,
             };
-            SaveService.Save(data, path, Main.RtCatalog);
-            var loaded = SaveService.Load(path, Main.RtCatalog);
+            SaveService.Save(data, path, Main.Probe.Catalog);
+            var loaded = SaveService.Load(path, Main.Probe.Catalog);
             Expect(loaded.Success, "mid-drive city save loads: " + loaded.Message);
             Expect(loaded.Data.ActiveCityMission == "C01", "active city job survives the save");
             Expect(loaded.Data.GetCityMissionCounter("C01", "stop_1") == 1,
@@ -509,28 +516,28 @@ public partial class CityRuntimeSelfTest : Node
 
     private void LoadedOpenRoadCityChecks()
     {
-        var original = Main.RtData;
+        var original = Main.Probe.Data;
         string path = ProjectSettings.GlobalizePath("user://selftest-city-open-road.json");
         try
         {
             // Load a valid minimal save through the real load path, then mark
             // its road open in memory. If the city service kept the pre-load
             // GameData, it would still see a closed road and reject the job.
-            SaveService.Save(new GameData(), path, Main.RtCatalog);
-            Main.RtLoadSaveForTest(path);
+            SaveService.Save(new GameData(), path, Main.Probe.Catalog);
+            Main.Probe.LoadSaveForTest(path);
 
-            Expect(ReferenceEquals(Main.RtCityMissionData, Main.RtData),
+            Expect(ReferenceEquals(Main.Probe.CityMissionData, Main.Probe.Data),
                 "the city job service follows the loaded save");
-            Main.RtData.CityRoadOpen = true;
-            Expect(Main.RtCityMissionData.CityRoadOpen,
+            Main.Probe.Data.CityRoadOpen = true;
+            Expect(Main.Probe.CityMissionData.CityRoadOpen,
                 "an open road on the loaded save reaches the city job service");
-            var started = Main.RtStartCityMission("C01");
+            var started = Main.Probe.StartCityMission("C01");
             Expect(started.Success,
                 "a loaded open-road save can start a city job: " + started.Message);
         }
         finally
         {
-            Main.RtAdoptLoadedDataForTest(original);
+            Main.Probe.AdoptLoadedDataForTest(original);
             try
             {
                 if (File.Exists(path)) File.Delete(path);

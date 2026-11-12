@@ -13,18 +13,20 @@ public partial class CameraRig : Camera3D
     public Node3D Target { get; private set; }
 
     private float _yaw;
+    internal float OrbitYaw => _yaw;
     private float _pitch = 27f;
     private float _distance = 7.4f;
     private float _targetDistance = 7.4f;
     private float _lookHeight = 1.35f;
     private bool _autoYaw;
-    private bool _dragging;
     private float _dragSuppress;
     private bool _indoor;
     private Vector3 _smoothedPivot;
+    private PhysicsRayQueryParameters3D _collisionQuery;
 
     public override void _Ready()
     {
+        _collisionQuery = new PhysicsRayQueryParameters3D { CollisionMask = 1u | 16u };
         Current = true;
         Fov = 66;
         Near = 0.15f;
@@ -34,6 +36,10 @@ public partial class CameraRig : Camera3D
     public void SetTarget(Node3D target, bool autoYaw, float distance, float pitch, float lookHeight, bool snap = true)
     {
         Target = target;
+        var exclude = new Godot.Collections.Array<Rid>();
+        if (target is CollisionObject3D body) exclude.Add(body.GetRid());
+        _collisionQuery.Exclude = exclude;
+        _collisionQuery.CollisionMask = 1u | 16u;
         _autoYaw = autoYaw;
         _targetDistance = distance;
         _distance = distance;
@@ -85,11 +91,10 @@ public partial class CameraRig : Camera3D
             }
             else if (button.ButtonIndex == MouseButton.Right)
             {
-                _dragging = button.Pressed;
                 _dragSuppress = button.Pressed ? 0.9f : 0f;
             }
         }
-        else if (@event is InputEventMouseMotion motion && _dragging)
+        else if (@event is InputEventMouseMotion motion && Input.IsMouseButtonPressed(MouseButton.Right))
         {
             _yaw -= motion.Relative.X * 0.0055f;
             _pitch = Mathf.Clamp(_pitch + motion.Relative.Y * 0.0045f, 11f, 48f);
@@ -113,6 +118,12 @@ public partial class CameraRig : Camera3D
         ApplyCamera(dt, false);
     }
 
+    public override void _ExitTree()
+    {
+        _collisionQuery?.Dispose();
+        _collisionQuery = null;
+    }
+
     private void ApplyCamera(float dt, bool instant)
     {
         if (Target == null) return;
@@ -126,12 +137,9 @@ public partial class CameraRig : Camera3D
         Vector3 desired = _smoothedPivot + offset;
 
         // Camera collision: pull toward the pivot if a wall is in the way.
-        var exclude = new Godot.Collections.Array<Rid>();
-        if (Target is CollisionObject3D collisionObject)
-            exclude.Add(collisionObject.GetRid());
-        using var query = PhysicsRayQueryParameters3D.Create(_smoothedPivot, desired, 1u | 16u, exclude);
-        query.HitFromInside = false;
-        var hit = GetWorld3D().DirectSpaceState.IntersectRay(query);
+        _collisionQuery.From = _smoothedPivot;
+        _collisionQuery.To = desired;
+        var hit = GetWorld3D().DirectSpaceState.IntersectRay(_collisionQuery);
         if (hit.Count > 0)
         {
             Vector3 pos = (Vector3)hit["position"];

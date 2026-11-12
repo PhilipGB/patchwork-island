@@ -46,10 +46,13 @@ public partial class PlayerController : CharacterBody3D
     private float _stepDistance;
     private int _stepSide;
     private bool _audioOnFloor = true;
+    private const float MaxStepHeight = 0.38f;
+    private KinematicCollision3D _stepHit;
 
     public override void _Ready()
     {
         Name = "Player";
+        _stepHit = new KinematicCollision3D();
         CollisionLayer = 2;
         CollisionMask = 1 | 4; // world + van
         FloorSnapLength = 0.45f;
@@ -100,7 +103,10 @@ public partial class PlayerController : CharacterBody3D
 
         var tints = new Dictionary<int, Color>
         {
-            [0] = main, [1] = main, [2] = main, [3] = main,
+            [0] = main,
+            [1] = main,
+            [2] = main,
+            [3] = main,
         };
         if (_wearsDress)
         {
@@ -272,6 +278,8 @@ public partial class PlayerController : CharacterBody3D
             AudioManager.PlayWorld("jump", -7f);
         }
 
+        if (ControlEnabled && onFloor && IsOnWall() && vertical <= 0f && horizontal.LengthSquared() > .1f)
+            TryStepUp(horizontal.Normalized() * .35f);
         Velocity = new Vector3(horizontal.X, vertical, horizontal.Z);
         MoveAndSlide();
 
@@ -305,6 +313,30 @@ public partial class PlayerController : CharacterBody3D
         }
 
         _wasOnFloor = IsOnFloor();
+    }
+
+    // Floor snap follows descending ground; a checked up/forward/down sweep
+    // also lets small feet walk onto the city's 0.29–0.33 m kerbs. Tall walls,
+    // blocked headroom and non-walkable landing normals still reject the step.
+    private void TryStepUp(Vector3 forward)
+    {
+        Transform3D from = GlobalTransform;
+        if (!TestMove(from, forward, _stepHit, SafeMargin)) return;
+        if (TestMove(from, Vector3.Up * MaxStepHeight, null, SafeMargin)) return;
+        Transform3D raised = from;
+        raised.Origin += Vector3.Up * MaxStepHeight;
+        if (TestMove(raised, forward, null, SafeMargin)) return;
+        raised.Origin += forward;
+        if (!TestMove(raised, Vector3.Down * (MaxStepHeight + .05f), _stepHit, SafeMargin)) return;
+        float rise = MaxStepHeight + _stepHit.GetTravel().Y;
+        if (rise < .04f || rise > MaxStepHeight || _stepHit.GetNormal().Y < Mathf.Cos(FloorMaxAngle)) return;
+        GlobalPosition = raised.Origin + _stepHit.GetTravel();
+    }
+
+    public override void _ExitTree()
+    {
+        _stepHit?.Dispose();
+        _stepHit = null;
     }
 
     private void TickFootsteps(float dt, float planarSpeed)
@@ -364,17 +396,21 @@ public partial class PlayerController : CharacterBody3D
     {
         Interactable best = null;
         float bestDistance = float.MaxValue;
+        int bestPriority = int.MinValue;
         var nodes = GetTree().GetNodesInGroup("interactable");
         foreach (var node in nodes)
         {
             if (node is not Interactable interactable || !GodotObject.IsInstanceValid(interactable))
                 continue;
             if (!interactable.IsAvailable()) continue;
-            float distance = GlobalPosition.DistanceTo(interactable.FocusPosition);
-            if (distance <= interactable.Range && distance < bestDistance)
+            float distance = GlobalPosition.DistanceSquaredTo(interactable.FocusPosition);
+            if (distance <= interactable.Range * interactable.Range &&
+                (interactable.Priority > bestPriority ||
+                 (interactable.Priority == bestPriority && distance < bestDistance)))
             {
                 best = interactable;
                 bestDistance = distance;
+                bestPriority = interactable.Priority;
             }
         }
         SetNearest(best);

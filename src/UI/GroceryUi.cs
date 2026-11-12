@@ -4,7 +4,7 @@ using Godot;
 namespace PatchworkIsland;
 
 /// <summary>The M04 shop. Uses a dedicated 12-coin job purse, never the wallet.</summary>
-public partial class GroceryUi : Node
+public sealed class GroceryUi
 {
     private readonly Hud _hud;
     private readonly MissionService _missions;

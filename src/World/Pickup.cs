@@ -11,6 +11,7 @@ public partial class Pickup : Interactable
     public string ItemType = "apple";
     public string MissionId = "M01";
     public int Required = 1;
+    public bool MissionAvailable { get; set; } = true;
     public Func<string> ItemPromptProvider;
     public Func<bool> HiddenProvider;
 
@@ -40,7 +41,7 @@ public partial class Pickup : Interactable
 
     public override bool IsAvailable()
     {
-        if (HiddenProvider != null && HiddenProvider()) return false;
+        if (!MissionAvailable || (HiddenProvider != null && HiddenProvider())) return false;
         return base.IsAvailable();
     }
 

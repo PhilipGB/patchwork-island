@@ -15,6 +15,7 @@ public partial class Interactable : Node3D
     public Action InteractAction;
     public string FallbackPrompt = "E: Use";
     public float Range = 3.6f;
+    public int Priority { get; set; }
     public bool ShowHighlightRing = true;
 
     private MeshInstance3D _ring;

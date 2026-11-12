@@ -10,7 +10,7 @@ namespace PatchworkIsland;
 /// </summary>
 public static class RepairUi
 {
-    public static void Show(Hud hud, MissionService service, Action<MissionCompletionResult> onComplete,
+    public static void Show(Hud hud, FinaleMissionTasks service, Action<MissionCompletionResult> onComplete,
         Action onChanged)
     {
         if (service.Data.ActiveMission != "M18")
@@ -105,7 +105,7 @@ public static class RepairUi
         Refresh(service, tyres, lamp, battery, bag, status);
     }
 
-    private static void Fit(MissionService service, Hud hud, string part, Label status,
+    private static void Fit(FinaleMissionTasks service, Hud hud, string part, Label status,
         Label tyres, Label lamp, Label battery, Label bag,
         Action<MissionCompletionResult> onComplete, Action onChanged)
     {
@@ -131,7 +131,7 @@ public static class RepairUi
         onChanged?.Invoke();
     }
 
-    private static void Refresh(MissionService service, Label tyres, Label lamp, Label battery,
+    private static void Refresh(FinaleMissionTasks service, Label tyres, Label lamp, Label battery,
         Label bag, Label status)
     {
         var data = service.Data;

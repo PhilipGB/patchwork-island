@@ -9,7 +9,7 @@ namespace PatchworkIsland;
 /// </summary>
 public static class GardenPadUi
 {
-    public static void Show(Hud hud, MissionService service, int padIndex,
+    public static void Show(Hud hud, CommunityMissionTasks service, int padIndex,
         Action<MissionCompletionResult> onComplete, Action onChanged)
     {
         int shown = padIndex + 1;
@@ -64,7 +64,7 @@ public static class GardenPadUi
             17, new Color("5C6B7A"));
     }
 
-    private static void Plant(Hud hud, MissionService service, int padIndex, string color,
+    private static void Plant(Hud hud, CommunityMissionTasks service, int padIndex, string color,
         Label status, HBoxContainer pattern, Action<MissionCompletionResult> onComplete, Action onChanged)
     {
         var result = service.PlantGarden(padIndex, color);

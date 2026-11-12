@@ -11,7 +11,7 @@ namespace PatchworkIsland;
 /// </summary>
 public static class SignSocketUi
 {
-    public static void Show(Hud hud, MissionService service, string socketId,
+    public static void Show(Hud hud, CommunityMissionTasks service, string socketId,
         Action<MissionCompletionResult> onComplete, Action onChanged)
     {
         var socket = ChapterTwoRules.FindSocket(socketId);
@@ -128,7 +128,7 @@ public static class SignSocketUi
     }
 
     private static void Refresh(Dictionary<string, Button> signButtons,
-        Dictionary<string, Button> directionButtons, MissionService service, string socketId,
+        Dictionary<string, Button> directionButtons, CommunityMissionTasks service, string socketId,
         string selectedSign, string selectedDirection)
     {
         bool installed = service.Data.GetMissionCounter("M14", $"sign_{socketId}") >= 1;

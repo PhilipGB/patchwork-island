@@ -36,6 +36,9 @@ public partial class VanController : CharacterBody3D
 
     public bool Autopilot => _autopilot;
 
+    public bool IsParkedNear(Vector3 position) =>
+        GlobalPosition.DistanceSquaredTo(position) <= 100f && Mathf.Abs(Speed) < 0.8f;
+
     public void StartRallyAutopilot()
     {
         _autopilotPath = RallyCourse.SampleClosed(10);
