@@ -4480,6 +4480,7 @@ public partial class Main : Node3D
     internal void RtRefreshMissionState() => RefreshMissionState();
     internal string RtCityStats => _city?.StatsLine() ?? "no city";
     internal int RtCityActiveCollisionBodies => _city?.ActiveDistrictCollisionBodies ?? 0;
+    internal bool RtCityGroundCollisionActive => _city?.GroundCollisionActive == true;
     internal int RtCityActorNodes => _city?.ActiveVisualActors ?? 0;
     internal bool RtWorldIsCanonicalScene =>
         _world?.Town != null &&

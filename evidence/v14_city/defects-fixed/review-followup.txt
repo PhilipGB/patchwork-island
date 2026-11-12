@@ -1,14 +1,29 @@
 PASS  city traffic yields to a player directly ahead
-PASS  held city car is in its yield state
-PASS  held city car keeps a bounded reconciliation lag
-PASS  held city car records its visual lag
+PASS  long-held city car is in its yield state
+PASS  long-held city car keeps a bounded reconciliation lag
+PASS  long-held city car records its visual lag
+PASS  a long hold leaves the physical car farther behind than the visual cap
+PASS  a long hold stores less lag than the true physical gap
 PASS  returned city car resumes with bounded reconciliation
 PASS  returned city car can yield again
 PASS  at least two near city cars are active
 PASS  at least two near city cars keep moving through intersections
 PASS  distant city keeps physical collision disabled at the town centre
-CITY_TRAVERSAL entered=True first=True centre=True returned=True van=(179.06522, -0.0070158876, 1.3301778) speed=7.29
+CITY_TRAVERSAL entered=True first=True centre=True returned=True van=(179.06497, -0.0020163245, 1.3302647) speed=7.29
 PASS  sustained driving enters the city road
 PASS  sustained driving reaches the first city intersection
 PASS  sustained driving reaches the central city block
 PASS  sustained driving returns from the city to the approach
+PASS  outer road point (-132,-132) keeps city ground collision active
+PASS  outer road point (132,-132) keeps city ground collision active
+PASS  outer road point (132,132) keeps city ground collision active
+PASS  outer road point (-132,132) keeps city ground collision active
+PASS  outer road point (-120,0) keeps city ground collision active
+PASS  outer road point (120,0) keeps city ground collision active
+PASS  outer road point (0,-120) keeps city ground collision active
+PASS  outer road point (0,120) keeps city ground collision active
+PASS  outer carriageway corner activates city ground collision
+PASS  outer carriageway corner exposes its ground collision body
+CITY_OUTER_LOOP active=True furthest=177.7 corners=4/4
+PASS  the outer-loop drive visits all four outer corners
+PASS  the outer-loop drive reaches the outer carriageway

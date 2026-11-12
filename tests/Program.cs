@@ -3565,6 +3565,21 @@ internal static class Program
                 }
             }
 
+            float outerEdge = CityLayout.RoadAxes[CityLayout.RoadAxes.Length - 1] +
+                              CityLayout.RoadWidth * 0.5f;
+            foreach (float sx in new[] { -1f, 1f })
+            foreach (float sz in new[] { -1f, 1f })
+                Check(CityLayout.IsWithinGroundCollision(
+                        CityLayout.WorldX(sx * outerEdge), CityLayout.WorldZ(sz * outerEdge)),
+                    $"city ground collision covers the outer carriageway corner ({sx:0},{sz:0})");
+            Check(CityLayout.IsWithinGroundCollision(CityLayout.WorldX(outerEdge),
+                    CityLayout.WorldZ(0f)),
+                "city ground collision covers the outer carriageway edge");
+            Check(!CityLayout.IsWithinGroundCollision(0f, 0f),
+                "the town centre stays outside the city ground-collision footprint");
+            Check(CityLayout.GroundCollisionHalfExtent > outerEdge + 40f,
+                "city ground collision keeps a safety margin beyond the outer carriageway");
+
             var jobs = File.ReadAllText(Path.Combine(root, "scenes", "city", "CityJobs.tscn"));
             Equal(15, Regex.Matches(jobs, "metadata/city_job_id =").Count,
                 "15 authored city job anchors");

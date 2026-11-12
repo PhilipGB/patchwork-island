@@ -364,11 +364,11 @@ and SFX settings; the game remains fully playable with sound off.
 ## Verification summary
 
 - `dotnet build PatchworkIsland.sln`: 0 errors, 0 warnings.
-- Pure tests: **111 passed, 0 failed**.
-- Runtime: **1171 passed, 0 failed** across eleven phases (pause/modal,
+- Pure tests: **132 passed, 0 failed**.
+- Runtime: **1297 passed, 0 failed** across twelve phases (pause/modal,
   resume, recovery, living village, rally, chapter two, M18 relaunch hotfix,
-  finale, traversal, v1.1/v1.2.1 migration, partial-world restoration).
-- Packaged Linux x64 booted headlessly and passed all eleven phases with exit 0
+  finale, traversal, v1.1/v1.2.1 migration, partial-world restoration, city).
+- Packaged Linux x64 booted headlessly and passed all twelve phases with exit 0
   and zero leaked unsafe references.
 - Real AMD Radeon 890M (Mesa 26.0.8, OpenGL 4.6): the scene-backed build matches
   the v1.2.1 procedural baseline with identical 3394 draw calls / 66069

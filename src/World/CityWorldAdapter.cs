@@ -56,7 +56,7 @@ public partial class CityWorldAdapter : Node3D
     private readonly List<CollisionShape3D> _districtShapes = new();
     private readonly List<StaticBody3D> _groundBodies = new();
     private bool _groundCollisionActive;
-    public const float GroundCollisionRadius = 185f;
+    public bool GroundCollisionActive => _groundCollisionActive;
     private Marker3D _boardMarker;
     private Node3D _boardRoot;
     private float _lodTimer;
@@ -429,8 +429,7 @@ public partial class CityWorldAdapter : Node3D
 
     private void UpdateGroundCollision(Vector3 focusWorld)
     {
-        bool active = CityLayout.DistanceToCityCentre(focusWorld.X, focusWorld.Z)
-                      <= GroundCollisionRadius;
+        bool active = CityLayout.IsWithinGroundCollision(focusWorld.X, focusWorld.Z);
         if (active == _groundCollisionActive) return;
         _groundCollisionActive = active;
         foreach (var body in _groundBodies)

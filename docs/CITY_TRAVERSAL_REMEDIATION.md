@@ -79,7 +79,7 @@ recorded city cars visually stopped on the raised blocks.
   - every near city car is on the road grid;
   - at least two near cars keep moving through intersections;
   - the player walks from the road onto the central plaza.
-- `--selftest-city` now has **111 passed, 0 failed**.
+- `--selftest-city` now has **126 passed, 0 failed**.
 - Pure tests: **132 passed, 0 failed**.
 
 ## After-fix evidence
@@ -121,16 +121,26 @@ Near vehicles keep a bounded visual lag (18 m maximum) relative to the compact
 logical schedule. A yielding car is never snapped forward through the player;
 the lag is stored and reused when the actor streams out and back in. Mid-tier
 actors follow the logical pose directly, and near actors gain a small bounded
-catch-up speed when they resume. Tests hold a car, stream it out to town, return
-it, and verify the bounded lag and repeat yield.
+catch-up speed when they resume. Tests hold a car for five seconds, stream it
+out to town, return it, and verify the bounded lag and repeat yield. A long hold
+leaves the physical car more than 18 m behind while the stored lag stays
+capped; this is the accepted decorative-traffic compromise.
 
 ### Collision activation distance
 
 Distant city visibility is still enabled at 335 m for HLOD/streaming, but
-physical city-ground collision now activates only within 185 m of the city
-centre. At the town centre the district can remain visible while
+physical city-ground collision now follows the authored square district
+footprint (local ±180 m), not a circle. The outer carriageways end at local
+±132 m, so their corners are ~187 m from the centre and were clipped by the
+previous 185 m radius; the footprint keeps ~48 m of margin beyond every
+drivable edge. At the town centre the district can remain visible while
 `ActiveDistrictCollisionBodies == 0`, so town movement cannot interact with
 unreachable city paving.
+
+`CityOuterLoopCollisionChecks` asserts collision coverage at all eight outer
+carriageway edge/corner points, probes the worst outer corner, then drives the
+van around the full outer lane loop. It requires all four outer corners to be
+visited and collision to stay active on every sample.
 
 ### Traffic test count
 

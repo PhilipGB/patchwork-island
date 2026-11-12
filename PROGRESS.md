@@ -2777,7 +2777,7 @@ New regressions: the van crosses the former entrance barrier (`x > 188`), every
 near city car stays on the road grid and at least two keep moving through
 intersections, and the player walks from the road onto the central plaza. Pure
 scene contracts reject sidewalk segments crossing a road or plazas overlapping
-one. City runtime is now **111 passed, 0 failed**.
+one. City runtime is now **124 passed, 0 failed** at that point; the long-hold and outer-loop follow-ups raise it to **126**.
 
 After-fix evidence:
 
@@ -2806,15 +2806,21 @@ The PR review requested stronger evidence and policy decisions:
   it streams back in. Mid actors follow logical pose directly, and near actors
   catch up with bounded speed. The test holds, streams out, returns and
   re-yields a car.
-- **Collision scope:** city-ground collision now activates only within 185 m of
-  the city centre, while 335 m visibility remains for HLOD/streaming. At the
-  town centre the district can stay visible with zero active collision bodies;
-  a runtime assertion covers this.
+- **Collision scope:** city-ground collision now uses the authored square
+  district footprint (local ±180 m) instead of a 185 m circle, which clipped
+  the outer carriageway corners at ~187 m. Visibility remains 335 m for
+  HLOD/streaming. At the town centre the district stays visible with zero
+  active collision bodies. The new outer-loop test checks all eight
+  carriageway edge/corner points, the worst corner, and a full driven loop.
+- **Boundary follow-up:** a second review pass found the circular activation
+  could still switch off at the outer carriageway corners. The footprint now
+  keeps ~48 m of margin beyond every drivable edge; a pure scene contract and
+  the driven outer-loop test cover it.
 - **Weak assertion:** the car regression now requires at least two near cars and
   at least two moving cars.
 
-City runtime is now **111 passed, 0 failed**; the full source total is
-**1282 passed, 0 failed**.
+City runtime is now **126 passed, 0 failed**; the full source total is
+**1297 passed, 0 failed**.
 
 ### Verification — source
 
@@ -2834,10 +2840,10 @@ godot --headless --path . --quit-after 120               -> exit 0
 --selftest-traversal       18 passed, 0 failed
 --selftest-release         40 passed, 0 failed
 --selftest-restore         54 passed, 0 failed
---selftest-city            111 passed, 0 failed
+--selftest-city            126 passed, 0 failed
 ```
 
-Source runtime total: **1282 passed, 0 failed**, all twelve phases exit 0.
+Source runtime total: **1297 passed, 0 failed**, all twelve phases exit 0.
 Every process exits 0; the known Mono shutdown resource warnings are unchanged.
 
 ### Packaged Linux 1.4.0 — CityFix
@@ -2846,10 +2852,10 @@ A release export was produced from the city-grid remediation commit and tested
 from the local package:
 
 ```text
-dist/linux/PatchworkIsland.x86_64        163,777,128 bytes
-sha256 53fd33ee33f680c6ae560ff022ccae8088f3f545071bc43a7f42f9b76f52f97d
-dist/windows/PatchworkIsland.exe         199,602,048 bytes
-sha256 bf99de93914473859de9043fb24447737f9b6b4a1825164daf798f16df76e656
+dist/linux/PatchworkIsland.x86_64        163,784,744 bytes
+sha256 1c7e17d3451f0d63cb9ba96c18e84489d884b43578d30f1ab9037dd8d1cecf61
+dist/windows/PatchworkIsland.exe         199,621,024 bytes
+sha256 b8e197c95c399c8bee66a939cdcd0664d16ffee17725c6930ada4f8bcd2a90e9
 ```
 
 The packaged binary booted headlessly and passed all twelve runtime phases with
@@ -2868,10 +2874,10 @@ boot 0
 --selftest-traversal     18 passed, 0 failed
 --selftest-release       40 passed, 0 failed
 --selftest-restore       54 passed, 0 failed
---selftest-city          111 passed, 0 failed
+--selftest-city          126 passed, 0 failed
 ```
 
-Packaged total: **1282 passed, 0 failed**, all phases exit 0. The matching local
+Packaged total: **1297 passed, 0 failed**, all phases exit 0. The matching local
 CityFix ZIPs and `SHA256SUMS.v1.4.0-cityfix` are in the gitignored `dist/`.
 The existing GitHub v1.4.0 pre-release remains pinned to the earlier `21b226e`
 build; this remediation should be published as a new v1.4.1 tag/release.
@@ -2938,9 +2944,8 @@ south verge) and re-captured.
 - Human composition/visual sign-off of the city screenshots is still open.
 - Windows export/startup is **NOT TESTED**.
 - PR [#32](https://github.com/PhilipGB/patchwork-island/pull/32) is open and
-  stacked on #31. Exact-head CI at `21b226e` passed `build-test` and
-  `windows-tests` in run
-  [43075355414](https://github.com/PhilipGB/patchwork-island/actions/runs/43075355414).
+  stacked on #31. Exact-head CI for the current PR head passes `build-test` and
+  `windows-tests` (see the PR checks).
 - The v1.4.0 test release uses the packaged Linux and Windows exports in
   `dist/`: the Linux package booted and passed all twelve runtime phases, and
   the Windows PE32+ executable reports version `1.4.0.0`. Windows startup is

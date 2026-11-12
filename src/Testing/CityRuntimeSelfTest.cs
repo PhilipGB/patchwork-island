@@ -40,6 +40,7 @@ public partial class CityRuntimeSelfTest : Node
             await CityTrafficCooperationChecks();
             await HighSpeedAndReturnChecks();
             await CityTraversalChecks();
+            await CityOuterLoopCollisionChecks();
             SaveRoundTripChecks();
         }
         catch (Exception ex)
@@ -199,6 +200,14 @@ public partial class CityRuntimeSelfTest : Node
             "player walks from the road onto the central plaza");
     }
 
+    private static float RouteDelta(float from, float to, float length)
+    {
+        float delta = (to - from) % length;
+        if (delta > length * 0.5f) delta -= length;
+        else if (delta < -length * 0.5f) delta += length;
+        return delta;
+    }
+
     private async Task CityTrafficCooperationChecks()
     {
         var city = Main.RtCity;
@@ -220,15 +229,22 @@ public partial class CityRuntimeSelfTest : Node
         if (car == null) return;
         int id = car.AgentId;
         car.SetTestHold(true);
-        await Wait(1.0f);
+        await Wait(5.0f);
         car = city.ActorPool.GetChildren().OfType<CityVehicleVisual>()
             .FirstOrDefault(v => v.AgentId == id);
-        Expect(car != null && car.Yielding, "held city car is in its yield state");
+        float physicalLag = car == null ? 0f :
+            RouteDelta(car.Progress, city.Simulation.Pose(id).RouteProgress, car.RouteLength);
+        Expect(car != null && car.Yielding, "long-held city car is in its yield state");
         Expect(car != null &&
                Mathf.Abs(car.ReconciliationLag) <= CityActorPool.MaxVisualLagMeters + 0.1f,
-            "held city car keeps a bounded reconciliation lag");
+            "long-held city car keeps a bounded reconciliation lag");
         Expect(car != null && Mathf.Abs(car.ReconciliationLag) > 0.1f,
-            "held city car records its visual lag");
+            "long-held city car records its visual lag");
+        Expect(physicalLag > CityActorPool.MaxVisualLagMeters + 1f,
+            "a long hold leaves the physical car farther behind than the visual cap");
+        Expect(car != null &&
+               physicalLag - Mathf.Abs(car.ReconciliationLag) > 1f,
+            "a long hold stores less lag than the true physical gap");
         car?.SetTestHold(false);
 
         // Stream the car out while the player is in town, then return.
@@ -368,6 +384,71 @@ public partial class CityRuntimeSelfTest : Node
         Expect(reachedFirst, "sustained driving reaches the first city intersection");
         Expect(reachedCentre, "sustained driving reaches the central city block");
         Expect(returned, "sustained driving returns from the city to the approach");
+    }
+
+    private async Task CityOuterLoopCollisionChecks()
+    {
+        var city = Main.RtCity;
+
+        // The outer carriageways end at local ±132; their corners are ~187 m
+        // from the centre, outside the old 185 m circle. Every carriageway
+        // edge point must stay inside the authored square footprint.
+        var edgePoints = new (float X, float Z)[]
+        {
+            (-132f, -132f), (132f, -132f), (132f, 132f), (-132f, 132f),
+            (-120f, 0f), (120f, 0f), (0f, -120f), (0f, 120f),
+        };
+        foreach (var point in edgePoints)
+            Expect(CityLayout.IsWithinGroundCollision(
+                    CityLayout.WorldX(point.X), CityLayout.WorldZ(point.Z)),
+                $"outer road point ({point.X:0},{point.Z:0}) keeps city ground collision active");
+
+        var corner = new Vector3(CityLayout.WorldX(132f), 0.4f, CityLayout.WorldZ(132f));
+        Main.RtProbeCityLod(corner, 8f);
+        Expect(city.GroundCollisionActive,
+            "outer carriageway corner activates city ground collision");
+        Expect(city.ActiveDistrictCollisionBodies > 0,
+            "outer carriageway corner exposes its ground collision body");
+
+        // Drive the full outer loop on the outer lane and assert that ground
+        // collision stays on for every sample of the loop.
+        Main.RtTeleportVan(new Vector3(CityLayout.WorldX(0f), 0.4f,
+            CityLayout.WorldZ(-126f)), -Mathf.Pi / 2f);
+        Main.RtStartVanRoute(new[]
+        {
+            new Vector3(CityLayout.WorldX(0f), 0.4f, CityLayout.WorldZ(-126f)),
+            new Vector3(CityLayout.WorldX(126f), 0.4f, CityLayout.WorldZ(-126f)),
+            new Vector3(CityLayout.WorldX(126f), 0.4f, CityLayout.WorldZ(126f)),
+            new Vector3(CityLayout.WorldX(-126f), 0.4f, CityLayout.WorldZ(126f)),
+            new Vector3(CityLayout.WorldX(-126f), 0.4f, CityLayout.WorldZ(-126f)),
+            new Vector3(CityLayout.WorldX(0f), 0.4f, CityLayout.WorldZ(-126f)),
+        });
+
+        bool alwaysActive = true;
+        float furthest = 0f;
+        var visited = new bool[4];
+        for (int i = 0; i < 460 && !visited.All(v => v); i++)
+        {
+            await Wait(0.4f);
+            Vector3 van = Main.RtVanPosition;
+            alwaysActive &= Main.RtCityGroundCollisionActive;
+            furthest = Mathf.Max(furthest, CityLayout.DistanceToCityCentre(van.X, van.Z));
+            float localX = van.X - CityLayout.OriginX;
+            float localZ = van.Z - CityLayout.OriginZ;
+            if (localX > 110f && localZ < -110f) visited[0] = true;
+            if (localX > 110f && localZ > 110f) visited[1] = true;
+            if (localX < -110f && localZ > 110f) visited[2] = true;
+            if (localX < -110f && localZ < -110f) visited[3] = true;
+        }
+        Main.RtStopVanRoute();
+        GD.Print($"CITY_OUTER_LOOP active={alwaysActive} furthest={furthest:0.0} " +
+                 $"corners={visited.Count(v => v)}/4");
+        Main.RtTeleportPlayer(new Vector3(-38f, 0.4f, 9.5f), 0f);
+        await Wait(0.4f);
+
+        Expect(alwaysActive, "city ground collision stays active around the outer loop");
+        Expect(visited.Count(v => v) == 4, "the outer-loop drive visits all four outer corners");
+        Expect(furthest > 170f, "the outer-loop drive reaches the outer carriageway");
     }
 
     private void SaveRoundTripChecks()

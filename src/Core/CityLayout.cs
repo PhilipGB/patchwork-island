@@ -31,6 +31,20 @@ public static class CityLayout
 
     public const float CellHalfSize = 40f;
 
+    /// <summary>
+    /// Physical city-ground collision uses the authored square footprint, not a
+    /// radius around the centre. The outer carriageways reach ±132 m and their
+    /// corners are ~187 m from the centre, so a 185 m circle clipped the road
+    /// corners. The footprint keeps ~48 m of margin beyond every drivable edge.
+    /// </summary>
+    public const float GroundCollisionHalfExtent = DistrictHalfExtent;
+
+    public static bool IsWithinGroundCollision(float worldX, float worldZ) =>
+        worldX >= OriginX - GroundCollisionHalfExtent &&
+        worldX <= OriginX + GroundCollisionHalfExtent &&
+        worldZ >= OriginZ - GroundCollisionHalfExtent &&
+        worldZ <= OriginZ + GroundCollisionHalfExtent;
+
     public static float WorldX(float localX) => OriginX + localX;
 
     public static float WorldZ(float localZ) => OriginZ + localZ;

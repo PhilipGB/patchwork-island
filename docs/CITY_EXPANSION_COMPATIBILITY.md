@@ -107,3 +107,12 @@ authored static geometry but not with the player or van, and they yield when the
 player is directly ahead. This mirrors the town traffic rule and avoids trapping
 a child in a city intersection. The pure and runtime suite covers the yield
 rule and the near/streamed actor reconciliation.
+
+## City collision activation
+
+City visibility and physical collision are separate. The district and its HLOD
+proxies become visible within 335 m of the centre, but shared city-ground
+collision follows the authored square footprint (local ±180 m), not a radius.
+This keeps the whole outer carriageway — including corners ~187 m from the
+centre — supported, while the town centre remains outside the footprint and
+cannot interact with unreachable city paving.
