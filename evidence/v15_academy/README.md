@@ -50,6 +50,11 @@ pre-existing walkthrough route-planner limitation (see
 `docs/DRIVING_ACADEMY_REPORT.md`). The academy half of phase 1 is complete and
 passing; this is recorded as a limitation, not as a passing full-campaign run.
 
+These walkthrough logs were captured immediately before the final one-line UI
+fix that hides the town job compass inside the venue; every gameplay rule and
+the licence flow they exercise is unchanged, and the refreshed exact-head
+screenshots show the compass fix. No other gate below predates the final head.
+
 ## Packaged Linux
 
 `packaged/` contains the exported binary's boot, runtime, graphical and hash

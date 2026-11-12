@@ -65,7 +65,9 @@ M01–M15 and stops at the deliberate M15 save/reload checkpoint. The continuati
 completes M15 and fails at M16 when the automated walker cannot reach a moving
 NPC's talk station; a retry hit the walker's own route planner ("no walking
 route"). Both are properties of the test driver's navigation, not of the academy,
-and the 24 missions remain green in their dedicated runtime phases. This is
+and the 24 missions remain green in their dedicated runtime phases. These logs
+were captured immediately before the final UI-only change that hides the town
+compass in the venue; the exact-head screenshots show that fix. This is
 recorded as **PARTIAL** in the acceptance record rather than claimed as a
 full-campaign pass.
 
