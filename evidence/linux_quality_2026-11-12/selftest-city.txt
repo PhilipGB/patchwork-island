@@ -1,0 +1,136 @@
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+
+[WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 156 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.
+[CITY SCENE] res://scenes/city/CityDistrict.tscn: 36 buildings, 36 HLOD proxies, 9 cells, 15 job markers, 4 vehicle routes, 11 pedestrian routes.
+PASS  CityWorldAdapter is built
+PASS  36 authored city buildings instantiated
+PASS  one authored HLOD proxy per city building
+PASS  the fixed district exposes nine block cells
+PASS  compact logical city simulation exists
+PASS  four authored vehicle lanes
+PASS  eleven authored pedestrian routes
+PASS  CITY JOBS interaction follows its authored marker off the road
+PASS  closed road starts with the authored barrier visible
+PASS  closed road starts with physical collision
+PASS  C01 is on the independent city catalogue
+PASS  C02 is on the independent city catalogue
+PASS  C03 is on the independent city catalogue
+PASS  district is not rendered while the player is in town
+PASS  no city actor Node3Ds exist while far away in town
+PASS  city logical time advances while the city scene is hidden
+PASS  hidden city remains free of actor Nodes after logical advance
+PASS  roadworks delivery test starts with all six supplies carried
+PASS  all six carried supplies move the objective off the workshop
+PASS  the delivery objective points at the closed city gate
+PASS  the real worksite interaction delivers all six supplies
+PASS  worksite delivery consumes the carried supplies exactly once
+PASS  worksite delivery opens the crew loading check
+PASS  city jobs are gated by the closed road
+PASS  completed roadworks remove the barrier visual
+PASS  completed roadworks disable the physical collider
+PASS  road open state is idempotent
+PASS  C01 starts from the independent city board
+PASS  courier parcels load once
+PASS  courier rejects stop 2 before stop 1
+PASS  courier accepts stop 1
+PASS  courier accepts stop 2
+PASS  courier accepts stop 3
+PASS  courier turns in at the city board
+PASS  courier pays its 20 coins once
+PASS  courier cannot be turned in twice
+PASS  C02 starts independently
+PASS  market crate 0 collected
+PASS  market crate 1 collected
+PASS  market crate 2 collected
+PASS  market crate 3 collected
+PASS  market crate 4 collected
+PASS  market crate 5 collected
+PASS  market rejects 5
+PASS  2 × 3 = 6 is accepted
+PASS  market stock-up turns in
+PASS  market stock-up pays 24 coins
+PASS  C03 starts independently
+PASS  cabinet 1 rejects amber
+PASS  cabinet 1 accepts red
+PASS  cabinet 3 rejects out-of-order repair
+PASS  cabinet 2 accepts amber
+PASS  cabinet 3 accepts green
+PASS  engineer sign-off completes C03
+PASS  signals job pays 28 coins once
+PASS  three city jobs are persisted as distinct completions
+PASS  district activates near the city board
+PASS  near city cells expose physical collision
+PASS  near city spawns bounded vehicle visuals
+PASS  near city spawns bounded pedestrians
+PASS  very near actors enable animation/physics tier
+PASS  visible vehicle count stays within the authored budget
+PASS  visible pedestrian count stays within the authored budget
+PASS  pool contains no duplicate logical actors
+PASS  near cells render detailed building meshes
+PASS  distant city cells render authored HLOD proxies
+PASS  player walks from the road onto the central plaza
+PASS  city traffic yields to a player directly ahead
+PASS  city traffic does not yield to a distant player
+PASS  a near city car is available for the cooperation test
+PASS  long-held city car is in its yield state
+PASS  long-held city car keeps a bounded reconciliation lag
+PASS  long-held city car records its visual lag
+PASS  a long hold leaves the physical car farther behind than the visual cap
+PASS  a long hold stores less lag than the true physical gap
+PASS  city actors stream out from town
+PASS  the same city car returns after streaming
+PASS  returned city car resumes with bounded reconciliation
+PASS  returned city car can yield again
+PASS  closed gate physically stops a full-speed van
+PASS  open gate lets the van drive onto the approach at full speed
+PASS  the van crosses the west sidewalk gap into the city road
+PASS  high-speed approach keeps the join and district active
+PASS  high-speed approach has a visible authored cell budget
+PASS  high-speed centre keeps detailed geometry near the player
+PASS  at least two near city cars are active
+PASS  city car 10002 stays on the road grid
+PASS  city car 10018 stays on the road grid
+PASS  city car 10011 stays on the road grid
+PASS  city car 10023 stays on the road grid
+PASS  city car 10006 stays on the road grid
+PASS  city car 10019 stays on the road grid
+PASS  city car 10022 stays on the road grid
+PASS  city car 10007 stays on the road grid
+PASS  city car 10014 stays on the road grid
+PASS  at least two near city cars keep moving through intersections
+PASS  distant city stays visible from the town centre
+PASS  distant city keeps physical collision disabled at the town centre
+PASS  returning to town hides the whole city district
+PASS  returning to town destroys every visual city actor
+PASS  returning to town disables offscreen city collision
+PASS  a fresh/closed state restores the gate exactly
+CITY_TRAVERSAL entered=True first=True centre=True returned=True van=(179.16371, -0.0070160525, 1.3336695) speed=7.23
+PASS  sustained driving enters the city road
+PASS  sustained driving reaches the first city intersection
+PASS  sustained driving reaches the central city block
+PASS  sustained driving returns from the city to the approach
+PASS  outer road point (-132,-132) keeps city ground collision active
+PASS  outer road point (132,-132) keeps city ground collision active
+PASS  outer road point (132,132) keeps city ground collision active
+PASS  outer road point (-132,132) keeps city ground collision active
+PASS  outer road point (-120,0) keeps city ground collision active
+PASS  outer road point (120,0) keeps city ground collision active
+PASS  outer road point (0,-120) keeps city ground collision active
+PASS  outer road point (0,120) keeps city ground collision active
+PASS  outer carriageway corner activates city ground collision
+PASS  outer carriageway corner exposes its ground collision body
+CITY_OUTER_LOOP active=True furthest=177.7 corners=4/4
+PASS  city ground collision stays active around the outer loop
+PASS  the outer-loop drive visits all four outer corners
+PASS  the outer-loop drive reaches the outer carriageway
+PASS  mid-drive city save loads: Save loaded.
+PASS  active city job survives the save
+PASS  city number-order progress survives the save
+PASS  city player position survives the extended save bounds
+PASS  mid-drive state and van snapshot round-trip
+PASS  city logical clock round-trips
+PASS  mid-drive save is written on the current schema
+PASS  the city job service follows the loaded save
+PASS  an open road on the loaded save reaches the city job service
+PASS  a loaded open-road save can start a city job: City Courier started.
+CITY RUNTIME RESULT: 129 passed, 0 failed

@@ -1,0 +1,295 @@
+{
+  "SchemaVersion": 4,
+  "ActiveMission": "",
+  "CompletedMissions": [
+    "M01",
+    "M02",
+    "M03",
+    "M04",
+    "M05",
+    "M06",
+    "M07",
+    "M08",
+    "M09",
+    "M10",
+    "M11",
+    "M12",
+    "M13",
+    "M14",
+    "M15",
+    "M16",
+    "M17",
+    "M18",
+    "M19",
+    "M20",
+    "M21"
+  ],
+  "TutorialsSeen": [
+    "walk",
+    "build",
+    "drive"
+  ],
+  "CollectedPickups": [
+    "apple_0",
+    "apple_1",
+    "apple_2",
+    "wood_4",
+    "wood_3",
+    "wood_2",
+    "wood_1",
+    "wood_0",
+    "stone_0",
+    "stone_1",
+    "stone_2",
+    "orange_parcel_0",
+    "blue_parcel_1",
+    "blue_parcel_0",
+    "book_sun",
+    "book_star",
+    "book_moon",
+    "book_tree",
+    "part_tyre_0",
+    "part_tyre_1",
+    "part_lamp_0",
+    "part_battery_0",
+    "roadworks_cone_0",
+    "roadworks_cone_1",
+    "roadworks_cone_2",
+    "roadworks_panel_0",
+    "roadworks_panel_1",
+    "roadworks_toolbox_0"
+  ],
+  "UnlockedCosmetics": [
+    "red_cap"
+  ],
+  "CharacterPreset": "boy",
+  "OwnedOutfits": [],
+  "EquippedOutfit": "default",
+  "Coins": 441,
+  "Inventory": {},
+  "MissionProgress": {
+    "M01": {
+      "delivered": 1
+    },
+    "M02": {
+      "delivered": 1
+    },
+    "M04": {
+      "bread": 2,
+      "milk": 1,
+      "delivered": 1
+    },
+    "M05": {
+      "checkpoint": 4,
+      "started": 1,
+      "elapsedMs": 27834
+    },
+    "M06": {
+      "blueDelivered": 2,
+      "orangeDelivered": 1
+    },
+    "M09": {
+      "checkpoint": 4,
+      "started": 1,
+      "elapsedMs": 27834
+    },
+    "M11": {
+      "stock_granted": 1,
+      "card_ada": 0,
+      "card_ollie": 0,
+      "card_fern": 0,
+      "delivered_ada": 1,
+      "delivered_ollie": 1,
+      "delivered_fern": 1
+    },
+    "M12": {
+      "order_milo": 1,
+      "order_fern": 1,
+      "order_ivy": 1
+    },
+    "M13": {
+      "has_sun": 0,
+      "has_star": 0,
+      "has_moon": 0,
+      "has_tree": 0,
+      "shelf_sun": 1,
+      "shelf_moon": 1,
+      "shelf_tree": 1,
+      "shelf_star": 1
+    },
+    "M14": {
+      "sign_market": 1,
+      "sign_workshop": 1,
+      "sign_green": 1
+    },
+    "M15": {
+      "pad0": 1,
+      "pad1": 2,
+      "pad2": 1,
+      "pad3": 2,
+      "pad4": 1,
+      "pad5": 2
+    },
+    "M16": {
+      "loaded": 1,
+      "carrying_ada": 0,
+      "delivered_ada": 1,
+      "carrying_pip": 0,
+      "delivered_pip": 1,
+      "carrying_ivy": 0,
+      "delivered_ivy": 1
+    },
+    "M17": {
+      "bread": 2,
+      "milk": 1,
+      "apple": 2,
+      "finalised": 1
+    },
+    "M18": {
+      "has_tyre": 0,
+      "has_lamp": 0,
+      "has_battery": 0,
+      "inspected": 1,
+      "tyres_fitted": 2,
+      "lamp_fitted": 1,
+      "battery_fitted": 1
+    },
+    "M19": {
+      "checkpoint": 6,
+      "started": 1,
+      "elapsedMs": 32501
+    },
+    "M20": {
+      "stock_granted": 1,
+      "invite_stock": 0,
+      "table_stock": 0,
+      "lantern_stock": 0,
+      "invited_ada": 1,
+      "invited_pip": 1,
+      "invited_ivy": 1,
+      "table_0": 1,
+      "table_1": 1,
+      "lantern_0": 1,
+      "lantern_1": 1,
+      "lantern_2": 1
+    },
+    "M21": {
+      "supplies_delivered": 1,
+      "task_done": 1
+    }
+  },
+  "HintLevels": {},
+  "BridgePieces": [
+    "support_0",
+    "support_1",
+    "support_2",
+    "plank_0",
+    "plank_1",
+    "plank_2",
+    "plank_3"
+  ],
+  "SwingPieces": [
+    "s1_rope_l",
+    "s1_rope_r",
+    "s2_rope_l",
+    "s2_rope_r",
+    "s1_seat",
+    "s2_seat"
+  ],
+  "ParkPlacements": [
+    {
+      "Type": "bench",
+      "Slot": "park0"
+    },
+    {
+      "Type": "flowerbed",
+      "Slot": "park1"
+    },
+    {
+      "Type": "lamp",
+      "Slot": "park2"
+    }
+  ],
+  "FurniturePlacements": [
+    {
+      "Type": "table",
+      "Slot": "house0"
+    },
+    {
+      "Type": "chair",
+      "Slot": "house1"
+    },
+    {
+      "Type": "chair",
+      "Slot": "house2"
+    },
+    {
+      "Type": "plant",
+      "Slot": "house3"
+    }
+  ],
+  "FurnitureOwned": {
+    "table": 1,
+    "chair": 2,
+    "plant": 1
+  },
+  "Player": {
+    "X": 399.2389,
+    "Y": 0.24059856,
+    "Z": 5.8258495,
+    "RotationY": -0.6371467,
+    "Valid": true
+  },
+  "Van": {
+    "X": 55.714615,
+    "Y": 0.009900061,
+    "Z": 27.0141,
+    "RotationY": 0.07916325,
+    "Valid": true
+  },
+  "Driving": false,
+  "Settings": {
+    "MusicEnabled": true,
+    "SfxEnabled": true,
+    "ReducedMotion": false,
+    "TextScale": 1
+  },
+  "CelebrationSeen": true,
+  "FestivalSeen": true,
+  "CityRoadworksCompleted": true,
+  "CityRoadworksRewardClaimed": true,
+  "CityRoadOpen": true,
+  "CityVisited": true,
+  "ActiveCityMission": "",
+  "CompletedCityMissions": [
+    "C01",
+    "C02",
+    "C03"
+  ],
+  "CityMissionProgress": {
+    "C01": {
+      "loaded": 1,
+      "stop_1": 1,
+      "stop_2": 1,
+      "stop_3": 1
+    },
+    "C02": {
+      "crate_0": 1,
+      "crate_1": 1,
+      "crate_2": 1,
+      "crate_3": 1,
+      "crate_4": 1,
+      "crate_5": 1,
+      "answered": 1
+    },
+    "C03": {
+      "cabinet_1": 1,
+      "cabinet_2": 1,
+      "cabinet_3": 1,
+      "engineer": 1
+    }
+  },
+  "CitySeed": 20261111,
+  "CityLogicalSeconds": 1039.61666666605,
+  "SavedAtUnix": 1794498280
+}

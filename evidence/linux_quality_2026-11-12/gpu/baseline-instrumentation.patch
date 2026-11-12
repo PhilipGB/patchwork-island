@@ -1,0 +1,169 @@
+diff --git a/src/Main.cs b/src/Main.cs
+index fc9a96a..9baa84a 100644
+--- a/src/Main.cs
++++ b/src/Main.cs
+@@ -5252,6 +5252,8 @@ public partial class Main : Node3D
+         try
+         {
+             CompleteVillageForScenario();
++            Input.MouseMode = Input.MouseModeEnum.Visible;
++            GD.Print("GPU_DEVICE " + RenderingServer.GetVideoAdapterName());
+             _data.CityRoadOpen = true;
+             _data.CityRoadworksCompleted = true;
+             _data.CityRoadworksRewardClaimed = true;
+@@ -5267,9 +5269,20 @@ public partial class Main : Node3D
+                 _player.Teleport(position, yaw);
+                 _rig.SetView(Mathf.RadToDeg(yaw), 20f, 9.2f);
+                 _rig.Snap();
++                var transition = new List<double>(30);
++                ulong transitionPrevious = Time.GetTicksUsec();
++                for (int frame = 0; frame < 30; frame++)
++                {
++                    await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
++                    ulong now = Time.GetTicksUsec();
++                    transition.Add((now - transitionPrevious) / 1000.0);
++                    transitionPrevious = now;
++                }
+                 await Wait(1.4f);
+                 var frameMs = new List<double>(240);
+                 ulong previous = Time.GetTicksUsec();
++                long allocatedBefore = System.GC.GetAllocatedBytesForCurrentThread();
++                int gen0Before = System.GC.CollectionCount(0);
+                 for (int i = 0; i < 240; i++)
+                 {
+                     await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+@@ -5285,16 +5298,29 @@ public partial class Main : Node3D
+                 int primitives = (int)Performance.GetMonitor(Performance.Monitor.RenderTotalPrimitivesInFrame);
+                 int physics = (int)Performance.GetMonitor(Performance.Monitor.Physics3DActiveObjects);
+                 int objects = (int)Performance.GetMonitor(Performance.Monitor.ObjectNodeCount);
+-                string line = $"{{\"resolution\":\"{resolution}\",\"stage\":\"{stage}\"," +
+-                              $"\"frame_ms_p50\":{p50:0.000},\"frame_ms_p95\":{p95:0.000}," +
+-                              $"\"frame_ms_avg\":{avg:0.000},\"fps_p50\":{1000.0 / Math.Max(0.001, p50):0.0}," +
+-                              $"\"draw_calls\":{draw},\"primitives\":{primitives}," +
+-                              $"\"physics_active\":{physics},\"object_nodes\":{objects}," +
+-                              $"\"city\":\"{_city.StatsLine()}\"," +
+-                              $"\"actor_near\":{_city.ActorPool?.NearVehicleCount + _city.ActorPool?.NearPedestrianCount}," +
+-                              $"\"actor_mid\":{_city.ActorPool?.MidVehicleCount + _city.ActorPool?.MidPedestrianCount}," +
+-                              $"\"district_visible\":{(_city.DistrictVisible ? "true" : "false")}}}";
++                long allocated = System.GC.GetAllocatedBytesForCurrentThread() - allocatedBefore;
++                string line = System.Text.Json.JsonSerializer.Serialize(new
++                {
++                    resolution, stage,
++                    frame_ms_p50 = Math.Round(p50, 3), frame_ms_p95 = Math.Round(p95, 3),
++                    frame_ms_avg = Math.Round(avg, 3), fps_p50 = Math.Round(1000.0 / Math.Max(.001, p50), 1),
++                    transition_frame_ms_max = Math.Round(transition.Max(), 3),
++                    managed_bytes_per_frame = Math.Round(allocated / 240.0, 1),
++                    gen0_collections = System.GC.CollectionCount(0) - gen0Before,
++                    draw_calls = draw, primitives, physics_active = physics, object_nodes = objects,
++                    city = _city.StatsLine(),
++                    actor_near = _city.NearVisualActors,
++                    actor_mid = (_city.ActorPool?.MidVehicleCount ?? 0) + (_city.ActorPool?.MidPedestrianCount ?? 0),
++                    district_visible = _city.DistrictVisible,
++                });
+                 GD.Print("CITY_PERF " + line);
++                if (HasUserArg("--perf-captures"))
++                {
++                    await ToSignal(RenderingServer.Singleton, RenderingServer.SignalName.FramePostDraw);
++                    string folder = ProjectSettings.GlobalizePath("user://performance");
++                    Directory.CreateDirectory(folder);
++                    GetViewport().GetTexture().GetImage().SavePng(Path.Combine(folder, stage + ".png"));
++                }
+                 return line;
+             }
+ 
+@@ -5304,6 +5330,9 @@ public partial class Main : Node3D
+                 CityLayout.WorldZ(18f)), 0f, true));
+             results.Add(await Measure("return-to-town", new Vector3(-38f, 0.3f, 9.5f), 0f, false));
+ 
++            if (HasUserArg("--perf-drive"))
++                results.Add(await MeasureCityDrive(resolution));
++
+             // Measure the bounded logical catch-up cost without agents/nodes.
+             var probe = new CitySimulation(_city.Simulation.VehicleRoutes,
+                 _city.Simulation.PedestrianRoutes, _city.Seed);
+@@ -5316,7 +5345,7 @@ public partial class Main : Node3D
+             GD.Print("CITY_PERF " + catchup);
+             results.Add(catchup);
+ 
+-            string directory = Path.Combine(ProjectSettings.GlobalizePath("res://"), "evidence");
++            string directory = ProjectSettings.GlobalizePath("user://performance");
+             Directory.CreateDirectory(directory);
+             string file = Path.Combine(directory, $"city_perf_{resolution}.jsonl");
+             File.WriteAllLines(file, results);
+@@ -5325,10 +5354,76 @@ public partial class Main : Node3D
+         catch (Exception ex)
+         {
+             GD.PrintErr($"City performance probe failed: {ex}");
++            GetTree().Quit(1);
++            return;
+         }
+         GetTree().Quit();
+     }
+ 
++    private async Task<string> MeasureCityDrive(string resolution)
++    {
++        _data.ActiveMission = "";
++        _data.ActiveCityMission = "";
++        if (!_bridgeBuilder.IsBuilt)
++        {
++            _data.BridgePieces.Clear();
++            _data.BridgePieces.AddRange(BuildRules.BridgeSockets);
++            _bridgeBuilder.RefreshFromData();
++        }
++        // Stay east of the bridge: the test autopilot intentionally cuts
++        // throttle inside its river safety zone. Normal input is unaffected.
++        _van.GlobalPosition = new Vector3(80, .4f, 0);
++        _van.Rotation = new Vector3(0, -Mathf.Pi / 2f, 0);
++        _player.Teleport(new Vector3(78, .4f, 0));
++        EnterVan();
++        Input.MouseMode = Input.MouseModeEnum.Visible;
++        _van.StartRouteAutopilot(new[]
++        {
++            new Vector3(80, .4f, 0), new Vector3(180, .4f, 0),
++            new Vector3(200, .4f, 0), new Vector3(200, .4f, -40), new Vector3(280, .4f, -40),
++            new Vector3(280, .4f, -120), new Vector3(200, .4f, -120), new Vector3(200, .4f, 0),
++            new Vector3(170, .4f, 0), new Vector3(80, .4f, 0),
++        });
++        var frames = new List<double>(100000);
++        var transitions = new List<double>(4096);
++        ulong began = Time.GetTicksUsec(), previous = began;
++        int lastDetail = _city.DetailedVisible, lastHlod = _city.HlodVisible;
++        bool lastVisible = _city.DistrictVisible;
++        int transitionWindow = 0;
++        float furthest = 0;
++        bool returned = false;
++        while (Time.GetTicksUsec() - began < 240_000_000)
++        {
++            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
++            ulong now = Time.GetTicksUsec();
++            double ms = (now - previous) / 1000.0; previous = now;
++            frames.Add(ms);
++            bool changed = lastDetail != _city.DetailedVisible || lastHlod != _city.HlodVisible || lastVisible != _city.DistrictVisible;
++            if (changed) transitionWindow = 4;
++            if (transitionWindow-- > 0) transitions.Add(ms);
++            lastDetail = _city.DetailedVisible; lastHlod = _city.HlodVisible; lastVisible = _city.DistrictVisible;
++            furthest = Mathf.Max(furthest, _van.GlobalPosition.X);
++            if (furthest > 275 && _van.GlobalPosition.X < 88) { returned = true; break; }
++        }
++        _van.StopAutopilot();
++        if (!returned) throw new InvalidOperationException("GPU drive did not finish: " + _van.GlobalPosition);
++        frames.Sort();
++        string line = System.Text.Json.JsonSerializer.Serialize(new
++        {
++            resolution, stage = "physical-city-return-drive", samples = frames.Count,
++            elapsed_seconds = Math.Round((Time.GetTicksUsec() - began) / 1_000_000.0, 2),
++            frame_ms_p50 = Math.Round(frames[frames.Count / 2], 3),
++            frame_ms_p95 = Math.Round(frames[(int)(frames.Count * .95)], 3),
++            frame_ms_max = Math.Round(frames[^1], 3),
++            frames_over_33ms = frames.Count(ms => ms > 33),
++            transition_samples = transitions.Count,
++            transition_frame_ms_max = Math.Round(transitions.DefaultIfEmpty(0).Max(), 3),
++            returned, furthest_x = furthest,
++        });
++        GD.Print("CITY_PERF " + line);
++        return line;
++    }
++
+     private async Task CaptureCityDefects()
+     {
+         try

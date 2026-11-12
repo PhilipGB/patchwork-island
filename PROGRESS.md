@@ -3037,3 +3037,106 @@ Reviewed `a429791` at the user’s request; no gameplay source changed. Full fin
 - Observed visual/UX issues: jagged roof shadows, duplicate E keycap/prompt, inactive later-job objects competing with the first delivery.
 - Graphical verification gaps: no continuous all-mission playthrough, no Windows launch, no hardware GPU timing or audio listening (dummy driver), no child playtest. Other runtime phases were not rerun.
 - Recommended next: camera/lifetime fixes and regressions; continuous fresh-save and Windows playthrough; child usability sessions; shadow/clarity pass and frame-time profiling; incremental Main.cs extraction and release-document consolidation before more content.
+
+
+## Linux quality and architecture work — in progress (2026-11-12)
+
+User requested fixes, a Linux all-mission playthrough, clarity/performance work, then architectural decomposition and a PR. Branch: `fix/linux-quality-and-architecture`. Existing product feedback and sound acceptance are supplied by the user; no additional user playtest or audio sign-off is requested.
+
+- Initial sandbox runs had no `/dev/dri` and used Mesa llvmpipe. A later approved host probe confirmed physical AMD Radeon 890M access. Hardware baseline/current measurements are being captured separately; software timing is not presented as GPU timing.
+- Camera now consults physical right-button state instead of retaining drag state over pause; grocery/furniture UI controllers are ordinary C# classes; interaction key rendered once; locked mission pickups stop processing and no longer compete for focus. Camera ray query and destination-arrow storage are reused.
+- Graphical `--selftest-quality`: 7 passed / 0 failed, including held/released mouse behaviour and 60 modal opens/closes with unchanged orphan Node count. Headless positive-orbit attempt failed because its captured-mouse semantics differ; graphical verification replaced it. An initial camera assertion also compared a still-smoothing global transform; corrected to inspect orbit yaw. Logs will be preserved in final evidence.
+- `MissionMechanicContract` compares authored tuning to executable rules for all 21 village missions. Pure tests: 133 passed / 0 failed. First version of this new contract failed because it assumed swing socket names started with rope/seat; corrected to the authored s1_rope_l/s1_seat format.
+- Build temporarily failed when treating Godot Collections.Array as IDisposable; removed that invalid assumption. Subsequent build passed.
+- Linux end-to-end input driver has completed M01–M10 from a fresh save with real movement/E/menu/build clicks and normal rewards. It resumes the disposable save across harness fixes, never seeds counters or teleports. Early harness failures (build clicks using the captured OS cursor; van approach radius; FurnitureStation marker/name collision) are retained in /tmp logs for final evidence and are not labelled product defects. Chapter two is currently in progress.
+- Directional shadow atlas increased to 4096 and range reduced from 90 m to 60 m for local detail. Visual comparison and performance limits still need final reporting. No hardware performance gain is claimed.
+- Architectural refactor and PR are still outstanding.
+
+### Additional Linux findings and current verification
+
+- Input-driver progression has completed M01–M21 with normal UI rewards. Disposable save is under `/tmp/patchwork-walkthrough`; all city jobs still outstanding. Logs are `/tmp/walkthrough*.log`; do not present harness failures as game failures. Three explicit save/exit/Continue checkpoints preserved M15 pattern, M18 partial parts and M20 invitation state.
+- A genuine city pedestrian bug was reproduced independently: grounded player at `(351, -.059, 0)` walking left stopped at `(348.38, -.034, .053)`, unable to enter the raised central plaza. Baseline graphical regression `/tmp/curb-baseline.log` fails this assertion. A swept small-step implementation is now being verified in `/tmp/curb-fixed.log`; the all-mission driver is stopped pending the result.
+- Atlas/range changes did not sufficiently improve the wall shadow artifact and were reverted. Only the six town wall materials now disable received shadows; other scenery/ground shadows remain. 720p and actual 1920×1080 captures verified; 9 input/lifetime checks passed before adding the curb regression.
+- Shutdown leak traced with `--verbose` to active OGG playback. AudioManager stops playback during exit; subsequent verbose boot/quit has no leaked instances/resources warnings. Audio mix/assets unchanged.
+- Architecture has begun while city validation continues: MissionService is a compatibility facade (503 lines), CommunityMissionTasks (202) and FinaleMissionTasks (337) own cohesive activities; UI counters depend on the narrower handlers. GameSession centrally replaces data and binds village/city/activity services to the same save. Build clean; 134 pure tests passed. Main decomposition, broader SOLID review, full runtime phases, Linux export/profiling and PR remain outstanding.
+
+### Recovered final verification and architecture (2026-11-12)
+
+- The graphical input-driven fresh-save run completed all M01–M21 and C01–C03,
+  with normal rewards and 441 coins. M15, M18 and M20 were saved, exited and
+  resumed through Continue. Screenshots, raw driver failures and final save are
+  retained under `evidence/linux_quality_2026-11-12/`. This is an input driver,
+  not an uninterrupted human usability session.
+- A second, post-refactor graphical-backend replay with rendering disabled has
+  also completed all 24 missions and 441 coins. Its first M19 route aimed through
+  completed park furniture; the driver was corrected to drive around it and
+  Continue completed the run. No counters/money were seeded or actors teleported.
+- Final graphical `--selftest-quality` passed **17/0 at both 1280×720 and
+  1920×1080**. Covers camera release during pause, positive held-button orbit,
+  pickup priorities/visibility, a 60-shop orphan soak, four real grounded curb
+  approaches, collected-crate focus, tall-wall/headroom rejection and cancelling
+  a queued music fade on stop. Small-step traversal fixes the reproduced city bug.
+- Production Main is now 2,163 lines (from 6,062), MissionService 503 (from
+  1,128), CityActorPool 227 (from 661). GameSession is the live facade;
+  composition controllers and a HUD presenter own activities/presentation.
+  Mission activities, actor visuals, diagnostic fixtures and test phases are
+  split into focused files. See `docs/ARCHITECTURE.md` for boundaries and SOLID review.
+- All 134 pure tests passed. Build after isolated NuGet restore has zero warnings
+  and errors. A previous restore reused a read-only home HTTP cache and emitted
+  NU1900; force-restoring with a writable cache corrected the environment.
+- Linux export initially returned 0 despite a failed .NET publish: first a
+  read-only build-log directory, then .NET mutex storage under `/run/user/1000`.
+  Isolating XDG data/config/cache/runtime corrected both. Initial failed logs are
+  preserved; exit code alone is not treated as proof of a usable export.
+- Audio assets and mix are unchanged. Stopping a pending fade is now covered.
+  Title boot/quit is clean, but immediate test/process exit after gameplay can
+  still report native audio playback resources (WAV/OGG) at engine shutdown.
+  These warnings are retained and are not described as a clean full teardown.
+- Final source/package runtime suite, real-GPU measurements and PR results follow
+  in the Linux quality report when complete. Windows gameplay remains outside
+  the requested scope; existing CI jobs remain intact.
+
+### Hardware measurements and source gate
+
+- All twelve final source runtime phases passed: **1300/0**. Graphical regressions
+  remain **17/0** at 720p and 1080p; pure tests **134/0**.
+- Host hardware confirmed AMD Radeon 890M, Mesa 26.0.8 / OpenGL 4.6. Baseline
+  `a429791` plus identical measurement-only instrumentation was compared with
+  this branch at 720p and 1080p, with matched full-save fixtures and disabled
+  vsync. A final static-only sequential set excluded an early run overlapping
+  export. Allocation fell in every stage (~368–594 B/frame), but frame timings
+  vary; the +1 ms town budget and consistent 60 fps p95 are **not established**.
+  Current 1080p town p95 reached 19.08 ms in the second set.
+- Both physical city-return drives completed (~87.6 s). Current p95 11.93 ms;
+  max tracked LOD-window frame 23.58 ms. Seven frames exceeded 33 ms, with one
+  unattributed 241.74 ms maximum outside those windows. Cold activation also
+  stalls (startup ~2–3 s, first city approach up to ~0.53 s). No hitch-free or
+  uniformly faster rendering claim is made. These are full frame intervals on
+  hardware, not GPU timestamp queries. See `docs/LINUX_QUALITY_PASS.md` and raw
+  GPU evidence for exact tables, variation, counters and remaining profiling work.
+- The first GPU drive failed at x=48.71 on the diagnostic autopilot's river
+  guard. Profiling was corrected to use the approach/city route east of the
+  bridge; normal input-driven bridge crossing already passed. Failure retained.
+- Linux release export now completes without logged errors/warnings using
+  isolated writable XDG and NuGet caches. Final exported-binary checks are in
+  progress. No Windows gameplay verification or new release publication.
+
+### Final Linux package gate — PASS (functional checks)
+
+- The self-contained final Linux release executable booted and passed all twelve
+  runtime phases: **1300 passed / 0 failed**. Its graphical quality suite passed
+  **17/0** at 720p. Source graphical checks passed **17/0** at both resolutions;
+  pure tests passed **134/0**. Build/export have no final errors/warnings.
+- Local review executable: `/tmp/patchwork-quality-export/PatchworkIsland.x86_64`;
+  SHA-256 is recorded in the evidence directory. Gameplay source commit:
+  `b3295e8`. Subsequent commit consolidates docs/evidence only.
+- All rendered M01–M21/C01–C03 completion captures, final normal saves, positive
+  and failed harness/environment logs, GPU measurements/captures and native
+  shutdown warnings are retained in `evidence/linux_quality_2026-11-12/`.
+- Functional Linux checks pass. Performance release gates are not claimed:
+  variable 1080p timing, cold activation stalls and rare unclassified hitches
+  remain documented. No Windows gameplay or new audio sign-off is required by
+  this task; no release/tag is published.
+- Remote fetch initially failed on system SSH proxy configuration ownership.
+  Per-command `core.sshCommand=ssh -F /dev/null` works; no global SSH settings
+  changed. `origin/main` still matches the reviewed base.

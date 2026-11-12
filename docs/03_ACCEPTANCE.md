@@ -1,5 +1,10 @@
 # Verification / acceptance checklist — city expansion v1.4.0
 
+> Current unreleased Linux quality results and the baseline comparison are in
+> [the Linux quality report](LINUX_QUALITY_PASS.md).
+> The release-specific results below are retained as historical evidence.
+
+
 ## Asset smoke checks
 - [x] Import project with Godot 4.7.2 .NET and no missing scene resources.
 - [x] Confirm `CityDistrict.tscn` contains nine city blocks, four north/south +

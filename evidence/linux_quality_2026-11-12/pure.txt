@@ -1,0 +1,136 @@
+PASS  session replacement binds village, city and activity handlers to one save
+PASS  authored mission quantities agree with executable rules
+PASS  catalog contains twenty village missions plus the roadworks unlock
+PASS  initial availability and prerequisites
+PASS  starting a job and switching preserves progress
+PASS  duplicate pickup is rejected and not consumed twice
+PASS  M01 cannot complete early; completion awards 10 exactly once
+PASS  M01 unlock opens M04
+PASS  M02 counts 5 wood + 3 stone and awards 12 once
+PASS  locked mission cannot start
+PASS  completed mission cannot be restarted for another reward
+PASS  picking items for an inactive job is rejected
+PASS  hints progress through the authored layers
+PASS  grocery arithmetic and task budget
+PASS  M04 uses only the task purse and awards 12 once
+PASS  bridge snap order, invalid placement and completion
+PASS  bridge rules are independent and enforce seven sockets
+PASS  checkpoint gates must be taken in order
+PASS  optional race bonus never blocks completion
+PASS  two-stop post enforces parcels and destination types
+PASS  M07 swing assembly enforces ropes and seats
+PASS  M08 park budget, pad uniqueness and undo
+PASS  M10 furniture cost and house prerequisites
+PASS  M10 free starter set prevents a currency softlock
+PASS  all ten jobs form a completable graph
+PASS  chapter two unlocks only after all ten original jobs
+PASS  M11 grants cards once, refuses wrong names and pays 12 once
+PASS  M12 branches from M11 and rejects wrong quantities without loss
+PASS  M13 keeps wrong-shelf books and pays 14 once
+PASS  M14 validates sign and arrow, allows undo and pays 16 once
+PASS  M15 repeats the colour pattern, allows correction and pays 16 once
+PASS  M15 final plant awards 16 once and opens M16 with M14
+PASS  M12 and M13 branch in either order
+PASS  M16 loads once, preserves wrong parcels and pays 20 once
+PASS  M17 uses a separate 20-coin purse and pays 22 once
+PASS  M18 enforces tyre-lamp-battery order without losing parts
+PASS  M18 partial pickup survives save and cannot respawn
+PASS  M19 has six ordered gates and a 155-second optional medal
+PASS  M20 follows invite-table-lantern and pays 30 once
+PASS  M19 six-gate progress survives save and reload
+PASS  finale partial progress saves and reloads
+PASS  all twenty jobs complete in one clean-save walkthrough
+PASS  v1.1 ten-complete save keeps possessions and opens M11
+PASS  chapter-two partial progress survives save and reload
+PASS  schema 3 village save gains closed-city defaults without losing progress
+PASS  schema 2 original-ten save upgrades to the current schema intact
+PASS  celebration and festival markers require their own finales
+PASS  fresh customisation state is safe and child-friendly
+PASS  buying an outfit deducts coins once, owns it and wears it
+PASS  insufficient coins cannot buy an outfit
+PASS  only owned outfits can be equipped
+PASS  gender preset changes presentation without spending coins
+PASS  customisation survives a save/load round trip
+PASS  older saves default customisation safely
+PASS  schema 1 saves migrate to the current schema with all progress intact
+PASS  invalid customisation data is rejected, not silently repaired
+PASS  new game data clears purchased outfits
+PASS  job rewards stay exact after buying clothes
+PASS  save files round trip atomically and keep a backup
+PASS  damaged save recovers the backup and quarantines the bad file
+PASS  incompatible newer schema 5 and 99 saves are rejected without modification
+PASS  structurally invalid nested records are rejected
+PASS  unknown and conflicting placements are rejected
+PASS  invalid mission references and counters are rejected
+PASS  a corrupt main save never replaces a good backup
+PASS  saving over a corrupt main keeps the good backup
+PASS  a minimal historical save gets safe defaults
+PASS  unrecoverable corruption is reported, not loaded
+PASS  completed world jobs require their physical state
+PASS  a failed write leaves the previous save intact
+PASS  save/reload cannot duplicate a mission reward
+PASS  game state survives a JSON round trip
+PASS  control ownership has one deterministic mode
+PASS  race elapsed time survives save and reload
+PASS  mission catalogue is complete and matches the content source
+PASS  mission consistency catches previously unchecked fields
+PASS  mission consistency rejects duplicate object properties
+PASS  missing mission content fails integrity validation
+PASS  invalid numeric data is refused before writing
+PASS  explicit overwrite preserves a newer save
+PASS  missing main save recovers the backup
+PASS  M10 rearrangement remains saveable after completion
+PASS  completed M10 with every piece unplaced still saves
+PASS  later mission progress survives an unplaced post-completion chair
+PASS  M10 still needs physical placements to complete
+PASS  long race times remain saveable and do not poison later saves
+PASS  switching away from a race preserves its elapsed time
+PASS  race timer saturates instead of overflowing and round-trips
+PASS  optional race bonuses use exact boundaries
+PASS  mission completion rejects invalid bonus values
+PASS  race bonuses are verified against the persisted race clock
+PASS  swing placement rejects unknown part types
+PASS  furniture ownership is capped in the domain
+PASS  save feedback never confirms a failed manual save
+PASS  automatic save failures are visible and throttled until recovery
+PASS  settings failures are visible without suppressing autosave warnings
+PASS  mission-completion save failure is always reported
+PASS  session save state does not claim a failed new game was persisted
+PASS  new game after backup recovery keeps Continue when the write fails
+PASS  discarding an unsaved session cannot continue it
+PASS  newer replacement permission is session-scoped and retryable
+PASS  forced save failures do not change the on-disk save
+PASS  audio manifest validates every shipped loop and effect
+PASS  audio buses route music separately from effects and vehicles
+PASS  rally course is one continuous inside-island loop
+PASS  rally gate layouts preserve four-gate races and add six M19 gates
+PASS  six named villagers have verified patrols
+PASS  traffic routes are sparse, road-bound and station safe
+PASS  free-roam traffic follows one shared village loop
+PASS  traffic following rule has a single deterministic right of way
+PASS  traffic keeps a safe gap over six complete loops
+PASS  historical v1.2.1 manifest stays separate from v1.3.0
+PASS  rally centreline does not self-overlap its own road width
+PASS  partial four-gate progress survives the enlarged circuit
+PASS  gameplay anchors match the historical v1.2.1 manifest with canonical overrides
+PASS  playground anchor and worksite follow the authored scene
+PASS  all six building gables sit on the ridge ends
+PASS  celebration banner is compact, free-standing and double-faced
+PASS  directional signpost is one clean stack away from Milo
+PASS  world flags and vehicle status labels avoid billboard clipping
+PASS  panel-mounted world signs use two fixed faces
+PASS  bunting never casts rectangular road shadows
+PASS  authored road slabs, road colliders and RoadNetwork agree
+PASS  authored buildings keep source centres and wall dimensions
+PASS  authored town keeps static collision and dynamic finale roots
+PASS  scene NPC and traffic markers match the authored routes
+PASS  M21 is gated after the full required chain, not after optional racing
+PASS  Roadworks Rescue requires 3 cones + 2 panels + toolbox, then a 6/order check
+PASS  M21 completion and CityRoadOpen persist without changing M01-M20 semantics
+PASS  city job catalogue is distinct and C01-C03 are playable
+PASS  city progress, wallet and road state survive save/reload
+PASS  city save validation rejects impossible road and job states
+PASS  city logical simulation is deterministic and bounded at 30 minutes
+PASS  city scene contracts preserve authored layout, joins and collision
+
+RESULT: 134 passed, 0 failed

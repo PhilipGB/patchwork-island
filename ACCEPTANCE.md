@@ -1,5 +1,10 @@
 # First playable acceptance contract — final result
 
+> Current unreleased Linux quality results and the baseline comparison are in
+> [the Linux quality report](docs/LINUX_QUALITY_PASS.md).
+> The release-specific results below are retained as historical evidence.
+
+
 **Rule:** Do not mark an item PASS unless exercised with a real game build or an
 appropriate automated test. This file records the P8 release result and the P9
 v1.1.0 character addendum.
