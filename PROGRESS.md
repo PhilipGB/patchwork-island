@@ -3021,3 +3021,19 @@ byte-identical and passed its boot and `--selftest-city` (**82/0**) checks. The
 Windows export is a self-contained PE32+ x86-64 executable reporting file and
 product version `1.4.0.0`; **Windows startup is NOT TESTED**. The release is
 marked pre-release so it does not replace v1.3.0 as the latest stable release.
+
+
+## Independent review — 2026-11-12
+
+Reviewed `a429791` at the user’s request; no gameplay source changed. Full findings and next steps: `docs/REPO_REVIEW_2026-11-12.md`. Evidence: `evidence/review_2026-11-12/`.
+
+- `dotnet build PatchworkIsland.sln`: PASS, zero warnings/errors.
+- `dotnet run --project tests/PatchworkIsland.Tests.csproj`: 132/0.
+- Runtime `--selftest`: 284/0; `--selftest-traversal`: 18/0; `--selftest-city`: 129/0. Successful runtime checks used `XDG_DATA_HOME=/tmp/patchwork-review-tests`.
+- First runtime attempt using the default home directory failed (150 passed / 4 failed, missing selftest save). That location is outside the sandbox writable roots. Isolated writable-directory rerun passed; initial failure log retained.
+- Graphical 720p test on Xvfb/llvmpipe: fresh title → character → M01 → three apple pickups → RED HOUSE → +10 coins. Separate prepared M03 scenario: real clicks placed 3 supports + 4 planks, opened bridge and awarded +20. Pause/resume and camera tested with real X input.
+- CONFIRMED defect: hold right mouse → pause → release right while paused → resume → unheld mouse motion still orbits. Before/after captures preserve identical player coordinates.
+- Code finding: GroceryUi and FurnitureShopUi are unparented Node controllers without explicit freeing. Repeated-open orphan-count soak remains unexecuted.
+- Observed visual/UX issues: jagged roof shadows, duplicate E keycap/prompt, inactive later-job objects competing with the first delivery.
+- Graphical verification gaps: no continuous all-mission playthrough, no Windows launch, no hardware GPU timing or audio listening (dummy driver), no child playtest. Other runtime phases were not rerun.
+- Recommended next: camera/lifetime fixes and regressions; continuous fresh-save and Windows playthrough; child usability sessions; shadow/clarity pass and frame-time profiling; incremental Main.cs extraction and release-document consolidation before more content.
