@@ -2900,6 +2900,19 @@ regression produces two failures; with the fix it passes.
 City runtime is **129 passed, 0 failed**; source runtime is
 **1300 passed, 0 failed**.
 
+PR [#33](https://github.com/PhilipGB/patchwork-island/pull/33) merged as
+`4ffd856`. **v1.4.2** is published as a pre-release at `4ffd856`:
+[release](https://github.com/PhilipGB/patchwork-island/releases/tag/v1.4.2).
+The v1.4.0 and v1.4.1 tags/releases remain unchanged. The packaged v1.4.2
+Linux artifact booted and passed all twelve phases (1300/1300, city 129/129):
+
+```text
+dist/release-v1.4.2/linux/PatchworkIsland.x86_64
+sha256 d52d0f6768cbccde383671f1ddf792949b52bc963c8686f94337d72f3d7f5aa2
+dist/release-v1.4.2/windows/PatchworkIsland.exe
+sha256 64ee41e60ee26195b8bbe78f0115b4bf87c8089047be69c2a7728b404446a2ed
+```
+
 ### Performance — real AMD Radeon 890M
 
 Final-tree probe, vsync disabled, 240 frames per stage. Full method and
