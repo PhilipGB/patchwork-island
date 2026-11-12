@@ -116,3 +116,11 @@ collision follows the authored square footprint (local ±180 m), not a radius.
 This keeps the whole outer carriageway — including corners ~187 m from the
 centre — supported, while the town centre remains outside the footprint and
 cannot interact with unreachable city paving.
+
+## Loaded saves
+
+Loading a save rebinds the town and city mission services to the loaded
+`GameData` in one place (`AdoptLoadedData`). In particular, the city board and
+`CityMissionService` must share the loaded `CityRoadOpen`; a stale service would
+reject city jobs on an open road. A runtime regression loads a real save, opens
+its road and starts C01.

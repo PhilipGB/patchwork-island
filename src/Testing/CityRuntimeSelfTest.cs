@@ -42,6 +42,7 @@ public partial class CityRuntimeSelfTest : Node
             await CityTraversalChecks();
             await CityOuterLoopCollisionChecks();
             SaveRoundTripChecks();
+            LoadedOpenRoadCityChecks();
         }
         catch (Exception ex)
         {
@@ -494,6 +495,42 @@ public partial class CityRuntimeSelfTest : Node
         }
         finally
         {
+            try
+            {
+                if (File.Exists(path)) File.Delete(path);
+                if (File.Exists(path + ".bak")) File.Delete(path + ".bak");
+            }
+            catch
+            {
+                // Test cleanup only.
+            }
+        }
+    }
+
+    private void LoadedOpenRoadCityChecks()
+    {
+        var original = Main.RtData;
+        string path = ProjectSettings.GlobalizePath("user://selftest-city-open-road.json");
+        try
+        {
+            // Load a valid minimal save through the real load path, then mark
+            // its road open in memory. If the city service kept the pre-load
+            // GameData, it would still see a closed road and reject the job.
+            SaveService.Save(new GameData(), path, Main.RtCatalog);
+            Main.RtLoadSaveForTest(path);
+
+            Expect(ReferenceEquals(Main.RtCityMissionData, Main.RtData),
+                "the city job service follows the loaded save");
+            Main.RtData.CityRoadOpen = true;
+            Expect(Main.RtCityMissionData.CityRoadOpen,
+                "an open road on the loaded save reaches the city job service");
+            var started = Main.RtStartCityMission("C01");
+            Expect(started.Success,
+                "a loaded open-road save can start a city job: " + started.Message);
+        }
+        finally
+        {
+            Main.RtAdoptLoadedDataForTest(original);
             try
             {
                 if (File.Exists(path)) File.Delete(path);
