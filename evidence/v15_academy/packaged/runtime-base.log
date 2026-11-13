@@ -1,4 +1,4 @@
-COMMAND: /home/philip/.cache/tmp/opencode/pr35-verified-d8ociq8_/export/PatchworkIsland.x86_64 --headless --audio-driver Dummy -- --selftest
+COMMAND: /home/philip/.cache/tmp/opencode/pr35-verified-qgyd6eok/export/PatchworkIsland.x86_64 --headless --audio-driver Dummy -- --selftest
 Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
 
 [WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 158 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.

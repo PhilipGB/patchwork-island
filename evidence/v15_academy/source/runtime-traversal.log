@@ -10,16 +10,20 @@ PASS  traversal test enters the van
 PASS  van crosses the bridge and east road seam (x=93.7, start=47.0)
 PASS  van keeps moving across the bridge
 PASS  traversal test leaves the van
-PASS  slow van crosses the bridge/connector seam (x=73.9)
-PASS  van crosses the bridge at lateral offset z=-2.2 (x=85.7)
+PASS  slow van crosses the bridge/connector seam (x=74.5)
+PASS  van crosses the bridge at lateral offset z=-2.2 (x=85.9)
 PASS  bridge seam has no vertical step at lateral offset z=-2.2
-PASS  van crosses the bridge at lateral offset z=2.2 (x=85.7)
+PASS  van crosses the bridge at lateral offset z=2.2 (x=85.9)
 PASS  bridge seam has no vertical step at lateral offset z=2.2
-PASS  van crosses the bridge westbound (x=34.5)
+PASS  van crosses the bridge westbound (x=34.3)
 PASS  westbound bridge seam has no vertical step
 PASS  player walks from grass onto the rally road near the four-gate gate 1 (moved 8.9m)
 PASS  player can jump near the four-gate gate 1
-PASS  player walks from grass onto the rally road near the grand gate 1 (moved 9.1m)
+PASS  player walks from grass onto the rally road near the grand gate 1 (moved 9.2m)
 PASS  player can jump near the grand gate 1
-PASS  player starts from rest at the road lip and walks onto the shoulder (moved 12.3m)
+PASS  player starts from rest at the road lip and walks onto the shoulder (moved 12.2m)
 RUNTIME RESULT: 18 passed, 0 failed
+WARNING: 6 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 2 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)

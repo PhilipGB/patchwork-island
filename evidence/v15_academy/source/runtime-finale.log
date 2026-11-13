@@ -85,7 +85,7 @@ PASS  M18: completion modal opens
 PASS  M18: closing completion resumes walking
 PASS  M19 autopilot prepared
 PASS  Pip's rally rival is present
-RACE_TIME M19 22.34s bonus=5
+RACE_TIME M19 22.31s bonus=5
 PASS  M19 completes through real driving
 PASS  M19 reaches all six gates
 PASS  M19 reward and medal total 30 coins
@@ -146,3 +146,7 @@ PASS  original M10 celebration marker survives
 PASS  completed festival save continues
 PASS  second finale does not reopen after Continue
 RUNTIME RESULT: 140 passed, 0 failed
+WARNING: 6 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 2 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)

@@ -5,9 +5,9 @@ identify the tested code in `evidence/v15_academy/source/head.txt`; historical
 walkthrough/performance evidence is explicitly distinguished below. See
 `evidence/v15_academy/PROVENANCE.md` for the original base-commit correction.
 
-Verification at code commit `c6cb6b1`: pure **146/146**, source runtime
-**1448/1448** across 13 phases, packaged runtime **1448/1448**, source and
-packaged graphical quality **22/22** each, packaged graphical academy **137/137**.
+Verification at code commit `5a0abda`: pure **146/146**, source runtime
+**1455/1455** across 13 phases, packaged runtime **1455/1455**, source and
+packaged graphical quality **22/22** each, packaged graphical academy **144/144**.
 
 ## A. Asset and scene contract
 
@@ -54,7 +54,7 @@ packaged graphical quality **22/22** each, packaged graphical academy **137/137*
 | ID | Result | Evidence |
 |---|---|---|
 | P3-A1 | PASS | CI runs the graphical quality gate on the source build under Xvfb with disposable XDG dirs, and on the exported binary under Xvfb. |
-| P3-A2 | PASS | The exported Linux binary passes the packaged graphical academy gate (137 assertions including pedestrian checks, lateral signal bypasses, directional entry, full R restart and zebra-crossing bypass regressions). |
+| P3-A2 | PASS | The exported Linux binary passes the packaged graphical academy gate (144 assertions including pedestrian checks, lateral signal bypasses, directional entry, full R restart and zebra-crossing bypass regressions, plus HUD guidance/step checks). |
 | P3-A3 | PASS | Every packaged run uses disposable XDG data/config/cache; `packaged/hash.txt` records the SHA-256 of the exported binary; `packaged/head.txt` identifies the tested code. |
 | P3-B1 | PASS | C02 crate availability requires an active C02, an open road, an unfinished C02 and an unconsumed crate. |
 | P3-B2 | PASS | Consumed, switched-away and completed crates lose E focus; restoring C02 regains it. Covered by runtime and graphical quality checks. |
@@ -68,5 +68,5 @@ packaged graphical quality **22/22** each, packaged graphical academy **137/137*
 | E03 | PARTIAL | Academy isolation is proven by the 30-cycle venue test and the runtime academy phase. The full 24-mission graphical walkthrough is incomplete at M16 (see C03); this is reported, not claimed. |
 | E04 | PARTIAL | Historical pre-review same-hardware 720p/1080p p50/p95/max, draw calls and primitives remain in `performance.log`. The 230 ms academy-entry maximum is a one-time course load, reported as-is; software Xvfb numbers are labelled separately. Performance has not been remeasured after these safety fixes. |
 | E05 | NOT TESTED | Windows build/pure tests run in CI; Windows gameplay startup could not be tested here. |
-| E06 | PASS | 18 screenshots in `evidence/v15_academy/screenshots/`, captured from code commit `c6cb6b1` at both resolutions. |
+| E06 | PASS | 18 authored screenshots in `evidence/v15_academy/screenshots/` at both resolutions, plus the 52 real-input playthrough captures in `evidence/v15_academy/graphical/walkthrough/`, all from code commit `5a0abda`. |
 | E07 | PASS | PR #35 opened against the verified base; the code head, CI state and any discrepancy are recorded in `PROGRESS.md` and on the PR. No merge, tag or release. |

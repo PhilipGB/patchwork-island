@@ -1,7 +1,7 @@
-COMMAND: /home/philip/.cache/tmp/opencode/pr35-verified-d8ociq8_/export/PatchworkIsland.x86_64 --headless --audio-driver Dummy -- --selftest-hotfix
+COMMAND: /home/philip/.cache/tmp/opencode/pr35-verified-qgyd6eok/export/PatchworkIsland.x86_64 --headless --audio-driver Dummy -- --selftest-hotfix
 Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
 
-ERROR: Traffic 'town_scooter' left the island at (-35.58891, -6.005, -2); route stopped.
+ERROR: Traffic 'town_scooter' left the island at (-35.535576, -6.005, -2); route stopped.
    at: bool Godot.Node.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (:0)
    C# backtrace (most recent call first):
        [0] void PatchworkIsland.TrafficCar._PhysicsProcess(double) (/home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Traffic/TrafficCar.cs:203)

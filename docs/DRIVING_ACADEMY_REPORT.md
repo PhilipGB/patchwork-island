@@ -103,13 +103,65 @@ not evidence that a real-input walkthrough passes the corrected rules.
   heads are distinct. Historical performance and real-input walkthrough logs
   are explicitly labelled, not silently attributed to the corrected code.
 
+## Real-input playthrough review (2026-11-13)
+
+Six fresh/continue real-input playthroughs of the complete academy (cone job →
+enrolment → L01–L06 → TEST01 → licence) were driven with keyboard, E-interact
+and menu input only, under Xvfb 1280×720 with disposable XDG directories, and
+52 screenshots captured per full run. Findings and in-scope fixes:
+
+- **Coin chip staleness**: the HUD chip did not refresh after paid cone rounds
+  and enrolment until an unrelated later path updated it. The chip is now set
+  immediately when wallet changes succeed.
+- **L04 HUD step counter** froze at "Step 1 of 3" even while the controller
+  tracked stop/green internally. The counter now advances on a held stop at
+  the line and on a lawful green entry.
+- **Wayfinding**: L02 gates and L06 checkpoints carry no on-scene numbering and
+  the HUD named no target; the L06 hint referenced arrows that do not exist.
+  The lesson HUD now shows a per-stage "Next marker: N m direction" line and
+  the hint was rewritten.
+- **Signal-head occlusion**: the top-centre lesson panel covered the traffic
+  light's head from the learner's stop-line view (projection ≈ screen
+  (426, 203)); only a pole sliver showed. The panel now sits top-right and the
+  lit lens is fully visible at the decision point. A past-line close-up
+  confirms the lens materials and shadow-casting behave correctly.
+- **Mirrored Label3D text**: STOP/GIVE WAY/speed/L-plate/yard text rendered
+  double-sided and read mirrored from behind; all academy labels are now
+  single-sided.
+- **Driver-timing findings** (harness, not game rules): an idle after green
+  crossed on amber (green is 8 s and the amber rule is fair), and crossing the
+  zebra inside the pedestrian's first-3.5-s green window is a major offence.
+  The walkthrough now starts promptly on green, skips stale greens, and
+  crosses the zebra during the red phase with a mid-approach yield guard.
+- Final state: a fresh save passes the whole academy on the first TEST01
+  attempt ("Perfect drive"), the licence and 5-coin gift are granted, and the
+  post-licence school board lists all six lessons as replayable.
+
+Logs and captures: `evidence/v15_academy/graphical/walkthrough-fresh-save.log`
+and `evidence/v15_academy/graphical/walkthrough/` (52 screenshots). The runtime
+academy suite grew to 144 checks (L02/L06 guidance text, L04 step progression).
+
+## Fresh verification (tested code commit `5a0abda`)
+
+- Build 0 warnings/errors; pure **146/146**; headless import and source/packaged
+  boot exit 0. All 13 source phases **1455/1455** and all 13 packaged phases
+  **1455/1455** (academy phase now 144). Source graphical quality **22/22**,
+  packaged graphical quality **22/22**, packaged graphical academy **144/144**
+  under Xvfb with disposable XDG directories.
+- The real-input fresh-save walkthrough above completed with exit 0, licence
+  earned on the first TEST01 attempt; all 52 of its screenshots are committed.
+- `evidence/v15_academy/source/head.txt` and `packaged/head.txt` name
+  `5a0abda…` before execution; export SHA-256 refreshed in `packaged/hash.txt`;
+  `SHA256SUMS` regenerated over all 119 evidence files and `sha256sum -c` passes.
+
 ## Evidence
 
 - `evidence/v15_academy/source/` — import, pure, 13 source phases, quality and
   capture logs with `summary.txt` exit codes.
 - `evidence/v15_academy/packaged/` — export log, binary hash, boot, 13 packaged
   phases, packaged graphical quality/academy.
-- `evidence/v15_academy/graphical/` — the fresh-save walkthrough logs.
+- `evidence/v15_academy/graphical/` — the fresh-save real-input walkthrough log
+  plus `walkthrough/` with all 52 playthrough screenshots of the reviewed run.
 - `evidence/v15_academy/screenshots/` — 9 categories × 720p/1080p, including the
   coloured pedestrian; developer state setup is used for captures.
 - `evidence/v15_academy/performance.log` — frame-interval probe.

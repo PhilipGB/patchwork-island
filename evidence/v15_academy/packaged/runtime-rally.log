@@ -1,4 +1,4 @@
-COMMAND: /home/philip/.cache/tmp/opencode/pr35-verified-d8ociq8_/export/PatchworkIsland.x86_64 --headless --audio-driver Dummy -- --selftest-rally
+COMMAND: /home/philip/.cache/tmp/opencode/pr35-verified-qgyd6eok/export/PatchworkIsland.x86_64 --headless --audio-driver Dummy -- --selftest-rally
 Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
 
 [WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 158 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.
@@ -7,12 +7,12 @@ PASS  rally test starts on the title screen
 PASS  rally test starts a fresh village
 PASS  M05 autopilot prepared
 PASS  M05 autopilot owns the van
-RACE_TIME M05 19.02s bonus=5
+RACE_TIME M05 18.97s bonus=5
 PASS  M05 completes through real driving
 PASS  M05 reaches all four gates
 PASS  M09 autopilot prepared
 PASS  M09 autopilot owns the van
-RACE_TIME M09 18.99s bonus=5
+RACE_TIME M09 18.98s bonus=5
 PASS  M09 completes through real driving
 PASS  M09 reaches all four gates
 RUNTIME RESULT: 10 passed, 0 failed

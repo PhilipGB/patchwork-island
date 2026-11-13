@@ -12,7 +12,12 @@
    Each completed round pays **3 coins** and is saved. A wrong cone resets the
    round without charge.
 4. Six lessons use the isolated authored course. The learner car is the supplied
-   `TrainingCar_Visual.tscn` under the existing `VanController` physics.
+   `TrainingCar_Visual.tscn` under the existing `VanController` physics. While a
+   stage is active, a lesson HUD in the screen's top-right shows the stage
+   title, step counter, plain-language hint, a "Next marker: N m direction"
+   wayfinding line to the current target marker, live speed and the signal
+   state. It is placed there so the traffic-signal head stays visible from the
+   learner's stop-line view.
 5. The final assessment allows **three minor notes and zero major errors**.
    Passing issues the official licence and a one-time **5-coin** graduation
    gift. The school stays open for free practice.
@@ -48,7 +53,8 @@
   one second of reaction travel plus braking at the learner car's 11 m/s².
   Accelerating towards the line after amber starts cannot create an exception.
 - The pedestrian is configured after selecting L04/TEST01, restored on reset,
-  and moves across the lane in crossing-marker local space.
+  and moves across the lane in crossing-marker local space during the first
+   3.5 s of every green phase, waiting at the kerb otherwise.
 - TEST01 requires a lawful signal entry and forward traversal of the authored
   crossing rectangle (marker-local half-width 6 m, half-length 3 m). A side
   detour, reverse traversal or side exit cannot satisfy the crossing checkpoint.

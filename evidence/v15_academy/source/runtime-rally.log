@@ -8,7 +8,7 @@ PASS  rally test starts on the title screen
 PASS  rally test starts a fresh village
 PASS  M05 autopilot prepared
 PASS  M05 autopilot owns the van
-RACE_TIME M05 18.85s bonus=5
+RACE_TIME M05 18.98s bonus=5
 PASS  M05 completes through real driving
 PASS  M05 reaches all four gates
 PASS  M09 autopilot prepared
@@ -17,3 +17,7 @@ RACE_TIME M09 18.98s bonus=5
 PASS  M09 completes through real driving
 PASS  M09 reaches all four gates
 RUNTIME RESULT: 10 passed, 0 failed
+WARNING: 8 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 2 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)

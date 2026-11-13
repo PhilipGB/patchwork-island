@@ -59,6 +59,12 @@ rules; it is not a corrected-code real-input academy pass. The new runtime gates
 exercise those fixes, but a fresh real-input academy/campaign walkthrough has
 not been repeated. The full-campaign status remains PARTIAL.
 
+`graphical/walkthrough-fresh-save.log` and `graphical/walkthrough/` (52
+screenshots) are the 2026-11-13 real-input academy playthrough of the reviewed
+code: a fresh save completes the cone job, enrolment, L01–L06 and TEST01 on the
+first attempt and earns the licence. This covers the academy only; the
+full-campaign walkthrough above is unchanged and remains PARTIAL.
+
 ## Packaged Linux
 
 `packaged/` contains the exported binary's boot, runtime, graphical and hash

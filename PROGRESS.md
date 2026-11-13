@@ -3282,3 +3282,46 @@ Final verification at the PR head (logs and hashes in `evidence/v15_academy/`):
 - Historical real-input full-campaign and performance limitations, Windows
   startup and human usability gaps remain unchanged and explicitly unverified.
 - No merge, retarget, tag or release. PR #34 remains untouched at `db7a7db`.
+
+## Academy real-input playthrough review (2026-11-13) — PASS
+
+- PR status change: **PhilipGB merged PR #35 (head `d4eb55f`) and PR #34
+  (`db7a7db`, untouched) at 2026-11-13T12:07Z**. The playthrough-review work
+  below lands on top of the merged branch as a follow-up PR.
+- Review method: six real-input playthroughs of the complete academy (cone job
+  → enrolment → L01–L06 → TEST01 → licence) under Xvfb 1280×720 with disposable
+  XDG directories, driven only by keyboard/E/menu input, with screenshots at
+  every stage. Every PNG inspected. The definitive fresh-save run passed the
+  whole academy on the first TEST01 attempt ("Perfect drive", step 4, licence
+  earned, 5-coin gift, 52 captures).
+- Findings fixed in-scope (code commit `5a0abda` over `d4eb55f`):
+  - Coin chip stale after paid cone rounds and enrolment — refresh added.
+  - L04 HUD step counter frozen at "Step 1 of 3" — advances on held stop and
+    lawful green entry now.
+  - No wayfinding: L02/L06 targets unnamed in HUD; L06 hint referenced
+    non-existent arrows — per-stage "Next marker: N m direction" line added,
+    hint rewritten.
+  - Traffic-signal head occluded by the top-centre lesson panel from the
+    learner's stop-line view (projected ≈ (426, 203), verified analytically
+    against authored landmarks and by past-line close-ups) — panel moved
+    top-right; lens now fully visible at the decision point.
+  - Mirrored Label3D sign text (STOP/GIVE WAY/L-plate/yard numbers) — all
+    academy labels single-sided now.
+  - Walkthrough driver timing (harness, not game rules): post-green idle
+    crossed on amber; zebra crossed inside the pedestrian's first-3.5-s green
+    window. Driver now starts promptly on green, skips stale greens and
+    crosses the zebra during the red phase with a mid-approach yield guard.
+- Runtime academy suite: **144 passed, 0 failed** (adds L02/L06 guidance-text
+  and L04 step-progression checks). Pure tests 146/146.
+- Fresh full gates at `5a0abda` (recorded in both `head.txt` files before
+  execution): build clean; source 13 phases **1455/1455**; packaged 13 phases
+  **1455/1455**; source and packaged graphical quality **22/22**; packaged
+  graphical academy **144/144**; export SHA-256 refreshed; `SHA256SUMS`
+  regenerated over 119 evidence files and `sha256sum -c` passes.
+- Evidence refreshed: `evidence/v15_academy/source/`, `packaged/`,
+  `screenshots/` (18 authored captures at 720p/1080p),
+  `graphical/walkthrough-fresh-save.log` and `graphical/walkthrough/` (52
+  playthrough captures). Historical performance/walkthrough logs remain
+  labelled pre-review and are not attributed to this code.
+- Remaining limitations unchanged: no human/child usability study, Windows
+  gameplay startup untested, performance not remeasured after the fixes.
