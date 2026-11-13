@@ -11,9 +11,13 @@
 
 ## Current source verification
 
-This branch is **1.4.3-dev**, an unreleased Linux quality pass. The current
-acceptance results and limitations are in [docs/LINUX_QUALITY_PASS.md](docs/LINUX_QUALITY_PASS.md);
-architecture is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+This branch is **1.5.0-dev**, the Driving Academy release. The academy
+report, acceptance record and remaining gaps are in
+[docs/DRIVING_ACADEMY_REPORT.md](docs/DRIVING_ACADEMY_REPORT.md) and
+[docs/DRIVING_ACADEMY_ACCEPTANCE.md](docs/DRIVING_ACADEMY_ACCEPTANCE.md);
+the 1.4.3 Linux quality pass remains in
+[docs/LINUX_QUALITY_PASS.md](docs/LINUX_QUALITY_PASS.md); architecture is in
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 The v1.4.0 table later in this guide is historical.
 
 Graphical input regressions need a real display or Xvfb; headless captured-mouse

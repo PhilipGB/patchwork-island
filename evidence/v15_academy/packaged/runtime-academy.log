@@ -1,4 +1,4 @@
-COMMAND: /home/philip/.cache/tmp/opencode/pr35-verified-wc5apr67/export/PatchworkIsland.x86_64 --headless --audio-driver Dummy -- --selftest-academy
+COMMAND: /home/philip/.cache/tmp/opencode/pr35-verified-oudf8udb/export/PatchworkIsland.x86_64 --headless --audio-driver Dummy -- --selftest-academy
 Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
 
 [WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 158 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.
@@ -131,7 +131,11 @@ PASS  TEST01 moving through occupied crossing is a major offence even reversing
 PASS  TEST01 crossing offence is counted once
 PASS  TEST01 restart fixture contains major, minor and pending speed warning
 PASS  TEST01 R clears every penalty/checkpoint without charging or discarding progression
-PASS  TEST01 reset restores the waiting pedestrian
+PASS  TEST01 reset restoreWARNING: 6 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 2 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+s the waiting pedestrian
 PASS  test holds at the stop line
 PASS  wide detour cannot bypass final crossing
 PASS  bypass followed by parking cannot earn a licence

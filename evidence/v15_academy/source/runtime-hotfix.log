@@ -20,7 +20,7 @@ PASS  Save loaded.
 PASS  saved partial job is M18
 PASS  saved partial tyre count is on disk
 PASS  saved file records the collected tyre pickup
-ERROR: Traffic 'town_scooter' left the island at (-35.58891, -6.005, -2); route stopped.
+ERROR: Traffic 'town_scooter' left the island at (-35.535576, -6.005, -2); route stopped.
    at: void PatchworkIsland.TrafficCar._PhysicsProcess(double) (res://src/Traffic/TrafficCar.cs:203)
    C# backtrace (most recent call first):
        [0] void Godot.GD.PushError(string) (/root/godot/modules/mono/glue/GodotSharp/GodotSharp/Core/GD.cs:366)

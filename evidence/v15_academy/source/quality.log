@@ -18,13 +18,13 @@ PASS  locked chapter-two pickup cannot take E focus
 PASS  locked book label is hidden
 PASS  HUD does not duplicate key in action text
 PASS  60 shop opens/closes do not increase orphan Node count
-CURB move_left from=(351, -0.059338108, 0) to=(339.03137, 0.24754545, 0.4249749)
+CURB move_left from=(351, -0.059338108, 0) to=(339.3332, 0.24754544, 0.36614692)
 PASS  grounded player walks onto city plaza via move_left without jumping
-CURB move_right from=(289, -0.059338108, 0) to=(300.8672, 0.24754545, 0.4102902)
+CURB move_right from=(289, -0.059338108, 0) to=(301.07062, 0.24754542, 0.42558914)
 PASS  grounded player walks onto city plaza via move_right without jumping
-CURB move_back from=(320, -0.045255594, -34) to=(320, 0.24754544, -22.334885)
+CURB move_back from=(320, -0.045255594, -34) to=(320, 0.24754545, -22.43655)
 PASS  grounded player walks onto city plaza via move_back without jumping
-CURB move_forward from=(320, -0.045255594, 34) to=(320, 0.24754545, 22.435022)
+CURB move_forward from=(320, -0.045255594, 34) to=(320, 0.24754545, 22.130026)
 PASS  grounded player walks onto city plaza via move_forward without jumping
 PASS  collected city crates cannot keep stealing interaction focus
 STEP SAFETY x=480 finish=(480, -0.033657573, -155.11205)

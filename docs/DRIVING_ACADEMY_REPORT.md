@@ -167,19 +167,22 @@ Tests added:
   is "behind, turn left" from Checkpoint02 facing north. The runtime suite is
   now **146** checks.
 
-## Fresh verification (tested code commit `733043d`)
+## Fresh verification (tested code commit `b5becdb`)
 
 - Build 0 warnings/errors; pure **147/147**; headless import and source/packaged
   boot exit 0. All 13 source phases **1457/1457** and all 13 packaged phases
   **1457/1457** (academy phase 146). Source graphical quality **22/22**,
   packaged graphical quality **22/22**, packaged graphical academy **146/146**
   under Xvfb with disposable XDG directories.
-- The real-input fresh-save walkthrough was rerun at the corrected head: exit 0,
-  licence earned on the first TEST01 attempt; all 52 refreshed screenshots are
-  committed and now show the corrected guidance labels.
+- The real-input fresh-save walkthrough was rerun at the guidance-fix commit
+  `733043d`: exit 0, licence earned on the first TEST01 attempt; all 52
+  refreshed screenshots are committed and show the corrected guidance labels.
+  The later `b5becdb` version-metadata commit changes no gameplay code.
 - `evidence/v15_academy/source/head.txt` and `packaged/head.txt` name
-  `733043d…` before execution; export SHA-256 refreshed in `packaged/hash.txt`;
+  `b5becdb…` before execution; export SHA-256 refreshed in `packaged/hash.txt`;
   `SHA256SUMS` regenerated and `sha256sum -c` passes.
+- The v1.5.0 test release exports from `b5becdb`; the uploaded Linux binary
+  passes the packaged academy suite (146/146) from the release artifact itself.
 
 ## Evidence
 

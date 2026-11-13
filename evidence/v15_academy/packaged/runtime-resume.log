@@ -1,4 +1,4 @@
-COMMAND: /home/philip/.cache/tmp/opencode/pr35-verified-wc5apr67/export/PatchworkIsland.x86_64 --headless --audio-driver Dummy -- --selftest-resume
+COMMAND: /home/philip/.cache/tmp/opencode/pr35-verified-oudf8udb/export/PatchworkIsland.x86_64 --headless --audio-driver Dummy -- --selftest-resume
 Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
 
 WARNING: 6 ObjectDB instances were leaked at exit (run with `--verbose` for details).

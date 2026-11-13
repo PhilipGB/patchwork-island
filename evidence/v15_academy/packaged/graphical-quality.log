@@ -1,4 +1,4 @@
-COMMAND: xvfb-run --auto-servernum --server-args=-screen 0 1280x800x24 /home/philip/.cache/tmp/opencode/pr35-verified-wc5apr67/export/PatchworkIsland.x86_64 --audio-driver Dummy -- --selftest-quality
+COMMAND: xvfb-run --auto-servernum --server-args=-screen 0 1280x800x24 /home/philip/.cache/tmp/opencode/pr35-verified-oudf8udb/export/PatchworkIsland.x86_64 --audio-driver Dummy -- --selftest-quality
 WARNING: Failed to create wd.xic as the input method or its xim server may not have started yet.
      at: _create_xic (platform/linuxbsd/x11/display_server_x11.cpp:6347)
 WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
@@ -17,13 +17,13 @@ PASS  locked chapter-two pickup cannot take E focus
 PASS  locked book label is hidden
 PASS  HUD does not duplicate key in action text
 PASS  60 shop opens/closes do not increase orphan Node count
-CURB move_left from=(351, -0.059338108, 0) to=(339.33884, 0.24754545, 0.48188636)
+CURB move_left from=(351, -0.059338108, 0) to=(338.9274, 0.24754544, 0.38722172)
 PASS  grounded player walks onto city plaza via move_left without jumping
-CURB move_right from=(289, -0.059338108, 0) to=(300.76544, 0.24754544, 0.43340197)
+CURB move_right from=(289, -0.059338108, 0) to=(300.96902, 0.24754544, 0.4123948)
 PASS  grounded player walks onto city plaza via move_right without jumping
-CURB move_back from=(320.0121, -0.045597307, -33.87768) to=(320.0121, 0.24754542, -22.214973)
+CURB move_back from=(320, -0.045255594, -34) to=(320, 0.24754544, -22.334885)
 PASS  grounded player walks onto city plaza via move_back without jumping
-CURB move_forward from=(320, -0.045255594, 34) to=(320, 0.24754542, 21.928223)
+CURB move_forward from=(320, -0.045255594, 34) to=(320, 0.24754544, 22.02836)
 PASS  grounded player walks onto city plaza via move_forward without jumping
 PASS  collected city crates cannot keep stealing interaction focus
 STEP SAFETY x=480 finish=(480, -0.033657573, -155.11205)
