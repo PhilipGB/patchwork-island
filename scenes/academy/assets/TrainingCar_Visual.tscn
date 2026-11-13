@@ -180,6 +180,7 @@ mesh = SubResource("mesh_box_12")
 material_override = SubResource("mat_black")
 
 [node name="LearnerFront" type="Label3D" parent="."]
+double_sided = false
 position = Vector3(-0.25, 2.02, -0.005)
 text = "L"
 font_size = 68

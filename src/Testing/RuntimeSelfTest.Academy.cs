@@ -120,12 +120,15 @@ public partial class RuntimeSelfTest
         {
             academy.TestPlaceCar(academy.TestMarker(gate), academy.TestMarkerYaw(gate), 0f);
             await Wait(0.25f);
+            if (gate != "Lesson02_Gate03")
+                Expect(academy.TestGuidance.StartsWith("Next marker:") &&
+                       academy.TestGuidance.Contains(" m "),
+                       $"L02 HUD guides to the next gate after {gate}");
         }
         Expect(service.LessonCompleted("L02"), "L02 ordered gates complete");
         await Wait(0.3f);
         Main.Probe.PressModalButton("AcademyBackToSchool");
         await Wait(0.45f);
-
         // L03 stop line and release.
         service.StartLesson("L03");
         academy.EnterStage("L03", false);
@@ -150,10 +153,13 @@ public partial class RuntimeSelfTest
         academy.TestSetLight(AcademyLight.Red);
         academy.TestPlaceCar(academy.TestMarker("Lesson04_TrafficLight"), 180f, 0f);
         await Wait(0.3f);
+        Expect(academy.TestStep == 1, "L04 waiting stopped at the line advances to the signal step");
         academy.TestSetLight(AcademyLight.Green);
         academy.TestPlaceCar(academy.TestMarker("Lesson04_TrafficLight") +
             new Vector3(0f, 0f, 7f), 180f, 2f);
         await Wait(0.3f);
+        Expect(academy.TestStep == 2,
+            "L04 lawful green entry advances to the crossing step");
         academy.TestPlaceCar(academy.TestMarker("Lesson04_Crossing"), -90f, 0f);
         await Wait(0.3f);
         academy.TestPlaceCar(academy.TestMarker("Lesson04_GiveWay"), 180f, 0f);
@@ -192,6 +198,10 @@ public partial class RuntimeSelfTest
         {
             academy.TestPlaceCar(academy.TestMarker(point), 0f, 0f);
             await Wait(0.25f);
+            if (point != "Lesson06_Checkpoint04")
+                Expect(academy.TestGuidance.StartsWith("Next marker:") &&
+                       academy.TestGuidance.Contains(" m "),
+                       $"L06 HUD guides to the next checkpoint after {point}");
         }
         Expect(service.LessonCompleted("L06"), "L06 visits all checkpoints in order");
         await Wait(0.35f);

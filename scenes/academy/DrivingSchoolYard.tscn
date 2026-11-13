@@ -10,6 +10,7 @@ position = Vector3(16, 0, -4)
 [node name="Cone_1" parent="ConeSlot_1" instance=ExtResource("cone")]
 
 [node name="Number_1" type="Label3D" parent="ConeSlot_1"]
+double_sided = false
 position = Vector3(0, 1.3, 0)
 billboard = 1
 text = "1"
@@ -28,6 +29,7 @@ position = Vector3(16, 0, 0)
 [node name="Cone_2" parent="ConeSlot_2" instance=ExtResource("cone")]
 
 [node name="Number_2" type="Label3D" parent="ConeSlot_2"]
+double_sided = false
 position = Vector3(0, 1.3, 0)
 billboard = 1
 text = "2"
@@ -46,6 +48,7 @@ position = Vector3(16, 0, 4)
 [node name="Cone_3" parent="ConeSlot_3" instance=ExtResource("cone")]
 
 [node name="Number_3" type="Label3D" parent="ConeSlot_3"]
+double_sided = false
 position = Vector3(0, 1.3, 0)
 billboard = 1
 text = "3"
