@@ -465,7 +465,7 @@ public partial class DrivingAcademyController : Node3D
         "L01" => _step == 0 ? "Hold W and reach a gentle speed." : "Press S and stop on the marked zone.",
         "L02" => "Follow the three gate markers in order. Slow before corners.",
         "L03" => _step == 0 ? "Stop before the white line and wait 1.5 seconds." : "Move on when it is safe.",
-        "L04" => DrivingAcademyRules.LightMeansStop(_light)
+        "L04" => _light is AcademyLight.Red or AcademyLight.RedAmber
             ? "Red means stop before the line."
             : _light == AcademyLight.Amber
                 ? "Amber: stop unless you are too close to stop safely."
@@ -889,6 +889,7 @@ public partial class DrivingAcademyController : Node3D
         var packed = ResourceLoader.Load<PackedScene>(VisualTemplate.PlayerGirlPath)
                      ?? throw new InvalidOperationException("Missing academy pedestrian visual.");
         _pedestrian = packed.Instantiate<Node3D>();
+        VisualTemplate.ApplyVertexColours(_pedestrian, VisualTemplate.VertexColourMaterial());
         _pedestrian.Name = "AcademyCrossingPedestrian";
         _courseRoot.AddChild(_pedestrian);
     }

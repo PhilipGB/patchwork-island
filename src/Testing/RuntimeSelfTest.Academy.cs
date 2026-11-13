@@ -296,6 +296,10 @@ public partial class RuntimeSelfTest
         var pedestrian = academy.TestPedestrian;
         Expect(pedestrian != null && pedestrian.IsInsideTree() && pedestrian.Visible,
             $"{stage} creates a visible crossing pedestrian after selecting stage");
+        Expect(pedestrian != null && VisualTemplate.Descendants(pedestrian)
+                .OfType<MeshInstance3D>().Any(mesh => mesh.MaterialOverride is StandardMaterial3D
+                    { VertexColorUseAsAlbedo: true }),
+            $"{stage} pedestrian displays the authored vertex colours");
         string crossing = stage == "TEST01" ? "Final_Crossing" : "Lesson04_Crossing";
         if (stage == "TEST01")
         {

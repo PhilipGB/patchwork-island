@@ -3206,3 +3206,9 @@ Final verification at the PR head (logs and hashes in `evidence/v15_academy/`):
   final documentation-only head. Fresh evidence will name the new committed
   code head before running tests and exporting.
 - No merge, retarget, tag or release. PR #34 remains open at `db7a7db`.
+- First full rerun at `3fd0bc4`: pure 146; source and packaged runtime 1403
+  each; source/packaged graphical quality 22 each; packaged graphical academy
+  92; all exit 0. Close-up review then exposed a white pedestrian: its supplied
+  GLB needs the existing vertex-colour material helper. Applied that helper,
+  added a material regression in both stages, and corrected the amber HUD hint
+  (previously masked by the generic stop-light branch). Full rerun required.
