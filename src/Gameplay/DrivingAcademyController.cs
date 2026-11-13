@@ -53,7 +53,10 @@ public partial class DrivingAcademyController : Node3D
     private float _speedWarning;
     private float _reverseDistance;
     private bool _stoppedAtLine;
-    private bool _passedOnGreen;
+    private bool _lawfulSignalEntry;
+    private bool _amberEntryUnavoidable;
+    private bool _crossingEntered;
+    private Vector3 _previousCrossingPosition;
     private bool _redOffence;
     private bool _lineCrossed;
     private bool _pedestrianOffence;
@@ -203,6 +206,8 @@ public partial class DrivingAcademyController : Node3D
         _stage = id;
         _practice = practice || Service.LicenceIssued;
         ResetStageState();
+        BuildPedestrian();
+        UpdatePedestrian(0f);
         _academyHud.Visible = true;
         _car.SetInputEnabled(true);
         _hud.ShowBigToast(
@@ -244,7 +249,6 @@ public partial class DrivingAcademyController : Node3D
         _hud.SetAcademyOverlay(true);
         Active = true;
         ApplyLight();
-        BuildPedestrian();
     }
 
     private void CacheMarkers()
@@ -264,7 +268,14 @@ public partial class DrivingAcademyController : Node3D
         foreach (string required in Service.Catalog.RequiredMarkers)
             if (!_markers.ContainsKey(required))
                 throw new InvalidOperationException(
-                    $"DrivingAcademyCourse is missing required marker '{required}'.");
+                     $"DrivingAcademyCourse is missing required marker '{required}'.");
+        foreach (string id in new[] { "Lesson04_Crossing", "Final_Crossing" })
+        {
+            Marker3D marker = _markers[id];
+            foreach (string key in new[] { "crossing_half_width", "crossing_half_length" })
+                if (!marker.HasMeta(key) || marker.GetMeta(key).AsSingle() <= 0f)
+                    throw new InvalidOperationException($"Academy crossing '{id}' needs authored '{key}'.");
+        }
     }
 
     private void ResetStageState()
@@ -274,7 +285,9 @@ public partial class DrivingAcademyController : Node3D
         _speedWarning = 0f;
         _reverseDistance = 0f;
         _stoppedAtLine = false;
-        _passedOnGreen = false;
+        _lawfulSignalEntry = false;
+        _amberEntryUnavoidable = false;
+        _crossingEntered = false;
         _redOffence = false;
         _lineCrossed = false;
         _pedestrianOffence = false;
@@ -302,6 +315,7 @@ public partial class DrivingAcademyController : Node3D
         _stageSpawn = spawn.GlobalPosition;
         _stageYaw = spawn.RotationDegrees.Y;
         _car.TeleportTo(_stageSpawn, _stageYaw);
+        _previousCrossingPosition = CrossingMarker().ToLocal(_stageSpawn);
     }
 
     public void SetInputEnabled(bool enabled)
@@ -317,7 +331,10 @@ public partial class DrivingAcademyController : Node3D
         _timer = 0f;
         _reverseDistance = 0f;
         _stoppedAtLine = false;
-        _passedOnGreen = false;
+        _lawfulSignalEntry = false;
+        _amberEntryUnavoidable = false;
+        _crossingEntered = false;
+        _previousCrossingPosition = CrossingMarker().ToLocal(_stageSpawn);
         _redOffence = false;
         _lineCrossed = false;
         _pedestrianOffence = false;
@@ -325,6 +342,7 @@ public partial class DrivingAcademyController : Node3D
         _lightTimer = 0f;
         _pedestrianT = 0f;
         ApplyLight();
+        UpdatePedestrian(0f);
         _hud.ShowBigToast("Back to the safe start. Take your time.", 3f, Palette.Yellow);
     }
 
@@ -449,6 +467,8 @@ public partial class DrivingAcademyController : Node3D
         "L03" => _step == 0 ? "Stop before the white line and wait 1.5 seconds." : "Move on when it is safe.",
         "L04" => DrivingAcademyRules.LightMeansStop(_light)
             ? "Red means stop before the line."
+            : _light == AcademyLight.Amber
+                ? "Amber: stop unless you are too close to stop safely."
             : _pedestrianCrossing
                 ? "Wait for the pedestrian to finish crossing."
                 : "Green: go only when the crossing is clear.",
@@ -534,21 +554,17 @@ public partial class DrivingAcademyController : Node3D
         Marker3D line = _markers["Lesson04_TrafficLight"];
         Marker3D crossing = _markers["Lesson04_Crossing"];
         Marker3D giveWay = _markers["Lesson04_GiveWay"];
-        float z = _car.GlobalPosition.Z;
-        float x = _car.GlobalPosition.X;
-
         if (DrivingAcademyRules.IsStopped(_car.Speed) && Near("Lesson04_TrafficLight", 12f))
             _stoppedAtLine = true;
         UpdateStopLine(line);
 
-        if (Math.Abs(x - crossing.GlobalPosition.X) < 8f &&
-            Math.Abs(z - crossing.GlobalPosition.Z) < 9f &&
-            _pedestrianCrossing && _car.Speed > 0.3f)
+        if (InsideCrossing(crossing) &&
+            _pedestrianCrossing && Math.Abs(_car.Speed) > 0.3f)
             PedestrianOffence();
 
         if (Near("Lesson04_GiveWay", 11f))
         {
-            if (_major == 0 && _passedOnGreen)
+            if (_major == 0 && _lawfulSignalEntry)
                 CompleteLessonStage();
             else if (_major == 0)
                 Hint(_stoppedAtLine
@@ -623,23 +639,15 @@ public partial class DrivingAcademyController : Node3D
                 }
                 break;
             case 1:
-                if (_lineCrossed &&
+                if (_lawfulSignalEntry &&
                     _car.GlobalPosition.Z > stopLine.GlobalPosition.Z + 2f)
+                {
                     _step = 2;
+                    _previousCrossingPosition = crossing.ToLocal(_car.GlobalPosition);
+                }
                 break;
             case 2:
-                if (Math.Abs(_car.GlobalPosition.X - crossing.GlobalPosition.X) < 9f &&
-                    Math.Abs(_car.GlobalPosition.Z - crossing.GlobalPosition.Z) < 10f)
-                {
-                    if (_pedestrianCrossing && _car.Speed > 0.3f)
-                        PedestrianOffence();
-                    if (!_pedestrianCrossing && _car.GlobalPosition.X > crossing.GlobalPosition.X + 2f)
-                        _step = 3;
-                }
-                else if (_car.GlobalPosition.X > crossing.GlobalPosition.X + 4f)
-                {
-                    _step = 3;
-                }
+                UpdateCrossing(crossing);
                 break;
             case 3:
                 bool parked = DrivingAcademyRules.IsParked(
@@ -662,17 +670,69 @@ public partial class DrivingAcademyController : Node3D
     /// One-shot stop-line evaluation. The offence is decided only at the moment
     /// the car crosses the line, so a car that legally entered on green is not
     /// penalised when the signal later turns red while it is still clearing the
-    /// junction. Amber is a warning, not a red-light offence.
+    /// junction. Amber permits entry only if safe stopping was impossible when
+    /// amber began (not based on the speed chosen later at the line).
     /// </summary>
     private void UpdateStopLine(Marker3D line)
     {
         if (_lineCrossed) return;
         if (_car.GlobalPosition.Z <= line.GlobalPosition.Z) return;
         _lineCrossed = true;
-        if (DrivingAcademyRules.LightAllowsEntry(_light))
-            _passedOnGreen = true;
-        else if (DrivingAcademyRules.LightProhibitsEntry(_light) && !_passedOnGreen)
+        _lawfulSignalEntry = DrivingAcademyRules.LightAllowsEntry(_light) ||
+                            (_light == AcademyLight.Amber && _amberEntryUnavoidable);
+        if (DrivingAcademyRules.LightProhibitsEntry(_light))
             RedOffence();
+        else if (!_lawfulSignalEntry)
+            AddMajor("Amber means stop when you can do so safely. Retry is free.");
+    }
+
+    private Marker3D CrossingMarker() => _markers[
+        _stage == "TEST01" ? "Final_Crossing" : "Lesson04_Crossing"];
+
+    private bool InsideCrossing(Marker3D crossing)
+    {
+        Vector3 p = crossing.ToLocal(_car.GlobalPosition);
+        return Math.Abs(p.X) <= crossing.GetMeta("crossing_half_width").AsSingle() &&
+               Math.Abs(p.Z) <= crossing.GetMeta("crossing_half_length").AsSingle();
+    }
+
+    private void UpdateCrossing(Marker3D crossing)
+    {
+        // The authored marker faces along the lane (-local Z). Enter at its
+        // approach face, stay within its width, then clear its departure face.
+        Vector3 p = crossing.ToLocal(_car.GlobalPosition);
+        float width = crossing.GetMeta("crossing_half_width").AsSingle();
+        float length = crossing.GetMeta("crossing_half_length").AsSingle();
+        if (Math.Abs(p.X) > width)
+            _crossingEntered = false;
+        else
+        {
+            if (p.Z <= length && p.Z >= -length &&
+                _previousCrossingPosition.Z > length &&
+                Math.Abs(_previousCrossingPosition.X) <= width)
+                _crossingEntered = true;
+            if (InsideCrossing(crossing) && _pedestrianCrossing && Math.Abs(_car.Speed) > 0.3f)
+                PedestrianOffence();
+            if (_crossingEntered && p.Z < -length && !_pedestrianCrossing &&
+                !_pedestrianOffence && p.Z < _previousCrossingPosition.Z)
+                Advance(3, "Crossing safely cleared. Now park in the marked bay.");
+        }
+        _previousCrossingPosition = p;
+    }
+
+    private void SelectLight(AcademyLight light)
+    {
+        _light = light;
+        _lightTimer = 0f;
+        _amberEntryUnavoidable = false;
+        if (light == AcademyLight.Amber && !_lineCrossed)
+        {
+            Marker3D line = _markers[_stage == "TEST01" ? "Final_Stop" : "Lesson04_TrafficLight"];
+            float distance = line.GlobalPosition.Z - _car.GlobalPosition.Z;
+            float approachSpeed = Math.Max(0f, _car.Velocity.Z);
+            _amberEntryUnavoidable = DrivingAcademyRules.AmberEntryUnavoidable(distance, approachSpeed);
+        }
+        ApplyLight();
     }
 
     private void TrackSpeeding(float dt)
@@ -790,9 +850,7 @@ public partial class DrivingAcademyController : Node3D
         _lightTimer += dt;
         if (_lightTimer >= DrivingAcademyRules.LightSeconds(_light))
         {
-            _lightTimer = 0f;
-            _light = DrivingAcademyRules.NextLight(_light);
-            ApplyLight();
+            SelectLight(DrivingAcademyRules.NextLight(_light));
         }
     }
 
@@ -822,15 +880,17 @@ public partial class DrivingAcademyController : Node3D
 
     private void BuildPedestrian()
     {
+        if (_pedestrian != null)
+        {
+            _pedestrian.QueueFree();
+            _pedestrian = null;
+        }
         if (_stage is not ("L04" or "TEST01")) return;
-        if (!_markers.TryGetValue("Lesson04_Crossing", out Marker3D crossing)) return;
-        var packed = ResourceLoader.Load<PackedScene>(VisualTemplate.PlayerGirlPath);
-        if (packed == null) return;
+        var packed = ResourceLoader.Load<PackedScene>(VisualTemplate.PlayerGirlPath)
+                     ?? throw new InvalidOperationException("Missing academy pedestrian visual.");
         _pedestrian = packed.Instantiate<Node3D>();
         _pedestrian.Name = "AcademyCrossingPedestrian";
         _courseRoot.AddChild(_pedestrian);
-        _pedestrian.GlobalPosition = crossing.GlobalPosition + new Vector3(-4.5f, 0f, 0f);
-        _pedestrian.Visible = false;
     }
 
     private void UpdatePedestrian(float dt)
@@ -845,11 +905,11 @@ public partial class DrivingAcademyController : Node3D
         _pedestrianT = _pedestrianCrossing
             ? Mathf.Clamp(_lightTimer / 3.5f, 0f, 1f)
             : 0f;
-        if (!_markers.TryGetValue("Lesson04_Crossing", out Marker3D crossing)) return;
+        Marker3D crossing = CrossingMarker();
         float x = _pedestrianCrossing
             ? Mathf.Lerp(-4.5f, 4.5f, _pedestrianT)
             : -4.5f;
-        _pedestrian.GlobalPosition = crossing.GlobalPosition + new Vector3(x, 0f, 0f);
+        _pedestrian.GlobalPosition = crossing.ToGlobal(new Vector3(x, 0f, 0f));
     }
 
     internal void TestPlaceCar(Vector3 position, float yawDegrees, float speed)
@@ -861,9 +921,8 @@ public partial class DrivingAcademyController : Node3D
 
     internal void TestSetLight(AcademyLight light)
     {
-        _light = light;
+        SelectLight(light);
         _lightTimer = light == AcademyLight.Green ? 1f : 0f;
-        ApplyLight();
     }
 
     internal Vector3 TestMarker(string id) =>
@@ -873,6 +932,8 @@ public partial class DrivingAcademyController : Node3D
         _markers.TryGetValue(id, out Marker3D marker) ? marker.RotationDegrees.Y : 0f;
 
     internal int TestStep => _step;
+    internal Node3D TestPedestrian => _pedestrian;
+    internal bool TestPedestrianCrossing => _pedestrianCrossing;
 
     private bool Near(string markerId, float radius)
     {

@@ -82,6 +82,10 @@ public partial class DrivingAcademyCaptures : Node
             await Wait(0.6f);
             await SnapFree(folder, $"{prefix}_05_road_rules.png",
                 new Vector3(-16, 8, -30), new Vector3(4, 1.5f, -8));
+            Main.RtAcademy.TestSetLight(AcademyLight.Green);
+            await Wait(0.3f);
+            await SnapFree(folder, $"{prefix}_09_crossing_pedestrian.png",
+                new Vector3(12, 6, -12), new Vector3(22, 1, 0));
 
             Main.RtAcademy.ExitVenue(false);
             service.StartLesson("L05");

@@ -3181,3 +3181,28 @@ Final verification at the PR head (logs and hashes in `evidence/v15_academy/`):
   `windows-tests` pass (1m21s), including the packaged graphical quality and
   packaged graphical academy steps. The commit that carries this note is
   documentation-only; it re-runs the same gates without touching code.
+
+## P25 review follow-up — 2026-11-13 (verification in progress)
+
+- Confirmed the review's pedestrian initialisation bug. Stage selection now
+  precedes pedestrian configuration; stage changes remove the old actor, reset
+  restores its waiting position, and movement follows the authored crossing's
+  lateral axis rather than the traffic lane.
+- TEST01 now requires a lawful signal entry. Red/red+amber and amber with safe
+  stopping room produce a major error; the amber exception is latched at amber
+  onset using one second reaction time and 11 m/s² braking, not granted from
+  speed at the eventual crossing. Later signal changes cannot rewrite entry.
+- Replaced the final crossing's X-only bypass with entry, traversal and clear
+  through the authored marker-local rectangle in the forward direction.
+- Added actual scene-tree presence/movement/yield/offence/reset checks in L04
+  and TEST01, school-UI entry checks, red/red+amber/unsafe-amber denial,
+  unavoidable-amber acceptance, green acceptance, wide-detour, reverse and
+  side-exit regressions. Targeted source academy: **92 passed, 0 failed**;
+  build and pure suite pass. Full source/exported/graphical rerun pending.
+- Prior `source/head.txt` incorrectly captured the pre-commit base while the
+  academy was in the working tree. Original logs do not embed a source hash;
+  do not infer an exact historical local revision from them. CI run 43310792796
+  separately verified committed academy code at `a16f616`; `122654c` was the
+  final documentation-only head. Fresh evidence will name the new committed
+  code head before running tests and exporting.
+- No merge, retarget, tag or release. PR #34 remains open at `db7a7db`.

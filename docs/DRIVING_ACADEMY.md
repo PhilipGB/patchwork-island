@@ -37,13 +37,21 @@
   - L01: reach 2 m/s, then hold below 0.3 m/s for 1.5 s in the stop zone.
   - L02: visit three gates in order.
   - L03: stop before the line for 1.5 s, then release.
-  - L04: obey red/red+amber, enter on green and yield to the zebra crossing.
+   - L04: obey red/red+amber, stop on amber when safe, and yield to the zebra crossing.
   - L05: reverse at least 4 m and hold inside the bay within 25° of its axis.
   - L06: four checkpoints in order; the 20 mph sign is monitored.
   - TEST01: stop line, signal, crossing and parking with minor/major scoring.
 - 20 mph = 8.9408 m/s. Warnings never gate licence on speed or time.
 - A red-light offence is not raised when the car was already past the line when
   the signal turned red.
+- Amber entry is lawful only when safe stopping was impossible at amber onset:
+  one second of reaction travel plus braking at the learner car's 11 m/s².
+  Accelerating towards the line after amber starts cannot create an exception.
+- The pedestrian is configured after selecting L04/TEST01, restored on reset,
+  and moves across the lane in crossing-marker local space.
+- TEST01 requires a lawful signal entry and forward traversal of the authored
+  crossing rectangle (marker-local half-width 6 m, half-length 3 m). A side
+  detour, reverse traversal or side exit cannot satisfy the crossing checkpoint.
 
 ## Persistence
 

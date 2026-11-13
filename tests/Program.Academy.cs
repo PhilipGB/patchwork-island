@@ -63,6 +63,17 @@ internal static partial class Program
                 "green crossing is legal");
         });
 
+        Run("academy amber exception uses safe stopping distance at onset", () =>
+        {
+            Check(!DrivingAcademyRules.AmberEntryUnavoidable(0f, 0f), "stopped car must wait");
+            Check(!DrivingAcademyRules.AmberEntryUnavoidable(10f, 4f), "ample room to stop");
+            Check(DrivingAcademyRules.AmberEntryUnavoidable(1f, 4f), "too close to stop safely");
+            Check(!DrivingAcademyRules.AmberEntryUnavoidable(-1f, 4f), "already beyond line");
+            Check(!DrivingAcademyRules.AmberEntryUnavoidable(1f, -4f), "moving away from line");
+            float stopping = 4f + 16f / 22f;
+            Check(!DrivingAcademyRules.AmberEntryUnavoidable(stopping, 4f), "exact stopping distance can stop");
+        });
+
         Run("academy enrolment and helper job pay exactly once", () =>
         {
             var data = new GameData { Coins = 14 };

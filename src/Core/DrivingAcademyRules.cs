@@ -99,6 +99,12 @@ public static class DrivingAcademyRules
 
     public static bool LightAllowsEntry(AcademyLight light) => light == AcademyLight.Green;
 
+    // One second to react, then the learner controller's 11 m/s² braking.
+    // Evaluated once at amber onset. A stopped car never gets an exception.
+    public static bool AmberEntryUnavoidable(float distance, float approachSpeed) =>
+        distance >= 0f && approachSpeed > StopSpeedMps &&
+        distance < approachSpeed + approachSpeed * approachSpeed / (2f * 11f);
+
     /// <summary>
     /// A red-light offence only applies when the front of the car crosses the
     /// stop line after the signal turned red. A car already past the line when

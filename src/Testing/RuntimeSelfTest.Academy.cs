@@ -140,8 +140,13 @@ public partial class RuntimeSelfTest
 
         // L04 signal and crossing.
         service.StartLesson("L04");
-        academy.EnterStage("L04", false);
+        Main.RtOpenDrivingSchool();
+        await Wait(0.15f);
+        Expect(Main.Probe.PressModalButton("AcademyStart_L04"), "L04 enters from school UI");
         await Wait(0.3f);
+        await AcademyPedestrianChecks(academy, "L04");
+        academy.EnterStage("L04", false);
+        await Wait(0.1f);
         academy.TestSetLight(AcademyLight.Red);
         academy.TestPlaceCar(academy.TestMarker("Lesson04_TrafficLight"), 180f, 0f);
         await Wait(0.3f);
@@ -161,6 +166,7 @@ public partial class RuntimeSelfTest
         service.StartLesson("L05");
         academy.EnterStage("L05", false);
         await Wait(0.3f);
+        Expect(academy.TestPedestrian == null, "switching to parking removes the crossing pedestrian");
         academy.TestPlaceCar(academy.TestMarker("Lesson05_Start"),
             academy.TestMarkerYaw("Lesson05_Start"), 0f);
         Input.ActionPress("move_back");
@@ -194,6 +200,14 @@ public partial class RuntimeSelfTest
 
         // Final assessment: stop, green, crossing, park.
         service.StartLesson("TEST01");
+        await AcademySignalChecks(academy);
+        academy.ExitVenue(false);
+        await Wait(0.2f);
+        Main.RtOpenDrivingSchool();
+        await Wait(0.15f);
+        Expect(Main.Probe.PressModalButton("AcademyStart_TEST01"), "final test enters from school UI");
+        await Wait(0.2f);
+        await AcademyPedestrianChecks(academy, "TEST01");
         academy.EnterStage("TEST01", false);
         await Wait(0.35f);
         academy.TestSetLight(AcademyLight.Red);
@@ -205,8 +219,27 @@ public partial class RuntimeSelfTest
             new Vector3(0f, 0f, 9f), 180f, 2f);
         await Wait(0.4f);
         academy.TestPlaceCar(academy.TestMarker("Final_Crossing") +
-            new Vector3(3f, 0f, 0f), -90f, 0f);
-        await Wait(4.2f);
+            new Vector3(8f, 0f, 20f), -90f, 0f);
+        await Wait(0.2f);
+        Expect(academy.TestStep == 2, "wide detour cannot bypass final crossing");
+        academy.TestPlaceCar(academy.TestMarker("Final_Park"), 0f, 0f);
+        await Wait(1.8f);
+        Expect(academy.TestStep == 2 && !data.DrivingLicenceIssued,
+            "bypass followed by parking cannot earn a licence");
+        // Backwards traversal and a side exit must not qualify either.
+        await AcademyCrossingPosition(academy, 6f, 0f);
+        await AcademyCrossingPosition(academy, 0f, 0f);
+        await AcademyCrossingPosition(academy, -6f, 0f);
+        Expect(academy.TestStep == 2, "wrong-direction crossing does not advance");
+        await AcademyCrossingPosition(academy, 0f, 0f);
+        await AcademyCrossingPosition(academy, 1f, 10f);
+        await AcademyCrossingPosition(academy, 6f, 0f);
+        Expect(academy.TestStep == 2, "side exit invalidates crossing entry");
+        await AcademyCrossingPosition(academy, -6f, 0f);
+        await AcademyCrossingPosition(academy, 0f, 0f);
+        await AcademyCrossingPosition(academy, 6f, 0f);
+        Expect(academy.TestStep == 3 && academy.MajorErrors == 0,
+            "green entry and bounded forward crossing safely reach parking");
         academy.TestPlaceCar(academy.TestMarker("Final_Park"), 0f, 0f);
         await Wait(2.0f);
         Expect(data.DrivingLicenceIssued && data.AcademyTestPassed,
@@ -250,5 +283,97 @@ public partial class RuntimeSelfTest
         Expect(Main.Probe.PlayerVisible && Main.Probe.Mode != "Academy",
             "return restores the walking player");
         Expect(Main.Probe.PlayerPosition.Y > -1f, "return position is safe and in town");
+    }
+
+    private async Task AcademyCrossingPosition(DrivingAcademyController academy, float x, float z)
+    {
+        academy.TestPlaceCar(academy.TestMarker("Final_Crossing") + new Vector3(x, 0, z), -90f, 0f);
+        await Wait(0.15f);
+    }
+
+    private async Task AcademyPedestrianChecks(DrivingAcademyController academy, string stage)
+    {
+        var pedestrian = academy.TestPedestrian;
+        Expect(pedestrian != null && pedestrian.IsInsideTree() && pedestrian.Visible,
+            $"{stage} creates a visible crossing pedestrian after selecting stage");
+        string crossing = stage == "TEST01" ? "Final_Crossing" : "Lesson04_Crossing";
+        if (stage == "TEST01")
+        {
+            academy.TestPlaceCar(academy.TestMarker("Final_Stop"), 180f, 0f);
+            await Wait(1.7f);
+            academy.TestSetLight(AcademyLight.Green);
+            academy.TestPlaceCar(academy.TestMarker("Final_Stop") + new Vector3(0, 0, 4), 180f, 0f);
+            await Wait(0.15f);
+        }
+        academy.TestSetLight(AcademyLight.Green);
+        await Wait(0.1f);
+        Vector3 before = pedestrian?.GlobalPosition ?? Vector3.Zero;
+        await Wait(0.5f);
+        Vector3 after = pedestrian?.GlobalPosition ?? Vector3.Zero;
+        Expect(academy.TestPedestrianCrossing && pedestrian?.Visible == true &&
+               Math.Abs(after.Z - before.Z) > 0.5f && Math.Abs(after.X - before.X) < 0.1f,
+            $"{stage} pedestrian actually moves across the lane");
+        academy.TestPlaceCar(academy.TestMarker(crossing), -90f, 0f);
+        await Wait(0.15f);
+        Expect(academy.MajorErrors == 0, $"{stage} waiting at occupied crossing is safe");
+        academy.TestPlaceCar(academy.TestMarker(crossing), -90f, -2f);
+        await Wait(0.2f);
+        Expect(academy.MajorErrors == 1, $"{stage} moving through occupied crossing is a major offence even reversing");
+        await Wait(0.2f);
+        Expect(academy.MajorErrors == 1, $"{stage} crossing offence is counted once");
+        academy.ResetStage();
+        await Wait(0.1f);
+        Expect(pedestrian?.Visible == true && !academy.TestPedestrianCrossing,
+            $"{stage} reset restores the waiting pedestrian");
+    }
+
+    private async Task AcademySignalChecks(DrivingAcademyController academy)
+    {
+        foreach (var scenario in new[]
+                 {
+                     (AcademyLight.Red, false), (AcademyLight.RedAmber, false),
+                     (AcademyLight.Amber, false), (AcademyLight.Amber, true),
+                 })
+        {
+            var (light, movingWithRoomToStop) = scenario;
+            string label = movingWithRoomToStop ? "Amber with room to stop" : light.ToString();
+            academy.EnterStage("TEST01", false);
+            await Wait(0.1f);
+            academy.TestPlaceCar(academy.TestMarker("Final_Stop"), 180f, 0f);
+            await Wait(1.7f);
+            if (movingWithRoomToStop)
+            {
+                academy.TestPlaceCar(academy.TestMarker("Final_Stop") + new Vector3(0, 0, -12), 180f, 4f);
+                await Wait(0.05f);
+            }
+            academy.TestSetLight(light);
+            academy.TestPlaceCar(academy.TestMarker("Final_Stop") + new Vector3(0, 0, 4), 180f, 2f);
+            await Wait(0.2f);
+            Expect(academy.MajorErrors == 1 && academy.TestStep == 1,
+                $"{label} unlawful entry is major and cannot advance final signal checkpoint");
+            academy.TestSetLight(AcademyLight.Green);
+            await AcademyCrossingPosition(academy, -6f, 0f);
+            await AcademyCrossingPosition(academy, 0f, 0f);
+            await AcademyCrossingPosition(academy, 6f, 0f);
+            academy.TestPlaceCar(academy.TestMarker("Final_Park"), 0f, 0f);
+            await Wait(1.7f);
+            Expect(!Main.Probe.Data.DrivingLicenceIssued && academy.TestStep == 1,
+                $"{label} entry cannot be laundered by later green, crossing and parking");
+        }
+        academy.EnterStage("TEST01", false);
+        await Wait(0.1f);
+        academy.TestPlaceCar(academy.TestMarker("Final_Stop"), 180f, 0f);
+        await Wait(1.7f);
+        academy.TestSetLight(AcademyLight.Green);
+        academy.TestPlaceCar(academy.TestMarker("Final_Stop") + new Vector3(0, 0, -1), 180f, 4f);
+        await Wait(0.05f);
+        academy.TestSetLight(AcademyLight.Amber);
+        academy.TestPlaceCar(academy.TestMarker("Final_Stop") + new Vector3(0, 0, 4), 180f, 2f);
+        await Wait(0.2f);
+        Expect(academy.MajorErrors == 0 && academy.TestStep == 2,
+            "amber onset too close to stop safely allows lawful entry");
+        academy.TestSetLight(AcademyLight.Red);
+        await Wait(0.1f);
+        Expect(academy.MajorErrors == 0, "later red does not penalise an already lawful entry");
     }
 }

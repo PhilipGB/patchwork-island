@@ -39,6 +39,13 @@ internal static partial class Program
                 "road markings disable detached shadows");
             Check(course.Contains("TrafficLightCentre"),
                 "traffic light prop is authored");
+            foreach (string id in new[] { "Lesson04_Crossing", "Final_Crossing" })
+            {
+                var block = Regex.Match(course, $"\\[node name=\"{id}\"[^\\[]*").Value;
+                Check(block.Contains("metadata/crossing_half_width = 6.0") &&
+                      block.Contains("metadata/crossing_half_length = 3.0"),
+                    $"{id} has bounded authored lane dimensions");
+            }
             Check(!Regex.IsMatch(course, "StopSign[^\"]*\" type=\"StaticBody3D\""),
                 "roadside signs are visual only");
         });

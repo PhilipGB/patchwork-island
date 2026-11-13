@@ -1068,6 +1068,8 @@ metadata/academy_id = "Lesson04_TrafficLight"
 position = Vector3(22, 0.05, 0)
 rotation_degrees = Vector3(0, -90, 0)
 metadata/academy_id = "Lesson04_Crossing"
+metadata/crossing_half_width = 6.0
+metadata/crossing_half_length = 3.0
 
 [node name="Lesson04_GiveWay" type="Marker3D" parent="GameplayMarkers"]
 position = Vector3(0, 0.05, 55)
@@ -1123,6 +1125,8 @@ metadata/academy_id = "Final_Light"
 position = Vector3(22, 0.05, 0)
 rotation_degrees = Vector3(0, -90, 0)
 metadata/academy_id = "Final_Crossing"
+metadata/crossing_half_width = 6.0
+metadata/crossing_half_length = 3.0
 
 [node name="Final_Park" type="Marker3D" parent="GameplayMarkers"]
 position = Vector3(-32, 0.05, 36)
