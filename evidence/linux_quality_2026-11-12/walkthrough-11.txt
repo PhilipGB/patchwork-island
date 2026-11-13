@@ -1,0 +1,28 @@
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+WARNING: Failed to create wd.xic as the input method or its xim server may not have started yet.
+     at: _create_xic (platform/linuxbsd/x11/display_server_x11.cpp:6347)
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+     at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:372)
+OpenGL API 4.5 (Core Profile) Mesa 26.0.8-1ubuntu0.3 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 21.1.8, 256 bits)
+
+[WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 156 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.
+[CITY SCENE] res://scenes/city/CityDistrict.tscn: 36 buildings, 36 HLOD proxies, 9 cells, 15 job markers, 4 vehicle routes, 11 pedestrian routes.
+PLAYTHROUGH M20: starting pos=(19.085258, -0.042843543, 12.581245)
+PLAYTHROUGH M20: walk to FestivalTableStation_0 (12, 0.19, 23.3) pos=(19.085258, -0.042843543, 12.581245)
+PLAYTHROUGH M20: walk to FestivalTableStation_1 (18, 0.19, 23.3) pos=(13.787904, -0.043211058, 22.06274)
+PLAYTHROUGH M20: walk to FestivalLanternStation_0 (9, 0.19, 23.199999) pos=(16.124372, -0.042843543, 21.996838)
+PLAYTHROUGH M20: walk to FestivalLanternStation_1 (21, 0.19, 23.199999) pos=(10.532698, -0.042843543, 21.999378)
+PLAYTHROUGH M20: walk to FestivalLanternStation_2 (18.6, 0.19, 25) pos=(19.580996, -0.042843536, 22.001808)
+PLAYTHROUGH M20: nearest was FestivalLanternStation_1 pos=(20.093998, -0.042843536, 23.219854)
+PLAYTHROUGH M20: COMPLETED coins=344 pos=(19.946442, -0.042843543, 24.430899)
+PLAYTHROUGH M21: starting pos=(19.946442, -0.042843543, 24.430899)
+PLAYTHROUGH M21: walk to Pickup_roadworks_cone_0 (20.5, 0.2, -5.4) pos=(19.946442, -0.042843543, 24.430899)
+PLAYTHROUGH M21: walk to Pickup_roadworks_cone_1 (22.2, 0.2, -5.4) pos=(19.00009, -0.042843536, -4.104537)
+PLAYTHROUGH M21: walk to Pickup_roadworks_cone_2 (23.9, 0.2, -5.4) pos=(20.720001, -0.042843543, -3.934433)
+PLAYTHROUGH M21: walk to Pickup_roadworks_panel_0 (26.4, 0.2, -5) pos=(22.443335, -0.04284355, -4.060308)
+PLAYTHROUGH M21: walk to Pickup_roadworks_panel_1 (28.4, 0.2, -5) pos=(24.372383, -0.041662186, -4.02627)
+PLAYTHROUGH M21: walk to Pickup_roadworks_toolbox_0 (30.2, 0.2, -5) pos=(26.10028, -0.04166221, -4.009623)
+PLAYTHROUGH M21: walk to RoadworksStation (93.4, 0.2, 4.8) pos=(28.540192, -0.042843543, -4.0046906)
+PLAYTHROUGH M21: COMPLETED coins=369 pos=(92.29085, -0.032843545, 2.8424067)
+PLAYER_POS (223.88542, -0.038840152, -28.375168) ACTIVE=True PAUSED=False CONTROL=True VEL=(0, 0, 0) TARGET= DRIVING=False VAN_POS=(55.7357, 0.0074833855, 26.619085) VAN_YAW=0.06 VAN_SPEED=0.0 NODES=5686 MODE=Walking
+SCREENSHOT /tmp/patchwork-walkthrough/godot/app_userdata/Patchwork Island/screenshots/manual_141605.png -> Ok

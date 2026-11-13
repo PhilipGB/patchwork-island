@@ -58,6 +58,20 @@ jobs:
           timeout 180 godot --headless --path . -- --selftest-release
           timeout 180 godot --headless --path . -- --selftest-restore
           timeout 420 godot --headless --path . -- --selftest-city
+          timeout 300 godot --headless --path . -- --selftest-academy
+
+      - name: Install graphical input-test tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb xauth
+
+      - name: Graphical camera and UI lifetime regressions
+        run: |
+          export XDG_DATA_HOME="$(mktemp -d)"
+          export XDG_CONFIG_HOME="$(mktemp -d)"
+          export XDG_CACHE_HOME="$(mktemp -d)"
+          timeout 240 xvfb-run --auto-servernum --server-args="-screen 0 1280x800x24" \
+            godot --path . --audio-driver Dummy -- --selftest-quality
 
       - name: Cache Godot export templates
         uses: actions/cache@v4
@@ -90,6 +104,18 @@ jobs:
           timeout 120 /tmp/patchwork-export/PatchworkIsland.x86_64 --headless --quit-after 120
           timeout 180 /tmp/patchwork-export/PatchworkIsland.x86_64 --headless -- --selftest-restore
           timeout 420 /tmp/patchwork-export/PatchworkIsland.x86_64 --headless -- --selftest-city
+          timeout 300 /tmp/patchwork-export/PatchworkIsland.x86_64 --headless -- --selftest-academy
+          sha256sum /tmp/patchwork-export/PatchworkIsland.x86_64
+
+      - name: Graphical packaged quality and academy regressions
+        run: |
+          export XDG_DATA_HOME="$(mktemp -d)"
+          export XDG_CONFIG_HOME="$(mktemp -d)"
+          export XDG_CACHE_HOME="$(mktemp -d)"
+          timeout 300 xvfb-run --auto-servernum --server-args="-screen 0 1280x800x24" \
+            /tmp/patchwork-export/PatchworkIsland.x86_64 --audio-driver Dummy -- --selftest-quality
+          timeout 420 xvfb-run --auto-servernum --server-args="-screen 0 1280x800x24" \
+            /tmp/patchwork-export/PatchworkIsland.x86_64 --audio-driver Dummy -- --selftest-academy
 
   windows-tests:
     runs-on: windows-latest

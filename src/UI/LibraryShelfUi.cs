@@ -11,7 +11,7 @@ namespace PatchworkIsland;
 /// </summary>
 public static class LibraryShelfUi
 {
-    public static void Show(Hud hud, MissionService service, Action<MissionCompletionResult> onComplete,
+    public static void Show(Hud hud, CommunityMissionTasks service, Action<MissionCompletionResult> onComplete,
         Action onChanged)
     {
         var body = hud.OpenModal("Lost Library Books", new Vector2(820, 590), Palette.Blue);
@@ -118,7 +118,7 @@ public static class LibraryShelfUi
         }
     }
 
-    private static void Refresh(Dictionary<string, Button> buttons, MissionService service, string selected)
+    private static void Refresh(Dictionary<string, Button> buttons, CommunityMissionTasks service, string selected)
     {
         foreach (var pair in buttons)
         {
@@ -133,7 +133,7 @@ public static class LibraryShelfUi
         }
     }
 
-    private static string NextCarried(MissionService service)
+    private static string NextCarried(CommunityMissionTasks service)
     {
         foreach (string book in ChapterTwoRules.BookIds)
             if (service.Data.GetMissionCounter("M13", ChapterTwoRules.HasBookKey(book)) >= 1)

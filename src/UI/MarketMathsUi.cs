@@ -18,7 +18,7 @@ public static class MarketMathsUi
         public Button Remove = null;
     }
 
-    public static void Show(Hud hud, MissionService service, Action<MissionCompletionResult> onComplete,
+    public static void Show(Hud hud, FinaleMissionTasks service, Action<MissionCompletionResult> onComplete,
         Action onChanged)
     {
         if (service.Data.ActiveMission != "M17")
@@ -109,7 +109,7 @@ public static class MarketMathsUi
         Refresh(service, rows, total, change, status);
     }
 
-    private static void Change(MissionService service, Hud hud, string item, bool add,
+    private static void Change(FinaleMissionTasks service, Hud hud, string item, bool add,
         Action refresh, Action onChanged)
     {
         var result = add ? service.AddMarketItem(item) : service.RemoveMarketItem(item);
@@ -124,7 +124,7 @@ public static class MarketMathsUi
         refresh();
     }
 
-    private static void Refresh(MissionService service, List<Row> rows, Label total, Label change,
+    private static void Refresh(FinaleMissionTasks service, List<Row> rows, Label total, Label change,
         Label status)
     {
         int spent = FinaleRules.MarketSpent(service.Data);

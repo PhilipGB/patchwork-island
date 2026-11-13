@@ -9,11 +9,17 @@
     <RootNamespace>PatchworkIsland.Tests</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../src/Core/GameSession.cs" Link="Core/GameSession.cs" />
     <Compile Include="../src/Core/GameData.cs" Link="Core/GameData.cs" />
     <Compile Include="../src/Core/CharacterCustomisation.cs" Link="Core/CharacterCustomisation.cs" />
     <Compile Include="../src/Core/MissionCatalog.cs" Link="Core/MissionCatalog.cs" />
+    <Compile Include="../src/Core/MissionMechanicContract.cs" Link="Core/MissionMechanicContract.cs" />
     <Compile Include="../src/Core/MissionIntegrity.cs" Link="Core/MissionIntegrity.cs" />
     <Compile Include="../src/Core/MissionContentConsistency.cs" Link="Core/MissionContentConsistency.cs" />
+    <Compile Include="../src/Core/MissionRules.cs" Link="Core/MissionRules.cs" />
+    <Compile Include="../src/Core/MissionModels.cs" Link="Core/MissionModels.cs" />
+    <Compile Include="../src/Core/CommunityMissionTasks.cs" Link="Core/CommunityMissionTasks.cs" />
+    <Compile Include="../src/Core/FinaleMissionTasks.cs" Link="Core/FinaleMissionTasks.cs" />
     <Compile Include="../src/Core/MissionService.cs" Link="Core/MissionService.cs" />
     <Compile Include="../src/Core/ChapterTwoRules.cs" Link="Core/ChapterTwoRules.cs" />
     <Compile Include="../src/Core/FinaleRules.cs" Link="Core/FinaleRules.cs" />
@@ -31,6 +37,9 @@
     <Compile Include="../src/Core/RoadworksRules.cs" Link="Core/RoadworksRules.cs" />
     <Compile Include="../src/Core/CityLayout.cs" Link="Core/CityLayout.cs" />
     <Compile Include="../src/Core/CitySimulation.cs" Link="Core/CitySimulation.cs" />
+    <Compile Include="../src/Core/DrivingAcademyCatalog.cs" Link="Core/DrivingAcademyCatalog.cs" />
+    <Compile Include="../src/Core/DrivingAcademyRules.cs" Link="Core/DrivingAcademyRules.cs" />
+    <Compile Include="../src/Core/DrivingAcademyService.cs" Link="Core/DrivingAcademyService.cs" />
     <Compile Include="../src/Core/CityMissionCatalog.cs" Link="Core/CityMissionCatalog.cs" />
     <Compile Include="../src/Core/CityMissionService.cs" Link="Core/CityMissionService.cs" />
     <Compile Include="../src/Npc/NpcDefinition.cs" Link="Npc/NpcDefinition.cs" />

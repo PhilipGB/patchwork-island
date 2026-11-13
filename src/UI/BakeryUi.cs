@@ -24,7 +24,7 @@ public static class BakeryUi
         public Label State;
     }
 
-    public static void Show(Hud hud, MissionService service, Action<MissionCompletionResult> onComplete,
+    public static void Show(Hud hud, CommunityMissionTasks service, Action<MissionCompletionResult> onComplete,
         Action onChanged)
     {
         var body = hud.OpenModal("Bakery Busy Day", new Vector2(900, 670), Palette.Orange);
@@ -157,7 +157,7 @@ public static class BakeryUi
         note.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
     }
 
-    private static void Refresh(Row row, int bread, int cakes, MissionService service)
+    private static void Refresh(Row row, int bread, int cakes, CommunityMissionTasks service)
     {
         bool done = service.Data.GetMissionCounter("M12", $"order_{row.Order.CustomerId}") >= 1;
         row.BreadCount.Text = done ? row.Order.Bread.ToString() : bread.ToString();

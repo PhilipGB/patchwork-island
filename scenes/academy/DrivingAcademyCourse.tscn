@@ -1,0 +1,1138 @@
+[gd_scene load_steps=47 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/academy/DrivingSchoolOffice.tscn" id="ext_1"]
+
+[ext_resource type="PackedScene" path="res://scenes/academy/assets/AcademyInstructor.tscn" id="ext_2"]
+
+[ext_resource type="PackedScene" path="res://scenes/academy/assets/StopSign.tscn" id="ext_3"]
+
+[ext_resource type="PackedScene" path="res://scenes/academy/assets/TrafficLight.tscn" id="ext_4"]
+
+[ext_resource type="PackedScene" path="res://scenes/academy/assets/GiveWaySign.tscn" id="ext_5"]
+
+[ext_resource type="PackedScene" path="res://scenes/academy/assets/SpeedSign.tscn" id="ext_6"]
+
+[ext_resource type="PackedScene" path="res://scenes/academy/assets/PracticeGate.tscn" id="ext_7"]
+
+[ext_resource type="PackedScene" path="res://scenes/academy/assets/TrafficCone.tscn" id="ext_8"]
+
+[sub_resource type="StandardMaterial3D" id="mat_asphalt"]
+albedo_color = Color(0.3216, 0.3686, 0.4, 1)
+roughness = 0.85
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="mat_grass"]
+albedo_color = Color(0.5725, 0.7176, 0.4863, 1)
+roughness = 0.85
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="mat_line"]
+albedo_color = Color(0.9569, 0.9373, 0.8863, 1)
+roughness = 0.85
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="mat_yellow"]
+albedo_color = Color(0.9765, 0.7961, 0.349, 1)
+roughness = 0.85
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="mat_teal"]
+albedo_color = Color(0.1412, 0.651, 0.6353, 1)
+roughness = 0.85
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="mat_navy"]
+albedo_color = Color(0.098, 0.2196, 0.298, 1)
+roughness = 0.85
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="mat_blue"]
+albedo_color = Color(0.3529, 0.5451, 0.8431, 1)
+roughness = 0.85
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="mat_red"]
+albedo_color = Color(0.8471, 0.3137, 0.3333, 1)
+roughness = 0.85
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="mat_cream"]
+albedo_color = Color(1, 0.9412, 0.8196, 1)
+roughness = 0.85
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="mat_white"]
+albedo_color = Color(0.9608, 0.9686, 0.9294, 1)
+roughness = 0.85
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="mat_park"]
+albedo_color = Color(0.4392, 0.4784, 0.4863, 1)
+roughness = 0.85
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="mat_water"]
+albedo_color = Color(0.451, 0.7137, 0.7255, 1)
+roughness = 0.85
+metallic = 0.0
+
+[sub_resource type="BoxMesh" id="mesh_box_1"]
+size = Vector3(224, 0.1, 196)
+
+[sub_resource type="BoxMesh" id="mesh_box_2"]
+size = Vector3(136, 0.045, 12)
+
+[sub_resource type="BoxMesh" id="mesh_box_3"]
+size = Vector3(12, 0.045, 124)
+
+[sub_resource type="BoxMesh" id="mesh_box_4"]
+size = Vector3(62, 0.045, 12)
+
+[sub_resource type="BoxMesh" id="mesh_box_5"]
+size = Vector3(12, 0.045, 56)
+
+[sub_resource type="BoxMesh" id="mesh_box_6"]
+size = Vector3(12, 0.045, 12)
+
+[sub_resource type="BoxMesh" id="mesh_box_7"]
+size = Vector3(46, 0.045, 26)
+
+[sub_resource type="BoxMesh" id="mesh_box_8"]
+size = Vector3(42, 0.045, 26)
+
+[sub_resource type="BoxMesh" id="mesh_box_9"]
+size = Vector3(10, 0.045, 13)
+
+[sub_resource type="BoxMesh" id="mesh_box_10"]
+size = Vector3(4, 0.006, 0.13)
+
+[sub_resource type="BoxMesh" id="mesh_box_11"]
+size = Vector3(0.13, 0.006, 4)
+
+[sub_resource type="BoxMesh" id="mesh_box_12"]
+size = Vector3(11, 0.008, 0.32)
+
+[sub_resource type="BoxMesh" id="mesh_box_13"]
+size = Vector3(0.32, 0.008, 11)
+
+[sub_resource type="BoxMesh" id="mesh_box_14"]
+size = Vector3(11, 0.008, 0.25)
+
+[sub_resource type="BoxMesh" id="mesh_box_15"]
+size = Vector3(0.58, 0.007, 1.06)
+
+[sub_resource type="BoxMesh" id="mesh_box_16"]
+size = Vector3(0.15, 0.007, 7)
+
+[sub_resource type="BoxMesh" id="mesh_box_17"]
+size = Vector3(4.6, 0.007, 0.15)
+
+[sub_resource type="BoxShape3D" id="shape_box_1"]
+size = Vector3(224, 0.1, 196)
+
+[sub_resource type="BoxShape3D" id="shape_box_2"]
+size = Vector3(136, 0.045, 12)
+
+[sub_resource type="BoxShape3D" id="shape_box_3"]
+size = Vector3(12, 0.045, 124)
+
+[sub_resource type="BoxShape3D" id="shape_box_4"]
+size = Vector3(62, 0.045, 12)
+
+[sub_resource type="BoxShape3D" id="shape_box_5"]
+size = Vector3(12, 0.045, 56)
+
+[sub_resource type="BoxShape3D" id="shape_box_6"]
+size = Vector3(12, 0.045, 12)
+
+[sub_resource type="BoxShape3D" id="shape_box_7"]
+size = Vector3(46, 0.045, 26)
+
+[sub_resource type="BoxShape3D" id="shape_box_8"]
+size = Vector3(42, 0.045, 26)
+
+[sub_resource type="BoxShape3D" id="shape_box_9"]
+size = Vector3(10, 0.045, 13)
+
+[node name="DrivingAcademyCourse" type="Node3D"]
+
+[node name="Geometry" type="Node3D" parent="."]
+
+[node name="Markings" type="Node3D" parent="."]
+
+[node name="Props" type="Node3D" parent="."]
+
+[node name="GameplayMarkers" type="Node3D" parent="."]
+
+[node name="PracticeTerrain_Body" type="StaticBody3D" parent="Geometry"]
+collision_layer = 1
+collision_mask = 0
+
+[node name="PracticeTerrain_Shape" type="CollisionShape3D" parent="Geometry/PracticeTerrain_Body"]
+position = Vector3(0, -0.05, 0)
+shape = SubResource("shape_box_1")
+
+[node name="PracticeTerrain" type="MeshInstance3D" parent="Geometry"]
+position = Vector3(0, -0.05, 0)
+mesh = SubResource("mesh_box_1")
+material_override = SubResource("mat_grass")
+
+[node name="NorthRoad_Body" type="StaticBody3D" parent="Geometry"]
+collision_layer = 1
+collision_mask = 0
+
+[node name="NorthRoad_Shape" type="CollisionShape3D" parent="Geometry/NorthRoad_Body"]
+position = Vector3(0, -0.02, -68)
+shape = SubResource("shape_box_2")
+
+[node name="NorthRoad" type="MeshInstance3D" parent="Geometry"]
+position = Vector3(0, -0.02, -68)
+mesh = SubResource("mesh_box_2")
+material_override = SubResource("mat_asphalt")
+
+[node name="SouthRoad_Body" type="StaticBody3D" parent="Geometry"]
+collision_layer = 1
+collision_mask = 0
+
+[node name="SouthRoad_Shape" type="CollisionShape3D" parent="Geometry/SouthRoad_Body"]
+position = Vector3(0, -0.02, 68)
+shape = SubResource("shape_box_2")
+
+[node name="SouthRoad" type="MeshInstance3D" parent="Geometry"]
+position = Vector3(0, -0.02, 68)
+mesh = SubResource("mesh_box_2")
+material_override = SubResource("mat_asphalt")
+
+[node name="WestRoad_Body" type="StaticBody3D" parent="Geometry"]
+collision_layer = 1
+collision_mask = 0
+
+[node name="WestRoad_Shape" type="CollisionShape3D" parent="Geometry/WestRoad_Body"]
+position = Vector3(-74, -0.02, 0)
+shape = SubResource("shape_box_3")
+
+[node name="WestRoad" type="MeshInstance3D" parent="Geometry"]
+position = Vector3(-74, -0.02, 0)
+mesh = SubResource("mesh_box_3")
+material_override = SubResource("mat_asphalt")
+
+[node name="EastRoad_Body" type="StaticBody3D" parent="Geometry"]
+collision_layer = 1
+collision_mask = 0
+
+[node name="EastRoad_Shape" type="CollisionShape3D" parent="Geometry/EastRoad_Body"]
+position = Vector3(74, -0.02, 0)
+shape = SubResource("shape_box_3")
+
+[node name="EastRoad" type="MeshInstance3D" parent="Geometry"]
+position = Vector3(74, -0.02, 0)
+mesh = SubResource("mesh_box_3")
+material_override = SubResource("mat_asphalt")
+
+[node name="CentreWestRoad_Body" type="StaticBody3D" parent="Geometry"]
+collision_layer = 1
+collision_mask = 0
+
+[node name="CentreWestRoad_Shape" type="CollisionShape3D" parent="Geometry/CentreWestRoad_Body"]
+position = Vector3(-37, -0.02, 0)
+shape = SubResource("shape_box_4")
+
+[node name="CentreWestRoad" type="MeshInstance3D" parent="Geometry"]
+position = Vector3(-37, -0.02, 0)
+mesh = SubResource("mesh_box_4")
+material_override = SubResource("mat_asphalt")
+
+[node name="CentreEastRoad_Body" type="StaticBody3D" parent="Geometry"]
+collision_layer = 1
+collision_mask = 0
+
+[node name="CentreEastRoad_Shape" type="CollisionShape3D" parent="Geometry/CentreEastRoad_Body"]
+position = Vector3(37, -0.02, 0)
+shape = SubResource("shape_box_4")
+
+[node name="CentreEastRoad" type="MeshInstance3D" parent="Geometry"]
+position = Vector3(37, -0.02, 0)
+mesh = SubResource("mesh_box_4")
+material_override = SubResource("mat_asphalt")
+
+[node name="CentreNorthRoad_Body" type="StaticBody3D" parent="Geometry"]
+collision_layer = 1
+collision_mask = 0
+
+[node name="CentreNorthRoad_Shape" type="CollisionShape3D" parent="Geometry/CentreNorthRoad_Body"]
+position = Vector3(0, -0.02, -34)
+shape = SubResource("shape_box_5")
+
+[node name="CentreNorthRoad" type="MeshInstance3D" parent="Geometry"]
+position = Vector3(0, -0.02, -34)
+mesh = SubResource("mesh_box_5")
+material_override = SubResource("mat_asphalt")
+
+[node name="CentreSouthRoad_Body" type="StaticBody3D" parent="Geometry"]
+collision_layer = 1
+collision_mask = 0
+
+[node name="CentreSouthRoad_Shape" type="CollisionShape3D" parent="Geometry/CentreSouthRoad_Body"]
+position = Vector3(0, -0.02, 34)
+shape = SubResource("shape_box_5")
+
+[node name="CentreSouthRoad" type="MeshInstance3D" parent="Geometry"]
+position = Vector3(0, -0.02, 34)
+mesh = SubResource("mesh_box_5")
+material_override = SubResource("mat_asphalt")
+
+[node name="CentreJunction_Body" type="StaticBody3D" parent="Geometry"]
+collision_layer = 1
+collision_mask = 0
+
+[node name="CentreJunction_Shape" type="CollisionShape3D" parent="Geometry/CentreJunction_Body"]
+position = Vector3(0, -0.02, 0)
+shape = SubResource("shape_box_6")
+
+[node name="CentreJunction" type="MeshInstance3D" parent="Geometry"]
+position = Vector3(0, -0.02, 0)
+mesh = SubResource("mesh_box_6")
+material_override = SubResource("mat_asphalt")
+
+[node name="WestParking_Body" type="StaticBody3D" parent="Geometry"]
+collision_layer = 1
+collision_mask = 0
+
+[node name="WestParking_Shape" type="CollisionShape3D" parent="Geometry/WestParking_Body"]
+position = Vector3(-35, -0.02, 36)
+shape = SubResource("shape_box_7")
+
+[node name="WestParking" type="MeshInstance3D" parent="Geometry"]
+position = Vector3(-35, -0.02, 36)
+mesh = SubResource("mesh_box_7")
+material_override = SubResource("mat_asphalt")
+
+[node name="EastManoeuvre_Body" type="StaticBody3D" parent="Geometry"]
+collision_layer = 1
+collision_mask = 0
+
+[node name="EastManoeuvre_Shape" type="CollisionShape3D" parent="Geometry/EastManoeuvre_Body"]
+position = Vector3(37, -0.02, 36)
+shape = SubResource("shape_box_8")
+
+[node name="EastManoeuvre" type="MeshInstance3D" parent="Geometry"]
+position = Vector3(37, -0.02, 36)
+mesh = SubResource("mesh_box_8")
+material_override = SubResource("mat_asphalt")
+
+[node name="WestDriveway_Body" type="StaticBody3D" parent="Geometry"]
+collision_layer = 1
+collision_mask = 0
+
+[node name="WestDriveway_Shape" type="CollisionShape3D" parent="Geometry/WestDriveway_Body"]
+position = Vector3(-35, -0.02, 55.5)
+shape = SubResource("shape_box_9")
+
+[node name="WestDriveway" type="MeshInstance3D" parent="Geometry"]
+position = Vector3(-35, -0.02, 55.5)
+mesh = SubResource("mesh_box_9")
+material_override = SubResource("mat_asphalt")
+
+[node name="EastDriveway_Body" type="StaticBody3D" parent="Geometry"]
+collision_layer = 1
+collision_mask = 0
+
+[node name="EastDriveway_Shape" type="CollisionShape3D" parent="Geometry/EastDriveway_Body"]
+position = Vector3(37, -0.02, 55.5)
+shape = SubResource("shape_box_9")
+
+[node name="EastDriveway" type="MeshInstance3D" parent="Geometry"]
+position = Vector3(37, -0.02, 55.5)
+mesh = SubResource("mesh_box_9")
+material_override = SubResource("mat_asphalt")
+
+[node name="Corner_W_N_Body" type="StaticBody3D" parent="Geometry"]
+collision_layer = 1
+collision_mask = 0
+
+[node name="Corner_W_N_Shape" type="CollisionShape3D" parent="Geometry/Corner_W_N_Body"]
+position = Vector3(-74, -0.02, -68)
+shape = SubResource("shape_box_6")
+
+[node name="Corner_W_N" type="MeshInstance3D" parent="Geometry"]
+position = Vector3(-74, -0.02, -68)
+mesh = SubResource("mesh_box_6")
+material_override = SubResource("mat_asphalt")
+
+[node name="Corner_W_S_Body" type="StaticBody3D" parent="Geometry"]
+collision_layer = 1
+collision_mask = 0
+
+[node name="Corner_W_S_Shape" type="CollisionShape3D" parent="Geometry/Corner_W_S_Body"]
+position = Vector3(-74, -0.02, 68)
+shape = SubResource("shape_box_6")
+
+[node name="Corner_W_S" type="MeshInstance3D" parent="Geometry"]
+position = Vector3(-74, -0.02, 68)
+mesh = SubResource("mesh_box_6")
+material_override = SubResource("mat_asphalt")
+
+[node name="Corner_E_N_Body" type="StaticBody3D" parent="Geometry"]
+collision_layer = 1
+collision_mask = 0
+
+[node name="Corner_E_N_Shape" type="CollisionShape3D" parent="Geometry/Corner_E_N_Body"]
+position = Vector3(74, -0.02, -68)
+shape = SubResource("shape_box_6")
+
+[node name="Corner_E_N" type="MeshInstance3D" parent="Geometry"]
+position = Vector3(74, -0.02, -68)
+mesh = SubResource("mesh_box_6")
+material_override = SubResource("mat_asphalt")
+
+[node name="Corner_E_S_Body" type="StaticBody3D" parent="Geometry"]
+collision_layer = 1
+collision_mask = 0
+
+[node name="Corner_E_S_Shape" type="CollisionShape3D" parent="Geometry/Corner_E_S_Body"]
+position = Vector3(74, -0.02, 68)
+shape = SubResource("shape_box_6")
+
+[node name="Corner_E_S" type="MeshInstance3D" parent="Geometry"]
+position = Vector3(74, -0.02, 68)
+mesh = SubResource("mesh_box_6")
+material_override = SubResource("mat_asphalt")
+
+[node name="LaneDash_H_-68_-60" type="MeshInstance3D" parent="Markings"]
+position = Vector3(-60, 0.006, -68)
+mesh = SubResource("mesh_box_10")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="LaneDash_H_-68_-48" type="MeshInstance3D" parent="Markings"]
+position = Vector3(-48, 0.006, -68)
+mesh = SubResource("mesh_box_10")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="LaneDash_H_-68_-36" type="MeshInstance3D" parent="Markings"]
+position = Vector3(-36, 0.006, -68)
+mesh = SubResource("mesh_box_10")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="LaneDash_H_-68_-24" type="MeshInstance3D" parent="Markings"]
+position = Vector3(-24, 0.006, -68)
+mesh = SubResource("mesh_box_10")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="LaneDash_H_-68_-12" type="MeshInstance3D" parent="Markings"]
+position = Vector3(-12, 0.006, -68)
+mesh = SubResource("mesh_box_10")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="LaneDash_H_-68_0" type="MeshInstance3D" parent="Markings"]
+position = Vector3(0, 0.006, -68)
+mesh = SubResource("mesh_box_10")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="LaneDash_H_-68_12" type="MeshInstance3D" parent="Markings"]
+position = Vector3(12, 0.006, -68)
+mesh = SubResource("mesh_box_10")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="LaneDash_H_-68_24" type="MeshInstance3D" parent="Markings"]
+position = Vector3(24, 0.006, -68)
+mesh = SubResource("mesh_box_10")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="LaneDash_H_-68_36" type="MeshInstance3D" parent="Markings"]
+position = Vector3(36, 0.006, -68)
+mesh = SubResource("mesh_box_10")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="LaneDash_H_-68_48" type="MeshInstance3D" parent="Markings"]
+position = Vector3(48, 0.006, -68)
+mesh = SubResource("mesh_box_10")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="LaneDash_H_-68_60" type="MeshInstance3D" parent="Markings"]
+position = Vector3(60, 0.006, -68)
+mesh = SubResource("mesh_box_10")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="LaneDash_H_68_-60" type="MeshInstance3D" parent="Markings"]
+position = Vector3(-60, 0.006, 68)
+mesh = SubResource("mesh_box_10")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="LaneDash_H_68_-48" type="MeshInstance3D" parent="Markings"]
+position = Vector3(-48, 0.006, 68)
+mesh = SubResource("mesh_box_10")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="LaneDash_H_68_-36" type="MeshInstance3D" parent="Markings"]
+position = Vector3(-36, 0.006, 68)
+mesh = SubResource("mesh_box_10")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="LaneDash_H_68_-24" type="MeshInstance3D" parent="Markings"]
+position = Vector3(-24, 0.006, 68)
+mesh = SubResource("mesh_box_10")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="LaneDash_H_68_-12" type="MeshInstance3D" parent="Markings"]
+position = Vector3(-12, 0.006, 68)
+mesh = SubResource("mesh_box_10")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="LaneDash_H_68_0" type="MeshInstance3D" parent="Markings"]
+position = Vector3(0, 0.006, 68)
+mesh = SubResource("mesh_box_10")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="LaneDash_H_68_12" type="MeshInstance3D" parent="Markings"]
+position = Vector3(12, 0.006, 68)
+mesh = SubResource("mesh_box_10")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="LaneDash_H_68_24" type="MeshInstance3D" parent="Markings"]
+position = Vector3(24, 0.006, 68)
+mesh = SubResource("mesh_box_10")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="LaneDash_H_68_36" type="MeshInstance3D" parent="Markings"]
+position = Vector3(36, 0.006, 68)
+mesh = SubResource("mesh_box_10")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="LaneDash_H_68_48" type="MeshInstance3D" parent="Markings"]
+position = Vector3(48, 0.006, 68)
+mesh = SubResource("mesh_box_10")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="LaneDash_H_68_60" type="MeshInstance3D" parent="Markings"]
+position = Vector3(60, 0.006, 68)
+mesh = SubResource("mesh_box_10")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="LaneDash_V_-74_-48" type="MeshInstance3D" parent="Markings"]
+position = Vector3(-74, 0.006, -48)
+mesh = SubResource("mesh_box_11")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="LaneDash_V_-74_-36" type="MeshInstance3D" parent="Markings"]
+position = Vector3(-74, 0.006, -36)
+mesh = SubResource("mesh_box_11")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="LaneDash_V_-74_-24" type="MeshInstance3D" parent="Markings"]
+position = Vector3(-74, 0.006, -24)
+mesh = SubResource("mesh_box_11")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="LaneDash_V_-74_-12" type="MeshInstance3D" parent="Markings"]
+position = Vector3(-74, 0.006, -12)
+mesh = SubResource("mesh_box_11")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="LaneDash_V_-74_0" type="MeshInstance3D" parent="Markings"]
+position = Vector3(-74, 0.006, 0)
+mesh = SubResource("mesh_box_11")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="LaneDash_V_-74_12" type="MeshInstance3D" parent="Markings"]
+position = Vector3(-74, 0.006, 12)
+mesh = SubResource("mesh_box_11")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="LaneDash_V_-74_24" type="MeshInstance3D" parent="Markings"]
+position = Vector3(-74, 0.006, 24)
+mesh = SubResource("mesh_box_11")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="LaneDash_V_-74_36" type="MeshInstance3D" parent="Markings"]
+position = Vector3(-74, 0.006, 36)
+mesh = SubResource("mesh_box_11")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="LaneDash_V_-74_48" type="MeshInstance3D" parent="Markings"]
+position = Vector3(-74, 0.006, 48)
+mesh = SubResource("mesh_box_11")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="LaneDash_V_74_-48" type="MeshInstance3D" parent="Markings"]
+position = Vector3(74, 0.006, -48)
+mesh = SubResource("mesh_box_11")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="LaneDash_V_74_-36" type="MeshInstance3D" parent="Markings"]
+position = Vector3(74, 0.006, -36)
+mesh = SubResource("mesh_box_11")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="LaneDash_V_74_-24" type="MeshInstance3D" parent="Markings"]
+position = Vector3(74, 0.006, -24)
+mesh = SubResource("mesh_box_11")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="LaneDash_V_74_-12" type="MeshInstance3D" parent="Markings"]
+position = Vector3(74, 0.006, -12)
+mesh = SubResource("mesh_box_11")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="LaneDash_V_74_0" type="MeshInstance3D" parent="Markings"]
+position = Vector3(74, 0.006, 0)
+mesh = SubResource("mesh_box_11")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="LaneDash_V_74_12" type="MeshInstance3D" parent="Markings"]
+position = Vector3(74, 0.006, 12)
+mesh = SubResource("mesh_box_11")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="LaneDash_V_74_24" type="MeshInstance3D" parent="Markings"]
+position = Vector3(74, 0.006, 24)
+mesh = SubResource("mesh_box_11")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="LaneDash_V_74_36" type="MeshInstance3D" parent="Markings"]
+position = Vector3(74, 0.006, 36)
+mesh = SubResource("mesh_box_11")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="LaneDash_V_74_48" type="MeshInstance3D" parent="Markings"]
+position = Vector3(74, 0.006, 48)
+mesh = SubResource("mesh_box_11")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="CentreDash_H_-55" type="MeshInstance3D" parent="Markings"]
+position = Vector3(-55, 0.006, 0)
+mesh = SubResource("mesh_box_10")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="CentreDash_H_-43" type="MeshInstance3D" parent="Markings"]
+position = Vector3(-43, 0.006, 0)
+mesh = SubResource("mesh_box_10")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="CentreDash_H_-31" type="MeshInstance3D" parent="Markings"]
+position = Vector3(-31, 0.006, 0)
+mesh = SubResource("mesh_box_10")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="CentreDash_H_-19" type="MeshInstance3D" parent="Markings"]
+position = Vector3(-19, 0.006, 0)
+mesh = SubResource("mesh_box_10")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="CentreDash_H_19" type="MeshInstance3D" parent="Markings"]
+position = Vector3(19, 0.006, 0)
+mesh = SubResource("mesh_box_10")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="CentreDash_H_31" type="MeshInstance3D" parent="Markings"]
+position = Vector3(31, 0.006, 0)
+mesh = SubResource("mesh_box_10")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="CentreDash_H_43" type="MeshInstance3D" parent="Markings"]
+position = Vector3(43, 0.006, 0)
+mesh = SubResource("mesh_box_10")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="CentreDash_H_55" type="MeshInstance3D" parent="Markings"]
+position = Vector3(55, 0.006, 0)
+mesh = SubResource("mesh_box_10")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="CentreDash_V_-51" type="MeshInstance3D" parent="Markings"]
+position = Vector3(0, 0.006, -51)
+mesh = SubResource("mesh_box_11")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="CentreDash_V_-39" type="MeshInstance3D" parent="Markings"]
+position = Vector3(0, 0.006, -39)
+mesh = SubResource("mesh_box_11")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="CentreDash_V_-27" type="MeshInstance3D" parent="Markings"]
+position = Vector3(0, 0.006, -27)
+mesh = SubResource("mesh_box_11")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="CentreDash_V_-15" type="MeshInstance3D" parent="Markings"]
+position = Vector3(0, 0.006, -15)
+mesh = SubResource("mesh_box_11")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="CentreDash_V_15" type="MeshInstance3D" parent="Markings"]
+position = Vector3(0, 0.006, 15)
+mesh = SubResource("mesh_box_11")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="CentreDash_V_27" type="MeshInstance3D" parent="Markings"]
+position = Vector3(0, 0.006, 27)
+mesh = SubResource("mesh_box_11")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="CentreDash_V_39" type="MeshInstance3D" parent="Markings"]
+position = Vector3(0, 0.006, 39)
+mesh = SubResource("mesh_box_11")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="CentreDash_V_51" type="MeshInstance3D" parent="Markings"]
+position = Vector3(0, 0.006, 51)
+mesh = SubResource("mesh_box_11")
+material_override = SubResource("mat_line")
+cast_shadow = 0
+
+[node name="StopLine_North" type="MeshInstance3D" parent="Markings"]
+position = Vector3(0, 0.008, -16)
+mesh = SubResource("mesh_box_12")
+material_override = SubResource("mat_white")
+cast_shadow = 0
+
+[node name="StopLine_West" type="MeshInstance3D" parent="Markings"]
+position = Vector3(-23, 0.008, 0)
+mesh = SubResource("mesh_box_13")
+material_override = SubResource("mat_white")
+cast_shadow = 0
+
+[node name="GiveWayLine" type="MeshInstance3D" parent="Markings"]
+position = Vector3(0, 0.008, 56)
+mesh = SubResource("mesh_box_14")
+material_override = SubResource("mat_yellow")
+cast_shadow = 0
+
+[node name="CrosswalkStripe_0" type="MeshInstance3D" parent="Markings"]
+position = Vector3(22, 0.009, -4.8)
+mesh = SubResource("mesh_box_15")
+material_override = SubResource("mat_white")
+cast_shadow = 0
+
+[node name="CrosswalkStripe_1" type="MeshInstance3D" parent="Markings"]
+position = Vector3(22, 0.009, -3.2)
+mesh = SubResource("mesh_box_15")
+material_override = SubResource("mat_white")
+cast_shadow = 0
+
+[node name="CrosswalkStripe_2" type="MeshInstance3D" parent="Markings"]
+position = Vector3(22, 0.009, -1.6)
+mesh = SubResource("mesh_box_15")
+material_override = SubResource("mat_white")
+cast_shadow = 0
+
+[node name="CrosswalkStripe_3" type="MeshInstance3D" parent="Markings"]
+position = Vector3(22, 0.009, 0)
+mesh = SubResource("mesh_box_15")
+material_override = SubResource("mat_white")
+cast_shadow = 0
+
+[node name="CrosswalkStripe_4" type="MeshInstance3D" parent="Markings"]
+position = Vector3(22, 0.009, 1.6)
+mesh = SubResource("mesh_box_15")
+material_override = SubResource("mat_white")
+cast_shadow = 0
+
+[node name="CrosswalkStripe_5" type="MeshInstance3D" parent="Markings"]
+position = Vector3(22, 0.009, 3.2)
+mesh = SubResource("mesh_box_15")
+material_override = SubResource("mat_white")
+cast_shadow = 0
+
+[node name="CrosswalkStripe_6" type="MeshInstance3D" parent="Markings"]
+position = Vector3(22, 0.009, 4.8)
+mesh = SubResource("mesh_box_15")
+material_override = SubResource("mat_white")
+cast_shadow = 0
+
+[node name="ParkingA_L" type="MeshInstance3D" parent="Markings"]
+position = Vector3(-48.3, 0.009, 36)
+mesh = SubResource("mesh_box_16")
+material_override = SubResource("mat_white")
+cast_shadow = 0
+
+[node name="ParkingA_R" type="MeshInstance3D" parent="Markings"]
+position = Vector3(-43.7, 0.009, 36)
+mesh = SubResource("mesh_box_16")
+material_override = SubResource("mat_white")
+cast_shadow = 0
+
+[node name="ParkingA_N" type="MeshInstance3D" parent="Markings"]
+position = Vector3(-46, 0.009, 32.5)
+mesh = SubResource("mesh_box_17")
+material_override = SubResource("mat_white")
+cast_shadow = 0
+
+[node name="ParkingA_S" type="MeshInstance3D" parent="Markings"]
+position = Vector3(-46, 0.009, 39.5)
+mesh = SubResource("mesh_box_17")
+material_override = SubResource("mat_white")
+cast_shadow = 0
+
+[node name="ParkingB_L" type="MeshInstance3D" parent="Markings"]
+position = Vector3(-34.3, 0.009, 36)
+mesh = SubResource("mesh_box_16")
+material_override = SubResource("mat_white")
+cast_shadow = 0
+
+[node name="ParkingB_R" type="MeshInstance3D" parent="Markings"]
+position = Vector3(-29.7, 0.009, 36)
+mesh = SubResource("mesh_box_16")
+material_override = SubResource("mat_white")
+cast_shadow = 0
+
+[node name="ParkingB_N" type="MeshInstance3D" parent="Markings"]
+position = Vector3(-32, 0.009, 32.5)
+mesh = SubResource("mesh_box_17")
+material_override = SubResource("mat_white")
+cast_shadow = 0
+
+[node name="ParkingB_S" type="MeshInstance3D" parent="Markings"]
+position = Vector3(-32, 0.009, 39.5)
+mesh = SubResource("mesh_box_17")
+material_override = SubResource("mat_white")
+cast_shadow = 0
+
+[node name="ParkingC_L" type="MeshInstance3D" parent="Markings"]
+position = Vector3(-20.3, 0.009, 36)
+mesh = SubResource("mesh_box_16")
+material_override = SubResource("mat_white")
+cast_shadow = 0
+
+[node name="ParkingC_R" type="MeshInstance3D" parent="Markings"]
+position = Vector3(-15.7, 0.009, 36)
+mesh = SubResource("mesh_box_16")
+material_override = SubResource("mat_white")
+cast_shadow = 0
+
+[node name="ParkingC_N" type="MeshInstance3D" parent="Markings"]
+position = Vector3(-18, 0.009, 32.5)
+mesh = SubResource("mesh_box_17")
+material_override = SubResource("mat_white")
+cast_shadow = 0
+
+[node name="ParkingC_S" type="MeshInstance3D" parent="Markings"]
+position = Vector3(-18, 0.009, 39.5)
+mesh = SubResource("mesh_box_17")
+material_override = SubResource("mat_white")
+cast_shadow = 0
+
+[node name="ReverseTarget_L" type="MeshInstance3D" parent="Markings"]
+position = Vector3(34.7, 0.009, 35)
+mesh = SubResource("mesh_box_16")
+material_override = SubResource("mat_white")
+cast_shadow = 0
+
+[node name="ReverseTarget_R" type="MeshInstance3D" parent="Markings"]
+position = Vector3(39.3, 0.009, 35)
+mesh = SubResource("mesh_box_16")
+material_override = SubResource("mat_white")
+cast_shadow = 0
+
+[node name="ReverseTarget_N" type="MeshInstance3D" parent="Markings"]
+position = Vector3(37, 0.009, 31.5)
+mesh = SubResource("mesh_box_17")
+material_override = SubResource("mat_white")
+cast_shadow = 0
+
+[node name="ReverseTarget_S" type="MeshInstance3D" parent="Markings"]
+position = Vector3(37, 0.009, 38.5)
+mesh = SubResource("mesh_box_17")
+material_override = SubResource("mat_white")
+cast_shadow = 0
+
+[node name="SchoolBuilding" parent="Props" instance=ExtResource("ext_1")]
+position = Vector3(-42, 0, -32)
+
+[node name="Instructor" parent="Props" instance=ExtResource("ext_2")]
+position = Vector3(-33, 0, -15)
+
+[node name="StopSignNorth" parent="Props" instance=ExtResource("ext_3")]
+position = Vector3(8, 0, -17)
+rotation_degrees = Vector3(0, 180, 0)
+
+[node name="StopSignWest" parent="Props" instance=ExtResource("ext_3")]
+position = Vector3(-22, 0, 9)
+rotation_degrees = Vector3(0, 90, 0)
+
+[node name="TrafficLightCentre" parent="Props" instance=ExtResource("ext_4")]
+position = Vector3(9, 0, -9)
+rotation_degrees = Vector3(0, 180, 0)
+
+[node name="GiveWaySouth" parent="Props" instance=ExtResource("ext_5")]
+position = Vector3(9, 0, 55)
+rotation_degrees = Vector3(0, 180, 0)
+
+[node name="SpeedSignNorth" parent="Props" instance=ExtResource("ext_6")]
+position = Vector3(-40, 0, -59)
+rotation_degrees = Vector3(0, 90, 0)
+
+[node name="SpeedSignEast" parent="Props" instance=ExtResource("ext_6")]
+position = Vector3(64, 0, 38)
+rotation_degrees = Vector3(0, 180, 0)
+
+[node name="GateStart" parent="Props" instance=ExtResource("ext_7")]
+position = Vector3(-49, 0, -68)
+rotation_degrees = Vector3(0, 90, 0)
+
+[node name="GateStraight" parent="Props" instance=ExtResource("ext_7")]
+position = Vector3(-16, 0, -68)
+rotation_degrees = Vector3(0, 90, 0)
+
+[node name="GateNorthEast" parent="Props" instance=ExtResource("ext_7")]
+position = Vector3(54, 0, -68)
+rotation_degrees = Vector3(0, 90, 0)
+
+[node name="GateEast" parent="Props" instance=ExtResource("ext_7")]
+position = Vector3(74, 0, -35)
+rotation_degrees = Vector3(0, 0, 0)
+
+[node name="GateSouthEast" parent="Props" instance=ExtResource("ext_7")]
+position = Vector3(74, 0, 36)
+rotation_degrees = Vector3(0, 0, 0)
+
+[node name="GateSouth" parent="Props" instance=ExtResource("ext_7")]
+position = Vector3(35, 0, 68)
+rotation_degrees = Vector3(0, 90, 0)
+
+[node name="GateSouthWest" parent="Props" instance=ExtResource("ext_7")]
+position = Vector3(-43, 0, 68)
+rotation_degrees = Vector3(0, 90, 0)
+
+[node name="GateWest" parent="Props" instance=ExtResource("ext_7")]
+position = Vector3(-74, 0, 27)
+rotation_degrees = Vector3(0, 0, 0)
+
+[node name="GateWestNorth" parent="Props" instance=ExtResource("ext_7")]
+position = Vector3(-74, 0, -35)
+rotation_degrees = Vector3(0, 0, 0)
+
+[node name="Cone_00" parent="Props" instance=ExtResource("ext_8")]
+position = Vector3(-52, 0, 58)
+
+[node name="Cone_01" parent="Props" instance=ExtResource("ext_8")]
+position = Vector3(-52, 0, 50)
+
+[node name="Cone_02" parent="Props" instance=ExtResource("ext_8")]
+position = Vector3(-8, 0, 21)
+
+[node name="Cone_03" parent="Props" instance=ExtResource("ext_8")]
+position = Vector3(3, 0, 23)
+
+[node name="Cone_04" parent="Props" instance=ExtResource("ext_8")]
+position = Vector3(50, 0, 22)
+
+[node name="Cone_05" parent="Props" instance=ExtResource("ext_8")]
+position = Vector3(51, 0, 50)
+
+[node name="Cone_06" parent="Props" instance=ExtResource("ext_8")]
+position = Vector3(-12, 0, 52)
+
+[node name="Lesson03_Start" type="Marker3D" parent="GameplayMarkers"]
+position = Vector3(0, 0.05, -45)
+rotation_degrees = Vector3(0, 180, 0)
+metadata/academy_id = "Lesson03_Start"
+
+[node name="Lesson04_Start" type="Marker3D" parent="GameplayMarkers"]
+position = Vector3(0, 0.05, -45)
+rotation_degrees = Vector3(0, 180, 0)
+metadata/academy_id = "Lesson04_Start"
+
+[node name="Lesson05_Start" type="Marker3D" parent="GameplayMarkers"]
+position = Vector3(37, 0.05, 52)
+rotation_degrees = Vector3(0, 180, 0)
+metadata/academy_id = "Lesson05_Start"
+
+[node name="Lesson06_Start" type="Marker3D" parent="GameplayMarkers"]
+position = Vector3(-62, 0.05, -68)
+rotation_degrees = Vector3(0, -90, 0)
+metadata/academy_id = "Lesson06_Start"
+
+[node name="PlayerSpawn" type="Marker3D" parent="GameplayMarkers"]
+position = Vector3(-33, 0.05, -16)
+metadata/academy_id = "PlayerSpawn"
+
+[node name="InstructorTalk" type="Marker3D" parent="GameplayMarkers"]
+position = Vector3(-33, 0.05, -13)
+metadata/academy_id = "InstructorTalk"
+
+[node name="ReturnToTown" type="Marker3D" parent="GameplayMarkers"]
+position = Vector3(-30, 0.05, -12)
+metadata/academy_id = "ReturnToTown"
+
+[node name="PracticeVehicleSpawn" type="Marker3D" parent="GameplayMarkers"]
+position = Vector3(-52, 0.05, -68)
+rotation_degrees = Vector3(0, -90, 0)
+metadata/academy_id = "PracticeVehicleSpawn"
+
+[node name="PracticeVehicleSafeReset" type="Marker3D" parent="GameplayMarkers"]
+position = Vector3(-52, 0.05, -68)
+rotation_degrees = Vector3(0, -90, 0)
+metadata/academy_id = "PracticeVehicleSafeReset"
+
+[node name="Lesson01_Accelerate" type="Marker3D" parent="GameplayMarkers"]
+position = Vector3(-25, 0.05, -68)
+rotation_degrees = Vector3(0, -90, 0)
+metadata/academy_id = "Lesson01_Accelerate"
+
+[node name="Lesson01_Stop" type="Marker3D" parent="GameplayMarkers"]
+position = Vector3(5, 0.05, -68)
+rotation_degrees = Vector3(0, -90, 0)
+metadata/academy_id = "Lesson01_Stop"
+
+[node name="Lesson02_Gate01" type="Marker3D" parent="GameplayMarkers"]
+position = Vector3(-16, 0.05, -68)
+rotation_degrees = Vector3(0, -90, 0)
+metadata/academy_id = "Lesson02_Gate01"
+
+[node name="Lesson02_Gate02" type="Marker3D" parent="GameplayMarkers"]
+position = Vector3(54, 0.05, -68)
+rotation_degrees = Vector3(0, -90, 0)
+metadata/academy_id = "Lesson02_Gate02"
+
+[node name="Lesson02_Gate03" type="Marker3D" parent="GameplayMarkers"]
+position = Vector3(74, 0.05, -35)
+rotation_degrees = Vector3(0, 180, 0)
+metadata/academy_id = "Lesson02_Gate03"
+
+[node name="Lesson03_StopApproach" type="Marker3D" parent="GameplayMarkers"]
+position = Vector3(0, 0.05, -30)
+rotation_degrees = Vector3(0, 180, 0)
+metadata/academy_id = "Lesson03_StopApproach"
+
+[node name="Lesson03_StopLine" type="Marker3D" parent="GameplayMarkers"]
+position = Vector3(0, 0.05, -17)
+rotation_degrees = Vector3(0, 180, 0)
+metadata/academy_id = "Lesson03_StopLine"
+
+[node name="Lesson03_AfterStop" type="Marker3D" parent="GameplayMarkers"]
+position = Vector3(0, 0.05, -8)
+rotation_degrees = Vector3(0, 180, 0)
+metadata/academy_id = "Lesson03_AfterStop"
+
+[node name="Lesson04_TrafficLight" type="Marker3D" parent="GameplayMarkers"]
+position = Vector3(0, 0.05, -17)
+rotation_degrees = Vector3(0, 180, 0)
+metadata/academy_id = "Lesson04_TrafficLight"
+metadata/stop_line_half_width = 5.5
+metadata/stop_line_approach_length = 16.0
+
+[node name="Lesson04_Crossing" type="Marker3D" parent="GameplayMarkers"]
+position = Vector3(22, 0.05, 0)
+rotation_degrees = Vector3(0, -90, 0)
+metadata/academy_id = "Lesson04_Crossing"
+metadata/crossing_half_width = 6.0
+metadata/crossing_half_length = 3.0
+
+[node name="Lesson04_GiveWay" type="Marker3D" parent="GameplayMarkers"]
+position = Vector3(0, 0.05, 55)
+rotation_degrees = Vector3(0, 180, 0)
+metadata/academy_id = "Lesson04_GiveWay"
+
+[node name="Lesson05_ReverseStart" type="Marker3D" parent="GameplayMarkers"]
+position = Vector3(37, 0.05, 45)
+rotation_degrees = Vector3(0, 0, 0)
+metadata/academy_id = "Lesson05_ReverseStart"
+
+[node name="Lesson05_ParkingTarget" type="Marker3D" parent="GameplayMarkers"]
+position = Vector3(37, 0.05, 35)
+rotation_degrees = Vector3(0, 0, 0)
+metadata/academy_id = "Lesson05_ParkingTarget"
+
+[node name="Lesson06_Checkpoint01" type="Marker3D" parent="GameplayMarkers"]
+position = Vector3(-49, 0.05, -68)
+rotation_degrees = Vector3(0, -90, 0)
+metadata/academy_id = "Lesson06_Checkpoint01"
+
+[node name="Lesson06_Checkpoint02" type="Marker3D" parent="GameplayMarkers"]
+position = Vector3(74, 0.05, -35)
+rotation_degrees = Vector3(0, 180, 0)
+metadata/academy_id = "Lesson06_Checkpoint02"
+
+[node name="Lesson06_Checkpoint03" type="Marker3D" parent="GameplayMarkers"]
+position = Vector3(35, 0.05, 68)
+rotation_degrees = Vector3(0, 90, 0)
+metadata/academy_id = "Lesson06_Checkpoint03"
+
+[node name="Lesson06_Checkpoint04" type="Marker3D" parent="GameplayMarkers"]
+position = Vector3(-74, 0.05, 27)
+rotation_degrees = Vector3(0, 0, 0)
+metadata/academy_id = "Lesson06_Checkpoint04"
+
+[node name="Final_Start" type="Marker3D" parent="GameplayMarkers"]
+position = Vector3(-49, 0.05, -68)
+rotation_degrees = Vector3(0, -90, 0)
+metadata/academy_id = "Final_Start"
+
+[node name="Final_Stop" type="Marker3D" parent="GameplayMarkers"]
+position = Vector3(0, 0.05, -17)
+rotation_degrees = Vector3(0, 180, 0)
+metadata/academy_id = "Final_Stop"
+metadata/stop_line_half_width = 5.5
+metadata/stop_line_approach_length = 16.0
+
+[node name="Final_Light" type="Marker3D" parent="GameplayMarkers"]
+position = Vector3(0, 0.05, -8)
+rotation_degrees = Vector3(0, 180, 0)
+metadata/academy_id = "Final_Light"
+
+[node name="Final_Crossing" type="Marker3D" parent="GameplayMarkers"]
+position = Vector3(22, 0.05, 0)
+rotation_degrees = Vector3(0, -90, 0)
+metadata/academy_id = "Final_Crossing"
+metadata/crossing_half_width = 6.0
+metadata/crossing_half_length = 3.0
+
+[node name="Final_Park" type="Marker3D" parent="GameplayMarkers"]
+position = Vector3(-32, 0.05, 36)
+rotation_degrees = Vector3(0, 0, 0)
+metadata/academy_id = "Final_Park"

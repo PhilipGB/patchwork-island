@@ -1,0 +1,64 @@
+COMMAND: /home/philip/.cache/tmp/opencode/pr35-verified-d8ociq8_/export/PatchworkIsland.x86_64 --headless --audio-driver Dummy -- --selftest-hotfix
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+
+ERROR: Traffic 'town_scooter' left the island at (-35.58891, -6.005, -2); route stopped.
+   at: bool Godot.Node.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (:0)
+   C# backtrace (most recent call first):
+       [0] void PatchworkIsland.TrafficCar._PhysicsProcess(double) (/home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Traffic/TrafficCar.cs:203)
+       [1] bool Godot.Node.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&)
+       [2] bool Godot.CollisionObject3D.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&)
+       [3] bool PatchworkIsland.TrafficCar.InvokeGodotClassMethod(Godot.NativeInterop.godot_string_name&, Godot.NativeInterop.NativeVariantPtrArgs, Godot.NativeInterop.godot_variant&) (/home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/.godot/mono/temp/obj/ExportRelease/linux-x64/Godot.SourceGenerators/Godot.SourceGenerators.ScriptMethodsGenerator/PatchworkIsland.TrafficCar_ScriptMethods.generated.cs:100)
+       [4] Godot.NativeInterop.godot_bool Godot.Bridge.CSharpInstanceBridge.Call(nint, Godot.NativeInterop.godot_string_name*, Godot.NativeInterop.godot_variant**, int, Godot.NativeInterop.godot_variant_call_error*, Godot.NativeInterop.godot_variant*)
+[WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 158 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.
+[CITY SCENE] res://scenes/city/CityDistrict.tscn: 36 buildings, 36 HLOD proxies, 9 cells, 15 job markers, 4 vehicle routes, 11 pedestrian routes.
+PASS  hotfix test starts on the title screen
+PASS  hotfix test starts a fresh village
+PASS  M18 is available after the prepared M16/M17 jobs
+PASS  M18: job board is nearest
+PASS  M18: job board opens
+PASS  M18: Start button starts the job
+PASS  M18 starts from the job board
+PASS  the first tyre is the nearest E interaction
+PASS  first tyre collected through the real pickup
+PASS  first tyre pickup ID is recorded
+PASS  three remaining repair-part pickups stay in the world
+PASS  partial M18 progress saves
+PASS  Save loaded.
+PASS  saved partial job is M18
+PASS  saved partial tyre count is on disk
+PASS  saved file records the collected tyre pickup
+PASS  off-island traffic enters a terminal stopped state
+PASS  off-island traffic logs one failure
+PASS  stopped traffic does not repeat its failure
+PASS  stopped traffic no longer moves
+[WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 158 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.
+[CITY SCENE] res://scenes/city/CityDistrict.tscn: 36 buildings, 36 HLOD proxies, 9 cells, 15 job markers, 4 vehicle routes, 11 pedestrian routes.
+PASS  hotfix resume starts on the title screen
+PASS  the partial M18 save offers Continue
+PASS  Continue resumes the village
+PASS  Continue restores active M18
+PASS  Continue restores the collected tyre
+PASS  Continue restores the collected pickup ID
+PASS  the collected tyre does not respawn after relaunch
+PASS  only the three uncollected parts remain after relaunch
+PASS  part_tyre_1 is the nearest E interaction after relaunch
+PASS  part_lamp_0 is the nearest E interaction after relaunch
+PASS  part_battery_0 is the nearest E interaction after relaunch
+PASS  second tyre collected after relaunch
+PASS  lamp collected after relaunch
+PASS  battery collected after relaunch
+PASS  all four part pickups are gone
+PASS  repair bench is nearest
+PASS  repair bench opens
+PASS  inspect action works after relaunch
+PASS  fit tyre 0 after relaunch
+PASS  fit tyre 1 after relaunch
+PASS  fit lamp after relaunch
+PASS  fit battery after relaunch
+PASS  M18 completes after the partial reload
+PASS  M18 still pays its 24-coin reward once
+PASS  part_tyre_0 remains recorded after completion
+PASS  part_tyre_1 remains recorded after completion
+PASS  part_lamp_0 remains recorded after completion
+PASS  part_battery_0 remains recorded after completion
+RUNTIME RESULT: 48 passed, 0 failed

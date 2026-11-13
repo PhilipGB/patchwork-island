@@ -1,0 +1,225 @@
+COMMAND: /home/philip/.cache/tmp/opencode/pr35-verified-d8ociq8_/export/PatchworkIsland.x86_64 --headless --audio-driver Dummy -- --selftest-chapter
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+
+[WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 158 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.
+[CITY SCENE] res://scenes/city/CityDistrict.tscn: 36 buildings, 36 HLOD proxies, 9 cells, 15 job markers, 4 vehicle routes, 11 pedestrian routes.
+PASS  chapter test starts on the title screen
+PASS  chapter test starts a fresh village
+PASS  chapter-two wallet starts at the prepared 100 coins
+PASS  three authored road-sign sockets exist
+PASS  six garden pads exist
+PASS  three bakery display slots exist
+PASS  four library shelf slots exist
+PASS  four labelled books exist in the world
+PASS  M11 unlocks for a completed original chapter
+PASS  M12 still waits for M11
+PASS  the job board is the nearest E interaction
+PASS  the real job board opens
+PASS  the Village jobs tab works
+PASS  Village jobs remains the job board
+PASS  the New adventures tab works
+PASS  the real M11 Start button works
+PASS  M11 is the active job
+PASS  M11 grants its own card stock on start
+PASS  M11 card stock does not spend personal coins
+PASS  ada is the nearest E interaction
+PASS  ada's real dialogue opens
+PASS  a wrong-card choice is available
+PASS  wrong card is not delivered
+PASS  wrong card is not consumed
+PASS  wrong card spends nothing
+PASS  failed card choice returns to the village
+PASS  ada is the nearest E interaction
+PASS  ada's real dialogue opens
+PASS  the matching card choice works
+PASS  Ada delivery recorded
+PASS  Ada card consumed
+PASS  successful card still spends nothing
+PASS  partial M11 progress saves
+PASS  Save loaded.
+PASS  saved partial chapter job is M11
+PASS  saved partial chapter card is on disk
+PASS  saved file still holds the ten original completions
+PASS  saved file keeps the original celebration and hides the second finale
+[WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 158 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.
+[CITY SCENE] res://scenes/city/CityDistrict.tscn: 36 buildings, 36 HLOD proxies, 9 cells, 15 job markers, 4 vehicle routes, 11 pedestrian routes.
+PASS  chapter resume starts on the title screen
+PASS  the partial chapter save offers Continue
+PASS  Continue resumes the village
+PASS  Continue restores active M11
+PASS  Continue restores Ada's delivered card
+PASS  Continue restores the remaining card stock
+PASS  Continue keeps CelebrationSeen separate from FestivalSeen
+PASS  Continue restores the wallet
+PASS  ollie is the nearest E interaction
+PASS  ollie's real dialogue opens
+PASS  Ollie's matching card is offered
+PASS  Ollie delivery recorded
+PASS  fern is the nearest E interaction
+PASS  fern's real dialogue opens
+PASS  Fern's matching card is offered
+PASS  M11 completes through the real dialogue
+PASS  M11 reward is 12 coins
+PASS  M11: completion modal opens
+PASS  M11: closing completion resumes walking
+PASS  M12: job board is nearest
+PASS  M12: job board opens
+PASS  M12: Start button starts the job
+PASS  M12 starts from the job board
+PASS  ada is the nearest E interaction
+PASS  ada's real dialogue opens
+PASS  Ada's bakery option opens the counter
+PASS  the real bakery modal opens
+PASS  bakery stepper works
+PASS  bakery Serve button works
+PASS  wrong bakery count is not accepted
+PASS  wrong bakery count gives a specific hint
+PASS  wrong bakery count spends nothing
+PASS  second milo bread
+PASS  milo cake
+PASS  Milo served
+PASS  Milo order recorded
+PASS  fern bread 0
+PASS  fern bread 1
+PASS  fern bread 2
+PASS  fern cake 0
+PASS  fern cake 1
+PASS  Fern served
+PASS  ivy bread
+PASS  ivy cake 0
+PASS  ivy cake 1
+PASS  ivy cake 2
+PASS  Ivy served
+PASS  M12 completes through the real counter
+PASS  M12 reward is 14 coins
+PASS  all three bakery display slots fill
+PASS  M12: completion modal opens
+PASS  M12: closing completion resumes walking
+PASS  M13: job board is nearest
+PASS  M13: job board opens
+PASS  M13: Start button starts the job
+PASS  M13 starts from the job board
+PASS  sun pickup is the nearest E interaction
+PASS  sun book collected through its pickup
+PASS  moon pickup is the nearest E interaction
+PASS  moon book collected through its pickup
+PASS  tree pickup is the nearest E interaction
+PASS  tree book collected through its pickup
+PASS  star pickup is the nearest E interaction
+PASS  star book collected through its pickup
+PASS  all four book pickups are gone
+PASS  ollie is the nearest E interaction
+PASS  ollie's real dialogue opens
+PASS  Ollie's shelf option opens the library
+PASS  the real library modal opens
+PASS  SUN book selected
+PASS  wrong shelf selected
+PASS  wrong shelf keeps the book in hand
+PASS  wrong shelf stays empty
+PASS  wrong shelf gives a specific hint
+PASS  wrong shelf spends nothing
+PASS  SUN shelved correctly
+PASS  MOON selected
+PASS  MOON shelved
+PASS  TREE selected
+PASS  TREE shelved
+PASS  STAR selected
+PASS  STAR shelved
+PASS  M13 completes through the real library
+PASS  M13 reward is 14 coins
+PASS  all four library shelf slots fill
+PASS  M13: completion modal opens
+PASS  M13: closing completion resumes walking
+PASS  M14: job board is nearest
+PASS  M14: job board opens
+PASS  M14: Start button starts the job
+PASS  M14 starts from the job board
+PASS  MARKET socket is the nearest E interaction
+PASS  the MARKET socket modal opens
+PASS  wrong sign selectable
+PASS  WEST arrow selectable
+PASS  install button works
+PASS  wrong sign is not installed
+PASS  wrong sign gives a specific hint
+PASS  wrong sign spends nothing
+PASS  MARKET sign selected
+PASS  MARKET sign installed
+PASS  MARKET socket recorded
+PASS  MARKET repaired sign becomes visible
+PASS  repair is reversible
+PASS  MARKET socket cleared
+PASS  removed sign is hidden
+PASS  MARKET sign reselected
+PASS  WEST arrow reselected
+PASS  MARKET sign reinstalled
+PASS  step away closes the socket
+PASS  WORKSHOP socket is the nearest E interaction
+PASS  the WORKSHOP socket modal opens
+PASS  WORKSHOP sign selected
+PASS  NORTH arrow selected
+PASS  WORKSHOP sign installed
+PASS  WORKSHOP socket recorded
+PASS  leave the WORKSHOP socket
+PASS  GREEN socket is the nearest E interaction
+PASS  the GREEN socket modal opens
+PASS  GREEN sign selected
+PASS  SOUTH arrow selected
+PASS  GREEN sign installed
+PASS  M14 completes through the real sockets
+PASS  M14 reward is 16 coins
+PASS  all three repaired signs are visible
+PASS  M14: completion modal opens
+PASS  M14: closing completion resumes walking
+PASS  M15: job board is nearest
+PASS  M15: job board opens
+PASS  M15: Start button starts the job
+PASS  M15 starts from the job board
+PASS  M15 starts with the first RED/BLUE example pair
+PASS  garden pad 1 is the nearest E interaction
+PASS  the garden pad modal opens
+PASS  wrong flower selectable
+PASS  blue flower is visible
+PASS  wrong flower gives a specific hint
+PASS  garden uses job stock, never coins
+PASS  flower corrected to red
+PASS  pad 1 corrected
+PASS  garden modal closes
+PASS  garden pad 2 is nearest
+PASS  garden pad 2 modal opens
+PASS  plant blue on pad 2
+PASS  garden modal closes
+PASS  garden pad 3 is nearest
+PASS  garden pad 3 modal opens
+PASS  plant red on pad 3
+PASS  garden modal closes
+PASS  garden pad 4 is nearest
+PASS  garden pad 4 modal opens
+PASS  plant blue on pad 4
+PASS  garden modal closes
+PASS  garden pad 5 is nearest
+PASS  garden pad 5 modal opens
+PASS  plant red on pad 5
+PASS  garden modal closes
+PASS  garden pad 6 is nearest
+PASS  garden pad 6 modal opens
+PASS  plant blue on pad 6
+PASS  M15 completes through the real garden pads
+PASS  M15 reward is 16 coins
+PASS  garden flower 1 is visible
+PASS  garden flower 2 is visible
+PASS  garden flower 3 is visible
+PASS  garden flower 4 is visible
+PASS  garden flower 5 is visible
+PASS  garden flower 6 is visible
+PASS  M15: completion modal opens
+PASS  M15: closing completion resumes walking
+PASS  M16 unlocks after both M14 and M15
+PASS  M17 still waits for M16
+PASS  M11-M15 paid exactly their authored rewards
+PASS  completed chapter-two state saves
+PASS  Save loaded.
+PASS  saved chapter-two state holds fifteen completions
+PASS  saved wallet is exact
+PASS  second finale stays unseen until M20
+PASS  all five implemented chapter-two jobs are persisted
+RUNTIME RESULT: 217 passed, 0 failed

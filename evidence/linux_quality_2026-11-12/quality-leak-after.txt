@@ -1,0 +1,393 @@
+WorkerThreadPool: 24 threads, 7 max low-priority.
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+TextServer: Added interface "Dummy"
+TextServer: Added interface "ICU / HarfBuzz / Graphite (Built-in)"
+SDL: Init OK!
+Using "default" pen tablet driver...
+
+TextServer: Primary interface set to: "ICU / HarfBuzz / Graphite (Built-in)".
+.NET: Initializing module...
+Found hostfxr: /usr/lib/dotnet/host/fxr/10.0.15/libhostfxr.so
+.NET: hostfxr initialized
+.NET: GodotPlugins initialized
+CORE API HASH: 3677103882
+EDITOR API HASH: 1629494564
+SceneTreeFTI: traversal method DEFAULT
+Loaded system CA certificates
+Loading resource: res://scenes/Main.tscn remapped: res://scenes/Main.tscn
+Loading resource: res://src/Main.cs remapped: res://src/Main.cs
+Completed load for: 'res://src/Main.cs' remapped 'res://src/Main.cs' at thread -1
+Completed load for: 'res://scenes/Main.tscn' remapped 'res://scenes/Main.tscn' at thread -1
+Loading resource: res://src/Audio/AudioManager.cs remapped: res://src/Audio/AudioManager.cs
+Completed load for: 'res://src/Audio/AudioManager.cs' remapped 'res://src/Audio/AudioManager.cs' at thread -1
+Loading resource: res://src/World/WorldSceneAdapter.cs remapped: res://src/World/WorldSceneAdapter.cs
+Loading resource: res://src/World/WorldModel.cs remapped: res://src/World/WorldModel.cs
+Completed load for: 'res://src/World/WorldModel.cs' remapped 'res://src/World/WorldModel.cs' at thread -1
+Completed load for: 'res://src/World/WorldSceneAdapter.cs' remapped 'res://src/World/WorldSceneAdapter.cs' at thread -1
+Loading resource: res://scenes/world/Town.tscn remapped: res://scenes/world/Town.tscn
+Loading resource: res://scenes/world/assets/environment/Terrain.tscn remapped: res://scenes/world/assets/environment/Terrain.tscn
+Completed load for: 'res://scenes/world/assets/environment/Terrain.tscn' remapped 'res://scenes/world/assets/environment/Terrain.tscn' at thread -1
+Loading resource: res://scenes/world/assets/environment/TownRoads_Collidable.tscn remapped: res://scenes/world/assets/environment/TownRoads_Collidable.tscn
+Completed load for: 'res://scenes/world/assets/environment/TownRoads_Collidable.tscn' remapped 'res://scenes/world/assets/environment/TownRoads_Collidable.tscn' at thread -1
+Loading resource: res://scenes/world/assets/environment/RallyRoad_Collidable.tscn remapped: res://scenes/world/assets/environment/RallyRoad_Collidable.tscn
+Loading resource: res://scenes/world/assets/environment/RallyRoad.obj remapped: res://scenes/world/assets/environment/RallyRoad.obj
+Loading resource: res://.godot/imported/RallyRoad.obj-aad7c994e7286346cf190c82e34cb04c.mesh remapped: res://.godot/imported/RallyRoad.obj-aad7c994e7286346cf190c82e34cb04c.mesh
+Completed load for: 'res://scenes/world/assets/environment/RallyRoad.obj' remapped 'res://scenes/world/assets/environment/RallyRoad.obj' at thread -1
+Completed load for: 'res://scenes/world/assets/environment/RallyRoad_Collidable.tscn' remapped 'res://scenes/world/assets/environment/RallyRoad_Collidable.tscn' at thread -1
+Loading resource: res://scenes/world/assets/buildings/PlayerHouse.tscn remapped: res://scenes/world/assets/buildings/PlayerHouse.tscn
+Completed load for: 'res://scenes/world/assets/buildings/PlayerHouse.tscn' remapped 'res://scenes/world/assets/buildings/PlayerHouse.tscn' at thread -1
+Loading resource: res://scenes/world/assets/buildings/TownHall.tscn remapped: res://scenes/world/assets/buildings/TownHall.tscn
+Completed load for: 'res://scenes/world/assets/buildings/TownHall.tscn' remapped 'res://scenes/world/assets/buildings/TownHall.tscn' at thread -1
+Loading resource: res://scenes/world/assets/buildings/RedHouse.tscn remapped: res://scenes/world/assets/buildings/RedHouse.tscn
+Completed load for: 'res://scenes/world/assets/buildings/RedHouse.tscn' remapped 'res://scenes/world/assets/buildings/RedHouse.tscn' at thread -1
+Loading resource: res://scenes/world/assets/buildings/Market.tscn remapped: res://scenes/world/assets/buildings/Market.tscn
+Completed load for: 'res://scenes/world/assets/buildings/Market.tscn' remapped 'res://scenes/world/assets/buildings/Market.tscn' at thread -1
+Loading resource: res://scenes/world/assets/buildings/ClothesShop.tscn remapped: res://scenes/world/assets/buildings/ClothesShop.tscn
+Completed load for: 'res://scenes/world/assets/buildings/ClothesShop.tscn' remapped 'res://scenes/world/assets/buildings/ClothesShop.tscn' at thread -1
+Loading resource: res://scenes/world/assets/buildings/Workshop.tscn remapped: res://scenes/world/assets/buildings/Workshop.tscn
+Completed load for: 'res://scenes/world/assets/buildings/Workshop.tscn' remapped 'res://scenes/world/assets/buildings/Workshop.tscn' at thread -1
+Loading resource: res://scenes/world/assets/landmarks/JobBoard.tscn remapped: res://scenes/world/assets/landmarks/JobBoard.tscn
+Completed load for: 'res://scenes/world/assets/landmarks/JobBoard.tscn' remapped 'res://scenes/world/assets/landmarks/JobBoard.tscn' at thread -1
+Loading resource: res://scenes/world/assets/landmarks/DirectionalSign.tscn remapped: res://scenes/world/assets/landmarks/DirectionalSign.tscn
+Completed load for: 'res://scenes/world/assets/landmarks/DirectionalSign.tscn' remapped 'res://scenes/world/assets/landmarks/DirectionalSign.tscn' at thread -1
+Loading resource: res://scenes/world/assets/landmarks/Playground.tscn remapped: res://scenes/world/assets/landmarks/Playground.tscn
+Completed load for: 'res://scenes/world/assets/landmarks/Playground.tscn' remapped 'res://scenes/world/assets/landmarks/Playground.tscn' at thread -1
+Loading resource: res://scenes/world/assets/landmarks/SwingFrame.tscn remapped: res://scenes/world/assets/landmarks/SwingFrame.tscn
+Completed load for: 'res://scenes/world/assets/landmarks/SwingFrame.tscn' remapped 'res://scenes/world/assets/landmarks/SwingFrame.tscn' at thread -1
+Loading resource: res://scenes/world/assets/landmarks/VillageGreen.tscn remapped: res://scenes/world/assets/landmarks/VillageGreen.tscn
+Completed load for: 'res://scenes/world/assets/landmarks/VillageGreen.tscn' remapped 'res://scenes/world/assets/landmarks/VillageGreen.tscn' at thread -1
+Loading resource: res://scenes/world/assets/landmarks/CommunityGarden.tscn remapped: res://scenes/world/assets/landmarks/CommunityGarden.tscn
+Completed load for: 'res://scenes/world/assets/landmarks/CommunityGarden.tscn' remapped 'res://scenes/world/assets/landmarks/CommunityGarden.tscn' at thread -1
+Loading resource: res://scenes/world/assets/landmarks/StonePatch.tscn remapped: res://scenes/world/assets/landmarks/StonePatch.tscn
+Completed load for: 'res://scenes/world/assets/landmarks/StonePatch.tscn' remapped 'res://scenes/world/assets/landmarks/StonePatch.tscn' at thread -1
+Loading resource: res://scenes/world/assets/landmarks/BakeryStall.tscn remapped: res://scenes/world/assets/landmarks/BakeryStall.tscn
+Loading resource: res://scenes/world/assets/landmarks/BakeryOrderSlot.tscn remapped: res://scenes/world/assets/landmarks/BakeryOrderSlot.tscn
+Completed load for: 'res://scenes/world/assets/landmarks/BakeryOrderSlot.tscn' remapped 'res://scenes/world/assets/landmarks/BakeryOrderSlot.tscn' at thread -1
+Completed load for: 'res://scenes/world/assets/landmarks/BakeryStall.tscn' remapped 'res://scenes/world/assets/landmarks/BakeryStall.tscn' at thread -1
+Loading resource: res://scenes/world/assets/landmarks/LibraryShelf.tscn remapped: res://scenes/world/assets/landmarks/LibraryShelf.tscn
+Loading resource: res://scenes/world/assets/landmarks/ShelfBookSlot.tscn remapped: res://scenes/world/assets/landmarks/ShelfBookSlot.tscn
+Completed load for: 'res://scenes/world/assets/landmarks/ShelfBookSlot.tscn' remapped 'res://scenes/world/assets/landmarks/ShelfBookSlot.tscn' at thread -1
+Completed load for: 'res://scenes/world/assets/landmarks/LibraryShelf.tscn' remapped 'res://scenes/world/assets/landmarks/LibraryShelf.tscn' at thread -1
+Loading resource: res://scenes/world/assets/props/BroadleafTree.tscn remapped: res://scenes/world/assets/props/BroadleafTree.tscn
+Completed load for: 'res://scenes/world/assets/props/BroadleafTree.tscn' remapped 'res://scenes/world/assets/props/BroadleafTree.tscn' at thread -1
+Loading resource: res://scenes/world/assets/props/FirTree.tscn remapped: res://scenes/world/assets/props/FirTree.tscn
+Completed load for: 'res://scenes/world/assets/props/FirTree.tscn' remapped 'res://scenes/world/assets/props/FirTree.tscn' at thread -1
+Loading resource: res://scenes/world/assets/props/StreetLamp.tscn remapped: res://scenes/world/assets/props/StreetLamp.tscn
+Completed load for: 'res://scenes/world/assets/props/StreetLamp.tscn' remapped 'res://scenes/world/assets/props/StreetLamp.tscn' at thread -1
+Loading resource: res://scenes/world/assets/props/Bush.tscn remapped: res://scenes/world/assets/props/Bush.tscn
+Completed load for: 'res://scenes/world/assets/props/Bush.tscn' remapped 'res://scenes/world/assets/props/Bush.tscn' at thread -1
+Loading resource: res://scenes/world/assets/props/Flower.tscn remapped: res://scenes/world/assets/props/Flower.tscn
+Completed load for: 'res://scenes/world/assets/props/Flower.tscn' remapped 'res://scenes/world/assets/props/Flower.tscn' at thread -1
+Loading resource: res://scenes/world/assets/props/Rock.tscn remapped: res://scenes/world/assets/props/Rock.tscn
+Completed load for: 'res://scenes/world/assets/props/Rock.tscn' remapped 'res://scenes/world/assets/props/Rock.tscn' at thread -1
+Loading resource: res://scenes/world/assets/props/Crate.tscn remapped: res://scenes/world/assets/props/Crate.tscn
+Completed load for: 'res://scenes/world/assets/props/Crate.tscn' remapped 'res://scenes/world/assets/props/Crate.tscn' at thread -1
+Loading resource: res://scenes/world/GameplayAnchors.tscn remapped: res://scenes/world/GameplayAnchors.tscn
+Completed load for: 'res://scenes/world/GameplayAnchors.tscn' remapped 'res://scenes/world/GameplayAnchors.tscn' at thread -1
+Loading resource: res://scenes/world/NpcPatrolMarkers.tscn remapped: res://scenes/world/NpcPatrolMarkers.tscn
+Completed load for: 'res://scenes/world/NpcPatrolMarkers.tscn' remapped 'res://scenes/world/NpcPatrolMarkers.tscn' at thread -1
+Loading resource: res://scenes/world/TrafficRouteMarkers.tscn remapped: res://scenes/world/TrafficRouteMarkers.tscn
+Completed load for: 'res://scenes/world/TrafficRouteMarkers.tscn' remapped 'res://scenes/world/TrafficRouteMarkers.tscn' at thread -1
+Loading resource: res://scenes/world/assets/landmarks/BridgeBuilt.tscn remapped: res://scenes/world/assets/landmarks/BridgeBuilt.tscn
+Completed load for: 'res://scenes/world/assets/landmarks/BridgeBuilt.tscn' remapped 'res://scenes/world/assets/landmarks/BridgeBuilt.tscn' at thread -1
+Loading resource: res://scenes/world/assets/landmarks/RallySigns.tscn remapped: res://scenes/world/assets/landmarks/RallySigns.tscn
+Completed load for: 'res://scenes/world/assets/landmarks/RallySigns.tscn' remapped 'res://scenes/world/assets/landmarks/RallySigns.tscn' at thread -1
+Loading resource: res://scenes/world/assets/props/Bench.tscn remapped: res://scenes/world/assets/props/Bench.tscn
+Completed load for: 'res://scenes/world/assets/props/Bench.tscn' remapped 'res://scenes/world/assets/props/Bench.tscn' at thread -1
+Loading resource: res://scenes/world/assets/landmarks/RallyGate1.tscn remapped: res://scenes/world/assets/landmarks/RallyGate1.tscn
+Completed load for: 'res://scenes/world/assets/landmarks/RallyGate1.tscn' remapped 'res://scenes/world/assets/landmarks/RallyGate1.tscn' at thread -1
+Loading resource: res://scenes/world/assets/landmarks/RallyGate2.tscn remapped: res://scenes/world/assets/landmarks/RallyGate2.tscn
+Completed load for: 'res://scenes/world/assets/landmarks/RallyGate2.tscn' remapped 'res://scenes/world/assets/landmarks/RallyGate2.tscn' at thread -1
+Loading resource: res://scenes/world/assets/landmarks/RallyGate3.tscn remapped: res://scenes/world/assets/landmarks/RallyGate3.tscn
+Completed load for: 'res://scenes/world/assets/landmarks/RallyGate3.tscn' remapped 'res://scenes/world/assets/landmarks/RallyGate3.tscn' at thread -1
+Loading resource: res://scenes/world/assets/landmarks/RallyGate4.tscn remapped: res://scenes/world/assets/landmarks/RallyGate4.tscn
+Completed load for: 'res://scenes/world/assets/landmarks/RallyGate4.tscn' remapped 'res://scenes/world/assets/landmarks/RallyGate4.tscn' at thread -1
+Loading resource: res://scenes/world/assets/landmarks/BridgeBarrier.tscn remapped: res://scenes/world/assets/landmarks/BridgeBarrier.tscn
+Completed load for: 'res://scenes/world/assets/landmarks/BridgeBarrier.tscn' remapped 'res://scenes/world/assets/landmarks/BridgeBarrier.tscn' at thread -1
+Loading resource: res://scenes/world/assets/landmarks/CelebrationDecor.tscn remapped: res://scenes/world/assets/landmarks/CelebrationDecor.tscn
+Completed load for: 'res://scenes/world/assets/landmarks/CelebrationDecor.tscn' remapped 'res://scenes/world/assets/landmarks/CelebrationDecor.tscn' at thread -1
+Loading resource: res://scenes/world/assets/landmarks/RaceStartFlag.tscn remapped: res://scenes/world/assets/landmarks/RaceStartFlag.tscn
+Completed load for: 'res://scenes/world/assets/landmarks/RaceStartFlag.tscn' remapped 'res://scenes/world/assets/landmarks/RaceStartFlag.tscn' at thread -1
+Loading resource: res://scenes/world/assets/landmarks/GoldCourseFlag.tscn remapped: res://scenes/world/assets/landmarks/GoldCourseFlag.tscn
+Completed load for: 'res://scenes/world/assets/landmarks/GoldCourseFlag.tscn' remapped 'res://scenes/world/assets/landmarks/GoldCourseFlag.tscn' at thread -1
+Loading resource: res://scenes/world/assets/landmarks/PlaygroundFixSign.tscn remapped: res://scenes/world/assets/landmarks/PlaygroundFixSign.tscn
+Completed load for: 'res://scenes/world/assets/landmarks/PlaygroundFixSign.tscn' remapped 'res://scenes/world/assets/landmarks/PlaygroundFixSign.tscn' at thread -1
+Loading resource: res://scenes/world/assets/landmarks/DeliveryBoard.tscn remapped: res://scenes/world/assets/landmarks/DeliveryBoard.tscn
+Completed load for: 'res://scenes/world/assets/landmarks/DeliveryBoard.tscn' remapped 'res://scenes/world/assets/landmarks/DeliveryBoard.tscn' at thread -1
+Loading resource: res://scenes/world/assets/landmarks/MarketStock.tscn remapped: res://scenes/world/assets/landmarks/MarketStock.tscn
+Completed load for: 'res://scenes/world/assets/landmarks/MarketStock.tscn' remapped 'res://scenes/world/assets/landmarks/MarketStock.tscn' at thread -1
+Loading resource: res://scenes/world/assets/vehicles/PipCarBroken.tscn remapped: res://scenes/world/assets/vehicles/PipCarBroken.tscn
+Completed load for: 'res://scenes/world/assets/vehicles/PipCarBroken.tscn' remapped 'res://scenes/world/assets/vehicles/PipCarBroken.tscn' at thread -1
+Loading resource: res://scenes/world/assets/vehicles/PipCarFixed.tscn remapped: res://scenes/world/assets/vehicles/PipCarFixed.tscn
+Completed load for: 'res://scenes/world/assets/vehicles/PipCarFixed.tscn' remapped 'res://scenes/world/assets/vehicles/PipCarFixed.tscn' at thread -1
+Loading resource: res://scenes/world/assets/landmarks/RallyPodium.tscn remapped: res://scenes/world/assets/landmarks/RallyPodium.tscn
+Completed load for: 'res://scenes/world/assets/landmarks/RallyPodium.tscn' remapped 'res://scenes/world/assets/landmarks/RallyPodium.tscn' at thread -1
+Loading resource: res://scenes/world/assets/landmarks/FestivalDecor.tscn remapped: res://scenes/world/assets/landmarks/FestivalDecor.tscn
+Completed load for: 'res://scenes/world/assets/landmarks/FestivalDecor.tscn' remapped 'res://scenes/world/assets/landmarks/FestivalDecor.tscn' at thread -1
+Loading resource: res://scenes/world/assets/landmarks/RaceGates4Root.tscn remapped: res://scenes/world/assets/landmarks/RaceGates4Root.tscn
+Completed load for: 'res://scenes/world/assets/landmarks/RaceGates4Root.tscn' remapped 'res://scenes/world/assets/landmarks/RaceGates4Root.tscn' at thread -1
+Loading resource: res://scenes/world/assets/landmarks/RaceGates6Root.tscn remapped: res://scenes/world/assets/landmarks/RaceGates6Root.tscn
+Loading resource: res://scenes/world/assets/landmarks/RallyGate5.tscn remapped: res://scenes/world/assets/landmarks/RallyGate5.tscn
+Completed load for: 'res://scenes/world/assets/landmarks/RallyGate5.tscn' remapped 'res://scenes/world/assets/landmarks/RallyGate5.tscn' at thread -1
+Loading resource: res://scenes/world/assets/landmarks/RallyGate6.tscn remapped: res://scenes/world/assets/landmarks/RallyGate6.tscn
+Completed load for: 'res://scenes/world/assets/landmarks/RallyGate6.tscn' remapped 'res://scenes/world/assets/landmarks/RallyGate6.tscn' at thread -1
+Completed load for: 'res://scenes/world/assets/landmarks/RaceGates6Root.tscn' remapped 'res://scenes/world/assets/landmarks/RaceGates6Root.tscn' at thread -1
+Loading resource: res://scenes/world/assets/landmarks/BridgeSite.tscn remapped: res://scenes/world/assets/landmarks/BridgeSite.tscn
+Completed load for: 'res://scenes/world/assets/landmarks/BridgeSite.tscn' remapped 'res://scenes/world/assets/landmarks/BridgeSite.tscn' at thread -1
+Loading resource: res://scenes/world/assets/environment/Clouds.tscn remapped: res://scenes/world/assets/environment/Clouds.tscn
+Completed load for: 'res://scenes/world/assets/environment/Clouds.tscn' remapped 'res://scenes/world/assets/environment/Clouds.tscn' at thread -1
+Loading resource: res://scenes/world/assets/landmarks/FestivalTable_0.tscn remapped: res://scenes/world/assets/landmarks/FestivalTable_0.tscn
+Completed load for: 'res://scenes/world/assets/landmarks/FestivalTable_0.tscn' remapped 'res://scenes/world/assets/landmarks/FestivalTable_0.tscn' at thread -1
+Loading resource: res://scenes/world/assets/landmarks/FestivalTable_1.tscn remapped: res://scenes/world/assets/landmarks/FestivalTable_1.tscn
+Completed load for: 'res://scenes/world/assets/landmarks/FestivalTable_1.tscn' remapped 'res://scenes/world/assets/landmarks/FestivalTable_1.tscn' at thread -1
+Loading resource: res://scenes/world/assets/landmarks/FestivalLantern_0.tscn remapped: res://scenes/world/assets/landmarks/FestivalLantern_0.tscn
+Completed load for: 'res://scenes/world/assets/landmarks/FestivalLantern_0.tscn' remapped 'res://scenes/world/assets/landmarks/FestivalLantern_0.tscn' at thread -1
+Loading resource: res://scenes/world/assets/landmarks/FestivalLantern_1.tscn remapped: res://scenes/world/assets/landmarks/FestivalLantern_1.tscn
+Completed load for: 'res://scenes/world/assets/landmarks/FestivalLantern_1.tscn' remapped 'res://scenes/world/assets/landmarks/FestivalLantern_1.tscn' at thread -1
+Loading resource: res://scenes/world/assets/landmarks/FestivalLantern_2.tscn remapped: res://scenes/world/assets/landmarks/FestivalLantern_2.tscn
+Completed load for: 'res://scenes/world/assets/landmarks/FestivalLantern_2.tscn' remapped 'res://scenes/world/assets/landmarks/FestivalLantern_2.tscn' at thread -1
+Loading resource: res://scenes/world/assets/landmarks/SignSocket.tscn remapped: res://scenes/world/assets/landmarks/SignSocket.tscn
+Completed load for: 'res://scenes/world/assets/landmarks/SignSocket.tscn' remapped 'res://scenes/world/assets/landmarks/SignSocket.tscn' at thread -1
+Completed load for: 'res://scenes/world/Town.tscn' remapped 'res://scenes/world/Town.tscn' at thread -1
+[WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 156 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.
+Loading resource: res://src/Player/PlayerController.cs remapped: res://src/Player/PlayerController.cs
+Completed load for: 'res://src/Player/PlayerController.cs' remapped 'res://src/Player/PlayerController.cs' at thread -1
+Loading resource: res://scenes/world/assets/characters/Player_Boy_Visual.tscn remapped: res://scenes/world/assets/characters/Player_Boy_Visual.tscn
+Loading resource: res://scenes/world/assets/characters/Player_Boy.glb remapped: res://scenes/world/assets/characters/Player_Boy.glb
+Loading resource: res://.godot/imported/Player_Boy.glb-e13c77566d9b920f20a0c614355c8d9b.scn remapped: res://.godot/imported/Player_Boy.glb-e13c77566d9b920f20a0c614355c8d9b.scn
+Completed load for: 'res://scenes/world/assets/characters/Player_Boy.glb' remapped 'res://scenes/world/assets/characters/Player_Boy.glb' at thread -1
+Completed load for: 'res://scenes/world/assets/characters/Player_Boy_Visual.tscn' remapped 'res://scenes/world/assets/characters/Player_Boy_Visual.tscn' at thread -1
+Loading resource: res://src/Player/CameraRig.cs remapped: res://src/Player/CameraRig.cs
+Completed load for: 'res://src/Player/CameraRig.cs' remapped 'res://src/Player/CameraRig.cs' at thread -1
+Loading resource: res://src/UI/Hud.cs remapped: res://src/UI/Hud.cs
+Completed load for: 'res://src/UI/Hud.cs' remapped 'res://src/UI/Hud.cs' at thread -1
+Loading resource: res://assets/icons/star.svg remapped: res://assets/icons/star.svg
+Loading resource: res://.godot/imported/star.svg-f3dde1db508da8d86b33a4f2c9f37e62.ctex remapped: res://.godot/imported/star.svg-f3dde1db508da8d86b33a4f2c9f37e62.ctex
+Completed load for: 'res://assets/icons/star.svg' remapped 'res://assets/icons/star.svg' at thread -1
+Loading resource: res://assets/icons/coin.svg remapped: res://assets/icons/coin.svg
+Loading resource: res://.godot/imported/coin.svg-bcfdfa81eaa0edbe745371da4d2107b5.ctex remapped: res://.godot/imported/coin.svg-bcfdfa81eaa0edbe745371da4d2107b5.ctex
+Completed load for: 'res://assets/icons/coin.svg' remapped 'res://assets/icons/coin.svg' at thread -1
+Loading resource: res://assets/icons/waypoint.svg remapped: res://assets/icons/waypoint.svg
+Loading resource: res://.godot/imported/waypoint.svg-273fb6517628e37a9857c695b4aca32f.ctex remapped: res://.godot/imported/waypoint.svg-273fb6517628e37a9857c695b4aca32f.ctex
+Completed load for: 'res://assets/icons/waypoint.svg' remapped 'res://assets/icons/waypoint.svg' at thread -1
+Loading resource: res://src/World/WorldMarker.cs remapped: res://src/World/WorldMarker.cs
+Completed load for: 'res://src/World/WorldMarker.cs' remapped 'res://src/World/WorldMarker.cs' at thread -1
+Loading resource: res://src/Vehicle/VanController.cs remapped: res://src/Vehicle/VanController.cs
+Completed load for: 'res://src/Vehicle/VanController.cs' remapped 'res://src/Vehicle/VanController.cs' at thread -1
+Loading resource: res://scenes/world/assets/vehicles/Van_Visual.tscn remapped: res://scenes/world/assets/vehicles/Van_Visual.tscn
+Loading resource: res://scenes/world/assets/vehicles/Van.glb remapped: res://scenes/world/assets/vehicles/Van.glb
+Loading resource: res://.godot/imported/Van.glb-5bf7006266a68c690a3f25152e53fff8.scn remapped: res://.godot/imported/Van.glb-5bf7006266a68c690a3f25152e53fff8.scn
+Completed load for: 'res://scenes/world/assets/vehicles/Van.glb' remapped 'res://scenes/world/assets/vehicles/Van.glb' at thread -1
+Completed load for: 'res://scenes/world/assets/vehicles/Van_Visual.tscn' remapped 'res://scenes/world/assets/vehicles/Van_Visual.tscn' at thread -1
+Loading resource: res://assets/audio/sfx/engine_idle_loop.wav remapped: res://assets/audio/sfx/engine_idle_loop.wav
+Loading resource: res://.godot/imported/engine_idle_loop.wav-6e59c1cf6eb984ad75a0fbc020f55847.sample remapped: res://.godot/imported/engine_idle_loop.wav-6e59c1cf6eb984ad75a0fbc020f55847.sample
+Completed load for: 'res://assets/audio/sfx/engine_idle_loop.wav' remapped 'res://assets/audio/sfx/engine_idle_loop.wav' at thread -1
+Loading resource: res://assets/audio/sfx/engine_drive_loop.wav remapped: res://assets/audio/sfx/engine_drive_loop.wav
+Loading resource: res://.godot/imported/engine_drive_loop.wav-e4cd9a754059a8eb6c6246516d19b5ca.sample remapped: res://.godot/imported/engine_drive_loop.wav-e4cd9a754059a8eb6c6246516d19b5ca.sample
+Completed load for: 'res://assets/audio/sfx/engine_drive_loop.wav' remapped 'res://assets/audio/sfx/engine_drive_loop.wav' at thread -1
+Loading resource: res://src/World/Interactable.cs remapped: res://src/World/Interactable.cs
+Completed load for: 'res://src/World/Interactable.cs' remapped 'res://src/World/Interactable.cs' at thread -1
+Loading resource: res://src/World/CityWorldAdapter.cs remapped: res://src/World/CityWorldAdapter.cs
+Completed load for: 'res://src/World/CityWorldAdapter.cs' remapped 'res://src/World/CityWorldAdapter.cs' at thread -1
+Loading resource: res://scenes/city/CityDistrict.tscn remapped: res://scenes/city/CityDistrict.tscn
+Loading resource: res://scenes/city/assets/buildings/BrickLofts.tscn remapped: res://scenes/city/assets/buildings/BrickLofts.tscn
+Completed load for: 'res://scenes/city/assets/buildings/BrickLofts.tscn' remapped 'res://scenes/city/assets/buildings/BrickLofts.tscn' at thread -1
+Loading resource: res://scenes/city/assets/buildings/GlassOffice.tscn remapped: res://scenes/city/assets/buildings/GlassOffice.tscn
+Completed load for: 'res://scenes/city/assets/buildings/GlassOffice.tscn' remapped 'res://scenes/city/assets/buildings/GlassOffice.tscn' at thread -1
+Loading resource: res://scenes/city/assets/buildings/MarketHall.tscn remapped: res://scenes/city/assets/buildings/MarketHall.tscn
+Completed load for: 'res://scenes/city/assets/buildings/MarketHall.tscn' remapped 'res://scenes/city/assets/buildings/MarketHall.tscn' at thread -1
+Loading resource: res://scenes/city/assets/buildings/CornerHotel.tscn remapped: res://scenes/city/assets/buildings/CornerHotel.tscn
+Completed load for: 'res://scenes/city/assets/buildings/CornerHotel.tscn' remapped 'res://scenes/city/assets/buildings/CornerHotel.tscn' at thread -1
+Loading resource: res://scenes/city/assets/props/StreetBench.tscn remapped: res://scenes/city/assets/props/StreetBench.tscn
+Completed load for: 'res://scenes/city/assets/props/StreetBench.tscn' remapped 'res://scenes/city/assets/props/StreetBench.tscn' at thread -1
+Loading resource: res://scenes/city/assets/props/ParkTree.tscn remapped: res://scenes/city/assets/props/ParkTree.tscn
+Completed load for: 'res://scenes/city/assets/props/ParkTree.tscn' remapped 'res://scenes/city/assets/props/ParkTree.tscn' at thread -1
+Loading resource: res://scenes/city/assets/buildings/CityHospital.tscn remapped: res://scenes/city/assets/buildings/CityHospital.tscn
+Completed load for: 'res://scenes/city/assets/buildings/CityHospital.tscn' remapped 'res://scenes/city/assets/buildings/CityHospital.tscn' at thread -1
+Loading resource: res://scenes/city/assets/buildings/CivicTower.tscn remapped: res://scenes/city/assets/buildings/CivicTower.tscn
+Completed load for: 'res://scenes/city/assets/buildings/CivicTower.tscn' remapped 'res://scenes/city/assets/buildings/CivicTower.tscn' at thread -1
+Loading resource: res://scenes/city/assets/buildings/LibraryCentre.tscn remapped: res://scenes/city/assets/buildings/LibraryCentre.tscn
+Completed load for: 'res://scenes/city/assets/buildings/LibraryCentre.tscn' remapped 'res://scenes/city/assets/buildings/LibraryCentre.tscn' at thread -1
+Loading resource: res://scenes/city/assets/buildings/ArtsCentre.tscn remapped: res://scenes/city/assets/buildings/ArtsCentre.tscn
+Completed load for: 'res://scenes/city/assets/buildings/ArtsCentre.tscn' remapped 'res://scenes/city/assets/buildings/ArtsCentre.tscn' at thread -1
+Loading resource: res://scenes/city/assets/buildings/RooftopGardens.tscn remapped: res://scenes/city/assets/buildings/RooftopGardens.tscn
+Completed load for: 'res://scenes/city/assets/buildings/RooftopGardens.tscn' remapped 'res://scenes/city/assets/buildings/RooftopGardens.tscn' at thread -1
+Loading resource: res://scenes/city/assets/buildings/MetroOffices.tscn remapped: res://scenes/city/assets/buildings/MetroOffices.tscn
+Completed load for: 'res://scenes/city/assets/buildings/MetroOffices.tscn' remapped 'res://scenes/city/assets/buildings/MetroOffices.tscn' at thread -1
+Loading resource: res://scenes/city/assets/buildings/SkylineApartments.tscn remapped: res://scenes/city/assets/buildings/SkylineApartments.tscn
+Completed load for: 'res://scenes/city/assets/buildings/SkylineApartments.tscn' remapped 'res://scenes/city/assets/buildings/SkylineApartments.tscn' at thread -1
+Loading resource: res://scenes/city/assets/buildings/ClockTower.tscn remapped: res://scenes/city/assets/buildings/ClockTower.tscn
+Completed load for: 'res://scenes/city/assets/buildings/ClockTower.tscn' remapped 'res://scenes/city/assets/buildings/ClockTower.tscn' at thread -1
+Loading resource: res://scenes/city/assets/props/TrafficLight.tscn remapped: res://scenes/city/assets/props/TrafficLight.tscn
+Completed load for: 'res://scenes/city/assets/props/TrafficLight.tscn' remapped 'res://scenes/city/assets/props/TrafficLight.tscn' at thread -1
+Loading resource: res://scenes/city/assets/landmarks/CityJobBoard.tscn remapped: res://scenes/city/assets/landmarks/CityJobBoard.tscn
+Completed load for: 'res://scenes/city/assets/landmarks/CityJobBoard.tscn' remapped 'res://scenes/city/assets/landmarks/CityJobBoard.tscn' at thread -1
+Completed load for: 'res://scenes/city/CityDistrict.tscn' remapped 'res://scenes/city/CityDistrict.tscn' at thread -1
+Loading resource: res://scenes/city/CityJobs.tscn remapped: res://scenes/city/CityJobs.tscn
+Loading resource: res://scenes/world/assets/characters/Pip_Visual.tscn remapped: res://scenes/world/assets/characters/Pip_Visual.tscn
+Loading resource: res://scenes/world/assets/characters/Pip.glb remapped: res://scenes/world/assets/characters/Pip.glb
+Loading resource: res://.godot/imported/Pip.glb-637265658657fe158199bcf54d6835f2.scn remapped: res://.godot/imported/Pip.glb-637265658657fe158199bcf54d6835f2.scn
+Completed load for: 'res://scenes/world/assets/characters/Pip.glb' remapped 'res://scenes/world/assets/characters/Pip.glb' at thread -1
+Completed load for: 'res://scenes/world/assets/characters/Pip_Visual.tscn' remapped 'res://scenes/world/assets/characters/Pip_Visual.tscn' at thread -1
+Completed load for: 'res://scenes/city/CityJobs.tscn' remapped 'res://scenes/city/CityJobs.tscn' at thread -1
+Loading resource: res://scenes/city/CityLife.tscn remapped: res://scenes/city/CityLife.tscn
+Completed load for: 'res://scenes/city/CityLife.tscn' remapped 'res://scenes/city/CityLife.tscn' at thread -1
+Loading resource: res://scenes/city/TownCityApproach.tscn remapped: res://scenes/city/TownCityApproach.tscn
+Loading resource: res://scenes/city/assets/props/StreetLight.tscn remapped: res://scenes/city/assets/props/StreetLight.tscn
+Completed load for: 'res://scenes/city/assets/props/StreetLight.tscn' remapped 'res://scenes/city/assets/props/StreetLight.tscn' at thread -1
+Completed load for: 'res://scenes/city/TownCityApproach.tscn' remapped 'res://scenes/city/TownCityApproach.tscn' at thread -1
+Loading resource: res://scenes/city/assets/hlod/BrickLoftsHLOD.tscn remapped: res://scenes/city/assets/hlod/BrickLoftsHLOD.tscn
+Completed load for: 'res://scenes/city/assets/hlod/BrickLoftsHLOD.tscn' remapped 'res://scenes/city/assets/hlod/BrickLoftsHLOD.tscn' at thread -1
+Loading resource: res://scenes/city/assets/hlod/GlassOfficeHLOD.tscn remapped: res://scenes/city/assets/hlod/GlassOfficeHLOD.tscn
+Completed load for: 'res://scenes/city/assets/hlod/GlassOfficeHLOD.tscn' remapped 'res://scenes/city/assets/hlod/GlassOfficeHLOD.tscn' at thread -1
+Loading resource: res://scenes/city/assets/hlod/MarketHallHLOD.tscn remapped: res://scenes/city/assets/hlod/MarketHallHLOD.tscn
+Completed load for: 'res://scenes/city/assets/hlod/MarketHallHLOD.tscn' remapped 'res://scenes/city/assets/hlod/MarketHallHLOD.tscn' at thread -1
+Loading resource: res://scenes/city/assets/hlod/CornerHotelHLOD.tscn remapped: res://scenes/city/assets/hlod/CornerHotelHLOD.tscn
+Completed load for: 'res://scenes/city/assets/hlod/CornerHotelHLOD.tscn' remapped 'res://scenes/city/assets/hlod/CornerHotelHLOD.tscn' at thread -1
+Loading resource: res://scenes/city/assets/hlod/CityHospitalHLOD.tscn remapped: res://scenes/city/assets/hlod/CityHospitalHLOD.tscn
+Completed load for: 'res://scenes/city/assets/hlod/CityHospitalHLOD.tscn' remapped 'res://scenes/city/assets/hlod/CityHospitalHLOD.tscn' at thread -1
+Loading resource: res://scenes/city/assets/hlod/CivicTowerHLOD.tscn remapped: res://scenes/city/assets/hlod/CivicTowerHLOD.tscn
+Completed load for: 'res://scenes/city/assets/hlod/CivicTowerHLOD.tscn' remapped 'res://scenes/city/assets/hlod/CivicTowerHLOD.tscn' at thread -1
+Loading resource: res://scenes/city/assets/hlod/LibraryCentreHLOD.tscn remapped: res://scenes/city/assets/hlod/LibraryCentreHLOD.tscn
+Completed load for: 'res://scenes/city/assets/hlod/LibraryCentreHLOD.tscn' remapped 'res://scenes/city/assets/hlod/LibraryCentreHLOD.tscn' at thread -1
+Loading resource: res://scenes/city/assets/hlod/ArtsCentreHLOD.tscn remapped: res://scenes/city/assets/hlod/ArtsCentreHLOD.tscn
+Completed load for: 'res://scenes/city/assets/hlod/ArtsCentreHLOD.tscn' remapped 'res://scenes/city/assets/hlod/ArtsCentreHLOD.tscn' at thread -1
+Loading resource: res://scenes/city/assets/hlod/RooftopGardensHLOD.tscn remapped: res://scenes/city/assets/hlod/RooftopGardensHLOD.tscn
+Completed load for: 'res://scenes/city/assets/hlod/RooftopGardensHLOD.tscn' remapped 'res://scenes/city/assets/hlod/RooftopGardensHLOD.tscn' at thread -1
+Loading resource: res://scenes/city/assets/hlod/MetroOfficesHLOD.tscn remapped: res://scenes/city/assets/hlod/MetroOfficesHLOD.tscn
+Completed load for: 'res://scenes/city/assets/hlod/MetroOfficesHLOD.tscn' remapped 'res://scenes/city/assets/hlod/MetroOfficesHLOD.tscn' at thread -1
+Loading resource: res://scenes/city/assets/hlod/SkylineApartmentsHLOD.tscn remapped: res://scenes/city/assets/hlod/SkylineApartmentsHLOD.tscn
+Completed load for: 'res://scenes/city/assets/hlod/SkylineApartmentsHLOD.tscn' remapped 'res://scenes/city/assets/hlod/SkylineApartmentsHLOD.tscn' at thread -1
+Loading resource: res://scenes/city/assets/hlod/ClockTowerHLOD.tscn remapped: res://scenes/city/assets/hlod/ClockTowerHLOD.tscn
+Completed load for: 'res://scenes/city/assets/hlod/ClockTowerHLOD.tscn' remapped 'res://scenes/city/assets/hlod/ClockTowerHLOD.tscn' at thread -1
+Loading resource: res://src/World/CityActorPool.cs remapped: res://src/World/CityActorPool.cs
+Completed load for: 'res://src/World/CityActorPool.cs' remapped 'res://src/World/CityActorPool.cs' at thread -1
+[CITY SCENE] res://scenes/city/CityDistrict.tscn: 36 buildings, 36 HLOD proxies, 9 cells, 15 job markers, 4 vehicle routes, 11 pedestrian routes.
+Loading resource: res://src/World/TownCityRoadworks.cs remapped: res://src/World/TownCityRoadworks.cs
+Completed load for: 'res://src/World/TownCityRoadworks.cs' remapped 'res://src/World/TownCityRoadworks.cs' at thread -1
+Loading resource: res://scenes/city/TownCityRoadworks.tscn remapped: res://scenes/city/TownCityRoadworks.tscn
+Loading resource: res://scenes/city/assets/landmarks/RoadworksGate.tscn remapped: res://scenes/city/assets/landmarks/RoadworksGate.tscn
+Completed load for: 'res://scenes/city/assets/landmarks/RoadworksGate.tscn' remapped 'res://scenes/city/assets/landmarks/RoadworksGate.tscn' at thread -1
+Completed load for: 'res://scenes/city/TownCityRoadworks.tscn' remapped 'res://scenes/city/TownCityRoadworks.tscn' at thread -1
+Loading resource: res://src/Build/BridgeBuilder.cs remapped: res://src/Build/BridgeBuilder.cs
+Completed load for: 'res://src/Build/BridgeBuilder.cs' remapped 'res://src/Build/BridgeBuilder.cs' at thread -1
+Loading resource: res://src/Build/BuildSocket.cs remapped: res://src/Build/BuildSocket.cs
+Completed load for: 'res://src/Build/BuildSocket.cs' remapped 'res://src/Build/BuildSocket.cs' at thread -1
+Loading resource: res://assets/icons/stone.svg remapped: res://assets/icons/stone.svg
+Loading resource: res://.godot/imported/stone.svg-9939c1b5938bd28e9910c8a17692e72d.ctex remapped: res://.godot/imported/stone.svg-9939c1b5938bd28e9910c8a17692e72d.ctex
+Completed load for: 'res://assets/icons/stone.svg' remapped 'res://assets/icons/stone.svg' at thread -1
+Loading resource: res://assets/icons/wood.svg remapped: res://assets/icons/wood.svg
+Loading resource: res://.godot/imported/wood.svg-c83d0983945891d776f85d31747556df.ctex remapped: res://.godot/imported/wood.svg-c83d0983945891d776f85d31747556df.ctex
+Completed load for: 'res://assets/icons/wood.svg' remapped 'res://assets/icons/wood.svg' at thread -1
+Loading resource: res://src/Build/SwingBuilder.cs remapped: res://src/Build/SwingBuilder.cs
+Completed load for: 'res://src/Build/SwingBuilder.cs' remapped 'res://src/Build/SwingBuilder.cs' at thread -1
+Loading resource: res://assets/icons/rope.svg remapped: res://assets/icons/rope.svg
+Loading resource: res://.godot/imported/rope.svg-ab1e7b4959fefa6217e2ee30ba9e5ece.ctex remapped: res://.godot/imported/rope.svg-ab1e7b4959fefa6217e2ee30ba9e5ece.ctex
+Completed load for: 'res://assets/icons/rope.svg' remapped 'res://assets/icons/rope.svg' at thread -1
+Loading resource: res://assets/icons/seat.svg remapped: res://assets/icons/seat.svg
+Loading resource: res://.godot/imported/seat.svg-65b0219669ed6f1d8f3b7f6b4d363ff5.ctex remapped: res://.godot/imported/seat.svg-65b0219669ed6f1d8f3b7f6b4d363ff5.ctex
+Completed load for: 'res://assets/icons/seat.svg' remapped 'res://assets/icons/seat.svg' at thread -1
+Loading resource: res://src/Build/ParkBuilder.cs remapped: res://src/Build/ParkBuilder.cs
+Completed load for: 'res://src/Build/ParkBuilder.cs' remapped 'res://src/Build/ParkBuilder.cs' at thread -1
+Loading resource: res://src/Build/FurnitureBuilder.cs remapped: res://src/Build/FurnitureBuilder.cs
+Completed load for: 'res://src/Build/FurnitureBuilder.cs' remapped 'res://src/Build/FurnitureBuilder.cs' at thread -1
+Loading resource: res://src/World/Pickup.cs remapped: res://src/World/Pickup.cs
+Completed load for: 'res://src/World/Pickup.cs' remapped 'res://src/World/Pickup.cs' at thread -1
+Loading resource: res://scenes/world/assets/pickups/Pickup_Apple.tscn remapped: res://scenes/world/assets/pickups/Pickup_Apple.tscn
+Completed load for: 'res://scenes/world/assets/pickups/Pickup_Apple.tscn' remapped 'res://scenes/world/assets/pickups/Pickup_Apple.tscn' at thread -1
+Loading resource: res://assets/icons/apple.svg remapped: res://assets/icons/apple.svg
+Loading resource: res://.godot/imported/apple.svg-70163d7248113794e64ba46263352dfe.ctex remapped: res://.godot/imported/apple.svg-70163d7248113794e64ba46263352dfe.ctex
+Completed load for: 'res://assets/icons/apple.svg' remapped 'res://assets/icons/apple.svg' at thread -1
+Loading resource: res://scenes/world/assets/pickups/Pickup_Wood.tscn remapped: res://scenes/world/assets/pickups/Pickup_Wood.tscn
+Completed load for: 'res://scenes/world/assets/pickups/Pickup_Wood.tscn' remapped 'res://scenes/world/assets/pickups/Pickup_Wood.tscn' at thread -1
+Loading resource: res://scenes/world/assets/pickups/Pickup_Stone.tscn remapped: res://scenes/world/assets/pickups/Pickup_Stone.tscn
+Completed load for: 'res://scenes/world/assets/pickups/Pickup_Stone.tscn' remapped 'res://scenes/world/assets/pickups/Pickup_Stone.tscn' at thread -1
+Loading resource: res://scenes/world/assets/pickups/Pickup_Parcel.tscn remapped: res://scenes/world/assets/pickups/Pickup_Parcel.tscn
+Completed load for: 'res://scenes/world/assets/pickups/Pickup_Parcel.tscn' remapped 'res://scenes/world/assets/pickups/Pickup_Parcel.tscn' at thread -1
+Loading resource: res://assets/icons/parcel.svg remapped: res://assets/icons/parcel.svg
+Loading resource: res://.godot/imported/parcel.svg-400c15fc83aeb9c05348696aadf0c834.ctex remapped: res://.godot/imported/parcel.svg-400c15fc83aeb9c05348696aadf0c834.ctex
+Completed load for: 'res://assets/icons/parcel.svg' remapped 'res://assets/icons/parcel.svg' at thread -1
+Loading resource: res://scenes/world/assets/pickups/Pickup_Book.tscn remapped: res://scenes/world/assets/pickups/Pickup_Book.tscn
+Completed load for: 'res://scenes/world/assets/pickups/Pickup_Book.tscn' remapped 'res://scenes/world/assets/pickups/Pickup_Book.tscn' at thread -1
+Loading resource: res://scenes/world/assets/pickups/Pickup_RepairTyre.tscn remapped: res://scenes/world/assets/pickups/Pickup_RepairTyre.tscn
+Completed load for: 'res://scenes/world/assets/pickups/Pickup_RepairTyre.tscn' remapped 'res://scenes/world/assets/pickups/Pickup_RepairTyre.tscn' at thread -1
+Loading resource: res://scenes/world/assets/pickups/Pickup_RepairLamp.tscn remapped: res://scenes/world/assets/pickups/Pickup_RepairLamp.tscn
+Completed load for: 'res://scenes/world/assets/pickups/Pickup_RepairLamp.tscn' remapped 'res://scenes/world/assets/pickups/Pickup_RepairLamp.tscn' at thread -1
+Loading resource: res://scenes/world/assets/pickups/Pickup_RepairBattery.tscn remapped: res://scenes/world/assets/pickups/Pickup_RepairBattery.tscn
+Completed load for: 'res://scenes/world/assets/pickups/Pickup_RepairBattery.tscn' remapped 'res://scenes/world/assets/pickups/Pickup_RepairBattery.tscn' at thread -1
+Loading resource: res://scenes/world/assets/pickups/Pickup_SafetyCone.tscn remapped: res://scenes/world/assets/pickups/Pickup_SafetyCone.tscn
+Completed load for: 'res://scenes/world/assets/pickups/Pickup_SafetyCone.tscn' remapped 'res://scenes/world/assets/pickups/Pickup_SafetyCone.tscn' at thread -1
+Loading resource: res://scenes/world/assets/pickups/Pickup_BarrierPanel.tscn remapped: res://scenes/world/assets/pickups/Pickup_BarrierPanel.tscn
+Completed load for: 'res://scenes/world/assets/pickups/Pickup_BarrierPanel.tscn' remapped 'res://scenes/world/assets/pickups/Pickup_BarrierPanel.tscn' at thread -1
+Loading resource: res://scenes/world/assets/pickups/Pickup_Toolbox.tscn remapped: res://scenes/world/assets/pickups/Pickup_Toolbox.tscn
+Completed load for: 'res://scenes/world/assets/pickups/Pickup_Toolbox.tscn' remapped 'res://scenes/world/assets/pickups/Pickup_Toolbox.tscn' at thread -1
+Loading resource: res://src/Npc/NpcActor.cs remapped: res://src/Npc/NpcActor.cs
+Completed load for: 'res://src/Npc/NpcActor.cs' remapped 'res://src/Npc/NpcActor.cs' at thread -1
+Loading resource: res://scenes/world/assets/characters/Milo_Visual.tscn remapped: res://scenes/world/assets/characters/Milo_Visual.tscn
+Loading resource: res://scenes/world/assets/characters/Milo.glb remapped: res://scenes/world/assets/characters/Milo.glb
+Loading resource: res://.godot/imported/Milo.glb-3890f1fc137b0898a1407f510d82a6dc.scn remapped: res://.godot/imported/Milo.glb-3890f1fc137b0898a1407f510d82a6dc.scn
+Completed load for: 'res://scenes/world/assets/characters/Milo.glb' remapped 'res://scenes/world/assets/characters/Milo.glb' at thread -1
+Completed load for: 'res://scenes/world/assets/characters/Milo_Visual.tscn' remapped 'res://scenes/world/assets/characters/Milo_Visual.tscn' at thread -1
+Loading resource: res://assets/ui/npc_portraits/milo.png remapped: res://assets/ui/npc_portraits/milo.png
+Loading resource: res://.godot/imported/milo.png-cd90b47bce70c4dbab02dafd7708612f.ctex remapped: res://.godot/imported/milo.png-cd90b47bce70c4dbab02dafd7708612f.ctex
+Completed load for: 'res://assets/ui/npc_portraits/milo.png' remapped 'res://assets/ui/npc_portraits/milo.png' at thread -1
+Loading resource: res://scenes/world/assets/characters/Ada_Visual.tscn remapped: res://scenes/world/assets/characters/Ada_Visual.tscn
+Loading resource: res://scenes/world/assets/characters/Ada.glb remapped: res://scenes/world/assets/characters/Ada.glb
+Loading resource: res://.godot/imported/Ada.glb-3540e512dafdd24eb496fe55bb458f4a.scn remapped: res://.godot/imported/Ada.glb-3540e512dafdd24eb496fe55bb458f4a.scn
+Completed load for: 'res://scenes/world/assets/characters/Ada.glb' remapped 'res://scenes/world/assets/characters/Ada.glb' at thread -1
+Completed load for: 'res://scenes/world/assets/characters/Ada_Visual.tscn' remapped 'res://scenes/world/assets/characters/Ada_Visual.tscn' at thread -1
+Loading resource: res://assets/ui/npc_portraits/ada.png remapped: res://assets/ui/npc_portraits/ada.png
+Loading resource: res://.godot/imported/ada.png-6ee0d30812941252a2193b95ee0bffcb.ctex remapped: res://.godot/imported/ada.png-6ee0d30812941252a2193b95ee0bffcb.ctex
+Completed load for: 'res://assets/ui/npc_portraits/ada.png' remapped 'res://assets/ui/npc_portraits/ada.png' at thread -1
+Loading resource: res://scenes/world/assets/characters/Pip_Visual.tscn remapped: res://scenes/world/assets/characters/Pip_Visual.tscn
+Loading resource: res://scenes/world/assets/characters/Pip.glb remapped: res://scenes/world/assets/characters/Pip.glb
+Loading resource: res://.godot/imported/Pip.glb-637265658657fe158199bcf54d6835f2.scn remapped: res://.godot/imported/Pip.glb-637265658657fe158199bcf54d6835f2.scn
+Completed load for: 'res://scenes/world/assets/characters/Pip.glb' remapped 'res://scenes/world/assets/characters/Pip.glb' at thread -1
+Completed load for: 'res://scenes/world/assets/characters/Pip_Visual.tscn' remapped 'res://scenes/world/assets/characters/Pip_Visual.tscn' at thread -1
+Loading resource: res://assets/ui/npc_portraits/pip.png remapped: res://assets/ui/npc_portraits/pip.png
+Loading resource: res://.godot/imported/pip.png-f6a5c0c63007bceb33a02634ab596c2c.ctex remapped: res://.godot/imported/pip.png-f6a5c0c63007bceb33a02634ab596c2c.ctex
+Completed load for: 'res://assets/ui/npc_portraits/pip.png' remapped 'res://assets/ui/npc_portraits/pip.png' at thread -1
+Loading resource: res://scenes/world/assets/characters/Fern_Visual.tscn remapped: res://scenes/world/assets/characters/Fern_Visual.tscn
+Loading resource: res://scenes/world/assets/characters/Fern.glb remapped: res://scenes/world/assets/characters/Fern.glb
+Loading resource: res://.godot/imported/Fern.glb-2f44e1d716b3d9a68f7eabf816889afc.scn remapped: res://.godot/imported/Fern.glb-2f44e1d716b3d9a68f7eabf816889afc.scn
+Completed load for: 'res://scenes/world/assets/characters/Fern.glb' remapped 'res://scenes/world/assets/characters/Fern.glb' at thread -1
+Completed load for: 'res://scenes/world/assets/characters/Fern_Visual.tscn' remapped 'res://scenes/world/assets/characters/Fern_Visual.tscn' at thread -1
+Loading resource: res://assets/ui/npc_portraits/fern.png remapped: res://assets/ui/npc_portraits/fern.png
+Loading resource: res://.godot/imported/fern.png-8c277dc546ab570dd693faefc6a14371.ctex remapped: res://.godot/imported/fern.png-8c277dc546ab570dd693faefc6a14371.ctex
+Completed load for: 'res://assets/ui/npc_portraits/fern.png' remapped 'res://assets/ui/npc_portraits/fern.png' at thread -1
+Loading resource: res://scenes/world/assets/characters/Ollie_Visual.tscn remapped: res://scenes/world/assets/characters/Ollie_Visual.tscn
+Loading resource: res://scenes/world/assets/characters/Ollie.glb remapped: res://scenes/world/assets/characters/Ollie.glb
+Loading resource: res://.godot/imported/Ollie.glb-50ea1a3c954f711db5f470fe30edd6c2.scn remapped: res://.godot/imported/Ollie.glb-50ea1a3c954f711db5f470fe30edd6c2.scn
+Completed load for: 'res://scenes/world/assets/characters/Ollie.glb' remapped 'res://scenes/world/assets/characters/Ollie.glb' at thread -1
+Completed load for: 'res://scenes/world/assets/characters/Ollie_Visual.tscn' remapped 'res://scenes/world/assets/characters/Ollie_Visual.tscn' at thread -1
+Loading resource: res://assets/ui/npc_portraits/ollie.png remapped: res://assets/ui/npc_portraits/ollie.png
+Loading resource: res://.godot/imported/ollie.png-c0beaa81937a97bd2ef4575259975d5b.ctex remapped: res://.godot/imported/ollie.png-c0beaa81937a97bd2ef4575259975d5b.ctex
+Completed load for: 'res://assets/ui/npc_portraits/ollie.png' remapped 'res://assets/ui/npc_portraits/ollie.png' at thread -1
+Loading resource: res://scenes/world/assets/characters/Ivy_Visual.tscn remapped: res://scenes/world/assets/characters/Ivy_Visual.tscn
+Loading resource: res://scenes/world/assets/characters/Ivy.glb remapped: res://scenes/world/assets/characters/Ivy.glb
+Loading resource: res://.godot/imported/Ivy.glb-4047383157097776d1cf0a9563cedbc5.scn remapped: res://.godot/imported/Ivy.glb-4047383157097776d1cf0a9563cedbc5.scn
+Completed load for: 'res://scenes/world/assets/characters/Ivy.glb' remapped 'res://scenes/world/assets/characters/Ivy.glb' at thread -1
+Completed load for: 'res://scenes/world/assets/characters/Ivy_Visual.tscn' remapped 'res://scenes/world/assets/characters/Ivy_Visual.tscn' at thread -1
+Loading resource: res://assets/ui/npc_portraits/ivy.png remapped: res://assets/ui/npc_portraits/ivy.png
+Loading resource: res://.godot/imported/ivy.png-a768c0fbe3e6eb68039b7a2559ea4eb1.ctex remapped: res://.godot/imported/ivy.png-a768c0fbe3e6eb68039b7a2559ea4eb1.ctex
+Completed load for: 'res://assets/ui/npc_portraits/ivy.png' remapped 'res://assets/ui/npc_portraits/ivy.png' at thread -1
+Loading resource: res://src/Traffic/TrafficCar.cs remapped: res://src/Traffic/TrafficCar.cs
+Completed load for: 'res://src/Traffic/TrafficCar.cs' remapped 'res://src/Traffic/TrafficCar.cs' at thread -1
+Loading resource: res://scenes/world/assets/vehicles/TownCar_Green_Visual.tscn remapped: res://scenes/world/assets/vehicles/TownCar_Green_Visual.tscn
+Loading resource: res://scenes/world/assets/vehicles/TownCar_Green.glb remapped: res://scenes/world/assets/vehicles/TownCar_Green.glb
+Loading resource: res://.godot/imported/TownCar_Green.glb-08ba26412ca6b96f5d4bd4750af992d3.scn remapped: res://.godot/imported/TownCar_Green.glb-08ba26412ca6b96f5d4bd4750af992d3.scn
+Completed load for: 'res://scenes/world/assets/vehicles/TownCar_Green.glb' remapped 'res://scenes/world/assets/vehicles/TownCar_Green.glb' at thread -1
+Completed load for: 'res://scenes/world/assets/vehicles/TownCar_Green_Visual.tscn' remapped 'res://scenes/world/assets/vehicles/TownCar_Green_Visual.tscn' at thread -1
+Loading resource: res://scenes/world/assets/vehicles/TownCar_Blue_Visual.tscn remapped: res://scenes/world/assets/vehicles/TownCar_Blue_Visual.tscn
+Loading resource: res://scenes/world/assets/vehicles/TownCar_Blue.glb remapped: res://scenes/world/assets/vehicles/TownCar_Blue.glb
+Loading resource: res://.godot/imported/TownCar_Blue.glb-cf8c360e3b77a21993cee9d0bd84be3a.scn remapped: res://.godot/imported/TownCar_Blue.glb-cf8c360e3b77a21993cee9d0bd84be3a.scn
+Completed load for: 'res://scenes/world/assets/vehicles/TownCar_Blue.glb' remapped 'res://scenes/world/assets/vehicles/TownCar_Blue.glb' at thread -1
+Completed load for: 'res://scenes/world/assets/vehicles/TownCar_Blue_Visual.tscn' remapped 'res://scenes/world/assets/vehicles/TownCar_Blue_Visual.tscn' at thread -1
+Loading resource: res://assets/audio/music/music_title.ogg remapped: res://assets/audio/music/music_title.ogg
+Loading resource: res://.godot/imported/music_title.ogg-2ee2d6bdc9a9e37ef89466af20193f68.oggvorbisstr remapped: res://.godot/imported/music_title.ogg-2ee2d6bdc9a9e37ef89466af20193f68.oggvorbisstr
+Completed load for: 'res://assets/audio/music/music_title.ogg' remapped 'res://assets/audio/music/music_title.ogg' at thread -1
+Unloading: Disposing tracked instances...
+Unloading: Finished disposing tracked instances.
+XR: Clearing primary interface
+XR: Removed interface "Native mobile"
+XR: Removed interface "OpenXR"

@@ -56,12 +56,19 @@ public partial class AudioManager : Node
 
     public override void _ExitTree()
     {
+        StopAll();
         if (Instance == this) Instance = null;
     }
 
     public void StopAll()
     {
+        // Teardown must also cancel a queued fade, otherwise the next frame
+        // can start the pending track again after every voice was stopped.
+        _pendingMusic = null;
+        _phase = MusicPhase.Idle;
+        CurrentMusicId = "";
         _musicPlayer?.Stop();
+        if (_musicPlayer != null) _musicPlayer.Stream = null;
         foreach (var voice in _sfxVoices) voice.Stop();
         foreach (var voice in _spatialVoices) voice.Stop();
     }

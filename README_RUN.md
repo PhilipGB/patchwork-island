@@ -1,13 +1,41 @@
 # Patchwork Island — run and test guide
 
-> Status: v1.4.0 City Expansion — **test build published** as GitHub
-> pre-release [`v1.4.0`](https://github.com/PhilipGB/patchwork-island/releases/tag/v1.4.0)
-> from commit `21b226e`. The static town is `scenes/world/Town.tscn`; the city is authored
+> Current published baseline: **v1.4.2 City jobs load hotfix**, a
+> [pre-release test build](https://github.com/PhilipGB/patchwork-island/releases/tag/v1.4.2).
+> See `docs/RELEASE_NOTES_v1.4.2.md` for the load fix and platform verification gaps. The static town is `scenes/world/Town.tscn`; the city is authored
 > in `scenes/city/` and loaded by `CityWorldAdapter`. There is no bake step and
 > no procedural `WorldBuilder` or city generator. All v1.2.1/v1.3.0 gameplay,
 > M01–M20 semantics and schema-3 saves are retained; schema 4 adds city state.
 > See `PROGRESS.md` and `docs/03_ACCEPTANCE.md` for the gate and remaining gaps.
 > The v1.2.1 release notes remain under `docs/`.
+
+## Current source verification
+
+This branch is **1.4.3-dev**, an unreleased Linux quality pass. The current
+acceptance results and limitations are in [docs/LINUX_QUALITY_PASS.md](docs/LINUX_QUALITY_PASS.md);
+architecture is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+The v1.4.0 table later in this guide is historical.
+
+Graphical input regressions need a real display or Xvfb; headless captured-mouse
+semantics do not exercise physical orbit correctly:
+
+```sh
+XDG_DATA_HOME=/tmp/patchwork-quality godot --path . -- --selftest-quality
+```
+
+For an input-driven progression run, use a fresh disposable directory. Rerun the
+same command at its three save/exit checkpoints to Continue. The driver walks,
+steers, presses E and clicks controls/sockets; it does not seed progress or
+teleport. It reads scene positions to navigate, so this is functional coverage,
+not a human usability study.
+
+```sh
+XDG_DATA_HOME=/tmp/patchwork-walkthrough godot --path . -- --dev --playthrough
+```
+
+`--disable-render-loop --fixed-fps 60 -- --dev --playthrough --no-captures`
+can accelerate a functional replay on a graphical backend. It supplies no
+visual or performance evidence. Never use a player's user-data directory.
 
 ## Prerequisites
 
@@ -101,6 +129,7 @@ godot --headless --path . -- --selftest-traversal
 godot --headless --path . -- --selftest-release
 godot --headless --path . -- --selftest-restore
 godot --headless --path . -- --selftest-city
+godot --headless --path . -- --selftest-academy
 ```
 
 These use isolated `user://selftest-save.json` and
@@ -218,7 +247,7 @@ phases from the exported ZIP. The Windows x64 export is a PE32+ 1.4.0.0
 executable, but **startup was not tested** because this environment has no
 Windows runtime or Wine.
 
-## Final verification — v1.4.0 source tree
+## Historical verification — v1.4.0 source tree
 
 ```text
 dotnet build PatchworkIsland.sln                         -> 0 warnings, 0 errors
@@ -330,6 +359,39 @@ and saturates safely at the integer-millisecond representation limit.
 
 The pause menu and title screen both open Settings. Music, sound-effects and
 reduced-motion toggles are persisted. Reduced motion stops marker bobbing.
-There is no bundled audio yet, so visual confirmations are always shown; the
-sound toggles are ready for a future audio pass. The HUD, title, job board and
+Bundled music, UI/world effects and vehicle loops are routed through separate
+audio buses. Visual confirmations also support play with sound disabled. The HUD, title, job board and
 furniture catalogue are tuned for 1280×720 and scale to larger windows.
+
+## v1.5.0 Driving Academy verification
+
+```text
+dotnet run --project tests/PatchworkIsland.Tests.csproj -> 145 passed, 0 failed
+godot --headless --path . -- --selftest                  -> 286 passed, 0 failed
+godot --headless --path . -- --selftest-resume           -> 21 passed, 0 failed
+godot --headless --path . -- --selftest-recovery         -> 101 passed, 0 failed
+godot --headless --path . -- --selftest-living           -> 238 passed, 0 failed
+godot --headless --path . -- --selftest-rally            -> 10 passed, 0 failed
+godot --headless --path . -- --selftest-chapter          -> 217 passed, 0 failed
+godot --headless --path . -- --selftest-hotfix           -> 48 passed, 0 failed
+godot --headless --path . -- --selftest-finale           -> 140 passed, 0 failed
+godot --headless --path . -- --selftest-traversal        -> 18 passed, 0 failed
+godot --headless --path . -- --selftest-release          -> 40 passed, 0 failed
+godot --headless --path . -- --selftest-restore          -> 54 passed, 0 failed
+godot --headless --path . -- --selftest-city             -> 138 passed, 0 failed
+godot --headless --path . -- --selftest-academy          -> 62 passed, 0 failed
+xvfb-run ... godot --path . -- --selftest-quality        -> 22 passed, 0 failed
+```
+
+Schema 5 adds academy state and `LegacyVanPermit`; v1–v4 saves migrate
+automatically. The licence gate applies to new v5 saves only.
+
+The exported Linux binary was booted and passed the same 13 phases, plus the
+packaged graphical quality gate (**22/22**) and packaged graphical academy
+(**62/62**), under Xvfb with disposable XDG directories. The exact binary hash
+and logs are in `evidence/v15_academy/packaged/`.
+
+The fresh-save `--dev --playthrough` run earns the licence with real input, then
+completes M01–M15; it stops at M16 on a pre-existing walkthrough
+NPC-approach/route-planner limitation. That limitation is recorded in
+`docs/DRIVING_ACADEMY_REPORT.md` and is not claimed as a passing full campaign.

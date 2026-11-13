@@ -1,0 +1,22 @@
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+WARNING: Failed to create wd.xic as the input method or its xim server may not have started yet.
+     at: _create_xic (platform/linuxbsd/x11/display_server_x11.cpp:6347)
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+     at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:372)
+OpenGL API 4.5 (Core Profile) Mesa 26.0.8-1ubuntu0.3 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 21.1.8, 256 bits)
+
+Unicode parsing error, some characters were replaced with � (U+FFFD): Invalid UTF-8 leading byte (b7)
+[WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 158 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.
+[CITY SCENE] res://scenes/city/CityDistrict.tscn: 36 buildings, 36 HLOD proxies, 9 cells, 15 job markers, 4 vehicle routes, 11 pedestrian routes.
+PLAYTHROUGH M16: starting pos=(17.720839, -0.06920139, 6.710273)
+PLAYTHROUGH M16: walk to PostCounterStation (-11.5, 0.1, 8) pos=(17.720839, -0.06920139, 6.710273)
+PLAYTHROUGH M16: nearest was NpcTalk_milo pos=(-10.227697, -0.042843543, 5.8964753)
+PLAYTHROUGH M16: walk to VanEntry (15.122275, 0.08797327, 6.6238637) pos=(-9.898979, -0.042843543, 7.489583)
+PLAYTHROUGH M16: nearest was NpcTalk_ada pos=(12.588381, -0.042843543, 5.479337)
+PLAYTHROUGH M16: nearest was NpcTalk_ada pos=(13.00734, -0.04266662, 6.009288)
+PLAYTHROUGH FAIL M16: System.Exception: no walking route (13.00734, -0.04266662, 6.009288) to (15.122275, 0.08797327, 6.6238637)
+   at PatchworkIsland.GameplayWalkthrough.Route(Vector3 start, Vector3 end, Single range) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Testing/GameplayWalkthrough.cs:line 277
+   at PatchworkIsland.GameplayWalkthrough.Walk(Vector3 target, Single range) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Testing/GameplayWalkthrough.cs:line 219
+   at PatchworkIsland.GameplayWalkthrough.Use(Interactable target) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Testing/GameplayWalkthrough.cs:line 184
+   at PatchworkIsland.GameplayWalkthrough.ChapterTwo(Int32 number) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Testing/GameplayWalkthrough.cs:line 606
+   at PatchworkIsland.GameplayWalkthrough.Run() in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Testing/GameplayWalkthrough.cs:line 88

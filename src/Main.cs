@@ -12,9 +12,34 @@ namespace PatchworkIsland;
 /// services. Gameplay milestones add their systems here while keeping the boot
 /// and restore flow stable.
 /// </summary>
-public partial class Main : Node3D
+public partial class Main : Node3D, IGameplayHost
 {
     private Hud _hud;
+    private VillageStationController _villageStations;
+    private VillageStationController VillageStations => _villageStations ??= new VillageStationController(
+        _gameSession, _hud, this, () => _bridgeBuilder, () => _swingBuilder, () => _parkBuilder, () => _furnitureBuilder);
+    private PickupController _pickupController;
+    private PickupController Pickups => _pickupController ??= new PickupController(
+        _gameSession, this, _world, _hud, _player, _pickups, _audio, this);
+    private VillagePopulationController _population;
+    private VillagePopulationController Population => _population ??= new VillagePopulationController(
+        _gameSession, this, _world, _hud, _player, _van, _npcs, _npcById, _trafficCars, _audio, this);
+    private CityGameplayController _cityGameplay;
+    private CityGameplayController CityGameplay => _cityGameplay ??= new CityGameplayController(
+        _gameSession, this, _city, _roadworks, _hud, _audio, this);
+
+    bool IGameplayHost.Started => _started;
+    bool IGameplayHost.Driving => _driving;
+    void IGameplayHost.RefreshMission() => RefreshMissionState();
+    void IGameplayHost.RefreshMusic() => RefreshMusicContext();
+    void IGameplayHost.CompleteVillageMission(MissionCompletionResult result) => OnMissionCompleted(result);
+    void IGameplayHost.SetObjective(Vector3 position, string label, string icon, Color color) => SetObjective(position, label, icon, color);
+    SaveResult IGameplayHost.Save(SaveReason reason) => SaveGame(reason);
+    void IGameplayHost.NotifyRecovery(string message) => _recoveredJobNote = message;
+    private MissionHudPresenter _missionPresenter;
+    private MissionHudPresenter MissionPresenter => _missionPresenter ??= new MissionHudPresenter(
+        _gameSession, _hud, _world, _player, _van, _roadworks, _npcById, _pickups,
+        () => _driving, () => _raceTimer, IsInsidePlayerHouse, SetObjective);
     private AudioManager _audio;
     private WorldSceneAdapter _world;
     private PlayerController _player;
@@ -22,17 +47,14 @@ public partial class Main : Node3D
     private WorldMarker _marker;
     private MissionCatalog _catalog;
     private CityMissionCatalog _cityCatalog;
-    private GameData _data;
-    private MissionService _missions;
-    private CityMissionService _cityMissions;
+    private DrivingAcademyCatalog _academyCatalog;
+    private GameSession _gameSession;
+    private GameData _data => _gameSession.Data;
+    private MissionService _missions => _gameSession.Village;
+    private CityMissionService _cityMissions => _gameSession.City;
     private CityWorldAdapter _city;
     private TownCityRoadworks _roadworks;
-    private Interactable _roadworksStation;
-    private Interactable _cityJobStation;
-    private readonly List<Interactable> _cityJobStations = new();
-    private bool _cityWelcomeShown;
     private float _cityMissionObjectiveRefresh;
-    private bool _cityUiOpen;
     private bool _suppressScenarioSaves;
     private readonly HashSet<string> _implemented = new()
     {
@@ -44,7 +66,6 @@ public partial class Main : Node3D
     private readonly List<NpcActor> _npcs = new();
     private readonly Dictionary<string, NpcActor> _npcById = new(StringComparer.Ordinal);
     private readonly List<TrafficCar> _trafficCars = new();
-    private NpcActor _talkingNpc;
     private readonly List<Interactable> _signStations = new();
     private readonly List<Interactable> _gardenStations = new();
     private readonly List<Interactable> _festivalTableStations = new();
@@ -74,18 +95,14 @@ public partial class Main : Node3D
     private FurnitureBuilder _furnitureBuilder;
     private readonly List<IBuildMode> _buildModes = new();
     private VanController _van;
+    private DrivingAcademyController _academy;
     private bool _buildMode;
     private bool _driving;
-    private RaceTimer _raceTimer = new();
+    private RaceController _races;
+    private RaceController Races => _races ??= new RaceController(_gameSession, _world, _van, _hud, _audio, this);
+    private RaceTimer _raceTimer { get => Races.Timer; set => Races.Timer = value; }
     private ControlMode _controlMode;
-    private float _raceCheckTimer;
-    private float _raceHudTimer;
-    private float _raceWrongHintCooldown;
-    private bool _practiceRaceActive;
-    private int _practiceCheckpoint;
-    private float _practiceElapsed;
-    private float _practiceCheckTimer;
-    private float _practiceHudTimer;
+    private bool _practiceRaceActive => Races.PracticeActive;
     private bool _celebrationShown;
     private float _vehicleSwitchCooldown;
 
@@ -124,12 +141,12 @@ public partial class Main : Node3D
             (IsChapterTest && RuntimeSelfTest.ChapterPhase == 0) ||
             (IsRestoreTest && RuntimeSelfTest.RestorePhase == 0) ||
             (IsReleaseTest && RuntimeSelfTest.ReleasePhase == 0) ||
-            IsCityTest)
+            IsCityTest || IsAcademyTest)
             DeleteSelfTestSaves("selftest-save.json");
         else if (IsRecoveryTest && RuntimeSelfTest.RecoveryPhase == 0)
             DeleteSelfTestSaves("selftest-recovery-save.json");
         LoadSavedGameIfAvailable();
-        ApplyDeveloperScenario();
+        Dev.ApplyDeveloperScenario();
         ApplySettings();
 
         _world = new WorldSceneAdapter { Name = "Village", ProcessMode = ProcessModeEnum.Pausable };
@@ -167,6 +184,14 @@ public partial class Main : Node3D
         _van.EnterRequested += EnterVan;
         _van.Crashed += OnVanCrashed;
 
+        _academy = new DrivingAcademyController { Name = "DrivingAcademy" };
+        AddChild(_academy);
+        _academy.Initialize(_gameSession, _world, _hud, _player, _van, _rig, _audio, this);
+        _van.SetEntryGate(() => _academy.CanDriveRegularVan,
+            () => _academy.CanDriveRegularVan
+                ? "E: Drive the delivery van"
+                : "E: Driving licence needed — visit the school");
+
         _city = new CityWorldAdapter { ProcessMode = ProcessModeEnum.Pausable };
         AddChild(_city);
         _city.Build();
@@ -178,202 +203,32 @@ public partial class Main : Node3D
 
         CreateBuilderSystems();
         CreateStations();
-        CreateCityStations();
+        CityGameplay.CreateCityStations();
         CreateChapterTwoWorldVisuals();
-        SpawnPickups();
-        SpawnVillagers();
-        SpawnTraffic();
+        Pickups.SpawnPickups();
+        Population.SpawnVillagers();
+        Population.SpawnTraffic();
         RestoreSavedState();
-        ApplyCityPersistedState();
+        CityGameplay.ApplyCityPersistedState();
         ReconcileRestoredProgress();
-        ReconcileCityProgress();
+        CityGameplay.ReconcileCityProgress();
         RefreshMissionState();
 
         SyncControlMode();
         Input.MouseMode = Input.MouseModeEnum.Visible;
 
-        if (HasUserArg("--scenario-m03"))
-        {
-            BeginScenario(new Vector3(34.2f, 0.2f, 4.2f), -Mathf.Pi / 2f,
-                "SCENARIO: M01+M02 done, Build the Bridge active. Press E at the worksite.");
-            return;
-        }
-        if (HasUserArg("--scenario-m04"))
-        {
-            BeginScenario(new Vector3(5f, 0.2f, 0.8f), Mathf.Pi,
-                "SCENARIO: M01 done, Market Basket active. Press E at the SHOP.");
-            return;
-        }
-        if (HasUserArg("--scenario-m05"))
-        {
-            BeginScenario(new Vector3(-31f, 0.2f, 18.5f), 0f,
-                "SCENARIO: M05 active. Drive the yellow van through gates 1-2-3-4.", 5f);
-            return;
-        }
-        if (HasUserArg("--scenario-m06"))
-        {
-            BeginScenario(new Vector3(-9f, 0.2f, 4.5f), Mathf.Pi,
-                "SCENARIO: M06 active. Collect BLUE and ORANGE parcels at the post counter.", 5f);
-            return;
-        }
-        if (HasUserArg("--scenario-m07"))
-        {
-            BeginScenario(new Vector3(-38f, 0.2f, -4.0f), Mathf.Pi,
-                "SCENARIO: M07 active. Press E by the broken swings.", 5f);
-            return;
-        }
-        if (HasUserArg("--scenario-m08"))
-        {
-            BeginScenario(new Vector3(10f, 0.2f, 7.8f), Mathf.Pi,
-                "SCENARIO: M08 active. Press E at the village green.", 5f);
-            return;
-        }
-        if (HasUserArg("--scenario-m09"))
-        {
-            _van.GlobalPosition = new Vector3(56f, 0.15f, -2.0f);
-            _van.Rotation = new Vector3(0, 0, 0);
-            BeginScenario(new Vector3(52.8f, 0.2f, 2.0f), 0f,
-                "SCENARIO: M09 active on the new long circuit. Drive gates 1-2-3-4; under 75 s is an optional bonus.", 5f);
-            return;
-        }
-        if (HasUserArg("--scenario-m10"))
-        {
-            BeginScenario(new Vector3(-38f, 0.2f, 17.0f), Mathf.Pi,
-                "SCENARIO: M10 active. Walk into your house and press E at FURNITURE.", 5f);
-            return;
-        }
-        if (HasUserArg("--scenario-final"))
-        {
-            BeginScenario(new Vector3(-38f, 0.2f, 21.0f), Mathf.Pi,
-                "SCENARIO: final job active. Furnish the house to trigger the village celebration.", 5f);
-            return;
-        }
-        if (HasUserArg("--scenario-roadworks"))
-        {
-            CompleteVillageForScenario();
-            BeginScenario(new Vector3(78f, 0.5f, 5.0f), -Mathf.Pi / 2f,
-                "SCENARIO: all 20 village jobs complete. Roadworks Rescue is ready at the closed gate.", 6f);
-            return;
-        }
-        if (HasUserArg("--scenario-city"))
-        {
-            CompleteVillageForScenario();
-            _data.CompletedMissions.Add(RoadworksRules.MissionId);
-            _data.SetMissionCounter(RoadworksRules.MissionId, RoadworksRules.SuppliesDeliveredKey, 1);
-            _data.SetMissionCounter(RoadworksRules.MissionId, RoadworksRules.TaskDoneKey, 1);
-            _data.CityRoadworksCompleted = true;
-            _data.CityRoadworksRewardClaimed = true;
-            _data.CityRoadOpen = true;
-            _roadworks.SetRoadState(true, false);
-            _player.Teleport(new Vector3(CityLayout.WorldX(0f), 0.5f, CityLayout.WorldZ(28f)),
-                0f);
-            _rig.SetView(0f, 20f, 9.5f);
-            _started = true;
-            SyncControlMode();
-            RefreshMissionState();
-            _hud.ShowBigToast("SCENARIO: Patchwork City central plaza. The teal CITY JOBS board is behind you.", 6f, Palette.Teal);
-            return;
-        }
-        if (HasUserArg("--capture-city"))
-        {
-            _started = true;
-            _hud.CloseModal();
-            _player.SetControlEnabled(false);
-            SyncControlMode();
-            _ = CaptureCity();
-            return;
-        }
-        if (HasUserArg("--capture-city-defects"))
-        {
-            _started = true;
-            _hud.CloseModal();
-            _hud.Visible = false;
-            _player.SetControlEnabled(false);
-            SyncControlMode();
-            _ = CaptureCityDefects();
-            return;
-        }
-        if (HasUserArg("--capture-title"))
-        {
-            _hud.ShowTitleScreen(false, false, null, StartAdventure, null, QuitGame);
-            _ = CaptureTitle();
-            return;
-        }
-        if (HasUserArg("--capture"))
-        {
-            _started = true;
-            _player.SetControlEnabled(false);
-            _ = CaptureTour();
-            return;
-        }
-        if (HasUserArg("--capture-p11"))
-        {
-            _started = true;
-            _hud.CloseModal();
-            _player.SetControlEnabled(false);
-            _ = CaptureP11();
-            return;
-        }
-        if (HasUserArg("--capture-p12"))
-        {
-            _started = true;
-            _hud.CloseModal();
-            _player.SetControlEnabled(false);
-            _ = CaptureP12();
-            return;
-        }
-        if (HasUserArg("--capture-p13"))
-        {
-            _started = true;
-            _hud.CloseModal();
-            _player.SetControlEnabled(false);
-            _ = CaptureP13();
-            return;
-        }
-        if (HasUserArg("--capture-p14"))
-        {
-            _started = true;
-            _hud.CloseModal();
-            _player.SetControlEnabled(false);
-            _ = CaptureP14();
-            return;
-        }
-        if (HasUserArg("--perf-probe"))
-        {
-            _started = true;
-            _hud.CloseModal();
-            _player.SetControlEnabled(false);
-            _ = RunPerformanceProbe();
-            return;
-        }
-        if (HasUserArg("--city-probe"))
-        {
-            _started = true;
-            _hud.CloseModal();
-            _player.SetControlEnabled(false);
-            SyncControlMode();
-            _ = RunCityProbe();
-            return;
-        }
-        if (HasUserArg("--city-perf"))
-        {
-            _started = true;
-            _hud.CloseModal();
-            _player.SetControlEnabled(false);
-            SyncControlMode();
-            _ = RunCityPerformanceProbe();
-            return;
-        }
-        if (IsCityTest)
-        {
-            _started = true;
-            _hud.CloseModal();
-            SyncControlMode();
-            var cityTest = new CityRuntimeSelfTest { Name = "CityRuntimeSelfTest", Main = this };
-            AddChild(cityTest);
-            return;
-        }
+        if (Dev.TryLaunch()) return;
         ShowTitle();
+        if (HasUserArg("--selftest-quality"))
+        {
+            AddChild(new QualityRuntimeChecks { Main = this });
+            return;
+        }
+        if (DeveloperMode && HasUserArg("--playthrough"))
+        {
+            AddChild(new GameplayWalkthrough { Main = this });
+            return;
+        }
         if (IsSelfTest)
         {
             var test = new RuntimeSelfTest { Name = "RuntimeSelfTest", Main = this };
@@ -410,36 +265,6 @@ public partial class Main : Node3D
         }
     }
 
-    private void BeginScenario(Vector3 position, float yaw, string message, float seconds = 4.5f)
-    {
-        _started = true;
-        _player.Teleport(position, yaw);
-        _rig.SetView(Mathf.RadToDeg(yaw), 18f, 8.2f);
-        SyncControlMode();
-        RefreshMissionState();
-        _hud.ShowBigToast(message, seconds);
-    }
-
-    /// <summary>
-    /// Developer/capture setup only. It marks the required chain complete so a
-    /// screenshot or probe can reach the city without replaying twenty jobs;
-    /// it is never used by the normal save/migration path.
-    /// </summary>
-    private void CompleteVillageForScenario()
-    {
-        _suppressScenarioSaves = true;
-        for (int i = 1; i <= 20; i++)
-        {
-            string id = $"M{i:00}";
-            if (!_data.CompletedMissions.Contains(id))
-                _data.CompletedMissions.Add(id);
-        }
-        _data.CelebrationSeen = true;
-        _data.FestivalSeen = true;
-        _missions = new MissionService(_data, _catalog);
-        _cityMissions = new CityMissionService(_data, _cityCatalog);
-    }
-
     private void LoadMissionContent()
     {
         string json = Godot.FileAccess.GetFileAsString("res://data/missions.json");
@@ -456,9 +281,14 @@ public partial class Main : Node3D
         if (!CityMissionCatalog.Validate(_cityCatalog, out string cityError))
             throw new InvalidDataException("City job content is incomplete: " + cityError);
 
-        _data = new GameData();
-        _missions = new MissionService(_data, _catalog);
-        _cityMissions = new CityMissionService(_data, _cityCatalog);
+        string academyJson = Godot.FileAccess.GetFileAsString(
+            "res://data/driving_academy_lessons.json");
+        if (string.IsNullOrWhiteSpace(academyJson))
+            throw new InvalidDataException(
+                "res://data/driving_academy_lessons.json is missing or empty.");
+        _academyCatalog = DrivingAcademyCatalog.FromJson(academyJson);
+
+        _gameSession = new GameSession(_catalog, _cityCatalog, _academyCatalog, new GameData());
     }
 
     private void ShowFatalContentError(string message)
@@ -508,11 +338,12 @@ public partial class Main : Node3D
     private static bool IsHotfixTest => HasUserArg("--selftest-hotfix");
     private static bool IsRestoreTest => HasUserArg("--selftest-restore");
     private static bool IsCityTest => HasUserArg("--selftest-city");
+    private static bool IsAcademyTest => HasUserArg("--selftest-academy");
 
     private static bool IsSelfTest =>
-        HasUserArg("--selftest") || HasUserArg("--selftest-resume") || IsRecoveryTest ||
+        HasUserArg("--selftest-quality") || HasUserArg("--selftest") || HasUserArg("--selftest-resume") || IsRecoveryTest ||
         IsLivingTest || IsRallyTest || IsChapterTest || IsFinaleTest || IsTraversalTest ||
-        IsReleaseTest || IsHotfixTest || IsRestoreTest || IsCityTest;
+        IsReleaseTest || IsHotfixTest || IsRestoreTest || IsCityTest || IsAcademyTest;
 
     private static bool IsSelfTestResume => HasUserArg("--selftest-resume");
 
@@ -529,6 +360,11 @@ public partial class Main : Node3D
     /// existing scenario/capture/self-test command lines, never by accident in
     /// a normal player session.
     /// </summary>
+    internal GameSession RtSession => _gameSession;
+    internal DrivingAcademyController RtAcademy => _academy;
+    internal void RtOpenDrivingSchool() => _academy.OpenSchool();
+    internal void RtSaveForAcademyTest() => SaveGame(SaveReason.Autosave);
+
     internal static bool DeveloperMode =>
         OS.HasFeature("editor") || HasUserArg("--dev") || IsDeveloperRun();
 
@@ -579,9 +415,7 @@ public partial class Main : Node3D
     /// </summary>
     private void AdoptLoadedData(GameData data)
     {
-        _data = data ?? throw new ArgumentNullException(nameof(data));
-        _missions = new MissionService(_data, _catalog);
-        _cityMissions = new CityMissionService(_data, _cityCatalog);
+        _gameSession.ReplaceData(data);
     }
 
     private void RestoreSavedState()
@@ -733,110 +567,6 @@ public partial class Main : Node3D
         return result;
     }
 
-    private void ApplyDeveloperScenario()
-    {
-        if (!DeveloperMode) return;
-        if (HasUserArg("--scenario-m03"))
-        {
-            if (!_data.CompletedMissions.Contains("M01")) _data.CompletedMissions.Add("M01");
-            if (!_data.CompletedMissions.Contains("M02")) _data.CompletedMissions.Add("M02");
-            _data.Coins = 22;
-            _data.ActiveMission = "M03";
-            if (!_data.UnlockedCosmetics.Contains("red_cap")) _data.UnlockedCosmetics.Add("red_cap");
-        }
-        else if (HasUserArg("--scenario-m04"))
-        {
-            if (!_data.CompletedMissions.Contains("M01")) _data.CompletedMissions.Add("M01");
-            _data.Coins = 10;
-            _data.ActiveMission = "M04";
-            if (!_data.UnlockedCosmetics.Contains("red_cap")) _data.UnlockedCosmetics.Add("red_cap");
-        }
-        else if (HasUserArg("--scenario-m05"))
-        {
-            foreach (string id in new[] { "M01", "M02", "M03", "M04" })
-                if (!_data.CompletedMissions.Contains(id)) _data.CompletedMissions.Add(id);
-            _data.BridgePieces.Clear();
-            _data.BridgePieces.AddRange(new[] { "support_0", "support_1", "support_2", "plank_0", "plank_1", "plank_2", "plank_3" });
-            _data.Coins = 54;
-            _data.ActiveMission = "M05";
-            if (!_data.UnlockedCosmetics.Contains("red_cap")) _data.UnlockedCosmetics.Add("red_cap");
-        }
-        else if (HasUserArg("--scenario-m06"))
-        {
-            foreach (string id in new[] { "M01", "M02", "M03", "M04" })
-                if (!_data.CompletedMissions.Contains(id)) _data.CompletedMissions.Add(id);
-            _data.BridgePieces.Clear();
-            _data.BridgePieces.AddRange(new[] { "support_0", "support_1", "support_2", "plank_0", "plank_1", "plank_2", "plank_3" });
-            _data.Coins = 54;
-            _data.ActiveMission = "M06";
-            if (!_data.UnlockedCosmetics.Contains("red_cap")) _data.UnlockedCosmetics.Add("red_cap");
-        }
-        else if (HasUserArg("--scenario-m07"))
-        {
-            foreach (string id in new[] { "M01", "M02", "M03", "M04" })
-                if (!_data.CompletedMissions.Contains(id)) _data.CompletedMissions.Add(id);
-            _data.BridgePieces.Clear();
-            _data.BridgePieces.AddRange(new[] { "support_0", "support_1", "support_2", "plank_0", "plank_1", "plank_2", "plank_3" });
-            _data.Coins = 54;
-            _data.ActiveMission = "M07";
-            if (!_data.UnlockedCosmetics.Contains("red_cap")) _data.UnlockedCosmetics.Add("red_cap");
-        }
-        else if (HasUserArg("--scenario-m08"))
-        {
-            foreach (string id in new[] { "M01", "M02", "M03", "M04", "M07" })
-                if (!_data.CompletedMissions.Contains(id)) _data.CompletedMissions.Add(id);
-            _data.BridgePieces.Clear();
-            _data.BridgePieces.AddRange(new[] { "support_0", "support_1", "support_2", "plank_0", "plank_1", "plank_2", "plank_3" });
-            _data.SwingPieces.Clear();
-            _data.SwingPieces.AddRange(BuildRules.SwingSockets);
-            _data.Coins = 72;
-            _data.ActiveMission = "M08";
-            if (!_data.UnlockedCosmetics.Contains("red_cap")) _data.UnlockedCosmetics.Add("red_cap");
-        }
-        else if (HasUserArg("--scenario-m09"))
-        {
-            foreach (string id in new[] { "M01", "M02", "M03", "M04", "M05" })
-                if (!_data.CompletedMissions.Contains(id)) _data.CompletedMissions.Add(id);
-            _data.BridgePieces.Clear();
-            _data.BridgePieces.AddRange(new[] { "support_0", "support_1", "support_2", "plank_0", "plank_1", "plank_2", "plank_3" });
-            _data.Coins = 69;
-            _data.ActiveMission = "M09";
-            if (!_data.UnlockedCosmetics.Contains("red_cap")) _data.UnlockedCosmetics.Add("red_cap");
-        }
-        else if (HasUserArg("--scenario-final"))
-        {
-            foreach (string id in new[] { "M01", "M02", "M03", "M04", "M05", "M06", "M07", "M08", "M09" })
-                if (!_data.CompletedMissions.Contains(id)) _data.CompletedMissions.Add(id);
-            _data.BridgePieces.Clear();
-            _data.BridgePieces.AddRange(new[] { "support_0", "support_1", "support_2", "plank_0", "plank_1", "plank_2", "plank_3" });
-            _data.SwingPieces.Clear();
-            _data.SwingPieces.AddRange(BuildRules.SwingSockets);
-            _data.ParkPlacements.Clear();
-            _data.ParkPlacements.Add(new PlacedItem("bench", "park0"));
-            _data.ParkPlacements.Add(new PlacedItem("flowerbed", "park1"));
-            _data.ParkPlacements.Add(new PlacedItem("lamp", "park2"));
-            _data.Coins = 137;
-            _data.ActiveMission = "M10";
-            if (!_data.UnlockedCosmetics.Contains("red_cap")) _data.UnlockedCosmetics.Add("red_cap");
-        }
-        else if (HasUserArg("--scenario-m10"))
-        {
-            foreach (string id in new[] { "M01", "M02", "M03", "M04", "M07", "M08" })
-                if (!_data.CompletedMissions.Contains(id)) _data.CompletedMissions.Add(id);
-            _data.BridgePieces.Clear();
-            _data.BridgePieces.AddRange(new[] { "support_0", "support_1", "support_2", "plank_0", "plank_1", "plank_2", "plank_3" });
-            _data.SwingPieces.Clear();
-            _data.SwingPieces.AddRange(BuildRules.SwingSockets);
-            _data.ParkPlacements.Clear();
-            _data.ParkPlacements.Add(new PlacedItem("bench", "park0"));
-            _data.ParkPlacements.Add(new PlacedItem("flowerbed", "park1"));
-            _data.ParkPlacements.Add(new PlacedItem("lamp", "park2"));
-            _data.Coins = 92;
-            _data.ActiveMission = "M10";
-            if (!_data.UnlockedCosmetics.Contains("red_cap")) _data.UnlockedCosmetics.Add("red_cap");
-        }
-    }
-
     private void BuildEnvironment()
     {
         var env = new Godot.Environment
@@ -887,47 +617,47 @@ public partial class Main : Node3D
             "E: Read the job board", OpenJobBoard, null, true, 3.4f, "JobBoardStation");
 
         _redHouseStation = Interactable.Create(this, _world.RedHouseDoor + new Vector3(0, 0.1f, 1.0f),
-            "E: Look at RED HOUSE", InteractRedHouse, null, true, 3.2f, "RedHouseStation");
-        _redHouseStation.SetPrompt(RedHousePrompt);
+            "E: Look at RED HOUSE", VillageStations.InteractRedHouse, null, true, 3.2f, "RedHouseStation");
+        _redHouseStation.SetPrompt(VillageStations.RedHousePrompt);
 
         _workshopStation = Interactable.Create(this, _world.WorkshopDoor + new Vector3(0, 0.1f, 1.0f),
-            "E: Look at WORKSHOP", InteractWorkshop, null, true, 3.2f, "WorkshopStation");
-        _workshopStation.SetPrompt(WorkshopPrompt);
+            "E: Look at WORKSHOP", VillageStations.InteractWorkshop, null, true, 3.2f, "WorkshopStation");
+        _workshopStation.SetPrompt(VillageStations.WorkshopPrompt);
 
         _shopStation = Interactable.Create(this, _world.ShopDoor + new Vector3(0, 0.1f, -1.1f),
-            "E: Look at the SHOP", InteractShop, null, true, 3.2f, "ShopStation");
-        _shopStation.SetPrompt(ShopPrompt);
+            "E: Look at the SHOP", VillageStations.InteractShop, null, true, 3.2f, "ShopStation");
+        _shopStation.SetPrompt(VillageStations.ShopPrompt);
 
         _clothesStation = Interactable.Create(this, _world.ClothesShopDoor + new Vector3(0, 0.1f, -1.1f),
-            "E: Visit the CLOTHES SHOP", InteractClothesShop, null, true, 3.4f, "ClothesShopStation");
-        _clothesStation.SetPrompt(ClothesShopPrompt);
+            "E: Visit the CLOTHES SHOP", VillageStations.InteractClothesShop, null, true, 3.4f, "ClothesShopStation");
+        _clothesStation.SetPrompt(VillageStations.ClothesShopPrompt);
 
         _townHallStation = Interactable.Create(this, _world.TownHallDoor + new Vector3(0, 0.1f, -1.0f),
-            "E: Look at TOWN HALL", InteractTownHall, null, true, 3.2f, "TownHallStation");
-        _townHallStation.SetPrompt(TownHallPrompt);
+            "E: Look at TOWN HALL", VillageStations.InteractTownHall, null, true, 3.2f, "TownHallStation");
+        _townHallStation.SetPrompt(VillageStations.TownHallPrompt);
 
         _bridgeStation = Interactable.Create(this, _world.BridgeSite,
-            "E: Bridge worksite", InteractBridgeSite, null, true, 3.8f, "BridgeStation");
-        _bridgeStation.SetPrompt(BridgeSitePrompt);
+            "E: Bridge worksite", VillageStations.InteractBridgeSite, null, true, 3.8f, "BridgeStation");
+        _bridgeStation.SetPrompt(VillageStations.BridgeSitePrompt);
 
         _parkingStation = Interactable.Create(this, _world.ParkingSign + new Vector3(0, 0.1f, -0.8f),
             "E: Call van to parking", ResetVanAtSign, () => !_driving, true, 3.2f, "VanParkingStation");
         _parkingStation.SetPrompt(() => _driving ? "E: Parking sign" : "E: Call van to parking");
 
         _playgroundStation = Interactable.Create(this, _world.PlaygroundWorksite,
-            "E: Playground worksite", InteractPlayground, null, true, 4.0f, "PlaygroundStation");
-        _playgroundStation.SetPrompt(PlaygroundPrompt);
+            "E: Playground worksite", VillageStations.InteractPlayground, null, true, 4.0f, "PlaygroundStation");
+        _playgroundStation.SetPrompt(VillageStations.PlaygroundPrompt);
 
         _parkStation = Interactable.Create(this, _world.VillageGreenSign + new Vector3(0, 0.1f, -0.9f),
-            "E: Village green", InteractPark, null, true, 4.0f, "ParkStation");
-        _parkStation.SetPrompt(ParkPrompt);
+            "E: Village green", VillageStations.InteractPark, null, true, 4.0f, "ParkStation");
+        _parkStation.SetPrompt(VillageStations.ParkPrompt);
 
         _furnitureStation = Interactable.Create(this, _world.FurnitureStation,
-            "E: Furniture catalogue", InteractFurniture, null, true, 3.6f, "FurnitureStation");
-        _furnitureStation.SetPrompt(FurniturePrompt);
+            "E: Furniture catalogue", VillageStations.InteractFurniture, null, true, 3.6f, "FurnitureStation");
+        _furnitureStation.SetPrompt(VillageStations.FurniturePrompt);
 
         _houseStation = Interactable.Create(this, _world.PlayerHouseDoor + new Vector3(0, 0.1f, -1.0f),
-            "E: Go inside YOUR HOUSE", InteractHouseDoor, null, true, 3.2f, "HouseStation");
+            "E: Go inside YOUR HOUSE", VillageStations.InteractHouseDoor, null, true, 3.2f, "HouseStation");
         _houseStation.SetPrompt(() => _data.ActiveMission == "M10" ? "E: Go inside YOUR HOUSE" : "E: Look at YOUR HOUSE");
 
         for (int i = 0; i < _world.SignSocketPositions.Count; i++)
@@ -1072,7 +802,7 @@ public partial class Main : Node3D
             _hud.ShowHint("Start Mechanic's Toolbox at the yellow JOBS board first.");
             return;
         }
-        RepairUi.Show(_hud, _missions, result => OnMissionCompleted(result), RefreshMissionState);
+        RepairUi.Show(_hud, _missions.Finale, result => OnMissionCompleted(result), RefreshMissionState);
     }
 
     private void InteractFestivalTable(int index)
@@ -1134,556 +864,6 @@ public partial class Main : Node3D
         RefreshMissionState();
     }
 
-    private void CreateCityStations()
-    {
-        _roadworksStation = Interactable.Create(this, _roadworks.InteractionPosition,
-            "E: Roadworks notice", InteractRoadworks, null, true, 5.0f, "RoadworksStation");
-        _roadworksStation.SetPrompt(RoadworksPrompt);
-
-        _cityJobStation = Interactable.Create(this, _city.BoardInteraction,
-            "E: Read CITY JOBS", OpenCityJobBoard,
-            () => _data.CityRoadOpen, true, 3.6f, "CityJobBoardStation");
-        _cityJobStation.SetPrompt(() => _data.CityRoadOpen
-            ? "E: Read the CITY JOBS board"
-            : "CITY JOBS — road still closed");
-
-        AddCityStation("CityDepotStation", "C01_Depot", "E: City depot", InteractCityDepot,
-            () => CityDepotPrompt());
-        for (int i = 1; i <= 3; i++)
-        {
-            int stop = i;
-            AddCityStation($"CityStopStation_{stop}", $"C01_Stop{stop}",
-                $"E: Parcel stop {stop}", () => InteractCityStop(stop),
-                () => CityStopPrompt(stop));
-        }
-        for (int i = 0; i < 6; i++)
-        {
-            int crate = i;
-            AddCityStation($"CityCrateStation_{crate}", $"C02_Crate_{crate}",
-                "E: Collect stock crate", () => InteractCityCrate(crate),
-                () => CityCratePrompt(crate));
-        }
-        AddCityStation("CityStallStation", "C02_Stall", "E: Market stall", InteractCityMarketStall,
-            () => _cityMissions.ActiveMission?.Id == "C02"
-                ? "E: Check the market stock"
-                : "E: Market stall");
-        for (int i = 1; i <= 3; i++)
-        {
-            int cabinet = i;
-            AddCityStation($"CityCabinetStation_{cabinet}", $"C03_Cabinet{cabinet}",
-                $"E: Signal cabinet {cabinet}", () => InteractCityCabinet(cabinet),
-                () => CityCabinetPrompt(cabinet));
-        }
-        AddCityStation("CityEngineerStation", "C03_Engineer", "E: Talk to the engineer",
-            InteractCityEngineer, CityEngineerPrompt);
-        RefreshCityJobVisuals();
-    }
-
-    private void AddCityStation(string name, string markerId, string fallbackPrompt,
-        Action action, Func<string> prompt)
-    {
-        var station = Interactable.Create(this, _city.JobPoint(markerId),
-            fallbackPrompt, action, null, true, 3.6f, name);
-        station.SetPrompt(prompt);
-        _cityJobStations.Add(station);
-    }
-
-    private string RoadworksPrompt()
-    {
-        if (_data.IsCompleted(RoadworksRules.MissionId))
-            return "E: Roadworks — CITY ROAD OPEN";
-        if (_data.ActiveMission == RoadworksRules.MissionId)
-        {
-            if (RoadworksRules.SuppliesDelivered(_data))
-                return "E: Help the crew finish the roadworks";
-            return RoadworksRules.HasAllSupplies(_data)
-                ? "E: Deliver roadworks supplies"
-                : "E: Roadworks supplies needed";
-        }
-        return _missions.GetStatus(RoadworksRules.MissionId) == MissionStatus.Available
-            ? "E: Read the roadworks notice"
-            : "CITY ROAD CLOSED — finish all 20 village jobs";
-    }
-
-    private void InteractRoadworks()
-    {
-        if (_data.IsCompleted(RoadworksRules.MissionId))
-        {
-            _hud.ShowBigToast("The city road is open. Drive east to the CITY JOBS board.", 4f, Palette.Success);
-            return;
-        }
-        if (_data.ActiveMission != RoadworksRules.MissionId)
-        {
-            if (_missions.GetStatus(RoadworksRules.MissionId) != MissionStatus.Available)
-            {
-                _hud.ShowInfo("CITY ROAD CLOSED",
-                    "The roadworks crew is waiting for every village job to be finished. " +
-                    "Complete all 20 required village jobs, then come back. Optional practice races are never required.");
-                return;
-            }
-            var start = _missions.StartMission(RoadworksRules.MissionId);
-            if (!start.Success)
-            {
-                _hud.ShowHint(start.Message);
-                return;
-            }
-            SaveGame(SaveReason.MissionStart);
-            RefreshMissionState();
-            _hud.ShowBigToast(start.Message + " Collect 3 cones, 2 barrier panels and 1 toolbox from the workshop.", 6f, Palette.Yellow);
-            return;
-        }
-        if (!RoadworksRules.SuppliesDelivered(_data))
-        {
-            if (!RoadworksRules.HasAllSupplies(_data))
-            {
-                _hud.ShowHint(
-                    $"The crew needs 3 cones, 2 barrier panels and 1 toolbox. " +
-                    $"Delivered {RoadworksRules.SupplyProgress(_data)} of {RoadworksRules.SupplyTotal}. " +
-                    "The marked pickups are beside the WORKSHOP.");
-                return;
-            }
-
-            var delivered = _missions.DeliverRoadworksSupplies();
-            if (!delivered.Success)
-            {
-                _hud.ShowHint(delivered.Message);
-                return;
-            }
-            RefreshMissionState();
-            SaveGame(SaveReason.Autosave);
-            _hud.ShowBigToast(delivered.Message, 4f, Palette.Orange);
-            _audio?.PlaySfx("coin_collect", -7f);
-            ShowRoadworksTask();
-            return;
-        }
-        ShowRoadworksTask();
-    }
-
-    private void ShowRoadworksTask()
-    {
-        var body = _hud.OpenModal("Roadworks loading check", new Vector2(720, 520), Palette.Orange);
-        UiKit.Label(body, "The crew has every delivery. Help them check the load.", 24, Palette.Navy);
-        UiKit.Label(body, "3 safety cones + 2 barrier panels + 1 toolbox = ?", 21, Palette.Navy);
-        int? selectedTotal = null;
-        var order = new List<string>();
-        var status = UiKit.Label(body, "", 18, Palette.Red);
-        var orderLabel = UiKit.Label(body, "Load order: (not chosen)", 19, Palette.Blue);
-
-        var totalRow = UiKit.HBox(body, 10);
-        foreach (int value in new[] { 5, 6, 7 })
-        {
-            int captured = value;
-            var button = UiKit.Button(totalRow, value.ToString(), 24, new Vector2(0, 52),
-                Palette.Cream, Palette.Orange);
-            button.Name = $"RoadworksTotal_{value}";
-            button.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
-            button.Pressed += () =>
-            {
-                selectedTotal = captured;
-                status.Text = $"You chose {captured}. Now choose the loading order.";
-                status.AddThemeColorOverride("font_color", Palette.Blue);
-            };
-        }
-
-        UiKit.Label(body, "Choose the order the crew should load the three kinds.", 19, Palette.Navy);
-        var orderRow = UiKit.HBox(body, 8);
-        foreach (string kind in new[] { "cones", "panels", "toolbox" })
-        {
-            string captured = kind;
-            var button = UiKit.Button(orderRow, RoadworksRules.LabelFor(kind), 19,
-                new Vector2(0, 48), Palette.Cream, Palette.Teal);
-            button.Name = $"RoadworksOrder_{kind}";
-            button.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
-            button.Pressed += () =>
-            {
-                if (!order.Contains(captured)) order.Add(captured);
-                orderLabel.Text = "Load order: " + RoadworksRules.OrderLabel(order);
-            };
-        }
-
-        var check = UiKit.Button(body, "Check with the crew", 22, new Vector2(0, 54),
-            new Color("DFF6E3"), Palette.Success);
-        check.Name = "RoadworksCheck";
-        check.Pressed += () =>
-        {
-            if (!selectedTotal.HasValue)
-            {
-                status.Text = "Choose the total first: 3 + 2 + 1.";
-                status.AddThemeColorOverride("font_color", Palette.Red);
-                return;
-            }
-            var result = _missions.CompleteRoadworksTask(selectedTotal.Value, order);
-            if (!result.Success)
-            {
-                status.Text = result.Message;
-                status.AddThemeColorOverride("font_color", Palette.Red);
-                return;
-            }
-            _hud.CloseModal();
-            if (result.Completion != null)
-                OnMissionCompleted(result.Completion);
-        };
-    }
-
-    private void OpenCityJobBoard()
-    {
-        if (!_started) return;
-        if (!_data.CityRoadOpen)
-        {
-            _hud.ShowInfo("CITY JOBS", "The city road is closed. Finish Roadworks Rescue in the village first.");
-            return;
-        }
-        CityJobBoardUi.Show(_hud, _cityMissions, StartCityMissionFromBoard, TurnInCityJob);
-    }
-
-    private void StartCityMissionFromBoard(string missionId)
-    {
-        if (_missions.ActiveMission != null)
-        {
-            _hud.SetModalStatus("Finish or switch your village job first. City jobs are independent.", true);
-            return;
-        }
-        var result = _cityMissions.StartMission(missionId);
-        if (!result.Success)
-        {
-            _hud.SetModalStatus(result.Message, true);
-            return;
-        }
-        _hud.CloseModal();
-        RefreshMissionState();
-        RefreshCityJobVisuals();
-        SaveGame(SaveReason.MissionStart);
-        string hint = result.Mission.Hints.FirstOrDefault() ?? "Follow the glowing city marker.";
-        _hud.ShowBigToast($"{result.Message} {hint}", 5.5f, Palette.Teal);
-    }
-
-    private void TurnInCityJob()
-    {
-        var result = _cityMissions.TurnInAtBoard();
-        if (!result.Success)
-        {
-            _hud.SetModalStatus(result.Message, true);
-            return;
-        }
-        _hud.CloseModal();
-        OnCityMissionCompleted(result);
-    }
-
-    private void OnCityMissionCompleted(CityMissionCompletionResult result)
-    {
-        RefreshMissionState();
-        RefreshCityJobVisuals();
-        string detail = result.Mission.Id switch
-        {
-            "C01" => "Parcels 1, 2 and 3 delivered in number order. The city depot is proud of you!",
-            "C02" => "2 stalls × 3 crates = 6. Every market stall is stocked!",
-            "C03" => "Red → amber → green, then the engineer's sign-off. City signals are safe again!",
-            _ => result.Message,
-        };
-        _hud.ShowSuccess(result.Mission.Title, result.CoinsAwarded, detail, () => { });
-        _audio?.PlaySfx("mission_complete");
-        _audio?.PlaySfx("coin_collect", -7f);
-        var save = SaveGame(SaveReason.MissionCompleted);
-        if (!save.Success)
-            _hud.SetModalStatus("The city job is complete in this session, but it could not be saved yet.", true);
-    }
-
-    private void ShowCityOutcome(CityProgressOutcome outcome)
-    {
-        if (outcome.Completed && outcome.Completion != null)
-        {
-            OnCityMissionCompleted(outcome.Completion);
-            return;
-        }
-        if (outcome.Success)
-        {
-            _hud.ShowBigToast(outcome.Message, 3.8f, Palette.Teal);
-            _audio?.PlaySfx("ui_confirm");
-        }
-        else
-        {
-            _hud.ShowHint(outcome.Message);
-        }
-        RefreshCityJobVisuals();
-        RefreshMissionState();
-        SaveGame(SaveReason.Autosave);
-    }
-
-    private void InteractCityDepot() => ShowCityOutcome(_cityMissions.LoadCourierParcels());
-
-    private void InteractCityStop(int stop) =>
-        ShowCityOutcome(_cityMissions.DeliverCourierStop(stop));
-
-    private void InteractCityCrate(int index) =>
-        ShowCityOutcome(_cityMissions.CollectMarketCrate(index));
-
-    private void InteractCityCabinet(int cabinet)
-    {
-        if (_cityMissions.ActiveMission?.Id != "C03")
-        {
-            _hud.ShowHint("Start Signals and Signs at the CITY JOBS board first.");
-            return;
-        }
-        var body = _hud.OpenModal($"Signal cabinet {cabinet}", new Vector2(640, 390), Palette.Teal);
-        UiKit.Label(body, "Which colour does this cabinet need?", 23, Palette.Navy);
-        var status = UiKit.Label(body, "", 18, Palette.Red);
-        var row = UiKit.HBox(body, 10);
-        foreach (var (colour, label, swatch) in new[]
-                 {
-                     ("red", "RED", Palette.Red),
-                     ("amber", "AMBER", Palette.Yellow),
-                     ("green", "GREEN", Palette.Grass),
-                 })
-        {
-            var button = UiKit.Button(row, label, 21, new Vector2(0, 52), Palette.Cream, swatch);
-            button.Name = $"Cabinet_{colour}";
-            button.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
-            string captured = colour;
-            button.Pressed += () =>
-            {
-                var outcome = _cityMissions.RepairCabinet(cabinet, captured);
-                if (!outcome.Success)
-                {
-                    status.Text = outcome.Message;
-                    return;
-                }
-                _hud.CloseModal();
-                ShowCityOutcome(outcome);
-            };
-        }
-    }
-
-    private void InteractCityMarketStall()
-    {
-        if (_cityMissions.ActiveMission?.Id != "C02")
-        {
-            _hud.ShowHint("Start Market Stock-Up at the CITY JOBS board first.");
-            return;
-        }
-        if (_cityMissions.C02Crates < 6)
-        {
-            _hud.ShowHint($"Collect all six crates first. You have {_cityMissions.C02Crates}.");
-            return;
-        }
-        var body = _hud.OpenModal("Market stalls", new Vector2(640, 390), Palette.Teal);
-        UiKit.Label(body, "2 stalls each need 3 crates. How many crates altogether?", 23, Palette.Navy);
-        var status = UiKit.Label(body, "", 18, Palette.Red);
-        var row = UiKit.HBox(body, 10);
-        foreach (int value in new[] { 5, 6, 7 })
-        {
-            int captured = value;
-            var button = UiKit.Button(row, value.ToString(), 24, new Vector2(0, 52),
-                Palette.Cream, Palette.Teal);
-            button.Name = $"MarketAnswer_{value}";
-            button.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
-            button.Pressed += () =>
-            {
-                var outcome = _cityMissions.AnswerMarketStock(captured);
-                if (!outcome.Success)
-                {
-                    status.Text = outcome.Message;
-                    return;
-                }
-                _hud.CloseModal();
-                ShowCityOutcome(outcome);
-            };
-        }
-    }
-
-    private void InteractCityEngineer()
-    {
-        var outcome = _cityMissions.TalkToEngineer();
-        if (!outcome.Success)
-        {
-            _hud.ShowHint(outcome.Message);
-            return;
-        }
-        if (outcome.Completed && outcome.Completion != null)
-            OnCityMissionCompleted(outcome.Completion);
-        else
-            ShowCityOutcome(outcome);
-    }
-
-    private string CityDepotPrompt()
-    {
-        if (_cityMissions.ActiveMission?.Id != "C01") return "E: City depot";
-        return _cityMissions.HasCourierParcels
-            ? "E: City depot — parcels loaded"
-            : "E: Load the three numbered parcels";
-    }
-
-    private string CityStopPrompt(int stop)
-    {
-        if (_cityMissions.ActiveMission?.Id != "C01") return $"E: Parcel stop {stop}";
-        if (!_cityMissions.HasCourierParcels) return "E: Collect parcels at the depot first";
-        int expected = _cityMissions.C01Stops + 1;
-        if (stop < expected) return $"E: Parcel {stop} already delivered";
-        return stop == expected
-            ? $"E: Deliver parcel {stop}"
-            : $"E: Parcel stop {stop} — parcel {expected} is next";
-    }
-
-    private string CityCratePrompt(int index)
-    {
-        if (_cityMissions.ActiveMission?.Id != "C02") return "E: Market stock crate";
-        return _cityMissions.Progress("C02", $"crate_{index}") > 0
-            ? "E: Crate already collected"
-            : "E: Collect stock crate";
-    }
-
-    private string CityCabinetPrompt(int cabinet)
-    {
-        if (_cityMissions.ActiveMission?.Id != "C03") return $"E: Signal cabinet {cabinet}";
-        if (_cityMissions.Progress("C03", $"cabinet_{cabinet}") > 0)
-            return $"E: Signal cabinet {cabinet} — fixed";
-        int expected = _cityMissions.C03Cabinets + 1;
-        return cabinet == expected
-            ? $"E: Repair cabinet {cabinet}"
-            : $"E: Cabinet {expected} is next";
-    }
-
-    private string CityEngineerPrompt()
-    {
-        if (_cityMissions.ActiveMission?.Id != "C03") return "E: City engineer";
-        return _cityMissions.C03Cabinets >= 3
-            ? "E: Talk to the city engineer"
-            : "E: Engineer — repair all three cabinets first";
-    }
-
-    private void RefreshCityJobVisuals()
-    {
-        var parcels = _city.JobProp("C01_DepotParcels");
-        if (parcels != null)
-            parcels.Visible = !_data.CompletedCityMissions.Contains("C01") &&
-                              !_cityMissions.HasCourierParcels;
-        for (int i = 0; i < 6; i++)
-        {
-            var crate = _city.JobProp($"C02_Crate_{i}");
-            if (crate != null)
-                crate.Visible = _cityMissions.Progress("C02", $"crate_{i}") <= 0;
-        }
-        for (int i = 1; i <= 3; i++)
-        {
-            var cabinet = _city.JobProp($"C03_Cabinet{i}");
-            var body = cabinet?.GetNodeOrNull<MeshInstance3D>("Body");
-            if (body == null) continue;
-            bool fixedCabinet = _cityMissions.Progress("C03", $"cabinet_{i}") > 0;
-            body.MaterialOverride = fixedCabinet
-                ? Geo.Mat(Palette.Grass)
-                : Geo.Mat(Palette.Stone);
-            if (cabinet.GetNodeOrNull<MeshInstance3D>("LensRed") is { } red)
-                red.MaterialOverride = Geo.Mat(Palette.Red);
-            if (cabinet.GetNodeOrNull<MeshInstance3D>("LensAmber") is { } amber)
-                amber.MaterialOverride = Geo.Mat(Palette.Yellow);
-            if (cabinet.GetNodeOrNull<MeshInstance3D>("LensGreen") is { } green)
-                green.MaterialOverride = Geo.Mat(Palette.Grass);
-        }
-    }
-
-    private void ApplyCityPersistedState()
-    {
-        if (_data.IsCompleted(RoadworksRules.MissionId))
-        {
-            _data.CityRoadworksCompleted = true;
-            _data.CityRoadworksRewardClaimed = true;
-            _data.CityRoadOpen = true;
-        }
-        _roadworks.SetRoadState(_data.CityRoadOpen, false);
-        _city.RestoreSimulation(_data.CitySeed, _data.CityLogicalSeconds);
-        RefreshCityJobVisuals();
-    }
-
-    private void ReconcileCityProgress()
-    {
-        if (_missions.ActiveMission?.Id == RoadworksRules.MissionId &&
-            MissionRules.IsObjectiveComplete(_data, RoadworksRules.MissionId))
-        {
-            var result = _missions.CompleteActive();
-            if (result.Success)
-            {
-                _data.CityRoadworksCompleted = true;
-                _data.CityRoadworksRewardClaimed = true;
-                _data.CityRoadOpen = true;
-                _roadworks.SetRoadState(true, false);
-                _recoveredJobNote = $"Recovered a finished city road job: {result.Message}";
-            }
-        }
-        if (_cityMissions.ActiveMission != null &&
-            CityMissionService.ObjectiveComplete(_data, _cityMissions.ActiveMission.Id))
-        {
-            var result = _cityMissions.ReconcileActiveObjective();
-            if (result.Success)
-                _recoveredJobNote = $"Recovered a finished city job: {result.Message}";
-        }
-    }
-
-    private void RefreshCityMissionState()
-    {
-        var mission = _cityMissions.ActiveMission;
-        if (mission == null) return;
-        _hud.SetMission(mission.Title, mission.Short, CityJobBoardUi.IconFor(mission.Id),
-            CityProgressRows(mission.Id));
-
-        switch (mission.Id)
-        {
-            case "C01":
-                if (!_cityMissions.HasCourierParcels)
-                    SetObjective(_city.JobPoint("C01_Depot"), "CITY DEPOT", "delivery", Palette.Teal);
-                else if (_cityMissions.C01Stops >= 3)
-                    SetObjective(_city.BoardApproach, "CITY JOBS", "star", Palette.Teal);
-                else
-                    SetObjective(_city.JobPoint($"C01_Stop{_cityMissions.C01Stops + 1}"),
-                        $"PARCEL {_cityMissions.C01Stops + 1}", "delivery", Palette.Teal);
-                break;
-            case "C02":
-                if (_cityMissions.C02Crates < 6)
-                {
-                    for (int i = 0; i < 6; i++)
-                    {
-                        if (_cityMissions.Progress("C02", $"crate_{i}") > 0) continue;
-                        SetObjective(_city.JobPoint($"C02_Crate_{i}"), "STOCK CRATE", "basket", Palette.Teal);
-                        break;
-                    }
-                }
-                else if (!_cityMissions.HasMarketAnswer)
-                    SetObjective(_city.JobPoint("C02_Stall"), "MARKET STALL", "market_maths", Palette.Teal);
-                else
-                    SetObjective(_city.BoardApproach, "CITY JOBS", "star", Palette.Teal);
-                break;
-            case "C03":
-                if (_cityMissions.C03Cabinets < 3)
-                    SetObjective(_city.JobPoint($"C03_Cabinet{_cityMissions.C03Cabinets + 1}"),
-                        $"SIGNAL CABINET {_cityMissions.C03Cabinets + 1}", "road_signs", Palette.Teal);
-                else
-                    SetObjective(_city.JobPoint("C03_Engineer"), "CITY ENGINEER", "neighbours", Palette.Teal);
-                break;
-        }
-        RefreshObjectiveUi();
-    }
-
-    private List<(string Icon, string Text)> CityProgressRows(string id)
-    {
-        var rows = new List<(string, string)>();
-        switch (id)
-        {
-            case "C01":
-                rows.Add(("parcel", _cityMissions.HasCourierParcels
-                    ? "3 parcels loaded"
-                    : "Load parcels at the depot"));
-                rows.Add(("star", $"Stops in order: {_cityMissions.C01Stops} / 3"));
-                break;
-            case "C02":
-                rows.Add(("basket", $"Crates: {_cityMissions.C02Crates} / 6"));
-                rows.Add(("star", _cityMissions.HasMarketAnswer ? "2 × 3 = 6 checked" : "Then check 2 × 3 at the stall"));
-                break;
-            case "C03":
-                rows.Add(("road_signs", $"Cabinets fixed: {_cityMissions.C03Cabinets} / 3"));
-                rows.Add(("star", "Order: RED → AMBER → GREEN"));
-                break;
-        }
-        return rows;
-    }
-
     private void CreateChapterTwoWorldVisuals()
     {
         foreach (var root in _world.SignSocketRoots)
@@ -1722,7 +902,7 @@ public partial class Main : Node3D
             _hud.ShowHint("Start Road Sign Rescue at the yellow JOBS board first.");
             return;
         }
-        SignSocketUi.Show(_hud, _missions, socketId,
+        SignSocketUi.Show(_hud, _missions.Community, socketId,
             result => OnMissionCompleted(result), RefreshMissionState);
     }
 
@@ -1740,7 +920,7 @@ public partial class Main : Node3D
             _hud.ShowHint("Start Garden Patterns at the yellow JOBS board first.");
             return;
         }
-        GardenPadUi.Show(_hud, _missions, index,
+        GardenPadUi.Show(_hud, _missions.Community, index,
             result => OnMissionCompleted(result), RefreshMissionState);
     }
 
@@ -1800,743 +980,6 @@ public partial class Main : Node3D
                 _data.GetMissionCounter("M13", ChapterTwoRules.ShelfKey(book)) >= 1;
         }
     }
-
-    private string RedHousePrompt()
-    {
-        if (_data.ActiveMission == "M01")
-        {
-            int apples = _data.GetItem("apple");
-            return apples >= 3 ? "E: Deliver 3 apples to RED HOUSE" : $"E: RED HOUSE — need 3 apples ({apples}/3)";
-        }
-        if (_data.ActiveMission == "M06")
-        {
-            if (_data.GetItem("blue_parcel") > 0) return "E: Deliver BLUE parcels to RED HOUSE";
-            if (_data.GetMissionCounter("M06", "blueDelivered") < 2) return "E: RED HOUSE — need BLUE parcels";
-            return "E: RED HOUSE — blue parcels done";
-        }
-        if (_data.IsCompleted("M01")) return "E: RED HOUSE — apples delivered";
-        if (_data.IsCompleted("M06")) return "E: RED HOUSE — post delivered";
-        return "E: Look at RED HOUSE";
-    }
-
-    private string WorkshopPrompt()
-    {
-        if (_data.ActiveMission == "M02")
-        {
-            int wood = _data.GetItem("wood");
-            int stone = _data.GetItem("stone");
-            return wood >= 5 && stone >= 3
-                ? "E: Hand in 5 wood + 3 stone"
-                : "E: WORKSHOP — needs 5 wood + 3 stone";
-        }
-        if (_data.ActiveMission == "M06")
-        {
-            if (_data.GetItem("orange_parcel") > 0) return "E: Deliver ORANGE parcel to WORKSHOP";
-            if (_data.GetMissionCounter("M06", "orangeDelivered") < 1) return "E: WORKSHOP — need ORANGE parcel";
-            return "E: WORKSHOP — orange parcel done";
-        }
-        if (_data.IsCompleted("M02")) return "E: WORKSHOP — supplies delivered";
-        if (_data.IsCompleted("M06")) return "E: WORKSHOP — post delivered";
-        return "E: Look at WORKSHOP";
-    }
-
-    private string ShopPrompt()
-    {
-        if (_data.ActiveMission == "M04") return "E: Shop for Market Basket";
-        if (_data.ActiveMission == "M17") return "E: Market Day Maths checkout";
-        if (_data.IsCompleted("M17")) return "E: Market stall — stocked";
-        return "E: Look at the SHOP";
-    }
-
-    private string ClothesShopPrompt()
-    {
-        string wearing = CharacterCustomisation.Equipped(_data)?.Name ?? "Everyday";
-        return $"E: CLOTHES SHOP — wearing {wearing}";
-    }
-
-    private string TownHallPrompt()
-    {
-        if (_data.IsCompleted("M04")) return "E: TOWN HALL — groceries delivered";
-        if (_data.ActiveMission == "M04")
-        {
-            return BudgetRules.IsGroceryListComplete(_missions.GroceryBread, _missions.GroceryMilk)
-                ? "E: Deliver groceries to TOWN HALL"
-                : "E: TOWN HALL — basket not ready";
-        }
-        return "E: Look at TOWN HALL";
-    }
-
-    private string PlaygroundPrompt()
-    {
-        if (_data.IsCompleted("M07")) return "E: Playground — swings fixed";
-        if (_data.ActiveMission == "M07") return "E: Fix the swings";
-        return "E: Playground worksite";
-    }
-
-    private string ParkPrompt()
-    {
-        if (_data.IsCompleted("M08")) return "E: Village green — decorated";
-        if (_data.ActiveMission == "M08") return "E: Decorate the village green";
-        return "E: Village green";
-    }
-
-    private string FurniturePrompt()
-    {
-        if (_data.IsCompleted("M10")) return "E: Rearrange furniture";
-        if (_data.ActiveMission == "M10") return "E: Furnish your home";
-        return "E: Furniture catalogue";
-    }
-
-    private string BridgeSitePrompt()
-    {
-        if (_bridgeBuilder != null && _bridgeBuilder.IsBuilt) return "E: Bridge is open";
-        if (_data.ActiveMission == "M03") return "E: Build the bridge";
-        return "E: Bridge worksite";
-    }
-
-    private void InteractRedHouse()
-    {
-        if (_data.ActiveMission == "M01")
-        {
-            var result = _missions.DeliverApples();
-            if (result.Success)
-                OnMissionCompleted(result);
-            else
-                _hud.ShowHint(result.Message);
-            return;
-        }
-        if (_data.ActiveMission == "M06")
-        {
-            var parcels = _missions.DeliverBlueParcels();
-            if (!parcels.Success)
-            {
-                _hud.ShowHint(parcels.Message);
-                return;
-            }
-            _hud.ShowBigToast(parcels.Message, 3f, Palette.Blue);
-            FinishPostIfReady();
-            return;
-        }
-        if (_data.IsCompleted("M01"))
-            _hud.ShowBigToast("The Red House already has its apples.");
-        else
-            _hud.ShowHint("Start The Red House Delivery or Two-Stop Post at the yellow JOBS board.");
-    }
-
-    private void InteractWorkshop()
-    {
-        if (_data.ActiveMission == "M02")
-        {
-            var result = _missions.SubmitSupplies();
-            if (result.Success)
-                OnMissionCompleted(result);
-            else
-                _hud.ShowHint(result.Message);
-            return;
-        }
-        if (_data.ActiveMission == "M06")
-        {
-            var parcels = _missions.DeliverOrangeParcel();
-            if (!parcels.Success)
-            {
-                _hud.ShowHint(parcels.Message);
-                return;
-            }
-            _hud.ShowBigToast(parcels.Message, 3f, Palette.Orange);
-            FinishPostIfReady();
-            return;
-        }
-        if (_data.IsCompleted("M02"))
-            _hud.ShowBigToast("The workshop is fully supplied.");
-        else
-            _hud.ShowHint("Start Workshop Supplies or Two-Stop Post at the yellow JOBS board.");
-    }
-
-    private void FinishPostIfReady()
-    {
-        if (MissionRules.IsObjectiveComplete(_data, "M06"))
-        {
-            var completion = _missions.CompleteActive(0);
-            if (completion.Success) OnMissionCompleted(completion);
-        }
-        else
-        {
-            RefreshMissionState();
-        }
-    }
-
-    private void InteractHouseDoor()
-    {
-        if (_data.ActiveMission == "M10")
-            _hud.ShowBigToast("Walk inside. The furniture catalogue is on the little stand.", 3.2f, Palette.Lavender);
-        else if (_data.IsCompleted("M10"))
-            _hud.ShowBigToast("Your cosy, furnished home.", 2.6f, Palette.Success);
-        else
-            _hud.ShowBigToast("Your cosy house. Furniture jobs open later.", 2.6f);
-    }
-
-    private void InteractPlayground()
-    {
-        if (_data.IsCompleted("M07"))
-        {
-            _hud.ShowBigToast("The swings are fixed. Press E at either seat for a swing!", 3.4f, Palette.Success);
-            return;
-        }
-        if (_data.ActiveMission == "M07")
-        {
-            _swingBuilder?.OpenBuildMode();
-            return;
-        }
-        _hud.ShowHint("Start Fix the Swings at the yellow JOBS board. The workshop unlocks it.");
-    }
-
-    private void InteractPark()
-    {
-        if (_data.IsCompleted("M08"))
-        {
-            _hud.ShowBigToast("Bench + flowerbed + lamp = a lovely village green.", 3.2f, Palette.Success);
-            return;
-        }
-        if (_data.ActiveMission == "M08")
-        {
-            _parkBuilder?.OpenBuildMode();
-            return;
-        }
-        _hud.ShowHint("Start Park Planner at the yellow JOBS board after fixing the swings.");
-    }
-
-    private void InteractFurniture()
-    {
-        if (_data.ActiveMission == "M10")
-        {
-            FurnitureShopUi.Show(_hud, _data, () => _furnitureBuilder?.OpenBuildMode(), RefreshMissionState);
-            return;
-        }
-        if (_data.IsCompleted("M10"))
-        {
-            _furnitureBuilder?.OpenBuildMode();
-            return;
-        }
-        _hud.ShowHint("Start Home Sweet Home at the yellow JOBS board after Park Planner.");
-    }
-
-    private void InteractShop()
-    {
-        if (_data.ActiveMission == "M04")
-        {
-            GroceryUi.Show(_hud, _missions, RefreshMissionState);
-            return;
-        }
-        if (_data.ActiveMission == "M17")
-        {
-            MarketMathsUi.Show(_hud, _missions, result => OnMissionCompleted(result), RefreshMissionState);
-            return;
-        }
-        if (_data.IsCompleted("M17"))
-        {
-            _hud.ShowBigToast("The market stall is stocked for the village festival.", 2.6f, Palette.Success);
-            return;
-        }
-        if (_data.ActiveMission == "M01" && _data.GetItem("apple") < 3)
-            _hud.ShowBigToast("The three apples are in the crate beside the SHOP.");
-        else
-            _hud.ShowInfo("SHOP", "The little market sells bread and milk. Start Market Basket at the JOBS board to use the 12-coin job purse.");
-    }
-
-    private void InteractClothesShop()
-    {
-        ClothesShopUi.Show(_hud, _data, PersistCustomisation);
-    }
-
-    /// <summary>The shop calls this after a purchase, outfit change or preset change.</summary>
-    private SaveResult PersistCustomisation()
-    {
-        RefreshMissionState();
-        return SaveGame(SaveReason.Customisation);
-    }
-
-    private void InteractTownHall()
-    {
-        if (_data.ActiveMission == "M04")
-        {
-            var result = _missions.DeliverGroceries();
-            if (result.Success) OnMissionCompleted(result);
-            else _hud.ShowHint(result.Message);
-            return;
-        }
-        if (_data.IsCompleted("M04"))
-            _hud.ShowBigToast("The Town Hall has its bread and milk. Thank you!");
-        else
-            _hud.ShowInfo("TOWN HALL", "The Town Hall clock keeps the village on time. Groceries and post arrive here.");
-    }
-
-    private void InteractBridgeSite()
-    {
-        if (_bridgeBuilder != null && _bridgeBuilder.IsBuilt)
-        {
-            _hud.ShowBigToast("The bridge is open. The meadow is across the river!", 3.2f, Palette.Success);
-            return;
-        }
-        if (_data.ActiveMission == "M03")
-        {
-            _bridgeBuilder?.OpenBuildMode();
-            return;
-        }
-        _hud.ShowHint("Start Build the Bridge at the yellow JOBS board. The workshop unlocks it after its supplies arrive.");
-    }
-
-    private void SpawnPickups()
-    {
-        SpawnItemSet("apple", "M01", 3, _world.AppleSpawnPoints, Palette.Red);
-        SpawnItemSet("wood", "M02", 5, _world.WoodSpawnPoints, Palette.Wood);
-        SpawnItemSet("stone", "M02", 3, _world.StoneSpawnPoints, Palette.Stone);
-        SpawnParcelPickups();
-        SpawnBookPickups();
-        SpawnRepairParts();
-        SpawnRoadworksPickups();
-    }
-
-    private void SpawnRoadworksPickups()
-    {
-        var positions = new[]
-        {
-            new Vector3(20.5f, 0.2f, -5.4f),
-            new Vector3(22.2f, 0.2f, -5.4f),
-            new Vector3(23.9f, 0.2f, -5.4f),
-            new Vector3(26.4f, 0.2f, -5.0f),
-            new Vector3(28.4f, 0.2f, -5.0f),
-            new Vector3(30.2f, 0.2f, -5.0f),
-        };
-        string[] items = { "safety_cone", "safety_cone", "safety_cone",
-            "barrier_panel", "barrier_panel", "toolbox" };
-        int[] required = { 3, 3, 3, 2, 2, 1 };
-        for (int i = 0; i < items.Length; i++)
-        {
-            string item = items[i];
-            int max = required[i];
-            string pickupId = RoadworksRules.SupplyPickupIds[i];
-            var pickup = Pickup.Create(this, positions[i], pickupId, item,
-                RoadworksRules.MissionId, max, OnRoadworksSupplyPicked,
-                () => $"E: Pick up {MissionService.ItemName(item).ToLowerInvariant()}",
-                () => _missions.GetStatus(RoadworksRules.MissionId) != MissionStatus.Active);
-            _pickups.Add(pickup);
-        }
-    }
-
-    private void OnRoadworksSupplyPicked(Pickup pickup)
-    {
-        var result = _missions.CollectPickup(pickup.PickupId, pickup.ItemType,
-            RoadworksRules.MissionId, pickup.Required);
-        if (!result.Success)
-        {
-            _hud.ShowHint(result.Message);
-            return;
-        }
-        pickup.CollectVisual();
-        _hud.ShowBigToast(result.Message, 3f, Palette.Orange);
-        _audio?.PlaySfx("coin_collect", -7f);
-        RefreshMissionState();
-        SaveGame(SaveReason.Autosave);
-    }
-
-    private void SpawnParcelPickups()
-    {        string[] types = { "blue_parcel", "blue_parcel", "orange_parcel" };
-        for (int i = 0; i < types.Length && i < _world.ParcelSpawnPoints.Count; i++)
-        {
-            string type = types[i];
-            string id = type == "blue_parcel" ? $"blue_parcel_{i}" : "orange_parcel_0";
-            if (_data.HasCollected(id)) continue;
-            int required = type == "blue_parcel" ? 2 : 1;
-            var pickup = Pickup.Create(this, _world.ParcelSpawnPoints[i], id, type, "M06", required,
-                TakePickup, () => PickupPrompt(type, "M06", required),
-                () => _data.IsCompleted("M06"));
-            pickup.ProcessMode = ProcessModeEnum.Pausable;
-            _pickups.Add(pickup);
-        }
-    }
-
-    private void SpawnBookPickups()
-    {
-        foreach (var entry in _world.BookSpawnPoints)
-        {
-            string pickupId = $"book_{entry.Book}";
-            if (_data.HasCollected(pickupId)) continue;
-            string book = entry.Book;
-            var pickup = Pickup.Create(this, entry.Position, pickupId, pickupId, "M13", 1,
-                TakeBookPickup,
-                () => _data.ActiveMission == "M13"
-                    ? $"E: Pick up the {book.ToUpperInvariant()} book"
-                    : "E: A library book for Ollie",
-                () => _data.IsCompleted("M13"));
-            pickup.ProcessMode = ProcessModeEnum.Pausable;
-            _pickups.Add(pickup);
-        }
-    }
-
-    private void SpawnRepairParts()
-    {
-        if (_data.IsCompleted("M18")) return;
-        for (int i = 0; i < FinaleRules.RepairPickupIds.Length &&
-                        i < _world.RepairPartSpawnPoints.Count; i++)
-        {
-            string pickupId = FinaleRules.RepairPickupIds[i];
-            string part = FinaleRules.RepairPickupPart(pickupId);
-            if (string.IsNullOrEmpty(part)) continue;
-            if (_data.HasCollected(pickupId)) continue;
-            var pickup = Pickup.Create(this, _world.RepairPartSpawnPoints[i], pickupId, part,
-                "M18", 1, TakeRepairPart,
-                () => _data.ActiveMission == "M18"
-                    ? $"E: Pick up the {FinaleRules.PartLabel(part).ToLowerInvariant()}"
-                    : "E: A repair part for Pip's car",
-                () => _data.IsCompleted("M18"));
-            pickup.ProcessMode = ProcessModeEnum.Pausable;
-            _pickups.Add(pickup);
-        }
-    }
-
-    private void TakeRepairPart(Pickup pickup)
-    {
-        if (_data.ActiveMission != "M18")
-        {
-            _hud.ShowHint("Start Mechanic's Toolbox at the yellow JOBS board first.");
-            return;
-        }
-        var result = _missions.CollectRepairPart(pickup.ItemType, pickup.PickupId);
-        if (!result.Success)
-        {
-            _hud.ShowHint(result.Message);
-            return;
-        }
-        pickup.CollectVisual();
-        _pickups.Remove(pickup);
-        AudioManager.PlayWorld("parcel_deliver", -6f);
-        _hud.ShowToast(result.Message, 2.4f, Palette.Orange);
-        RefreshMissionState();
-        _player.ForceRefreshInteraction();
-    }
-
-    private void TakeBookPickup(Pickup pickup)
-    {
-        if (_data.ActiveMission != "M13")
-        {
-            _hud.ShowHint("Start Lost Library Books at the yellow JOBS board first.");
-            return;
-        }
-        string book = pickup.ItemType.StartsWith("book_", StringComparison.Ordinal)
-            ? pickup.ItemType.Substring(5)
-            : "";
-        var result = _missions.CollectBook(book);
-        if (!result.Success)
-        {
-            _hud.ShowHint(result.Message);
-            return;
-        }
-        pickup.CollectVisual();
-        _pickups.Remove(pickup);
-        AudioManager.PlayWorld("book_collect", -5f);
-        _hud.ShowToast(result.Message, 2.4f, Palette.Blue);
-        RefreshMissionState();
-        _player.ForceRefreshInteraction();
-    }
-
-    private List<NpcOption> BuildNpcMissionOptions(NpcActor npc)
-    {
-        var options = new List<NpcOption>();
-        if (_data.ActiveMission == "M11" && ChapterTwoRules.CardNpcIds.Contains(npc.NpcId))
-        {
-            foreach (string card in new[] { "card_ada", "card_ollie", "card_fern" })
-            {
-                string capturedCard = card;
-                string cardNpc = ChapterTwoRules.NpcForCard(card);
-                if (_data.GetMissionCounter("M11", $"card_{cardNpc}") <= 0) continue;
-                options.Add(new NpcOption
-                {
-                    Text = $"Give {ChapterTwoRules.CardLabel(card)} card",
-                    Name = $"GiveCard_{cardNpc}",
-                    Border = Palette.Orange,
-                    Close = false,
-                    Action = () => CloseNpcDialogueThen(() =>
-                    {
-                        var result = _missions.HandWelcomeCard(npc.NpcId, capturedCard);
-                        if (!result.Success)
-                        {
-                            AudioManager.PlayUi("ui_error");
-                            _hud.ShowHint(result.Message);
-                            return;
-                        }
-                        _audio?.PlaySfx("coin_collect", -7f);
-                        if (result.Completion != null)
-                            OnMissionCompleted(result.Completion);
-                        else
-                        {
-                            _hud.ShowBigToast(result.Message, 3.2f, Palette.Success);
-                            RefreshMissionState();
-                        }
-                    }),
-                });
-            }
-        }
-
-        if (_data.ActiveMission == "M12" && npc.NpcId == "ada")
-        {
-            options.Add(new NpcOption
-            {
-                Text = "Help with today's orders",
-                Name = "BakeryHelp",
-                Border = Palette.Orange,
-                Close = false,
-                Action = () => CloseNpcDialogueThen(() =>
-                    BakeryUi.Show(_hud, _missions,
-                        result => OnMissionCompleted(result), RefreshMissionState)),
-            });
-        }
-
-        if (_data.ActiveMission == "M13" && npc.NpcId == "ollie")
-        {
-            options.Add(new NpcOption
-            {
-                Text = "Match books to shelves",
-                Name = "LibraryHelp",
-                Border = Palette.Blue,
-                Close = false,
-                Action = () => CloseNpcDialogueThen(() =>
-                    LibraryShelfUi.Show(_hud, _missions,
-                        result => OnMissionCompleted(result), RefreshMissionState)),
-            });
-        }
-
-        if (_data.ActiveMission == "M15" && npc.NpcId == "fern")
-        {
-            options.Add(new NpcOption
-            {
-                Text = "Show me the garden pattern",
-                Name = "GardenPatternHelp",
-                Border = Palette.GrassDark,
-                Close = false,
-                Action = () => CloseNpcDialogueThen(() =>
-                {
-                    _hud.ShowHint("RED, BLUE, RED, BLUE, RED, BLUE. " +
-                                 "Use the six garden pads east of the village green.");
-                    AudioManager.PlayWorld("npc_greet_02", -8f);
-                }),
-            });
-        }
-
-        if (_data.ActiveMission == "M16" &&
-            FinaleRules.DeliveryRecipients.Contains(npc.NpcId) &&
-            _data.GetMissionCounter("M16", "loaded") > 0)
-        {
-            foreach (string recipient in FinaleRules.DeliveryRecipients)
-            {
-                if (_data.GetMissionCounter("M16", FinaleRules.CarryingKey(recipient)) <= 0)
-                    continue;
-                string captured = recipient;
-                options.Add(new NpcOption
-                {
-                    Text = $"Deliver {FinaleRules.DeliveryName(recipient)} parcel",
-                    Name = $"Deliver_{recipient}",
-                    Border = Palette.Orange,
-                    Close = false,
-                    Action = () => CloseNpcDialogueThen(() => DeliverParcelFromVan(npc, captured)),
-                });
-            }
-        }
-
-        if (_data.ActiveMission == "M20" &&
-            FinaleRules.FestivalInvitees.Contains(npc.NpcId) &&
-            _data.GetMissionCounter("M20", FinaleRules.InvitedKey(npc.NpcId)) <= 0)
-        {
-            options.Add(new NpcOption
-            {
-                Text = "Give festival invitation",
-                Name = "FestivalInvite",
-                Border = Palette.Lavender,
-                Close = false,
-                Action = () => CloseNpcDialogueThen(() => InviteNeighbour(npc.NpcId)),
-            });
-        }
-
-        return options;
-    }
-
-    private void CloseNpcDialogueThen(Action action)
-    {
-        if (_hud.ModalOpen) _hud.CloseModal();
-        action?.Invoke();
-    }
-
-    private bool VanParkedNear(Vector3 position) =>
-        _van != null && _van.GlobalPosition.DistanceTo(position) <= 10f &&
-        Mathf.Abs(_van.Speed) < 0.8f;
-
-    private void DeliverParcelFromVan(NpcActor npc, string recipientId)
-    {
-        if (!VanParkedNear(npc.GlobalPosition))
-        {
-            _hud.ShowHint("Park the van close to the neighbour and stop, then step out to deliver.");
-            return;
-        }
-        var result = _missions.DeliverParcel(npc.NpcId, recipientId);
-        if (!result.Success)
-        {
-            AudioManager.PlayUi("ui_error");
-            _hud.ShowHint(result.Message);
-            return;
-        }
-        AudioManager.PlayWorld("parcel_deliver", -5f);
-        if (result.Completion != null)
-        {
-            OnMissionCompleted(result.Completion);
-            return;
-        }
-        _hud.ShowBigToast(result.Message, 3f, Palette.Orange);
-        RefreshMissionState();
-    }
-
-    private void InviteNeighbour(string npcId)
-    {
-        var result = _missions.InviteForFestival(npcId);
-        if (!result.Success)
-        {
-            AudioManager.PlayUi("ui_error");
-            _hud.ShowHint(result.Message);
-            return;
-        }
-        AudioManager.PlayWorld("festival_pop", -7f);
-        _hud.ShowBigToast(result.Message, 2.8f, Palette.Yellow);
-        RefreshMissionState();
-    }
-
-    private void SpawnVillagers()
-    {
-        if (!NpcCatalog.Validate(out string error))
-            throw new InvalidDataException("Villager content is invalid: " + error);
-        foreach (var definition in NpcCatalog.All)
-        {
-            var actor = new NpcActor { Name = $"Npc_{definition.Id}" };
-            actor.Initialize(definition, _world.GetNpcPatrol(definition.Id));
-            actor.TalkRequested += TalkToNpc;
-            AddChild(actor);
-            _npcs.Add(actor);
-            _npcById[definition.Id] = actor;
-        }
-    }
-
-    private void SpawnTraffic()
-    {
-        if (!TrafficCatalog.Validate(out string error))
-            throw new InvalidDataException("Traffic content is invalid: " + error);
-        foreach (var route in TrafficCatalog.Routes)
-        {
-            if (route.RallyOnly) continue;
-            var car = new TrafficCar { Name = $"Traffic_{route.Id}" };
-            car.Initialize(route, _world.GetTrafficPoints(route.Id),
-                () => _player?.GlobalPosition ?? Vector3.Zero,
-                () => _van?.GlobalPosition ?? Vector3.Zero,
-                () => _driving,
-                () => _trafficCars);
-            AddChild(car);
-            _trafficCars.Add(car);
-        }
-    }
-
-    private void TalkToNpc(NpcActor npc)
-    {
-        if (npc == null || _talkingNpc != null || !_started) return;
-        if (_driving)
-        {
-            _hud.ShowBigToast("Park the van, then step out to chat.", 2.8f, Palette.Orange);
-            return;
-        }
-        _talkingNpc = npc;
-        npc.SetTalking(true);
-        npc.FaceToward(_player.GlobalPosition);
-        AudioManager.Instance?.PlayAt(npc.Definition.GreetingCue,
-            npc.GlobalPosition + Vector3.Up * 1.4f, -10f);
-        var options = new List<NpcOption>
-        {
-            new()
-            {
-                Text = "Tell me about the village",
-                Close = false,
-                Border = Palette.Blue,
-                Action = () => _hud.SetModalStatus(npc.Definition.VillageFact, false),
-            },
-        };
-        options.AddRange(BuildNpcMissionOptions(npc));
-        NpcDialogueUi.Show(_hud, npc.Definition, npc.Definition.Intro, options, () =>
-        {
-            npc.SetTalking(false);
-            _talkingNpc = null;
-            RefreshMissionState();
-        });
-    }
-
-    private void SpawnItemSet(string item, string missionId, int required, List<Vector3> positions, Color color)
-    {
-        for (int i = 0; i < positions.Count && i < required; i++)
-        {
-            string id = $"{item}_{i}";
-            if (_data.HasCollected(id)) continue;
-            var pickup = Pickup.Create(this, positions[i], id, item, missionId, required, TakePickup,
-                () => PickupPrompt(item, missionId, required),
-                () => _data.IsCompleted(missionId));
-            pickup.ProcessMode = ProcessModeEnum.Pausable;
-            _pickups.Add(pickup);
-        }
-    }
-
-    private string PickupPrompt(string item, string missionId, int required)
-    {
-        if (_data.IsCompleted(missionId)) return "E: Already delivered";
-        if (_data.ActiveMission != missionId)
-            return $"E: {MissionService.ItemName(item)} for a job";
-        int count = _data.GetItem(item);
-        if (count >= required) return "E: You have enough";
-        return $"E: Pick up {MissionService.ItemName(item).ToLowerInvariant()} ({count + 1}/{required})";
-    }
-
-    private void TakePickup(Pickup pickup)
-    {
-        if (_data.IsCompleted(pickup.MissionId))
-        {
-            _hud.ShowBigToast("That job is already finished.");
-            return;
-        }
-        if (_data.ActiveMission != pickup.MissionId)
-        {
-            string title = _catalog.Get(pickup.MissionId)?.Title ?? pickup.MissionId;
-            _hud.ShowHint($"Start {title} at the yellow JOBS board first.");
-            return;
-        }
-
-        var result = _missions.CollectPickup(pickup.PickupId, pickup.ItemType, pickup.MissionId, pickup.Required);
-        if (!result.Success)
-        {
-            _hud.ShowHint(result.Message);
-            return;
-        }
-
-        pickup.CollectVisual();
-        _pickups.Remove(pickup);
-        RefreshMissionState();
-        _hud.ShowToast(result.Message, 2.1f, ItemColor(pickup.ItemType));
-        _player.ForceRefreshInteraction();
-    }
-
-    private static Color ItemColor(string item) => item switch
-    {
-        "apple" => Palette.Red,
-        "wood" => Palette.Wood,
-        "stone" => Palette.Stone,
-        "blue_parcel" => Palette.Blue,
-        "orange_parcel" => Palette.Orange,
-        "book_sun" => Palette.Yellow,
-        "book_moon" => Palette.Blue,
-        "book_tree" => Palette.Grass,
-        "book_star" => Palette.Pink,
-        _ => Palette.Yellow,
-    };
 
     private void StartAdventure()
     {
@@ -2688,12 +1131,24 @@ public partial class Main : Node3D
     private void SyncControlMode()
     {
         if (_hud == null || _player == null || _van == null) return;
-        var mode = ControlModeRules.Resolve(_started, _hud.ModalOpen, _buildMode, _driving);
+        var mode = ControlModeRules.Resolve(_started, _hud.ModalOpen, _buildMode, _driving,
+            _academy?.Active == true);
         var previous = _controlMode;
         _controlMode = mode;
 
         _player.SetControlEnabled(ControlModeRules.PlayerProcessesInput(mode));
-        _van.SetInputEnabled(ControlModeRules.VehicleProcessesInput(mode));
+        _van.SetInputEnabled(ControlModeRules.VehicleProcessesInput(mode) &&
+                             _academy?.Active != true);
+        if (_academy?.Active == true)
+        {
+            _player.SetControlEnabled(false);
+            _academy.SetInputEnabled(mode == ControlMode.Academy ||
+                                     (mode == ControlMode.Walking && !_hud.ModalOpen));
+        }
+        else
+        {
+            _academy?.SetInputEnabled(false);
+        }
         GetTree().Paused = ControlModeRules.PausesWorld(mode);
 
         var mouse = ControlModeRules.CapturesMouse(mode)
@@ -2726,7 +1181,7 @@ public partial class Main : Node3D
         bool showChapterTwo = active != null
             ? string.CompareOrdinal(active.Id, "M11") >= 0
             : MissionRules.OriginalChapterComplete(_data);
-        JobBoardUi.Show(_hud, _missions, _implemented, StartMissionFromBoard, StartPracticeRace,
+        JobBoardUi.Show(_hud, _missions, _implemented, StartMissionFromBoard, Races.StartPracticeRace,
             showChapterTwo);
     }
 
@@ -2737,7 +1192,7 @@ public partial class Main : Node3D
             _hud.SetModalStatus("Finish your city job first. Village and city jobs are independent.", true);
             return;
         }
-        _practiceRaceActive = false;
+        Races.CancelPractice();
         var result = _missions.StartMission(missionId);
         _hud.CloseModal();
         if (!result.Success)
@@ -2793,6 +1248,13 @@ public partial class Main : Node3D
 
     private void EnterVan()
     {
+        if (!_academy.CanDriveRegularVan)
+        {
+            _hud.ShowInfo("DRIVING LICENCE NEEDED",
+                "New drivers must earn a licence at the Driving School in the west of the village. " +
+                "The learner car is free to use once you enrol.");
+            return;
+        }
         if (!_started || _hud.ModalOpen || _buildMode || _driving) return;
         if (_vehicleSwitchCooldown > 0f) return;
         if (_player.GlobalPosition.DistanceTo(_van.GlobalPosition) > 5.2f)
@@ -2910,180 +1372,6 @@ public partial class Main : Node3D
 
     // --------------------------------------------------------- free-roam practice
 
-    private void StartPracticeRace()
-    {
-        if (!_data.IsCompleted("M05") && !_data.IsCompleted("M09"))
-        {
-            _hud.ShowHint("Finish Village Road Rally before practising the race.");
-            return;
-        }
-        if (_missions.ActiveMission != null)
-        {
-            _hud.ShowHint("Finish or switch your current job before a practice race.");
-            return;
-        }
-
-        _hud.CloseModal();
-        _practiceRaceActive = true;
-        _practiceCheckpoint = 0;
-        _practiceElapsed = 0f;
-        _practiceCheckTimer = 0f;
-        _practiceHudTimer = 0f;
-        _audio?.PlayMusic("rally");
-        _hud.ShowBigToast(
-            "Practice race: get into the yellow van and drive through gates 1-2-3-4. No rewards, no time limit.",
-            5f, Palette.Yellow);
-        RefreshMissionState();
-    }
-
-    private void TickPracticeRace(float dt)
-    {
-        if (!_practiceRaceActive || !_driving) return;
-
-        if (_practiceCheckpoint > 0 && _practiceCheckpoint < 4)
-            _practiceElapsed += dt;
-
-        _practiceHudTimer -= dt;
-        if (_practiceHudTimer <= 0f)
-        {
-            _practiceHudTimer = 0.8f;
-            RefreshMissionState();
-        }
-
-        _practiceCheckTimer -= dt;
-        if (_practiceCheckTimer > 0f || _practiceCheckpoint >= 4) return;
-        _practiceCheckTimer = 0.15f;
-
-        Vector3 gate = _world.RaceGates[_practiceCheckpoint].Position;
-        float distance = new Vector2(_van.GlobalPosition.X - gate.X, _van.GlobalPosition.Z - gate.Z).Length();
-        if (distance > 7f) return;
-
-        _practiceCheckpoint++;
-        _audio?.PlaySfx("race_checkpoint");
-        if (_practiceCheckpoint == 1)
-        {
-            _practiceElapsed = 0f;
-            _hud.ShowBigToast("Gate 1! Practice timer started.", 2.4f, Palette.Yellow);
-        }
-        else if (_practiceCheckpoint < 4)
-        {
-            _hud.ShowBigToast($"Gate {_practiceCheckpoint}! Next: gate {_practiceCheckpoint + 1}.", 2.2f, Palette.Lavender);
-        }
-        else
-        {
-            float time = _practiceElapsed;
-            _practiceRaceActive = false;
-            _practiceCheckpoint = 0;
-            _practiceElapsed = 0f;
-            _audio?.PlaySfx("race_finish");
-            RefreshMusicContext();
-            _hud.ShowBigToast(
-                time <= 75f
-                    ? $"Practice lap complete in {FormatTime(time)} — a gold-lap pace!"
-                    : $"Practice lap complete in {FormatTime(time)}. Nicely driven!",
-                5f, Palette.Yellow);
-        }
-        RefreshMissionState();
-    }
-
-    private void RefreshPracticeMissionUi()
-    {
-        var rows = new List<(string Icon, string Text)>
-        {
-            ("flag", $"Gate {_practiceCheckpoint} / 4"),
-            ("star", _practiceCheckpoint > 0 && _practiceCheckpoint < 4
-                ? $"Practice time {FormatTime(_practiceElapsed)}"
-                : "No rewards · any pace is fine"),
-        };
-        _hud.SetMission("Practice Race", "Drive the yellow van through gates 1-2-3-4. Just for fun!", "flag", rows);
-
-        if (!_driving)
-        {
-            SetObjective(_van.GlobalPosition, "YELLOW VAN", "van", Palette.Yellow);
-        }
-        else if (_practiceCheckpoint == 0 && _van.GlobalPosition.X < 40f)
-        {
-            SetObjective(_world.BridgeCenter, "BRIDGE TO MEADOW", "waypoint", Palette.Water);
-        }
-        else if (_practiceCheckpoint < 4)
-        {
-            var gate = _world.RaceGates[_practiceCheckpoint];
-            SetObjective(gate.Position, $"GATE {_practiceCheckpoint + 1}", "flag", Palette.Yellow);
-        }
-        else
-        {
-            SetObjective(_world.RaceStartFlag.GlobalPosition, "FINISH", "flag", Palette.Yellow);
-        }
-    }
-
-    private void TickRace(float dt)
-    {
-        var mission = _missions.ActiveMission;
-        if (!_driving || mission == null ||
-            mission.Id is not ("M05" or "M09" or "M19"))
-            return;
-        int gateCount = mission.Id == "M19" ? FinaleRules.RallyGateCount : 4;
-        var gates = mission.Id == "M19" ? _world.M19RaceGates : _world.RaceGates;
-        int checkpoint = _data.GetMissionCounter(mission.Id, "checkpoint");
-        if (checkpoint > 0 && checkpoint < gateCount)
-        {
-            _raceTimer.Tick(dt);
-            _raceTimer.Store(_data, mission.Id);
-        }
-
-        _raceHudTimer -= dt;
-        if (_raceHudTimer <= 0f)
-        {
-            _raceHudTimer = 0.8f;
-            RefreshMissionState();
-        }
-
-        _raceCheckTimer -= dt;
-        if (_raceCheckTimer > 0f || checkpoint >= gateCount) return;
-        _raceCheckTimer = 0.15f;
-
-        Vector3 gate = gates[checkpoint].Position;
-        float distance = new Vector2(_van.GlobalPosition.X - gate.X, _van.GlobalPosition.Z - gate.Z).Length();
-        if (distance > 7.0f) return;
-
-        var advance = _missions.AdvanceCheckpoint(checkpoint + 1);
-        if (!advance.Success)
-        {
-            if (_raceWrongHintCooldown <= 0f)
-            {
-                _hud.ShowHint(advance.Message);
-                _raceWrongHintCooldown = 2.5f;
-            }
-            return;
-        }
-
-        if (checkpoint == 0)
-        {
-            _raceTimer.Restart();
-            _data.SetMissionCounter(mission.Id, "started", 1);
-        }
-        _raceTimer.Store(_data, mission.Id);
-        _audio?.PlaySfx("race_checkpoint");
-        _hud.ShowBigToast(advance.Message, 2.4f, Palette.Yellow);
-        RefreshMissionState();
-
-        if (checkpoint + 1 >= gateCount)
-        {
-            double raceSeconds = _raceTimer.ElapsedSeconds;
-            int bonus = _raceTimer.OptionalBonus(mission.Id);
-            var result = _missions.CompleteActive(bonus);
-            if (result.Success)
-            {
-                result.RaceSeconds = raceSeconds;
-                _audio?.PlaySfx("race_finish");
-                OnMissionCompleted(result);
-                _raceTimer = new RaceTimer();
-            }
-        }
-    }
-
-    private static string FormatTime(double seconds) => RaceTimer.Format(seconds);
-
     private IBuildMode GetActiveBuildMode()
     {
         foreach (var mode in _buildModes)
@@ -3173,7 +1461,7 @@ public partial class Main : Node3D
     {
         _hud.SetCoins(_data.Coins);
         ApplyCosmetics();
-        RefreshPickupVisibility();
+        Pickups.RefreshPickupVisibility();
         RefreshRaceGateVisibility();
         RefreshChapterTwoWorld();
         RefreshFinaleWorld();
@@ -3185,13 +1473,13 @@ public partial class Main : Node3D
 
         if (_practiceRaceActive)
         {
-            RefreshPracticeMissionUi();
+            Races.RefreshPracticeMissionUi();
             return;
         }
 
         if (_cityMissions?.ActiveMission != null)
         {
-            RefreshCityMissionState();
+            CityGameplay.RefreshCityMissionState();
             return;
         }
 
@@ -3209,415 +1497,7 @@ public partial class Main : Node3D
             return;
         }
 
-        _hud.SetMission(mission.Title, mission.Short, JobBoardUi.IconFor(mission.Id), ProgressRows(mission.Id));
-
-        switch (mission.Id)
-        {
-            case "M01":
-            {
-                int apples = _data.GetItem("apple");
-                if (apples < 3)
-                    SetObjective(_world.AppleCrate, "SHOP APPLES", "apple", Palette.Red);
-                else
-                    SetObjective(_world.RedHouseDoor, "RED HOUSE", "house", Palette.Red);
-                break;
-            }
-            case "M02":
-            {
-                int wood = _data.GetItem("wood");
-                int stone = _data.GetItem("stone");
-                if (wood < 5)
-                    SetObjective(_world.GroveCenter, "GROVE — 5 WOOD", "wood", Palette.Wood);
-                else if (stone < 3)
-                    SetObjective(_world.StonePatchCenter, "STONE PATCH", "stone", Palette.Stone);
-                else
-                    SetObjective(_world.WorkshopDoor, "WORKSHOP", "hammer", Palette.Orange);
-                break;
-            }
-            case "M03":
-                SetObjective(_world.BridgeCenter, "BRIDGE", "hammer", Palette.Wood);
-                break;
-            case "M04":
-                if (BudgetRules.IsGroceryListComplete(_missions.GroceryBread, _missions.GroceryMilk))
-                    SetObjective(_world.TownHallDoor, "TOWN HALL", "star", Palette.Blue);
-                else
-                    SetObjective(_world.ShopDoor, "SHOP BASKET", "basket", Palette.Blue);
-                break;
-            case "M05":
-            case "M09":
-            {
-                int checkpoint = _data.GetMissionCounter(mission.Id, "checkpoint");
-                if (!_driving)
-                {
-                    SetObjective(_van.GlobalPosition, checkpoint == 0 ? "YELLOW VAN" : "BACK TO VAN", "van", Palette.Yellow);
-                }
-                else if (checkpoint >= 4)
-                {
-                    SetObjective(_world.JobBoard, "JOBS BOARD", "star", Palette.Yellow);
-                }
-                else if (checkpoint == 0 && _van.GlobalPosition.X < 40f)
-                {
-                    SetObjective(_world.BridgeCenter, "BRIDGE TO MEADOW", "waypoint", Palette.Water);
-                }
-                else
-                {
-                    var gate = _world.RaceGates[checkpoint];
-                    SetObjective(gate.Position, $"GATE {checkpoint + 1}", "flag",
-                        checkpoint == 0 ? Palette.Yellow : Palette.Lavender);
-                }
-                break;
-            }
-            case "M06":
-            {
-                int blueDelivered = _data.GetMissionCounter("M06", "blueDelivered");
-                int orangeDelivered = _data.GetMissionCounter("M06", "orangeDelivered");
-                if (blueDelivered < 2)
-                {
-                    if (_data.GetItem("blue_parcel") > 0)
-                        SetObjective(_world.RedHouseDoor, "RED HOUSE — BLUE", "parcel", Palette.Blue);
-                    else
-                        SetObjective(_world.PostCounter, "POST COUNTER", "parcel", Palette.Blue);
-                }
-                else if (orangeDelivered < 1)
-                {
-                    if (_data.GetItem("orange_parcel") > 0)
-                        SetObjective(_world.WorkshopDoor, "WORKSHOP — ORANGE", "parcel", Palette.Orange);
-                    else
-                        SetObjective(_world.PostCounter, "POST COUNTER", "parcel", Palette.Orange);
-                }
-                else
-                {
-                    SetObjective(_world.JobBoard, "JOBS BOARD", "star", Palette.Yellow);
-                }
-                break;
-            }
-            case "M07":
-                SetObjective(_world.PlaygroundCenter, "PLAYGROUND", "hammer", Palette.Lavender);
-                break;
-            case "M08":
-                SetObjective(_world.VillageGreenSign, "VILLAGE GREEN", "flowerbed", Palette.Lavender);
-                break;
-            case "M10":
-                SetObjective(IsInsidePlayerHouse(_player.GlobalPosition) ? _world.FurnitureStation : _world.PlayerHouseDoor,
-                    IsInsidePlayerHouse(_player.GlobalPosition) ? "FURNITURE" : "YOUR HOUSE", "house", Palette.Lavender);
-                break;
-            case "M11":
-            {
-                var target = NextCardNpc();
-                if (target != null)
-                    SetObjective(target.GlobalPosition, $"{target.Definition.Name.ToUpperInvariant()} — CARD",
-                        "neighbours", Palette.Orange);
-                else
-                    SetObjective(_world.JobBoard, "JOBS BOARD", "star", Palette.Yellow);
-                break;
-            }
-            case "M12":
-            {
-                var ada = FindNpc("ada");
-                SetObjective(ada?.GlobalPosition ?? _world.BakeryStall, "ADA'S BAKERY", "bakery", Palette.Orange);
-                break;
-            }
-            case "M13":
-            {
-                Vector3? bookTarget = NextBookWorldTarget();
-                if (bookTarget.HasValue)
-                    SetObjective(bookTarget.Value, "LIBRARY BOOK", "library", Palette.Blue);
-                else
-                    SetObjective(FindNpc("ollie")?.GlobalPosition ?? _world.LibraryShelf,
-                        "OLLIE'S SHELF", "library", Palette.Blue);
-                break;
-            }
-            case "M14":
-            {
-                int socket = NextSignSocket();
-                SetObjective(_world.SignSocketPositions[socket],
-                    $"{ChapterTwoRules.SignSockets[socket].Label} SIGN", "road_signs", Palette.Orange);
-                break;
-            }
-            case "M15":
-            {
-                int pad = NextGardenPad();
-                SetObjective(_world.GardenPads[pad], $"GARDEN PAD {pad + 1}", "garden", Palette.GrassDark);
-                break;
-            }
-            case "M16":
-            {
-                if (_data.GetMissionCounter("M16", "loaded") <= 0)
-                {
-                    SetObjective(_world.PostCounter, "POST COUNTER — LOAD", "parcel", Palette.Orange);
-                    break;
-                }
-                var next = NextDeliveryNpc();
-                if (next != null)
-                    SetObjective(next.GlobalPosition, $"{next.Definition.Name.ToUpperInvariant()} — PARCEL",
-                        "delivery", Palette.Orange);
-                else
-                    SetObjective(_world.JobBoard, "JOBS BOARD", "star", Palette.Yellow);
-                break;
-            }
-            case "M17":
-                SetObjective(_world.ShopDoor, "MARKET CHECKOUT", "market_maths", Palette.Blue);
-                break;
-            case "M18":
-                SetObjective(_world.RepairCarPosition, "PIP'S CAR — REPAIR", "mechanic", Palette.Orange);
-                break;
-            case "M19":
-            {
-                int checkpoint = _data.GetMissionCounter("M19", "checkpoint");
-                if (!_driving)
-                    SetObjective(_van.GlobalPosition, checkpoint == 0 ? "YELLOW VAN" : "BACK TO VAN",
-                        "van", Palette.Yellow);
-                else if (checkpoint >= FinaleRules.RallyGateCount)
-                    SetObjective(_world.JobBoard, "JOBS BOARD", "star", Palette.Yellow);
-                else
-                {
-                    var gate = _world.M19RaceGates[checkpoint];
-                    SetObjective(gate.Position, $"GRAND GATE {checkpoint + 1}", "flag",
-                        checkpoint == 0 ? Palette.Yellow : Palette.Lavender);
-                }
-                break;
-            }
-            case "M20":
-            {
-                if (!FinaleRules.InvitesComplete(_data))
-                {
-                    var invite = NextFestivalInvitee();
-                    if (invite != null)
-                    {
-                        SetObjective(invite.GlobalPosition,
-                            $"INVITE {invite.Definition.Name.ToUpperInvariant()}", "festival", Palette.Yellow);
-                        break;
-                    }
-                }
-                if (!FinaleRules.TablesComplete(_data))
-                {
-                    int pad = NextFestivalTablePad();
-                    SetObjective(_world.FestivalTablePads[pad], $"FESTIVAL TABLE {pad + 1}",
-                        "festival", Palette.Lavender);
-                }
-                else if (!FinaleRules.LanternsComplete(_data))
-                {
-                    int hook = NextFestivalLanternPad();
-                    SetObjective(_world.FestivalLanternPads[hook], $"FESTIVAL LANTERN {hook + 1}",
-                        "festival", Palette.Yellow);
-                }
-                else
-                {
-                    SetObjective(_world.JobBoard, "JOBS BOARD", "star", Palette.Yellow);
-                }
-                break;
-            }
-            case "M21":
-            {
-                if (RoadworksRules.SuppliesDelivered(_data))
-                {
-                    SetObjective(_roadworks.InteractionPosition, "ROADWORKS CREW", "road_signs", Palette.Orange);
-                }
-                else if (RoadworksRules.HasAllSupplies(_data))
-                {
-                    SetObjective(_roadworks.InteractionPosition, "ROADWORKS DELIVERY", "road_signs", Palette.Yellow);
-                }
-                else
-                {
-                    SetObjective(_world.WorkshopDoor + new Vector3(0, 0, 8f),
-                        "ROADWORKS SUPPLIES", "road_signs", Palette.Orange);
-                }
-                break;
-            }
-            default:
-                SetObjective(_world.JobBoard, "JOBS BOARD", "star", Palette.Yellow);
-                break;
-        }
-    }
-
-    private List<(string Icon, string Text)> ProgressRows(string missionId)
-    {
-        var rows = new List<(string, string)>();
-        if (missionId == "M01")
-        {
-            int apples = _data.GetItem("apple");
-            rows.Add(("apple", $"{apples} / 3 apples"));
-            rows.Add(("house", apples >= 3 ? "Now visit RED HOUSE" : "Collect from the SHOP crate"));
-        }
-        else if (missionId == "M02")
-        {
-            int wood = _data.GetItem("wood");
-            int stone = _data.GetItem("stone");
-            rows.Add(("wood", $"{wood} / 5 wood"));
-            rows.Add(("stone", $"{stone} / 3 stone"));
-            rows.Add(("hammer", wood >= 5 && stone >= 3 ? "Now visit WORKSHOP" : $"Collected {wood + stone} of 8"));
-        }
-        else if (missionId == "M03")
-        {
-            int supports = BuildRules.BridgeSupportCount(_data.BridgePieces);
-            int planks = BuildRules.BridgePlankCount(_data.BridgePieces);
-            rows.Add(("stone", $"{supports} / 3 supports"));
-            rows.Add(("wood", $"{planks} / 4 planks"));
-            rows.Add(("hammer", supports < 3 ? "Supports first" : "Now place the planks"));
-        }
-        else if (missionId == "M04")
-        {
-            rows.Add(("bread", $"{_missions.GroceryBread} / 2 bread"));
-            rows.Add(("milk", $"{_missions.GroceryMilk} / 1 milk"));
-            rows.Add(("coin", $"Spent {_missions.GrocerySpent} of 12 · change {_missions.GroceryChange}"));
-        }
-        else if (missionId is "M05" or "M09")
-        {
-            int checkpoint = _data.GetMissionCounter(missionId, "checkpoint");
-            rows.Add(("flag", $"Gate {checkpoint} / 4"));
-            if (checkpoint > 0 && checkpoint < 4)
-                rows.Add(("star", $"Time {FormatTime(_raceTimer.ElapsedSeconds)} · bonus under {FormatTime(missionId == "M09" ? 75 : 90)}"));
-            else if (!_driving)
-                rows.Add(("van", "Get into the yellow van"));
-            else if (checkpoint == 0 && _van.GlobalPosition.X < 40f)
-                rows.Add(("waypoint", "Cross the bridge first"));
-            else
-                rows.Add(("flag", "Gate 1 starts the timer"));
-        }
-        else if (missionId == "M06")
-        {
-            int blue = _data.GetMissionCounter("M06", "blueDelivered");
-            int orange = _data.GetMissionCounter("M06", "orangeDelivered");
-            rows.Add(("parcel", $"BLUE → RED HOUSE: {blue}/2"));
-            rows.Add(("parcel", $"ORANGE → WORKSHOP: {orange}/1"));
-            rows.Add(("van", $"Carrying {_data.GetItem("blue_parcel")} blue · {_data.GetItem("orange_parcel")} orange"));
-        }
-        else if (missionId == "M07")
-        {
-            int ropes = BuildRules.CountOf(_data.SwingPieces, new[] { "s1_rope_l", "s1_rope_r", "s2_rope_l", "s2_rope_r" });
-            int seats = BuildRules.CountOf(_data.SwingPieces, new[] { "s1_seat", "s2_seat" });
-            rows.Add(("rope", $"{ropes} / 4 ropes"));
-            rows.Add(("seat", $"{seats} / 2 seats"));
-            rows.Add(("star", "4 ropes + 2 seats = 6 pieces"));
-        }
-        else if (missionId == "M08")
-        {
-            int spent = ParkRules.Spent(_data);
-            rows.Add(("bench", $"Bench: {ParkRules.Count(_data, "bench")}/1"));
-            rows.Add(("flowerbed", $"Flowerbed: {ParkRules.Count(_data, "flowerbed")}/1"));
-            rows.Add(("lamp", $"Lamp: {ParkRules.Count(_data, "lamp")}/1"));
-            rows.Add(("coin", $"Job budget spent {spent}/20 · {ParkRules.Left(_data)} left"));
-        }
-        else if (missionId == "M10")
-        {
-            rows.Add(("table", $"Table: {FurnitureRules.Placed(_data, "table")}/1"));
-            rows.Add(("chair", $"Chairs: {FurnitureRules.Placed(_data, "chair")}/2"));
-            rows.Add(("plant", $"Plant: {FurnitureRules.Placed(_data, "plant")}/1"));
-            rows.Add(("coin", $"House set costs 8+5+5+3 = 21"));
-        }
-        else if (missionId == "M11")
-        {
-            int delivered = ChapterTwoRules.CardNpcIds.Count(n =>
-                _data.GetMissionCounter("M11", $"delivered_{n}") >= 1);
-            int cards = ChapterTwoRules.CardNpcIds.Count(n =>
-                _data.GetMissionCounter("M11", $"card_{n}") >= 1);
-            rows.Add(("neighbours", $"{delivered} / 3 welcome cards delivered"));
-            rows.Add(("star", $"{cards} cards in hand"));
-            rows.Add(("star", "Read the name before giving a card"));
-        }
-        else if (missionId == "M12")
-        {
-            foreach (var order in ChapterTwoRules.BakeryOrders)
-            {
-                bool done = _data.GetMissionCounter("M12", $"order_{order.CustomerId}") >= 1;
-                rows.Add(("bakery", $"{order.CustomerName}: {(done ? "served ✓" : $"{order.Bread} bread + {order.Cakes} cakes")}"));
-            }
-        }
-        else if (missionId == "M13")
-        {
-            int found = ChapterTwoRules.BookIds.Count(b =>
-                _data.GetMissionCounter("M13", ChapterTwoRules.HasBookKey(b)) >= 1 ||
-                _data.GetMissionCounter("M13", ChapterTwoRules.ShelfKey(b)) >= 1);
-            int shelved = ChapterTwoRules.BookIds.Count(b =>
-                _data.GetMissionCounter("M13", ChapterTwoRules.ShelfKey(b)) >= 1);
-            rows.Add(("library", $"Books found {found} / 4"));
-            rows.Add(("library", $"Shelves matched {shelved} / 4"));
-            rows.Add(("star", "Match SUN, MOON, TREE, STAR"));
-        }
-        else if (missionId == "M14")
-        {
-            foreach (var socket in ChapterTwoRules.SignSockets)
-            {
-                bool done = _data.GetMissionCounter("M14", $"sign_{socket.SocketId}") >= 1;
-                rows.Add(("road_signs", $"{socket.Label}: {(done ? "repaired ✓" : "needs sign")}"));
-            }
-        }
-        else if (missionId == "M15")
-        {
-            int correct = 0;
-            for (int i = 0; i < ChapterTwoRules.GardenPattern.Length; i++)
-                if (ChapterTwoRules.GardenPadMatches(i,
-                        ChapterTwoRules.GardenColor(_data.GetMissionCounter("M15", $"pad{i}"))))
-                    correct++;
-            rows.Add(("garden", $"Pattern pads {correct} / 6"));
-            rows.Add(("star", "RED, BLUE, RED, BLUE, RED, BLUE"));
-            rows.Add(("star", "Wrong colours can be changed freely"));
-        }
-        else if (missionId == "M16")
-        {
-            int delivered = FinaleRules.DeliveryRecipients.Count(n =>
-                _data.GetMissionCounter("M16", FinaleRules.DeliveredKey(n)) >= 1);
-            rows.Add(("parcel", $"{delivered} / 3 parcels delivered"));
-            rows.Add(("van", _data.GetMissionCounter("M16", "loaded") > 0
-                ? (VanParkedNear(_player.GlobalPosition) ? "Van parked — step out to deliver" : "Drive close, stop, then step out")
-                : "Load parcels at the POST COUNTER"));
-        }
-        else if (missionId == "M17")
-        {
-            rows.Add(("bread", $"{FinaleRules.MarketCount(_data, "bread")} / 2 bread"));
-            rows.Add(("milk", $"{FinaleRules.MarketCount(_data, "milk")} / 1 milk"));
-            rows.Add(("apple", $"{FinaleRules.MarketCount(_data, "apple")} / 2 apples"));
-            rows.Add(("coin", $"Job total {FinaleRules.MarketSpent(_data)} / 20 · change {FinaleRules.MarketChange(_data)}"));
-        }
-        else if (missionId == "M18")
-        {
-            rows.Add(("mechanic", $"Tyres {_data.GetMissionCounter("M18", "tyres_fitted")} / 2"));
-            rows.Add(("star", $"Lamp {(_data.GetMissionCounter("M18", "lamp_fitted") > 0 ? "fitted ✓" : "not fitted")}"));
-            rows.Add(("star", $"Battery {(_data.GetMissionCounter("M18", "battery_fitted") > 0 ? "fitted ✓" : "not fitted")}"));
-            rows.Add(("star", "Inspect, two tyres, lamp, battery last"));
-        }
-        else if (missionId == "M19")
-        {
-            int checkpoint = _data.GetMissionCounter("M19", "checkpoint");
-            rows.Add(("flag", $"Grand gate {checkpoint} / 6"));
-            if (checkpoint > 0 && checkpoint < FinaleRules.RallyGateCount)
-                rows.Add(("star", $"Time {FormatTime(_raceTimer.ElapsedSeconds)} · medal under 2:35"));
-            else if (!_driving)
-                rows.Add(("van", "Get into the yellow van"));
-            rows.Add(("star", "Pip is a friendly rival — finishing is enough"));
-        }
-        else if (missionId == "M20")
-        {
-            int invited = FinaleRules.FestivalInvitees.Count(n =>
-                _data.GetMissionCounter("M20", FinaleRules.InvitedKey(n)) >= 1);
-            int tables = Enumerable.Range(0, FinaleRules.FestivalTableCount)
-                .Count(i => _data.GetMissionCounter("M20", FinaleRules.TableKey(i)) >= 1);
-            int lanterns = Enumerable.Range(0, FinaleRules.FestivalLanternCount)
-                .Count(i => _data.GetMissionCounter("M20", FinaleRules.LanternKey(i)) >= 1);
-            rows.Add(("festival", $"Invitations {invited} / 3"));
-            rows.Add(("star", $"Tables {tables} / 2"));
-            rows.Add(("star", $"Lanterns {lanterns} / 3"));
-            rows.Add(("star", "Invite, then tables, then lanterns"));
-        }
-        else if (missionId == RoadworksRules.MissionId)
-        {
-            rows.Add(("road_signs", RoadworksRules.SuppliesDelivered(_data)
-                ? "Supplies delivered 6 / 6"
-                : $"Supplies {RoadworksRules.SupplyProgress(_data)} / {RoadworksRules.SupplyTotal}"));
-            rows.Add(("star", _data.GetItem("safety_cone") + " cones · " +
-                               _data.GetItem("barrier_panel") + " panels · " +
-                               _data.GetItem("toolbox") + " toolbox"));
-            rows.Add(("star", RoadworksRules.SuppliesDelivered(_data)
-                ? "Now finish the 3 + 2 + 1 loading check"
-                : RoadworksRules.HasAllSupplies(_data)
-                    ? "Now drive to the closed CITY ROAD gate"
-                    : "Deliver all six items to the closed gate"));
-        }
-        else
-        {
-            rows.Add(("star", "Follow the glowing marker"));
-        }
-        return rows;
+        MissionPresenter.Show(mission);
     }
 
     private void RefreshRaceGateVisibility()
@@ -3654,86 +1534,6 @@ public partial class Main : Node3D
 
     private NpcActor FindNpc(string id) =>
         _npcById.TryGetValue(id, out var npc) ? npc : null;
-
-    private NpcActor NextCardNpc()
-    {
-        foreach (string npcId in ChapterTwoRules.CardNpcIds)
-            if (_data.GetMissionCounter("M11", $"delivered_{npcId}") <= 0)
-                return FindNpc(npcId);
-        return null;
-    }
-
-    private Vector3? NextBookWorldTarget()
-    {
-        foreach (var pickup in _pickups)
-        {
-            if (!GodotObject.IsInstanceValid(pickup) || !pickup.Visible) continue;
-            if (pickup.MissionId != "M13") continue;
-            return pickup.GlobalPosition;
-        }
-        return null;
-    }
-
-    private int NextSignSocket()
-    {
-        for (int i = 0; i < ChapterTwoRules.SignSockets.Count; i++)
-            if (_data.GetMissionCounter("M14", $"sign_{ChapterTwoRules.SignSockets[i].SocketId}") <= 0)
-                return i;
-        return 0;
-    }
-
-    private int NextGardenPad()
-    {
-        for (int i = 0; i < ChapterTwoRules.GardenPattern.Length; i++)
-        {
-            string color = ChapterTwoRules.GardenColor(_data.GetMissionCounter("M15", $"pad{i}"));
-            if (!ChapterTwoRules.GardenPadMatches(i, color)) return i;
-        }
-        return 0;
-    }
-
-    private NpcActor NextDeliveryNpc()
-    {
-        foreach (string npcId in FinaleRules.DeliveryRecipients)
-            if (_data.GetMissionCounter("M16", FinaleRules.DeliveredKey(npcId)) <= 0)
-                return FindNpc(npcId);
-        return null;
-    }
-
-    private NpcActor NextFestivalInvitee()
-    {
-        foreach (string npcId in FinaleRules.FestivalInvitees)
-            if (_data.GetMissionCounter("M20", FinaleRules.InvitedKey(npcId)) <= 0)
-                return FindNpc(npcId);
-        return null;
-    }
-
-    private int NextFestivalTablePad()
-    {
-        for (int i = 0; i < FinaleRules.FestivalTableCount; i++)
-            if (_data.GetMissionCounter("M20", FinaleRules.TableKey(i)) <= 0)
-                return i;
-        return 0;
-    }
-
-    private int NextFestivalLanternPad()
-    {
-        for (int i = 0; i < FinaleRules.FestivalLanternCount; i++)
-            if (_data.GetMissionCounter("M20", FinaleRules.LanternKey(i)) <= 0)
-                return i;
-        return 0;
-    }
-
-    private void RefreshPickupVisibility()    {
-        foreach (var pickup in _pickups.ToList())
-        {
-            if (!GodotObject.IsInstanceValid(pickup)) continue;
-            bool completed = _data.IsCompleted(pickup.MissionId);
-            bool hidden = pickup.HiddenProvider?.Invoke() == true;
-            pickup.Visible = !completed && !hidden;
-            pickup.SetProcess(!completed && !hidden);
-        }
-    }
 
     private void ApplyCosmetics()
     {
@@ -3842,7 +1642,7 @@ public partial class Main : Node3D
         practice.Pressed += () =>
         {
             _hud.CloseModal();
-            StartPracticeRace();
+            Races.StartPracticeRace();
         };
         var jobs = UiKit.Button(actions, "See the job board", 21, new Vector2(0, 54), Palette.Cream, Palette.Blue);
         jobs.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
@@ -3932,7 +1732,7 @@ public partial class Main : Node3D
         if (@event is InputEventKey keyEvent && keyEvent.Pressed && !keyEvent.Echo &&
             keyEvent.Keycode == Key.F12 && DeveloperMode)
         {
-            CaptureManualScreenshotSafely();
+            Dev.CaptureManualScreenshotSafely();
             GetViewport().SetInputAsHandled();
             return;
         }
@@ -3954,7 +1754,7 @@ public partial class Main : Node3D
             }
             if (@event is InputEventMouseButton mb && mb.Pressed && mb.ButtonIndex == MouseButton.Left)
             {
-                activeBuild.HandleWorldClick(GetViewport().GetMousePosition());
+                activeBuild.HandleWorldClick(mb.Position);
                 GetViewport().SetInputAsHandled();
             }
             return;
@@ -3968,10 +1768,21 @@ public partial class Main : Node3D
                 if (_hud.ModalDismissible)
                     _hud.CloseModal();
             }
+            else if (_academy?.Active == true)
+            {
+                _academy.ShowPauseMenu();
+            }
             else
             {
                 _hud.ShowPauseMenu(ResumeGame, SaveNow, OpenSettingsFromPause, ConfirmNewGame, ReturnToTitle, QuitGame);
             }
+            GetViewport().SetInputAsHandled();
+            return;
+        }
+
+        if (_academy?.Active == true && @event.IsActionPressed("reset_vehicle"))
+        {
+            _academy.ResetStage();
             GetViewport().SetInputAsHandled();
             return;
         }
@@ -4143,14 +1954,9 @@ public partial class Main : Node3D
             _player.Visible = true;
         }
         _van.ResetToParking();
-        _raceTimer = new RaceTimer();
-        _raceCheckTimer = 0f;
-        _raceHudTimer = 0f;
-        _raceWrongHintCooldown = 0f;
+        Races.Reset();
         _vehicleSwitchCooldown = 0f;
-        _practiceRaceActive = false;
-        _practiceCheckpoint = 0;
-        _practiceElapsed = 0f;
+        Races.CancelPractice();
         _celebrationShown = false;
         _festivalShown = false;
         if (_rallyRival != null)
@@ -4160,24 +1966,23 @@ public partial class Main : Node3D
         }
         _lastIndoor = false;
         _rig.SetIndoor(false);
-        _data = new GameData();
+        _gameSession.ReplaceData(new GameData());
         if (CharacterCustomisation.IsValidPreset(preset))
         {
             _data.CharacterPreset = preset;
             _data.EquippedOutfit = CharacterCustomisation.DefaultOutfit;
         }
-        _missions = new MissionService(_data, _catalog);
-        _cityMissions = new CityMissionService(_data, _cityCatalog);
+
         _city?.RestoreSimulation(_data.CitySeed, 0);
         _roadworks?.SetRoadState(false, false);
-        _cityWelcomeShown = false;
+
         _saveNotice = "";
         _recoveredJobNote = "";
 
         if (_world.BridgeBarrier != null) _world.BridgeBarrier.Visible = true;
         if (_world.CelebrationDecor != null) _world.CelebrationDecor.Visible = false;
         if (_world.GoldCourseFlag != null) _world.GoldCourseFlag.Visible = false;
-        RefreshCityJobVisuals();
+        CityGameplay.RefreshCityJobVisuals();
 
         CreateBuilderSystems();
         foreach (var pickup in _pickups)
@@ -4187,7 +1992,7 @@ public partial class Main : Node3D
             pickup.QueueFree();
         }
         _pickups.Clear();
-        SpawnPickups();
+        Pickups.SpawnPickups();
         _player.Teleport(_world.PlayerSpawn, -Mathf.Pi / 2f);
         _rig.SetView(-72f, 18f, 8.2f);
         _rig.SetTarget(_player, false, 8.2f, 18f, 1.55f, true);
@@ -4218,13 +2023,13 @@ public partial class Main : Node3D
                 "Keep playing", ShowPauseMenu);
             return;
         }
-        _practiceRaceActive = false;
+        Races.CancelPractice();
         ShowTitle();
     }
 
     private void DiscardUnsavedSessionAndShowTitle()
     {
-        _practiceRaceActive = false;
+        Races.CancelPractice();
         _session.DiscardUnsavedSession();
         if (_session.NewerSavePresent)
         {
@@ -4278,10 +2083,8 @@ public partial class Main : Node3D
         if (!_started) return;
         if (GetTree().Paused) return;
 
-        _raceWrongHintCooldown = Mathf.Max(0f, _raceWrongHintCooldown - (float)delta);
         _vehicleSwitchCooldown = Mathf.Max(0f, _vehicleSwitchCooldown - (float)delta);
-        TickRace((float)delta);
-        TickPracticeRace((float)delta);
+        Races.Tick((float)delta);
 
         _autosaveTimer -= (float)delta;
         if (_autosaveTimer <= 0f)
@@ -4314,7 +2117,7 @@ public partial class Main : Node3D
         if (!_data.CityVisited && CityLayout.IsInCity(cityFocus.X, cityFocus.Z))
         {
             _data.CityVisited = true;
-            _cityWelcomeShown = true;
+
             _hud.ShowBigToast(
                 "Welcome to Patchwork City! Find the teal CITY JOBS board in the central plaza.",
                 6f, Palette.Teal);
@@ -4328,7 +2131,7 @@ public partial class Main : Node3D
             if (_cityMissionObjectiveRefresh <= 0f)
             {
                 _cityMissionObjectiveRefresh = 0.5f;
-                RefreshCityMissionState();
+                CityGameplay.RefreshCityMissionState();
             }
         }
 
@@ -4370,6 +2173,13 @@ public partial class Main : Node3D
 
     private void RefreshObjectiveUi()
     {
+        // The academy is an isolated venue: a town job compass pointed at
+        // village coordinates would be both wrong and confusing there.
+        if (_academy?.Active == true)
+        {
+            _hud.SetDestination(null, 0, 0, null);
+            return;
+        }
         if (!_hasDestination)
         {
             _hud.SetDestination(null, 0, 0, null);
@@ -4394,810 +2204,6 @@ public partial class Main : Node3D
     // call the same gameplay transitions a player would trigger; they do not
     // bypass mission rules or validators.
 
-    internal bool RtStarted => _started;
-    internal bool RtPaused => GetTree().Paused;
-    internal string RtMode => _controlMode.ToString();
-    internal bool RtModalOpen => _hud.ModalOpen;
-    internal string RtModalTitle => _hud.ModalTitleText;
-    internal string RtModalStatus => _hud.ModalStatusText;
-    internal bool RtModalStatusVisible => _hud.ModalStatusVisible;
-    internal string RtToastText => _hud.ToastText;
-    internal bool RtToastVisible => _hud.ToastVisible;
-    internal bool RtCanContinue => _session.CanContinue;
-    internal bool RtHasSaveFile => _session.HasSaveFile;
-    internal bool RtMemoryMatchesPersisted => _session.MemoryMatchesPersisted;
-    internal bool RtContinueReloadPending => _continueAfterReload;
-    internal bool RtNewerSavePresent => _session.NewerSavePresent;
-    internal bool RtNewerReplacementAuthorized => _session.NewerReplacementAuthorized;
-    internal string RtTitleNotice => _session.TitleNotice;
-    internal string RtSavePath => SavePath;
-    internal MissionCatalog RtCatalog => _catalog;
-    internal bool RtPlayerControlled => _player.ControlEnabled;
-    internal bool RtVanControlled => _van.InputEnabled;
-    internal bool RtPlayerVisible => _player.Visible;
-    internal Vector3 RtPlayerPosition => _player.GlobalPosition;
-    internal Vector3 RtVanPosition => _van.GlobalPosition;
-    internal ProcessModeEnum RtPlayerProcessMode => _player.ProcessMode;
-    internal ProcessModeEnum RtVanProcessMode => _van.ProcessMode;
-    internal ProcessModeEnum RtWorldProcessMode => _world.ProcessMode;
-    internal CityWorldAdapter RtCity => _city;
-    internal TownCityRoadworks RtRoadworks => _roadworks;
-    internal CityMissionService RtCityMissions => _cityMissions;
-    internal GameData RtData => _data;
-    internal GameData RtCityMissionData => _cityMissions.Data;
-    internal CityMissionStartResult RtStartCityMission(string id) => _cityMissions.StartMission(id);
-    internal void RtAdoptLoadedDataForTest(GameData data) => AdoptLoadedData(data);
-    internal void RtLoadSaveForTest(string path) => LoadSavedGameIfAvailable(path);
-    internal MissionService RtMissions => _missions;
-    internal Vector3 RtCityBoardPosition => _city.BoardInteraction;
-    internal Vector3 RtCityDistrictCentre => _city.DistrictCentre;
-
-    internal void RtSuppressSaves() => _suppressScenarioSaves = true;
-
-    internal Vector3 RtDestination => _destination;
-
-    internal string RtDestinationLabel => _destLabel;
-
-    internal void RtInteractRoadworks() => InteractRoadworks();
-
-    internal void RtSetRoadState(bool open)
-    {
-        if (open)
-        {
-            if (!_data.CompletedMissions.Contains(RoadworksRules.MissionId))
-                _data.CompletedMissions.Add(RoadworksRules.MissionId);
-            _data.SetMissionCounter(RoadworksRules.MissionId,
-                RoadworksRules.SuppliesDeliveredKey, 1);
-            _data.SetMissionCounter(RoadworksRules.MissionId,
-                RoadworksRules.TaskDoneKey, 1);
-        }
-        _data.CityRoadOpen = open;
-        _data.CityRoadworksCompleted = open;
-        _data.CityRoadworksRewardClaimed = open;
-        _roadworks.SetRoadState(open, false);
-        RefreshMissionState();
-    }
-
-    internal void RtTeleportPlayer(Vector3 position, float yaw = 0f)
-    {
-        _driving = false;
-        _van.SetDriven(false);
-        _player.Visible = true;
-        _player.Teleport(position, yaw);
-        _rig.SetTarget(_player, false, 8.2f, 18f, 1.55f, true);
-        _rig.SetView(Mathf.RadToDeg(yaw), 20f, 9f);
-        SyncControlMode();
-    }
-
-    internal void RtTeleportVan(Vector3 position, float yaw = 0f)
-    {
-        _van.GlobalPosition = position;
-        _van.Rotation = new Vector3(0, yaw, 0);
-        _van.SetDriven(true);
-        _driving = true;
-        _player.Visible = false;
-        _rig.SetTarget(_van, true, 10.6f, 20f, 1.5f, true);
-        SyncControlMode();
-    }
-
-    internal void RtLaunchVan(float speed) => _van.TestLaunch(speed);
-    internal float RtVanSpeed => _van.Speed;
-
-    internal void RtStartVanRoute(IReadOnlyList<Vector3> points) => _van.StartRouteAutopilot(points);
-    internal void RtStopVanRoute() => _van.StopAutopilot();
-
-    internal void RtProbeCityLod(Vector3 position, float speed)
-    {
-        _city.SetFocusActors(position, position, true);
-        _city.UpdateCity(0.6, position, speed, 8f, true);
-        _city.UpdateCity(0.6, position, speed, 8f, true);
-    }
-
-    internal void RtRefreshMissionState() => RefreshMissionState();
-    internal string RtCityStats => _city?.StatsLine() ?? "no city";
-    internal int RtCityActiveCollisionBodies => _city?.ActiveDistrictCollisionBodies ?? 0;
-    internal bool RtCityGroundCollisionActive => _city?.GroundCollisionActive == true;
-    internal int RtCityActorNodes => _city?.ActiveVisualActors ?? 0;
-    internal bool RtWorldIsCanonicalScene =>
-        _world?.Town != null &&
-        _world.Town.SceneFilePath == WorldSceneAdapter.TownScenePath &&
-        _world.Town.Name == "Town";
-    internal int RtWorldAnchorCount => _world?.AnchorCount ?? 0;
-    internal int RtWorldTopLevelRootCount => _world?.Town?.GetChildCount() ?? 0;
-    internal int RtBrokenSwingLabelCount => _world?.BrokenSwingLabels.Count ?? 0;
-    internal Vector3 RtWorldAnchorPosition(string id) =>
-        _world?.GetAnchorPosition(id) ?? new Vector3(9999, 9999, 9999);
-    internal Vector3 RtWorldNodePosition(string path)
-    {
-        var node = _world?.Town?.GetNodeOrNull<Node3D>(path);
-        return node?.Position ?? new Vector3(9999, 9999, 9999);
-    }
-    internal Vector3 RtWorldNodeGlobalPosition(string path)
-    {
-        var node = _world?.Town?.GetNodeOrNull<Node3D>(path);
-        return node?.GlobalPosition ?? new Vector3(9999, 9999, 9999);
-    }
-    internal int RtNpcRoutePointCount(string id) =>
-        _world?.GetNpcPatrol(id)?.Count ?? 0;
-    internal int RtTrafficRoutePointCount(string id) =>
-        _world?.GetTrafficPoints(id)?.Count ?? 0;
-    internal int RtRaceGateCount(bool grand) =>
-        grand ? _world?.M19RaceGates.Length ?? 0 : _world?.RaceGates.Length ?? 0;
-    internal Vector3 RtRaceGatePosition(bool grand, int index)
-    {
-        var gates = grand ? _world?.M19RaceGates : _world?.RaceGates;
-        return gates != null && index >= 0 && index < gates.Length
-            ? gates[index].Position
-            : new Vector3(9999, 9999, 9999);
-    }
-    internal float RtRaceGateYaw(bool grand, int index)
-    {
-        var gates = grand ? _world?.M19RaceGates : _world?.RaceGates;
-        return gates != null && index >= 0 && index < gates.Length
-            ? gates[index].Yaw
-            : 9999f;
-    }
-    internal bool RtWorldNodeExists(string path) =>
-        _world?.Town?.GetNodeOrNull<Node>(path) != null;
-    internal bool RtWorldNodeVisible(string path) =>
-        _world?.Town?.GetNodeOrNull<Node3D>(path)?.Visible == true;
-    internal Vector3 RtWorldBoxMeshSize(string path)
-    {
-        var node = _world?.Town?.GetNodeOrNull<Node>(path);
-        var mesh = node?.GetChildren().OfType<MeshInstance3D>()
-            .Select(instance => instance.Mesh as BoxMesh)
-            .FirstOrDefault(box => box != null);
-        return mesh?.Size ?? Vector3.Zero;
-    }
-    internal string RtWorldRayHit(Vector3 from, Vector3 to, uint mask)
-    {
-        using var query = PhysicsRayQueryParameters3D.Create(from, to, mask);
-        var hit = GetWorld3D().DirectSpaceState.IntersectRay(query);
-        if (hit.Count == 0) return "";
-        return (hit["collider"].AsGodotObject() as Node)?.Name.ToString() ?? "unknown";
-    }
-    internal double RtRaceElapsed => _raceTimer.ElapsedSeconds;
-    internal bool RtBridgeBuilt => _bridgeBuilder?.IsBuilt == true;
-    internal int RtBridgePieceCount => _data.BridgePieces.Count;
-    internal int RtBridgePlacedSocketCount => _bridgeBuilder?.PlacedSocketCount ?? 0;
-    internal bool RtSwingBuilt => _swingBuilder?.IsBuilt == true;
-    internal int RtSwingPlacedSocketCount => _swingBuilder?.PlacedSocketCount ?? 0;
-    internal int RtBrokenSwingLabelsVisible =>
-        _world?.BrokenSwingLabels.Count(label => label.Visible) ?? 0;
-    internal bool RtBridgeBarrierVisible => _world?.BridgeBarrier?.Visible == true;
-    internal bool RtBuildGhostLabelsHidden =>
-        !HasVisibleBuildGhostLabel(_bridgeBuilder) && !HasVisibleBuildGhostLabel(_swingBuilder);
-
-    private static bool HasVisibleBuildGhostLabel(Node root)
-    {
-        if (root == null || !GodotObject.IsInstanceValid(root)) return false;
-        foreach (Node node in root.FindChildren("*", "Label3D", true, false))
-        {
-            if (node is not Label3D label || !label.IsVisibleInTree()) continue;
-            if (label.Text is "SUPPORT" or "PLANK" or "ROPE" or "SEAT") return true;
-        }
-        return false;
-    }
-    internal bool RtPlaygroundFixHidden => _world?.PlaygroundFixSign?.Visible == false;
-    internal Vector3 RtPlaygroundStationPosition =>
-        _playgroundStation?.GlobalPosition ?? new Vector3(9999, 9999, 9999);
-    internal int RtParkPlacementCount => _data.ParkPlacements.Count;
-    internal int RtParkVisualCount => _parkBuilder?.PlacedVisualCount ?? 0;
-    internal int RtFurniturePlacementCount => _data.FurniturePlacements.Count;
-    internal int RtFurnitureVisualCount => _furnitureBuilder?.PlacedVisualCount ?? 0;
-    internal int RtSwingPieceCount => _data.SwingPieces.Count;
-    internal string RtCharacterPreset => _data.CharacterPreset;
-    internal string RtEquippedOutfit => _data.EquippedOutfit;
-    internal int RtOwnedOutfitCount => _data.OwnedOutfits.Count;
-    internal bool RtOwnsOutfit(string outfitId) => CharacterCustomisation.Owns(_data, outfitId);
-    internal string RtPlayerPreset => _player.AppearancePreset;
-    internal string RtPlayerOutfit => _player.AppearanceOutfit;
-    internal bool RtPlayerHasLongHair => _player.HasLongHair;
-    internal bool RtPlayerWearsDress => _player.WearsDress;
-    internal int RtPlayerAppearanceRevision => _player.AppearanceRevision;
-
-    internal void RtStart() => StartAdventure();
-    internal void RtContinue() => ContinueAdventure();
-    internal void RtPause() => ShowPauseMenu();
-    internal void RtResume() => ResumeGame();
-    internal void RtOpenSettingsFromPause() => OpenSettingsFromPause();
-    internal void RtOpenSettingsFromTitle() => OpenSettingsFromTitle();
-    internal void RtConfirmNewGame() => ConfirmNewGame();
-    internal void RtRequestNewGameFromTitle() => StartNewGameFromTitle();
-    internal SaveResult RtStartNewGameFromTitleConfirmed() =>
-        BeginNewGameFromTitle(CharacterCustomisation.DefaultPreset);
-    internal SaveResult RtStartNewGameFromTitleConfirmed(string preset) => BeginNewGameFromTitle(preset);
-    internal SaveResult RtStartNewGame(string preset) => ResetSession(preset);
-    internal void RtOpenClothesShop() => InteractClothesShop();
-    internal bool RtPressModalButton(string name)
-    {
-        if (!_hud.ModalOpen) return false;
-        var button = _hud.FindChild(name, true, false) as Button;
-        if (button == null || button.Disabled || !button.Visible) return false;
-        button.EmitSignal(BaseButton.SignalName.Pressed);
-        return true;
-    }
-
-    internal bool RtFocusModalButton(string name)
-    {
-        if (!_hud.ModalOpen) return false;
-        var button = _hud.FindChild(name, true, false) as Button;
-        if (button == null || button.Disabled || !button.Visible) return false;
-        button.GrabFocus();
-        return true;
-    }
-
-    internal string RtModalLabelText(string name)
-    {
-        if (!_hud.ModalOpen) return "";
-        return (_hud.FindChild(name, true, false) as Label)?.Text ?? "";
-    }
-
-    internal ActionOutcome RtShopBuy(string outfitId)
-    {
-        var outcome = CharacterCustomisation.BuyOutfit(_data, outfitId);
-        if (outcome.Success) PersistCustomisation();
-        return outcome;
-    }
-    internal ActionOutcome RtShopWear(string outfitId)
-    {
-        var outcome = CharacterCustomisation.EquipOutfit(_data, outfitId);
-        if (outcome.Success) PersistCustomisation();
-        return outcome;
-    }
-    internal void RtReturnToTitle() => ReturnToTitle();
-    internal void RtReturnAnyway() => DiscardUnsavedSessionAndShowTitle();
-    internal Error RtReloadScene() => GetTree().ReloadCurrentScene();
-    internal void RtCloseModal() => _hud.CloseModal();
-    internal bool RtSaveNow() => SaveGame(SaveReason.Manual).Success;
-    internal bool RtForceAutosave() => SaveGame(SaveReason.Autosave).Success;
-    internal SaveResult RtStartNewGame() => ResetSession();
-    internal int RtCoins => _data.Coins;
-    internal string RtCoinText => _hud.CoinText;
-    internal int RtCompletedCount => _data.CompletedMissions.Count;
-    internal string RtActiveMission => _data.ActiveMission;
-    internal bool RtMusicEnabled => _data.Settings.MusicEnabled;
-
-    internal void RtToggleMusic()
-    {
-        _data.Settings.MusicEnabled = !_data.Settings.MusicEnabled;
-        ApplySettings();
-        SaveSettings();
-    }
-
-    internal void RtToggleSfx()
-    {
-        _data.Settings.SfxEnabled = !_data.Settings.SfxEnabled;
-        ApplySettings();
-        SaveSettings();
-    }
-
-    internal string RtMusicId => _audio?.CurrentMusicId ?? "";
-    internal bool RtMusicPlaying => _audio?.IsMusicPlaying == true;
-    internal bool RtHasMusicStream => _audio?.HasMusicStream == true;
-    internal double RtMusicPosition => _audio?.MusicPlaybackPosition ?? 0.0;
-    internal bool RtMusicBusMuted => AudioManager.IsBusMuted(AudioCueCatalog.MusicBus);
-    internal bool RtSfxBusMuted => AudioManager.IsBusMuted(AudioCueCatalog.SfxBus);
-    internal bool RtUiBusMuted => AudioManager.IsBusMuted(AudioCueCatalog.UiBus);
-    internal bool RtVehiclesBusMuted => AudioManager.IsBusMuted(AudioCueCatalog.VehiclesBus);
-    internal bool RtAudioBusesPresent => AudioManager.HasRequiredBuses();
-    internal bool RtVanHasEngineAudio => _van?.HasEngineAudio == true;
-    internal bool RtVanEngineIdlePlaying => _van?.EngineIdlePlaying == true;
-    internal bool RtVanEngineDrivePlaying => _van?.EngineDrivePlaying == true;
-    internal string RtLastSfx => _audio?.LastSfxId ?? "";
-    internal int RtSfxPlayCount(string id) => _audio?.PlayCount(id) ?? 0;
-
-    internal int RtNpcCount => _npcs.Count;
-    internal string RtNpcIds => string.Join(",", _npcs.Select(n => n.NpcId));
-    internal string RtNpcNames => string.Join(", ", _npcs.Select(n => n.Definition.Name));
-    internal bool RtNpcPresent(string id) => _npcById.ContainsKey(id);
-    internal Vector3 RtNpcPosition(string id) =>
-        _npcById.TryGetValue(id, out var npc) ? npc.GlobalPosition : new Vector3(9999, 9999, 9999);
-    internal string RtNpcNameLabel(string id) =>
-        _npcById.TryGetValue(id, out var npc) ? npc.NameLabelText : "";
-    internal bool RtNpcTalking(string id) => _npcById.TryGetValue(id, out var npc) && npc.Talking;
-    internal bool RtNpcMoving(string id) => _npcById.TryGetValue(id, out var npc) && npc.IsMoving;
-    internal ProcessModeEnum RtNpcProcessMode(string id) =>
-        _npcById.TryGetValue(id, out var npc) ? npc.ProcessMode : ProcessModeEnum.Inherit;
-
-    internal void RtTeleportPlayerToClothesDoor()
-    {
-        _player.Teleport(_world.ClothesShopDoor + new Vector3(0f, 0.1f, -1.1f));
-        _player.ForceRefreshInteraction();
-    }
-
-    internal void RtTeleportPlayerNearNpc(string id)
-    {
-        if (!_npcById.TryGetValue(id, out var npc)) return;
-        Vector3 p = npc.GlobalPosition + new Vector3(1.7f, 0.1f, 0f);
-        _player.Teleport(p, Mathf.Pi / 2f);
-        _player.ForceRefreshInteraction();
-    }
-
-    internal bool RtTalkToNpc(string id)
-    {
-        if (!_npcById.TryGetValue(id, out var npc)) return false;
-        TalkToNpc(npc);
-        return _hud.ModalOpen;
-    }
-
-    internal string RtNearestInteractableName => _player?.NearestInteractable?.Name.ToString() ?? "";
-
-    internal bool RtInteractNearest()
-    {
-        var target = _player?.NearestInteractable;
-        if (target == null || !target.IsAvailable()) return false;
-        target.Interact();
-        return true;
-    }
-
-    internal void RtTeleportNearPickup(string pickupId)
-    {
-        var pickup = _pickups.FirstOrDefault(p => p.PickupId == pickupId);
-        if (pickup == null) return;
-        _player.Teleport(pickup.GlobalPosition + new Vector3(1.4f, 0.15f, 0f), -Mathf.Pi / 2f);
-        _player.ForceRefreshInteraction();
-    }
-
-    internal int RtBookPickupCount => _pickups.Count(p => p.MissionId == "M13");
-
-    internal void RtTeleportNearSignSocket(int index)
-    {
-        if (_world == null || index < 0 || index >= _world.SignSocketPositions.Count) return;
-        _player.Teleport(_world.SignSocketPositions[index] + new Vector3(0f, 0.15f, 1.45f), 0f);
-        _player.ForceRefreshInteraction();
-    }
-
-    internal void RtTeleportNearGardenPad(int index)
-    {
-        if (_world == null || index < 0 || index >= _world.GardenPads.Count) return;
-        _player.Teleport(_world.GardenPads[index] + new Vector3(0f, 0.15f, 0.8f), 0f);
-        _player.ForceRefreshInteraction();
-    }
-
-    internal void RtTeleportNearJobBoard()
-    {
-        if (_jobStation == null || _player == null) return;
-        _player.Teleport(_jobStation.GlobalPosition + new Vector3(0f, 0.1f, 1.5f), 0f);
-        _player.ForceRefreshInteraction();
-    }
-
-    internal int RtTrafficCount => _trafficCars.Count;
-    internal string RtTrafficIds => string.Join(",", _trafficCars.Select(n => n.RouteId));
-    internal Vector3 RtTrafficPosition(string id) =>
-        _trafficCars.FirstOrDefault(c => c.RouteId == id)?.GlobalPosition ?? new Vector3(9999, 9999, 9999);
-    internal bool RtTrafficOnRoad(string id)
-    {
-        var car = _trafficCars.FirstOrDefault(c => c.RouteId == id);
-        return car != null && RoadNetwork.Contains(car.GlobalPosition.X, car.GlobalPosition.Z);
-    }
-    internal bool RtTrafficYielding(string id) =>
-        _trafficCars.FirstOrDefault(c => c.RouteId == id)?.Yielding == true;
-    internal float RtTrafficSpeed(string id) =>
-        _trafficCars.FirstOrDefault(c => c.RouteId == id)?.PlanarSpeed ?? -1f;
-    internal float RtTrafficDistance(string id) =>
-        _trafficCars.FirstOrDefault(c => c.RouteId == id)?.DistanceTravelled ?? -1f;
-    internal int RtTrafficWaypoint(string id) =>
-        _trafficCars.FirstOrDefault(c => c.RouteId == id)?.CurrentWaypoint ?? -1;
-    internal bool RtTrafficHasEngineAudio(string id) =>
-        _trafficCars.FirstOrDefault(c => c.RouteId == id)?.HasEngineAudio == true;
-    internal string RtPlayerVisualTemplate => _player?.VisualTemplatePath ?? "";
-    internal string RtVanVisualTemplate => _van?.VisualTemplatePath ?? "";
-    internal string RtNpcVisualTemplate(string id) =>
-        _npcById.TryGetValue(id, out NpcActor npc) ? npc.VisualTemplatePath : "";
-    internal string RtTrafficVisualTemplate(string id) =>
-        _trafficCars.FirstOrDefault(c => c.RouteId == id)?.VisualTemplatePath ?? "";
-    internal string RtPickupVisualTemplates =>
-        string.Join(",", _pickups
-            .Where(p => !string.IsNullOrEmpty(p.VisualTemplatePath))
-            .Select(p => p.ItemType + "=" + p.VisualTemplatePath.GetFile())
-            .Distinct()
-            .OrderBy(text => text, StringComparer.Ordinal));
-    internal bool RtTrafficStopped(string id) =>
-        _trafficCars.FirstOrDefault(c => c.RouteId == id)?.Stopped == true;
-    internal int RtTrafficStopEvents(string id) =>
-        _trafficCars.FirstOrDefault(c => c.RouteId == id)?.StopEvents ?? -1;
-
-    internal void RtDropTrafficOffIsland(string id)
-    {
-        var car = _trafficCars.FirstOrDefault(c => c.RouteId == id);
-        if (car == null) return;
-        car.GlobalPosition = new Vector3(car.GlobalPosition.X, -6f, car.GlobalPosition.Z);
-        car.Velocity = Vector3.Zero;
-    }
-
-    internal bool RtPickupPresent(string pickupId) =>
-        _pickups.Any(p => p.PickupId == pickupId);
-    internal int RtRepairPickupCount => _pickups.Count(p => p.MissionId == "M18");
-    internal bool RtCollectedPickup(string pickupId) => _data.HasCollected(pickupId);
-
-    internal void RtTeleportPlayerAheadOfTraffic(string id, float distance)
-    {
-        var car = _trafficCars.FirstOrDefault(c => c.RouteId == id);
-        if (car == null) return;
-        Vector3 forward = -car.GlobalTransform.Basis.Z;
-        forward.Y = 0;
-        forward = forward.Normalized();
-        _player.Teleport(car.GlobalPosition + forward * distance + Vector3.Up * 0.1f,
-            car.Rotation.Y + Mathf.Pi);
-        _player.ForceRefreshInteraction();
-    }
-
-    internal void RtResetPlayerToSpawn()
-    {
-        _player.Teleport(_world.PlayerSpawn, -Mathf.Pi / 2f);
-        _player.ForceRefreshInteraction();
-    }
-    internal bool RtSfxEnabled => _data.Settings.SfxEnabled;
-
-    internal void RtStopAudio()
-    {
-        _van?.StopEngineAudio();
-        _audio?.StopAll();
-    }
-
-    internal void RtSetMusicEnabled(bool enabled)
-    {
-        _data.Settings.MusicEnabled = enabled;
-        ApplySettings();
-    }
-
-    internal void RtSetSfxEnabled(bool enabled)
-    {
-        _data.Settings.SfxEnabled = enabled;
-        ApplySettings();
-    }
-
-    internal void RtSetPlayerAirborne()
-    {
-        _player.Velocity = Vector3.Zero;
-        _player.Teleport(_player.GlobalPosition + Vector3.Up * 3f);
-    }
-
-    internal void RtCompleteM01()
-    {
-        if (!_missions.StartMission("M01").Success) return;
-        for (int i = 0; i < 3; i++)
-            _missions.CollectPickup($"apple_{i}", "apple", "M01", 3);
-        var result = _missions.DeliverApples();
-        if (result.Success) OnMissionCompleted(result);
-    }
-
-    /// <summary>
-    /// Builds the same valid world state a v1.1 player has after finishing the
-    /// original ten jobs. Runtime verification uses this only to reach chapter
-    /// two; the chapter-two interactions afterwards all go through real buttons,
-    /// stations, pickups and mission rules.
-    /// </summary>
-    internal void RtPrepareChapterTwo()
-    {
-        foreach (string id in MissionRules.OriginalMissionIds)
-            if (!_data.CompletedMissions.Contains(id)) _data.CompletedMissions.Add(id);
-        foreach (string socket in BuildRules.BridgeSockets)
-            if (!_data.BridgePieces.Contains(socket)) _data.BridgePieces.Add(socket);
-        foreach (string socket in BuildRules.SwingSockets)
-            if (!_data.SwingPieces.Contains(socket)) _data.SwingPieces.Add(socket);
-        if (ParkRules.Count(_data, "bench") == 0) ParkRules.Place(_data, "bench", "park0");
-        if (ParkRules.Count(_data, "flowerbed") == 0) ParkRules.Place(_data, "flowerbed", "park1");
-        if (ParkRules.Count(_data, "lamp") == 0) ParkRules.Place(_data, "lamp", "park2");
-        FurnitureRules.GrantFreeStarterSet(_data);
-        _data.CelebrationSeen = true;
-        _data.Coins = 100;
-        _data.ActiveMission = "";
-        _world.CelebrationDecor.Visible = true;
-        RefreshMissionState();
-        RefreshChapterTwoWorld();
-        _hud.SetCoins(_data.Coins);
-    }
-
-    /// <summary>
-    /// Builds the valid world state for a player who has finished M11-M15, so
-    /// the P14 runtime phase can exercise M16-M20 through their real stations
-    /// without replaying the first chapter-two half.
-    /// </summary>
-    internal void RtPrepareFinale()
-    {
-        RtPrepareChapterTwo();
-        foreach (string id in new[] { "M11", "M12", "M13", "M14", "M15" })
-            if (!_data.CompletedMissions.Contains(id)) _data.CompletedMissions.Add(id);
-
-        _data.SetMissionCounter("M11", "stock_granted", 1);
-        foreach (string npc in ChapterTwoRules.CardNpcIds)
-        {
-            _data.SetMissionCounter("M11", $"card_{npc}", 0);
-            _data.SetMissionCounter("M11", $"delivered_{npc}", 1);
-        }
-        foreach (var order in ChapterTwoRules.BakeryOrders)
-            _data.SetMissionCounter("M12", $"order_{order.CustomerId}", 1);
-        foreach (string book in ChapterTwoRules.BookIds)
-        {
-            string pickup = ChapterTwoRules.BookPickupId(book);
-            if (!_data.CollectedPickups.Contains(pickup)) _data.CollectedPickups.Add(pickup);
-            _data.SetMissionCounter("M13", ChapterTwoRules.HasBookKey(book), 0);
-            _data.SetMissionCounter("M13", ChapterTwoRules.ShelfKey(book), 1);
-        }
-        foreach (var socket in ChapterTwoRules.SignSockets)
-            _data.SetMissionCounter("M14", $"sign_{socket.SocketId}", 1);
-        for (int i = 0; i < ChapterTwoRules.GardenPattern.Length; i++)
-            _data.SetMissionCounter("M15", $"pad{i}",
-                ChapterTwoRules.GardenCode(ChapterTwoRules.GardenPattern[i]));
-
-        _data.ActiveMission = "";
-        RefreshMissionState();
-    }
-
-    /// <summary>
-    /// Prepares a valid post-M17 village so the v1.2.1 regression can start the
-    /// real M18 job and exercise a partial save/reload without replaying M16-M17.
-    /// </summary>
-    internal void RtPrepareMechanicJob()
-    {
-        RtPrepareFinale();
-        foreach (string id in new[] { "M16", "M17" })
-            if (!_data.CompletedMissions.Contains(id)) _data.CompletedMissions.Add(id);
-        _data.SetMissionCounter("M16", "loaded", 1);
-        foreach (string npc in FinaleRules.DeliveryRecipients)
-        {
-            _data.SetMissionCounter("M16", FinaleRules.CarryingKey(npc), 0);
-            _data.SetMissionCounter("M16", FinaleRules.DeliveredKey(npc), 1);
-        }
-        _data.SetMissionCounter("M17", "finalised", 1);
-        _data.ActiveMission = "";
-        RefreshMissionState();
-    }
-
-    internal void RtTeleportVanNearNpc(string id)
-    {
-        if (!_npcById.TryGetValue(id, out var npc)) return;
-        _van.GlobalPosition = npc.GlobalPosition + new Vector3(6.5f, 0.15f, 0f);
-        _van.Rotation = Vector3.Zero;
-        _van.Velocity = Vector3.Zero;
-        _player.Teleport(npc.GlobalPosition + new Vector3(1.7f, 0.1f, 0f), Mathf.Pi / 2f);
-        _player.ForceRefreshInteraction();
-    }
-
-    internal void RtBuildBridgeNow()
-    {
-        foreach (string id in BuildRules.BridgeSockets)
-            if (!_data.BridgePieces.Contains(id)) _data.BridgePieces.Add(id);
-        _bridgeBuilder?.RefreshFromData();
-    }
-
-    internal void RtPrepareBridgeCrossing() =>
-        RtPrepareBridgeCrossingAt(47.0f, 0f, -Mathf.Pi / 2f);
-
-    internal void RtPrepareBridgeCrossingAt(float x, float z, float yaw)
-    {
-        RtLeaveVanForTest();
-        RtBuildBridgeNow();
-        _van.GlobalPosition = new Vector3(x, 0.15f, z);
-        _van.Rotation = new Vector3(0f, yaw, 0f);
-        _van.Velocity = Vector3.Zero;
-        _player.Teleport(new Vector3(x - 2.3f, 0.15f, z), yaw);
-        _vehicleSwitchCooldown = 0f;
-        EnterVan();
-        RefreshMissionState();
-    }
-
-    internal void RtPlacePlayerOutsideGrandGate(int index)
-    {
-        if (_world == null || index < 0 || index >= _world.M19RaceGates.Length) return;
-        PlacePlayerOutsideGate(_world.M19RaceGates[index].Position,
-            RallyCourse.SixGateFractions[index], 6.2f);
-    }
-
-    internal Vector3 RtRaceGatePosition(int index) =>
-        _world != null && index >= 0 && index < _world.RaceGates.Length
-            ? _world.RaceGates[index].Position
-            : new Vector3(9999, 9999, 9999);
-
-    internal Vector3 RtGrandGatePosition(int index) =>
-        _world != null && index >= 0 && index < _world.M19RaceGates.Length
-            ? _world.M19RaceGates[index].Position
-            : new Vector3(9999, 9999, 9999);
-
-    internal void RtPlacePlayerOutsideRaceGate(int index)
-    {
-        if (_world == null || index < 0 || index >= _world.RaceGates.Length) return;
-        PlacePlayerOutsideGate(_world.RaceGates[index].Position,
-            RallyCourse.FourGateFractions[index], 6.2f);
-    }
-
-    internal void RtPlacePlayerAtRaceGateLip(int index)
-    {
-        if (_world == null || index < 0 || index >= _world.RaceGates.Length) return;
-        PlacePlayerOutsideGate(_world.RaceGates[index].Position,
-            RallyCourse.FourGateFractions[index], 5.55f);
-    }
-
-    private void PlacePlayerOutsideGate(Vector3 gate, float fraction, float distance)
-    {
-        var tangent = RallyCourse.Tangent(fraction);
-        var left = new Vector3(-tangent.Z, 0f, tangent.X);
-        Vector3 start = gate + left * distance + new Vector3(0f, 0.15f, 0f);
-        float yaw = Mathf.Atan2(-(gate.X - start.X), -(gate.Z - start.Z));
-        _player.Teleport(start, yaw);
-        _player.ForceRefreshInteraction();
-    }
-
-    internal void RtTeleportNearPostCounter()
-    {
-        if (_postStation == null) return;
-        _player.Teleport(_postStation.GlobalPosition + new Vector3(0f, 0.1f, -1.2f), 0f);
-        _player.ForceRefreshInteraction();
-    }
-
-    internal void RtTeleportNearShop()
-    {
-        if (_shopStation == null) return;
-        _player.Teleport(_shopStation.GlobalPosition + new Vector3(0f, 0.1f, 1.2f), 0f);
-        _player.ForceRefreshInteraction();
-    }
-
-    internal void RtTeleportNearRepairCar()
-    {
-        if (_repairStation == null) return;
-        _player.Teleport(_repairStation.GlobalPosition + new Vector3(0f, 0.1f, 1.2f), 0f);
-        _player.ForceRefreshInteraction();
-    }
-
-    internal void RtTeleportNearFestivalTable(int index)
-    {
-        if (_world == null || index < 0 || index >= _world.FestivalTablePads.Count) return;
-        _player.Teleport(_world.FestivalTablePads[index] + new Vector3(0f, 0.15f, 1.2f), 0f);
-        _player.ForceRefreshInteraction();
-    }
-
-    internal void RtTeleportNearFestivalLantern(int index)
-    {
-        if (_world == null || index < 0 || index >= _world.FestivalLanternPads.Count) return;
-        _player.Teleport(_world.FestivalLanternPads[index] + new Vector3(0f, 0.15f, 1.2f), 0f);
-        _player.ForceRefreshInteraction();
-    }
-
-    internal bool RtPrepareRace()
-    {
-        // Build a valid prerequisite state, including the physical bridge so
-        // the runtime test does not create a save the validator must reject.
-        if (!_data.CompletedMissions.Contains("M02")) _data.CompletedMissions.Add("M02");
-        if (!_data.CompletedMissions.Contains("M03"))
-        {
-            _data.CompletedMissions.Add("M03");
-            foreach (string socket in BuildRules.BridgeSockets)
-                if (!_data.BridgePieces.Contains(socket)) _data.BridgePieces.Add(socket);
-        }
-        if (!_missions.StartMission("M05").Success) return false;
-        _data.SetMissionCounter("M05", "checkpoint", 1);
-        _data.SetMissionCounter("M05", "elapsedMs", 12_500);
-        _raceTimer = RaceTimer.Restore(_data, "M05");
-        return true;
-    }
-
-    internal void RtPlaceVanAtRallyStart()
-    {
-        if (_driving)
-        {
-            _driving = false;
-            _van.SetDriven(false);
-            _player.Visible = true;
-        }
-        _van.StopAutopilot();
-        var start = RallyCourse.Sample(0f);
-        _van.GlobalPosition = new Vector3(start.X, 0.2f, start.Z);
-        _van.Rotation = new Vector3(0, 0, 0);
-        _van.Velocity = Vector3.Zero;
-        _player.Teleport(_van.GlobalPosition + new Vector3(-2.6f, 0.1f, 0f), 0f);
-        _vehicleSwitchCooldown = 0f;
-        EnterVan();
-    }
-
-    internal bool RtPrepareRally(string missionId)
-    {
-        if (missionId is not ("M05" or "M09" or "M19")) return false;
-        foreach (string id in new[] { "M01", "M02", "M03", "M04" })
-            if (!_data.CompletedMissions.Contains(id)) _data.CompletedMissions.Add(id);
-        foreach (string socket in BuildRules.BridgeSockets)
-            if (!_data.BridgePieces.Contains(socket)) _data.BridgePieces.Add(socket);
-        if (missionId == "M09" && !_data.CompletedMissions.Contains("M05"))
-            _data.CompletedMissions.Add("M05");
-        if (!_missions.StartMission(missionId).Success) return false;
-        _raceTimer = new RaceTimer();
-        RtPlaceVanAtRallyStart();
-        if (!_driving) return false;
-        _van.StartRallyAutopilot();
-        RefreshMissionState();
-        return true;
-    }
-
-    internal void RtStopRallyAutopilot() => _van?.StopAutopilot();
-    internal bool RtMissionCompleted(string id) => _data.IsCompleted(id);
-    internal bool RtAllTwentyComplete => _data.IsCompleted("M20");
-    internal MissionStatus RtMissionStatus(string id) => _missions.GetStatus(id);
-    internal int RtMissionCounter(string id, string key) => _data.GetMissionCounter(id, key);
-    internal bool RtCelebrationSeen => _data.CelebrationSeen;
-    internal bool RtFestivalSeen => _data.FestivalSeen;
-    internal int RtSignSocketCount => _world?.SignSocketPositions.Count ?? 0;
-    internal int RtGardenPadCount => _world?.GardenPads.Count ?? 0;
-    internal int RtBakerySlotCount => _world?.BakeryDisplaySlots.Count ?? 0;
-    internal int RtLibrarySlotCount => _world?.LibraryShelfSlots.Count ?? 0;
-    internal bool RtBakerySlotVisible(int index) =>
-        _world != null && index >= 0 && index < _world.BakeryDisplaySlots.Count &&
-        _world.BakeryDisplaySlots[index].Visible;
-    internal bool RtLibrarySlotVisible(int index) =>
-        _world != null && index >= 0 && index < _world.LibraryShelfSlots.Count &&
-        _world.LibraryShelfSlots[index].Visible;
-    internal bool RtSignVisualVisible(int index) =>
-        index >= 0 && index < _signVisuals.Count && _signVisuals[index].Visible;
-    internal bool RtGardenFlowerVisible(int index) =>
-        index >= 0 && index < _gardenFlowerRoots.Count && _gardenFlowerRoots[index].Visible;
-    internal bool RtDeliveryBoardVisible => _world?.DeliveryBoard?.Visible == true;
-    internal bool RtMarketStockVisible => _world?.MarketStock?.Visible == true;
-    internal bool RtPipCarFixedVisible => _world?.PipCarFixed?.Visible == true;
-    internal bool RtRallyPodiumVisible => _world?.RallyPodium?.Visible == true;
-    internal bool RtFestivalDecorVisible => _world?.FestivalDecor?.Visible == true;
-    internal bool RtFestivalTableVisible(int index) =>
-        _world != null && index >= 0 && index < _world.FestivalTableVisuals.Count &&
-        _world.FestivalTableVisuals[index].Visible;
-    internal bool RtFestivalLanternVisible(int index) =>
-        _world != null && index >= 0 && index < _world.FestivalLanternVisuals.Count &&
-        _world.FestivalLanternVisuals[index].Visible;
-    internal bool RtRallyRivalPresent => _rallyRival != null && GodotObject.IsInstanceValid(_rallyRival);
-    internal Vector3 RtRallyRivalPosition =>
-        _rallyRival != null && GodotObject.IsInstanceValid(_rallyRival)
-            ? _rallyRival.GlobalPosition
-            : new Vector3(9999, 9999, 9999);
-    internal bool RtRallyAutopilot => _van?.Autopilot == true;
-    internal int RtRaceCheckpoint(string id) => _data.GetMissionCounter(id, "checkpoint");
-    internal int RtRallySampleCount => _world?.RallySampleCount ?? 0;
-    internal float RtRallyLength => _world?.RallyLength ?? 0f;
-
-    internal int RtRallyCollisionCoverage()
-    {
-        if (_world == null) return 0;
-        var samples = RallyCourse.SampleClosed(4);
-        var space = GetWorld3D().DirectSpaceState;
-        int hits = 0;
-        foreach (var sample in samples)
-        {
-            using var query = PhysicsRayQueryParameters3D.Create(
-                new Vector3(sample.X, 2.5f, sample.Z),
-                new Vector3(sample.X, -1f, sample.Z), 1u);
-            var result = space.IntersectRay(query);
-            if (result.Count == 0) continue;
-            var collider = result["collider"].AsGodotObject();
-            // Collision is intentionally flush with the ground now; prove the
-            // ray hit the rally mesh, or the town-road collider where the two
-            // authored surfaces overlap, rather than the island lawn.
-            if (collider is StaticBody3D body &&
-                (body.Name == "RallyRoadCollision" || body.Name == "TownRoadCollision"))
-                hits++;
-        }
-        return hits;
-    }
-
-    internal void RtEnterVan()
-    {
-        _vehicleSwitchCooldown = 0f;
-        _player.Teleport(_van.GlobalPosition + new Vector3(-2.6f, 0.1f, 0f), _van.Rotation.Y);
-        EnterVan();
-    }
-
-    internal void RtExitVan() => ExitVan();
-
-    internal void RtLeaveVanForTest()
-    {
-        if (!_driving) return;
-        _van.SetDriven(false);
-        _driving = false;
-        _player.Visible = true;
-        _player.Teleport(_van.GlobalPosition + new Vector3(-2.6f, 0.15f, 0f), _van.Rotation.Y);
-        _player.SetControlEnabled(true);
-        _rig.SetTarget(_player, false, 8.2f, 18f, 1.55f, true);
-        _vehicleSwitchCooldown = 0f;
-        SyncControlMode();
-        RefreshMissionState();
-    }
-
     // ------------------------------------------------------------- dev capture
 
     private static bool HasUserArg(string needle)
@@ -5213,850 +2219,5 @@ public partial class Main : Node3D
     private static string DeveloperCaptureDirectory =>
         ProjectSettings.GlobalizePath("user://dev-captures");
 
-    private async Task RunCityProbe()
-    {
-        try
-        {
-            CompleteVillageForScenario();
-            _data.CityRoadOpen = true;
-            _data.CityRoadworksCompleted = true;
-            _data.CityRoadworksRewardClaimed = true;
-            _roadworks.SetRoadState(true, false);
-            _player.Teleport(new Vector3(CityLayout.WorldX(0f), 0.5f, CityLayout.WorldZ(28f)), 0f);
-            _rig.SetView(0f, 20f, 9.5f);
-            await Wait(2.2f);
-            GD.Print($"CITY_PROBE city {_city.StatsLine()} " +
-                     $"collision={_city.ActiveDistrictCollisionBodies} " +
-                     $"vehicles={_city.ActorPool?.VisualVehicleCount} peds={_city.ActorPool?.VisualPedestrianCount} " +
-                     $"nearV={_city.ActorPool?.NearVehicleCount} nearP={_city.ActorPool?.NearPedestrianCount}");
-            var board = _city.BoardInteraction;
-            GD.Print($"CITY_PROBE board={board} roadworks={_roadworks.RoadOpen} " +
-                     $"barrier={_roadworks.BarrierVisible} collider={_roadworks.ColliderEnabled}");
-            double logical = _city.LogicalSeconds;
-            _player.Teleport(new Vector3(-38f, 0.3f, 9.5f), 0f);
-            _rig.SetView(0f, 20f, 8.2f);
-            await Wait(2.2f);
-            GD.Print($"CITY_PROBE town {_city.StatsLine()} logicalDelta={_city.LogicalSeconds - logical:0.00} " +
-                     $"townVisible={_city.DistrictVisible}");
-        }
-        catch (Exception ex)
-        {
-            GD.PrintErr($"City probe failed: {ex}");
-        }
-        GetTree().Quit();
-    }
-
-    private async Task RunCityPerformanceProbe()
-    {
-        var results = new List<string>();
-        try
-        {
-            CompleteVillageForScenario();
-            _data.CityRoadOpen = true;
-            _data.CityRoadworksCompleted = true;
-            _data.CityRoadworksRewardClaimed = true;
-            _roadworks.SetRoadState(true, false);
-            _hud.Visible = false;
-            if (!DisplayServer.GetName().Equals("headless", StringComparison.OrdinalIgnoreCase))
-                DisplayServer.WindowSetVsyncMode(DisplayServer.VSyncMode.Disabled);
-            Vector2I window = DisplayServer.WindowGetSize();
-            string resolution = $"{window.X}x{window.Y}";
-
-            async Task<string> Measure(string stage, Vector3 position, float yaw, bool cityVisibility)
-            {
-                _player.Teleport(position, yaw);
-                _rig.SetView(Mathf.RadToDeg(yaw), 20f, 9.2f);
-                _rig.Snap();
-                await Wait(1.4f);
-                var frameMs = new List<double>(240);
-                ulong previous = Time.GetTicksUsec();
-                for (int i = 0; i < 240; i++)
-                {
-                    await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-                    ulong now = Time.GetTicksUsec();
-                    frameMs.Add((now - previous) / 1000.0);
-                    previous = now;
-                }
-                frameMs.Sort();
-                double p50 = frameMs[frameMs.Count / 2];
-                double p95 = frameMs[Math.Min(frameMs.Count - 1, (int)(frameMs.Count * 0.95))];
-                double avg = frameMs.Average();
-                int draw = (int)Performance.GetMonitor(Performance.Monitor.RenderTotalDrawCallsInFrame);
-                int primitives = (int)Performance.GetMonitor(Performance.Monitor.RenderTotalPrimitivesInFrame);
-                int physics = (int)Performance.GetMonitor(Performance.Monitor.Physics3DActiveObjects);
-                int objects = (int)Performance.GetMonitor(Performance.Monitor.ObjectNodeCount);
-                string line = $"{{\"resolution\":\"{resolution}\",\"stage\":\"{stage}\"," +
-                              $"\"frame_ms_p50\":{p50:0.000},\"frame_ms_p95\":{p95:0.000}," +
-                              $"\"frame_ms_avg\":{avg:0.000},\"fps_p50\":{1000.0 / Math.Max(0.001, p50):0.0}," +
-                              $"\"draw_calls\":{draw},\"primitives\":{primitives}," +
-                              $"\"physics_active\":{physics},\"object_nodes\":{objects}," +
-                              $"\"city\":\"{_city.StatsLine()}\"," +
-                              $"\"actor_near\":{_city.ActorPool?.NearVehicleCount + _city.ActorPool?.NearPedestrianCount}," +
-                              $"\"actor_mid\":{_city.ActorPool?.MidVehicleCount + _city.ActorPool?.MidPedestrianCount}," +
-                              $"\"district_visible\":{(_city.DistrictVisible ? "true" : "false")}}}";
-                GD.Print("CITY_PERF " + line);
-                return line;
-            }
-
-            results.Add(await Measure("town-only", new Vector3(-38f, 0.3f, 9.5f), 0f, false));
-            results.Add(await Measure("city-approach", new Vector3(120f, 0.4f, 0f), -Mathf.Pi / 2f, true));
-            results.Add(await Measure("city-street", new Vector3(CityLayout.WorldX(0f), 0.4f,
-                CityLayout.WorldZ(18f)), 0f, true));
-            results.Add(await Measure("return-to-town", new Vector3(-38f, 0.3f, 9.5f), 0f, false));
-
-            // Measure the bounded logical catch-up cost without agents/nodes.
-            var probe = new CitySimulation(_city.Simulation.VehicleRoutes,
-                _city.Simulation.PedestrianRoutes, _city.Seed);
-            var sw = System.Diagnostics.Stopwatch.StartNew();
-            probe.Advance(1800.0);
-            sw.Stop();
-            var catchup = $"{{\"logical_catchup_30min_ms\":{sw.Elapsed.TotalMilliseconds:0.000}," +
-                          $"\"logical_seconds\":{probe.LogicalSeconds:0.0}," +
-                          $"\"active_actor_nodes\":{_city.ActorPool?.VisualVehicleCount + _city.ActorPool?.VisualPedestrianCount}}}";
-            GD.Print("CITY_PERF " + catchup);
-            results.Add(catchup);
-
-            string directory = Path.Combine(ProjectSettings.GlobalizePath("res://"), "evidence");
-            Directory.CreateDirectory(directory);
-            string file = Path.Combine(directory, $"city_perf_{resolution}.jsonl");
-            File.WriteAllLines(file, results);
-            GD.Print($"CITY_PERF_FILE {file}");
-        }
-        catch (Exception ex)
-        {
-            GD.PrintErr($"City performance probe failed: {ex}");
-        }
-        GetTree().Quit();
-    }
-
-    private async Task CaptureCityDefects()
-    {
-        try
-        {
-            CompleteVillageForScenario();
-            _data.CityRoadOpen = true;
-            _data.CityRoadworksCompleted = true;
-            _data.CityRoadworksRewardClaimed = true;
-            _roadworks.SetRoadState(true, false);
-            _hud.Visible = false;
-            _player.Teleport(new Vector3(170f, 0.5f, 0f), -Mathf.Pi / 2f);
-            _rig.SetView(-90f, 20f, 9f);
-            _rig.Snap();
-            await Wait(1.2f);
-
-            // Approach and city entrance: the west sidewalk strip crosses z=0.
-            await SnapFreeCamera(new Vector3(170f, 4.2f, 9f), new Vector3(202f, 0.5f, 0f),
-                "p24_01_city_entry_side.png");
-            await SnapFreeCamera(new Vector3(185f, 18f, 7f), new Vector3(198f, 0f, 0f),
-                "p24_02_city_entry_overhead.png");
-
-            // Real van physics: launch east at full speed from the town side.
-            RtTeleportVan(new Vector3(170f, 0.4f, 0f), -Mathf.Pi / 2f);
-            RtLaunchVan(11.5f);
-            for (int i = 0; i < 8; i++)
-            {
-                await Wait(0.5f);
-                GD.Print($"CITY_DEFECT van_t{i} x={_van.GlobalPosition.X:0.00} " +
-                         $"y={_van.GlobalPosition.Y:0.00} speed={_van.Speed:0.00}");
-            }
-            GD.Print($"CITY_DEFECT ground_185={RtWorldRayHit(new Vector3(185f, 2f, 0f), new Vector3(185f, -1f, 0f), 1u)} " +
-                     $"ground_190={RtWorldRayHit(new Vector3(190f, 2f, 0f), new Vector3(190f, -1f, 0f), 1u)} " +
-                     $"ground_200={RtWorldRayHit(new Vector3(200f, 2f, 0f), new Vector3(200f, -1f, 0f), 1u)}");
-            GD.Print($"CITY_DEFECT forward_190={RtWorldRayHit(new Vector3(190f, 1f, 0f), new Vector3(205f, 1f, 0f), 1u)} " +
-                     $"forward_191={RtWorldRayHit(new Vector3(191f, 1f, 0f), new Vector3(205f, 1f, 0f), 1u)}");
-            await SnapFreeCamera(_van.GlobalPosition + new Vector3(-7f, 5f, 9f),
-                _van.GlobalPosition + new Vector3(6f, 0.8f, 0f),
-                "p24_03_van_stopped_at_entry.png");
-
-            // Overhead intersection: continuous sidewalk bands cross both roads.
-            await SnapFreeCamera(new Vector3(CityLayout.WorldX(-40f), 26f, CityLayout.WorldZ(-16f)),
-                new Vector3(CityLayout.WorldX(-40f), 0f, CityLayout.WorldZ(-40f)),
-                "p24_04_intersection_overhead.png");
-
-            // Activate the city actors near the inner route and record car poses.
-            RtTeleportPlayer(new Vector3(CityLayout.WorldX(-40f), 0.5f, CityLayout.WorldZ(-20f)), 0f);
-            await Wait(2.2f);
-            var before = _city.ActorPool.GetChildren().OfType<CityVehicleVisual>()
-                .Select(v => (Id: v.AgentId, Tier: v.Tier, Position: v.GlobalPosition,
-                    Progress: v.Progress, Speed: v.Speed))
-                .ToList();
-            foreach (var v in before)
-                GD.Print($"CITY_DEFECT car_before id={v.Id} tier={v.Tier} " +
-                         $"pos=({v.Position.X:0.0},{v.Position.Y:0.0},{v.Position.Z:0.0}) " +
-                         $"progress={v.Progress:0.00} speed={v.Speed:0.00}");
-
-            await SnapFreeCamera(new Vector3(CityLayout.WorldX(-52f), 8f, CityLayout.WorldZ(-44f)),
-                new Vector3(CityLayout.WorldX(24f), 0.5f, CityLayout.WorldZ(-44f)),
-                "p24_05_sidewalk_crossing_cars.png");
-            await Wait(4.0f);
-
-            var after = _city.ActorPool.GetChildren().OfType<CityVehicleVisual>()
-                .Select(v => (Id: v.AgentId, Tier: v.Tier, Position: v.GlobalPosition,
-                    Progress: v.Progress, Speed: v.Speed))
-                .ToList();
-            foreach (var v in after)
-                GD.Print($"CITY_DEFECT car_after id={v.Id} tier={v.Tier} " +
-                         $"pos=({v.Position.X:0.0},{v.Position.Y:0.0},{v.Position.Z:0.0}) " +
-                         $"progress={v.Progress:0.00} speed={v.Speed:0.00}");
-
-            var target = after
-                .Where(v => v.Tier == CityActorTier.Near)
-                .OrderBy(v => v.Position.DistanceTo(
-                    new Vector3(CityLayout.WorldX(-26f), 0.5f, CityLayout.WorldZ(-44f))))
-                .FirstOrDefault();
-            if (target.Position != Vector3.Zero)
-            {
-                await SnapFreeCamera(target.Position + new Vector3(5.5f, 4.2f, 7f),
-                    target.Position + new Vector3(0f, 0.7f, 0f),
-                    "p24_06_stuck_city_car_close.png");
-            }
-
-            // Wide grid view: sidewalk bands and plaza slabs visibly cross roads.
-            await SnapFreeCamera(new Vector3(CityLayout.WorldX(0f), 135f, CityLayout.WorldZ(210f)),
-                new Vector3(CityLayout.WorldX(0f), 0f, CityLayout.WorldZ(0f)),
-                "p24_07_city_grid_overview.png");
-        }
-        catch (Exception ex)
-        {
-            GD.PrintErr($"City defect capture failed: {ex}");
-        }
-        GetTree().Quit();
-    }
-
-    private async Task CaptureCity()
-    {
-        try
-        {
-            CompleteVillageForScenario();
-            _data.CompletedMissions.Add(RoadworksRules.MissionId);
-            _data.SetMissionCounter(RoadworksRules.MissionId, RoadworksRules.SuppliesDeliveredKey, 1);
-            _data.SetMissionCounter(RoadworksRules.MissionId, RoadworksRules.TaskDoneKey, 1);
-            _data.CityRoadworksCompleted = true;
-            _data.CityRoadworksRewardClaimed = true;
-            _data.CityRoadOpen = false;
-            _roadworks.SetRoadState(false, false);
-            RefreshMissionState();
-            _hud.Visible = false;
-
-            await SnapFreeCamera(new Vector3(80f, 3.6f, 7f), new Vector3(97f, 1.2f, 0f),
-                "p16_01_roadworks_closed.png");
-
-            _data.CityRoadOpen = true;
-            _roadworks.SetRoadState(true, false);
-            await Wait(0.4f);
-            await SnapFreeCamera(new Vector3(80f, 3.6f, 7f), new Vector3(97f, 1.2f, 0f),
-                "p16_02_roadworks_open.png");
-            _player.Teleport(new Vector3(122f, 0.5f, 0f), -Mathf.Pi / 2f);
-            await Wait(0.8f);
-            await SnapFreeCamera(new Vector3(112f, 5.2f, 12f), new Vector3(150f, 0.6f, 0f),
-                "p16_03_city_approach.png");
-
-            _player.Teleport(new Vector3(CityLayout.WorldX(-80f), 0.5f, CityLayout.WorldZ(-40f)),
-                Mathf.Pi);
-            _rig.SetView(180f, 22f, 10f);
-            await Wait(0.8f);
-            await Snap("p16_04_city_street.png", DeveloperCaptureDirectory);
-            await SnapFreeCamera(new Vector3(CityLayout.WorldX(0f), 125f, CityLayout.WorldZ(285f)),
-                new Vector3(CityLayout.WorldX(0f), 0f, CityLayout.WorldZ(0f)),
-                "p16_05_city_hlod_overview.png");
-
-            _player.Teleport(new Vector3(CityLayout.WorldX(0f), 0.5f, CityLayout.WorldZ(18f)),
-                Mathf.Pi);
-            _rig.SetView(180f, 18f, 8.0f);
-            await Wait(0.8f);
-            await Snap("p16_06_city_jobs_plaza.png", DeveloperCaptureDirectory);
-
-            _hud.Visible = true;
-            CityJobBoardUi.Show(_hud, _cityMissions, _ => { }, null);
-            await Wait(0.5f);
-            await Snap("p16_07_city_jobs_board.png", DeveloperCaptureDirectory);
-            _hud.CloseModal();
-            await Wait(0.25f);
-
-            _cityMissions.StartMission("C01");
-            _cityMissions.LoadCourierParcels();
-            _cityMissions.DeliverCourierStop(1);
-            _cityMissions.DeliverCourierStop(2);
-            RefreshMissionState();
-            await Wait(0.4f);
-            await Snap("p16_08_city_courier_progress.png", DeveloperCaptureDirectory);
-
-            _player.Teleport(new Vector3(CityLayout.WorldX(80f), 0.5f, CityLayout.WorldZ(8f)),
-                0f);
-            _rig.SetView(0f, 18f, 7.5f);
-            await Wait(0.8f);
-            await Snap("p16_09_city_cabinets.png", DeveloperCaptureDirectory);
-            _hud.Visible = false;
-            _player.Teleport(new Vector3(30f, 0.5f, 0f), Mathf.Pi / 2f);
-            await Wait(0.6f);
-            await SnapFreeCamera(new Vector3(40f, 4.2f, 6.5f), new Vector3(12f, 1f, 0f),
-                "p16_10_return_town.png");
-        }
-        catch (Exception ex)
-        {
-            GD.PrintErr($"City capture failed: {ex}");
-        }
-        GetTree().Quit();
-    }
-
-    private async Task CaptureTitle()
-    {
-        try
-        {
-            await Wait(1.2f);
-            await Snap("p2_00_title.png", DeveloperCaptureDirectory);
-        }
-        catch (Exception ex)
-        {
-            GD.PrintErr($"Title capture failed: {ex}");
-        }
-        GetTree().Quit();
-    }
-
-    private async Task RunPerformanceProbe()
-    {
-        try
-        {
-            bool highRes = HasUserArg("--perf-1080");
-            if (highRes)
-            {
-                GetWindow().ContentScaleSize = new Vector2I(1920, 1080);
-                GetWindow().Size = new Vector2I(1920, 1080);
-            }
-            await Wait(1.5f);
-            var frameMs = new List<double>(600);
-            ulong previous = Time.GetTicksUsec();
-            for (int i = 0; i < 600; i++)
-            {
-                await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-                ulong now = Time.GetTicksUsec();
-                frameMs.Add((now - previous) / 1000.0);
-                previous = now;
-            }
-            frameMs.Sort();
-            double mean = frameMs.Average();
-            double p95 = frameMs[(int)(frameMs.Count * 0.95)];
-            double max = frameMs[^1];
-            GD.Print($"PERF resolution={(highRes ? "1920x1080" : "1280x720")} " +
-                     $"mean_ms={mean:0.00} p95_ms={p95:0.00} max_ms={max:0.00} " +
-                     $"frames={frameMs.Count} nodes={GetTree().GetNodeCount()} " +
-                     $"draw_calls={(int)Performance.GetMonitor(Performance.Monitor.RenderTotalDrawCallsInFrame)} " +
-                     $"primitives={(int)Performance.GetMonitor(Performance.Monitor.RenderTotalPrimitivesInFrame)}");
-        }
-        catch (Exception ex)
-        {
-            GD.PrintErr($"Performance probe failed: {ex}");
-        }
-        GetTree().Quit();
-    }
-
-    private async Task CaptureP12()
-    {
-        try
-        {
-            await Wait(1.0f);
-            bool highRes = HasUserArg("--capture-1080");
-            if (highRes)
-            {
-                GetWindow().ContentScaleSize = new Vector2I(1920, 1080);
-                GetWindow().Size = new Vector2I(1920, 1080);
-                await Wait(0.6f);
-            }
-            _hud.Visible = false;
-            string p = highRes ? "p12_1080" : "p12_720";
-
-            await SnapFreeCamera(new Vector3(25, 60, 78), new Vector3(70, 0, 0), $"{p}_00_village_overview.png");
-            await SnapFreeCamera(new Vector3(45, 48, 12), new Vector3(72, 0, 0), $"{p}_01_rally_overview.png");
-            await SnapFreeCamera(new Vector3(48, 7, 4), new Vector3(57, 0, -8), $"{p}_02_start_line.png");
-            await SnapFreeCamera(new Vector3(48, 7, -12), new Vector3(56.6f, 1, -26.6f), $"{p}_03_gate1.png");
-            await SnapFreeCamera(new Vector3(55, 12, 20), new Vector3(64.6f, 1, 43.3f), $"{p}_04_gate4.png");
-            await SnapFreeCamera(new Vector3(78, 6, 12), new Vector3(86, 0, 0), $"{p}_05_road_join.png");
-            await SnapFreeCamera(new Vector3(18, 3, 0.5f), new Vector3(24, 1, 5), $"{p}_06_clothes_shop.png");
-            await SnapFreeCamera(new Vector3(10, 16, 34), new Vector3(-8, 0, 0), $"{p}_07_village_roads.png");
-            await SnapFreeCamera(new Vector3(22, 3, -0.5f), new Vector3(-18, 1, 2), $"{p}_08_town_traffic.png");
-            _hud.Visible = true;
-            JobBoardUi.Show(_hud, _missions, _implemented, _ => { });
-            await Wait(0.5f);
-            await Snap($"{p}_09_job_board.png", DeveloperCaptureDirectory);
-            _hud.CloseModal();
-        }
-        catch (Exception ex)
-        {
-            GD.PrintErr($"P12 capture failed: {ex}");
-        }
-        GetTree().Quit();
-    }
-
-    private async Task CaptureP13()
-    {
-        try
-        {
-            await Wait(1.0f);
-            bool highRes = HasUserArg("--capture-1080");
-            if (highRes)
-            {
-                GetWindow().ContentScaleSize = new Vector2I(1920, 1080);
-                GetWindow().Size = new Vector2I(1920, 1080);
-                await Wait(0.6f);
-            }
-            string p = highRes ? "p13_1080" : "p13_720";
-
-            RtPrepareChapterTwo();
-            _data.ActiveMission = "M11";
-            _data.SetMissionCounter("M11", "stock_granted", 1);
-            foreach (string npc in ChapterTwoRules.CardNpcIds)
-                _data.SetMissionCounter("M11", $"card_{npc}", 1);
-            RefreshMissionState();
-
-            _hud.Visible = false;
-            await SnapFreeCamera(new Vector3(30, 70, 30), new Vector3(10, 0, 8), $"{p}_00_village_chapter_two.png");
-            await SnapFreeCamera(new Vector3(15.2f, 12f, 19f), new Vector3(15.2f, 1.5f, 5.2f), $"{p}_01_bakery_stall.png");
-            await SnapFreeCamera(new Vector3(-14.5f, 5f, 2.5f), new Vector3(-20.8f, 1.5f, 8.2f), $"{p}_02_library_shelf.png");
-            await SnapFreeCamera(new Vector3(22, 30, 25), new Vector3(15, 0, 2), $"{p}_03_road_sign_sockets.png");
-            await SnapFreeCamera(new Vector3(29, 12, 33), new Vector3(29, 0.5f, 21), $"{p}_04_community_garden.png");
-            await SnapFreeCamera(new Vector3(-1.5f, 3.5f, 10.5f), new Vector3(-4.2f, 0.7f, 7.0f), $"{p}_05_book_pickup.png");
-
-            _hud.Visible = true;
-            JobBoardUi.Show(_hud, _missions, _implemented, _ => { }, null, true);
-            await Wait(0.5f);
-            await Snap($"{p}_06_job_board_chapter_two.png", DeveloperCaptureDirectory);
-            _hud.CloseModal();
-            await Wait(0.25f);
-
-            RtTalkToNpc("ada");
-            await Wait(0.5f);
-            await Snap($"{p}_07_ada_welcome_cards.png", DeveloperCaptureDirectory);
-            _hud.CloseModal();
-            await Wait(0.25f);
-
-            _data.ActiveMission = "M12";
-            BakeryUi.Show(_hud, _missions, _ => { }, () => { });
-            await Wait(0.5f);
-            await Snap($"{p}_08_bakery_ui.png", DeveloperCaptureDirectory);
-            _hud.CloseModal();
-            await Wait(0.25f);
-
-            _data.ActiveMission = "M13";
-            foreach (string book in ChapterTwoRules.BookIds)
-                _data.SetMissionCounter("M13", ChapterTwoRules.HasBookKey(book), 1);
-            LibraryShelfUi.Show(_hud, _missions, _ => { }, () => { });
-            await Wait(0.5f);
-            await Snap($"{p}_09_library_ui.png", DeveloperCaptureDirectory);
-            _hud.CloseModal();
-            await Wait(0.25f);
-
-            _data.ActiveMission = "M14";
-            SignSocketUi.Show(_hud, _missions, "market", _ => { }, () => { });
-            await Wait(0.5f);
-            await Snap($"{p}_10_sign_ui.png", DeveloperCaptureDirectory);
-            _hud.CloseModal();
-            await Wait(0.25f);
-
-            _data.ActiveMission = "M15";
-            _data.SetMissionCounter("M15", "pad0", ChapterTwoRules.GardenCode("red"));
-            _data.SetMissionCounter("M15", "pad1", ChapterTwoRules.GardenCode("blue"));
-            GardenPadUi.Show(_hud, _missions, 0, _ => { }, () => { });
-            await Wait(0.5f);
-            await Snap($"{p}_11_garden_ui.png", DeveloperCaptureDirectory);
-            _hud.CloseModal();
-            await Wait(0.25f);
-
-            foreach (var socket in ChapterTwoRules.SignSockets)
-                _data.SetMissionCounter("M14", $"sign_{socket.SocketId}", 1);
-            for (int i = 0; i < ChapterTwoRules.GardenPattern.Length; i++)
-                _data.SetMissionCounter("M15", $"pad{i}",
-                    ChapterTwoRules.GardenCode(ChapterTwoRules.GardenPattern[i]));
-            for (int i = 0; i < ChapterTwoRules.BakeryOrders.Count; i++)
-                _data.SetMissionCounter("M12", $"order_{ChapterTwoRules.BakeryOrders[i].CustomerId}", 1);
-            foreach (string book in ChapterTwoRules.BookIds)
-                _data.SetMissionCounter("M13", ChapterTwoRules.ShelfKey(book), 1);
-            RefreshChapterTwoWorld();
-            _hud.Visible = false;
-            await SnapFreeCamera(new Vector3(22, 12, 10), new Vector3(20, 0, -4), $"{p}_12_repaired_signs.png");
-            await SnapFreeCamera(new Vector3(29, 12, 33), new Vector3(29, 0.5f, 21), $"{p}_13_garden_complete.png");
-        }
-        catch (Exception ex)
-        {
-            GD.PrintErr($"P13 capture failed: {ex}");
-        }
-        GetTree().Quit();
-    }
-
-    private async Task CaptureP14()
-    {
-        try
-        {
-            await Wait(1.0f);
-            bool highRes = HasUserArg("--capture-1080");
-            if (highRes)
-            {
-                GetWindow().ContentScaleSize = new Vector2I(1920, 1080);
-                GetWindow().Size = new Vector2I(1920, 1080);
-                await Wait(0.6f);
-            }
-            string p = highRes ? "p14_1080" : "p14_720";
-            RtPrepareFinale();
-
-            // M16 dialogue and post counter.
-            _data.ActiveMission = "M16";
-            _data.SetMissionCounter("M16", "loaded", 1);
-            foreach (string npc in FinaleRules.DeliveryRecipients)
-                _data.SetMissionCounter("M16", FinaleRules.CarryingKey(npc), 1);
-            RefreshMissionState();
-            _hud.Visible = true;
-            RtTalkToNpc("ada");
-            await Wait(0.5f);
-            await Snap($"{p}_00_delivery_dialogue.png", DeveloperCaptureDirectory);
-            _hud.CloseModal();
-            await Wait(0.25f);
-
-            _hud.Visible = false;
-            await SnapFreeCamera(new Vector3(-14.5f, 14f, 2f), new Vector3(-14.5f, 1f, 6.5f),
-                $"{p}_01_post_counter.png");
-            _data.CompletedMissions.Add("M16");
-            foreach (string npc in FinaleRules.DeliveryRecipients)
-            {
-                _data.SetMissionCounter("M16", FinaleRules.CarryingKey(npc), 0);
-                _data.SetMissionCounter("M16", FinaleRules.DeliveredKey(npc), 1);
-            }
-            RefreshMissionState();
-            await SnapFreeCamera(new Vector3(-2.5f, 4.5f, -1f), new Vector3(-2.5f, 1f, 4.7f),
-                $"{p}_02_delivery_board.png");
-
-            // M17 checkout and market stock.
-            _data.ActiveMission = "M17";
-            _data.SetMissionCounter("M17", "bread", 2);
-            _data.SetMissionCounter("M17", "milk", 1);
-            _data.SetMissionCounter("M17", "apple", 2);
-            _hud.Visible = true;
-            MarketMathsUi.Show(_hud, _missions, _ => { }, () => { });
-            await Wait(0.5f);
-            await Snap($"{p}_03_market_maths_ui.png", DeveloperCaptureDirectory);
-            _hud.CloseModal();
-            await Wait(0.25f);
-            _data.CompletedMissions.Add("M17");
-            _data.SetMissionCounter("M17", "finalised", 1);
-            _data.ActiveMission = "";
-            RefreshMissionState();
-            _hud.Visible = false;
-            await SnapFreeCamera(new Vector3(9.2f, 1.7f, 0f), new Vector3(9.2f, 1.3f, 3.8f),
-                $"{p}_04_market_stock.png");
-
-            // M18 broken car, repair bench, repaired car.
-            _data.ActiveMission = "M18";
-            _data.SetMissionCounter("M18", "inspected", 1);
-            _data.SetMissionCounter("M18", "has_tyre", 2);
-            _data.SetMissionCounter("M18", "has_lamp", 1);
-            _data.SetMissionCounter("M18", "has_battery", 1);
-            _data.SetMissionCounter("M18", "tyres_fitted", 1);
-            RefreshMissionState();
-            _hud.Visible = true;
-            RepairUi.Show(_hud, _missions, _ => { }, () => { });
-            await Wait(0.5f);
-            await Snap($"{p}_05_repair_ui.png", DeveloperCaptureDirectory);
-            _hud.CloseModal();
-            await Wait(0.25f);
-            _hud.Visible = false;
-            await SnapFreeCamera(new Vector3(32f, 7f, -0.5f), new Vector3(35.2f, 1f, -7.8f),
-                $"{p}_06_broken_pip_car.png");
-            _data.CompletedMissions.Add("M18");
-            _data.SetMissionCounter("M18", "tyres_fitted", 2);
-            _data.SetMissionCounter("M18", "lamp_fitted", 1);
-            _data.SetMissionCounter("M18", "battery_fitted", 1);
-            _data.ActiveMission = "";
-            RefreshMissionState();
-            await SnapFreeCamera(new Vector3(32f, 7f, -0.5f), new Vector3(35.2f, 1f, -7.8f),
-                $"{p}_07_repaired_pip_car.png");
-
-            // M19 six-gate circuit with Pip's rival car.
-            _data.ActiveMission = "M19";
-            RefreshMissionState();
-            _van.GlobalPosition = new Vector3(56f, 0.15f, -6f);
-            _van.Rotation = Vector3.Zero;
-            RefreshMissionState();
-            await Wait(0.4f);
-            _hud.Visible = false;
-            await SnapFreeCamera(new Vector3(74f, 42f, 4f), new Vector3(70f, 0f, 0f),
-                $"{p}_08_grand_rally_six_gates.png");
-            _data.CompletedMissions.Add("M19");
-            _data.SetMissionCounter("M19", "checkpoint", FinaleRules.RallyGateCount);
-            _data.SetMissionCounter("M19", "started", 1);
-            _data.SetMissionCounter("M19", "elapsedMs", 22_300);
-            _data.ActiveMission = "";
-            RefreshMissionState();
-
-            // M20 festival pads and second finale.
-            foreach (string id in new[] { "M16", "M17", "M18" })
-                if (!_data.CompletedMissions.Contains(id)) _data.CompletedMissions.Add(id);
-            _data.ActiveMission = "M20";
-            foreach (string npc in FinaleRules.FestivalInvitees)
-                _data.SetMissionCounter("M20", FinaleRules.InvitedKey(npc), 1);
-            _data.SetMissionCounter("M20", "table_0", 1);
-            _data.SetMissionCounter("M20", "table_1", 1);
-            _data.SetMissionCounter("M20", "lantern_0", 1);
-            _data.SetMissionCounter("M20", "lantern_1", 1);
-            _data.SetMissionCounter("M20", "lantern_2", 1);
-            RefreshMissionState();
-            _hud.Visible = false;
-            await SnapFreeCamera(new Vector3(15f, 9f, 31f), new Vector3(15f, 1f, 22f),
-                $"{p}_09_festival_setup.png");
-
-            _data.CompletedMissions.Add("M20");
-            _data.ActiveMission = "";
-            RefreshMissionState();
-            _hud.Visible = false;
-            await SnapFreeCamera(new Vector3(15f, 9f, 31f), new Vector3(15f, 1f, 22f),
-                $"{p}_10_festival_decor.png");
-
-            _hud.Visible = true;
-            JobBoardUi.Show(_hud, _missions, _implemented, _ => { }, null, true);
-            await Wait(0.5f);
-            await Snap($"{p}_11_job_board_all_complete.png", DeveloperCaptureDirectory);
-            _hud.CloseModal();
-            await Wait(0.25f);
-            _data.FestivalSeen = false;
-            ShowVillageFestival();
-            await Wait(0.5f);
-            await Snap($"{p}_12_village_festival.png", DeveloperCaptureDirectory);
-            _hud.CloseModal();
-            await Wait(0.25f);
-
-            RtBuildBridgeNow();
-            _hud.Visible = false;
-            await SnapFreeCamera(new Vector3(35f, 8f, 12f), new Vector3(45f, 1f, 0f),
-                $"{p}_13_bridge_approach.png");
-            await SnapFreeCamera(new Vector3(63f, 6f, -21f), new Vector3(56.8f, 2f, -27.6f),
-                $"{p}_14_gate_one.png");
-
-            // Bridge/road seam from the driving viewpoint and above.
-            _van.GlobalPosition = new Vector3(52f, 0.15f, 0f);
-            _van.Rotation = new Vector3(0f, -Mathf.Pi / 2f, 0f);
-            await Wait(0.3f);
-            await SnapFreeCamera(new Vector3(44f, 5.5f, 1.6f),
-                new Vector3(54f, 0.4f, -0.5f), $"{p}_15_bridge_seam.png");
-            await SnapFreeCamera(new Vector3(50f, 14f, 9f),
-                new Vector3(52f, 0f, -2f), $"{p}_16_bridge_junction.png");
-
-            // Player cap/hair silhouette from behind.
-            _player.SetAppearance(CharacterCustomisation.Girl, "berry");
-            _player.Teleport(new Vector3(10f, 0.1f, 30f), 0f);
-            await Wait(0.4f);
-            await SnapFreeCamera(new Vector3(10f, 1.72f, 32.2f),
-                new Vector3(10f, 1.55f, 30f), $"{p}_17_player_cap.png");
-        }
-        catch (Exception ex)
-        {
-            GD.PrintErr($"P14 capture failed: {ex}");
-        }
-        GetTree().Quit();
-    }
-
-    private async Task SnapFreeCamera(Vector3 position, Vector3 lookAt, string fileName)
-    {
-        var camera = new Camera3D { Fov = 62f, Current = true };
-        AddChild(camera);
-        camera.GlobalPosition = position;
-        camera.LookAt(lookAt, Vector3.Up);
-        await Wait(0.35f);
-        await Snap(fileName, DeveloperCaptureDirectory);
-        camera.QueueFree();
-    }
-
-    private async Task CaptureP11()
-    {
-        try
-        {
-            await Wait(1.2f);
-            await CaptureNpcPose("ada", "p11_01_ada_market.png");
-            await CaptureNpcPose("milo", "p11_02_milo_post.png");
-            await CaptureNpcPose("pip", "p11_03_pip_workshop.png");
-            await CaptureNpcPose("fern", "p11_04_fern_garden.png");
-            await CaptureNpcPose("ollie", "p11_05_ollie_town_hall.png");
-            await CaptureNpcPose("ivy", "p11_06_ivy_green.png");
-
-            _player.Teleport(new Vector3(-15f, 0.1f, 7.5f), Mathf.Pi);
-            _rig.SetView(180f, 20f, 9.5f);
-            await Wait(1.6f);
-            await Snap("p11_07_town_traffic.png", DeveloperCaptureDirectory);
-
-            RtTeleportPlayerNearNpc("ada");
-            await Wait(0.4f);
-            RtTalkToNpc("ada");
-            await Wait(0.6f);
-            await Snap("p11_08_ada_dialogue.png", DeveloperCaptureDirectory);
-        }
-        catch (Exception ex)
-        {
-            GD.PrintErr($"P11 capture failed: {ex}");
-        }
-        GetTree().Quit();
-    }
-
-    private async Task CaptureNpcPose(string npcId, string fileName)
-    {
-        if (!_npcById.TryGetValue(npcId, out var npc)) return;
-        Vector3 npcPosition = npc.GlobalPosition;
-        float offsetZ = npcId is "pip" or "fern" or "ivy" ? 5.0f : -3.8f;
-        Vector3 playerPosition = new(npcPosition.X + 0.4f, 0.1f, npcPosition.Z + offsetZ);
-        float yaw = Mathf.Atan2(-(npcPosition.X - playerPosition.X), -(npcPosition.Z - playerPosition.Z));
-        _player.Teleport(playerPosition, yaw);
-        _rig.SetView(Mathf.RadToDeg(yaw), 16f, 8.0f);
-        await Wait(0.8f);
-        await Snap(fileName, DeveloperCaptureDirectory);
-    }
-
-    private async Task CaptureTour()
-    {
-        try
-        {
-            await Wait(1.3f);
-            await Snap("p2_01_start.png", DeveloperCaptureDirectory);
-
-            var overview = new Camera3D { Fov = 55, Current = true };
-            AddChild(overview);
-            overview.GlobalPosition = new Vector3(-8f, 52f, 74f);
-            overview.LookAt(new Vector3(8f, 0f, -2f), Vector3.Up);
-            await Wait(0.7f);
-            await Snap("p2_02_village_overview.png", DeveloperCaptureDirectory);
-            overview.QueueFree();
-            _rig.Current = true;
-
-            JobBoardUi.Show(_hud, _missions, _implemented, _ => { });
-            await Wait(0.6f);
-            await Snap("p2_03_job_board.png", DeveloperCaptureDirectory);
-            _hud.CloseModal();
-            await Wait(0.4f);
-
-            // Put the player near the market with M01 active for evidence.
-            _missions.StartMission("M01");
-            RefreshMissionState();
-            _player.Teleport(new Vector3(-4.4f, 0.2f, 1.1f), Mathf.Pi);
-            _rig.SetView(180f, 18f, 8.2f);
-            await Wait(0.8f);
-            await Snap("p2_04_apple_crate.png", DeveloperCaptureDirectory);
-
-            // Simulate a full M01 hand-in for screenshot evidence.
-            _missions.CollectPickup("apple_0", "apple", "M01", 3);
-            _missions.CollectPickup("apple_1", "apple", "M01", 3);
-            _missions.CollectPickup("apple_2", "apple", "M01", 3);
-            RefreshMissionState();
-            _player.Teleport(new Vector3(-20f, 0.2f, -14.0f), 0f);
-            _rig.SetView(0f, 18f, 8.2f);
-            await Wait(0.7f);
-            await Snap("p2_05_red_house_delivery.png", DeveloperCaptureDirectory);
-
-            var completion = _missions.DeliverApples();
-            if (completion.Success)
-            {
-                OnMissionCompleted(completion);
-                await Wait(0.6f);
-                await Snap("p2_06_job_complete.png", DeveloperCaptureDirectory);
-                _hud.CloseModal();
-                await Wait(0.4f);
-            }
-
-            _missions.StartMission("M02");
-            RefreshMissionState();
-            _player.Teleport(new Vector3(-40f, 0.2f, -24.0f), 0f);
-            _rig.SetView(0f, 20f, 9f);
-            await Wait(0.7f);
-            await Snap("p2_07_grove.png", DeveloperCaptureDirectory);
-
-            _player.Teleport(new Vector3(14f, 0.2f, -27.0f), 0f);
-            _rig.SetView(0f, 20f, 9f);
-            await Wait(0.7f);
-            await Snap("p2_08_stone_patch.png", DeveloperCaptureDirectory);
-
-            _player.Teleport(new Vector3(25f, 0.2f, -6.0f), 0f);
-            _rig.SetView(0f, 18f, 8.2f);
-            await Wait(0.7f);
-            await Snap("p2_09_workshop.png", DeveloperCaptureDirectory);
-
-            // P9 character and clothes-shop evidence.
-            CharacterChoiceUi.Show(_hud, _ => { }, () => { });
-            await Wait(0.7f);
-            await Snap("p9_01_character_choice.png", DeveloperCaptureDirectory);
-            _hud.CloseModal();
-            await Wait(0.4f);
-
-            _data.CharacterPreset = CharacterCustomisation.Girl;
-            _data.EquippedOutfit = CharacterCustomisation.DefaultOutfit;
-            ApplyCosmetics();
-            _player.Teleport(new Vector3(24f, 0.2f, 0.6f), Mathf.Pi);
-            _rig.SetView(180f, 18f, 8.2f);
-            await Wait(0.8f);
-            await Snap("p9_02_girl_at_clothes_shop.png", DeveloperCaptureDirectory);
-
-            ClothesShopUi.Show(_hud, _data, () =>
-            {
-                ApplyCosmetics();
-                _hud.SetCoins(_data.Coins);
-                return SaveResult.Ok();
-            });
-            await Wait(0.7f);
-            await Snap("p9_03_clothes_shop_ui.png", DeveloperCaptureDirectory);
-            RtPressModalButton("Outfit_sunny");
-            await Wait(0.7f);
-            await Snap("p9_04_outfit_owned_and_worn.png", DeveloperCaptureDirectory);
-            _hud.CloseModal();
-            await Wait(0.4f);
-
-            _player.Teleport(new Vector3(24f, 0.2f, 0.6f), Mathf.Pi);
-            _rig.SetView(180f, 18f, 8.2f);
-            await Wait(0.7f);
-            await Snap("p9_05_girl_sunny_outfit_world.png", DeveloperCaptureDirectory);
-
-            _data.CharacterPreset = CharacterCustomisation.Boy;
-            _data.EquippedOutfit = CharacterCustomisation.DefaultOutfit;
-            ApplyCosmetics();
-            await Wait(0.5f);
-            await Snap("p9_06_boy_default_outfit_world.png", DeveloperCaptureDirectory);
-        }
-        catch (Exception ex)
-        {
-            GD.PrintErr($"Capture failed: {ex}");
-        }
-        GetTree().Quit();
-    }
-
-    private async Task Wait(float seconds)
-    {
-        await ToSignal(GetTree().CreateTimer(seconds), SceneTreeTimer.SignalName.Timeout);
-    }
-
-    private void CaptureManualScreenshotSafely()
-    {
-        _ = CaptureManualScreenshotAsync();
-    }
-
-    private async Task CaptureManualScreenshotAsync()
-    {
-        try
-        {
-            GD.Print($"PLAYER_POS {_player.GlobalPosition} ACTIVE={_started} PAUSED={GetTree().Paused} CONTROL={_player.ControlEnabled} VEL={_player.Velocity} TARGET={_player.NearestInteractable?.Name} DRIVING={_driving} VAN_POS={_van.GlobalPosition} VAN_YAW={_van.Rotation.Y:0.00} VAN_SPEED={_van.Speed:0.0} NODES={GetTree().GetNodeCount()} MODE={_controlMode}");
-            await Wait(0.15f);
-            await Snap($"manual_{DateTime.Now:HHmmss}.png", ScreenshotDirectory);
-        }
-        catch (Exception ex)
-        {
-            GD.PrintErr($"Screenshot failed: {ex}");
-        }
-    }
-
-    private async Task Snap(string fileName, string directory)
-    {
-        await ToSignal(RenderingServer.Singleton, RenderingServer.SignalName.FramePostDraw);
-        var viewport = GetViewport();
-        if (viewport == null) throw new InvalidOperationException("No viewport is available for a screenshot.");
-        var image = viewport.GetTexture()?.GetImage();
-        if (image == null) throw new InvalidOperationException("The viewport image is unavailable.");
-        Directory.CreateDirectory(directory);
-        string path = Path.Combine(directory, fileName);
-        Error error = image.SavePng(path);
-        if (error != Error.Ok)
-            GD.PrintErr($"SCREENSHOT FAILED {path} -> {error}");
-        else
-            GD.Print($"SCREENSHOT {path} -> {error}");
-    }
 
 }

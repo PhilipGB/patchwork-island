@@ -1,0 +1,20 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/academy/DrivingAcademyCourse.tscn" id="ext_1"]
+
+[node name="DrivingAcademyPreview" type="Node3D"]
+
+[node name="Course" parent="." instance=ExtResource("ext_1")]
+position = Vector3(0, 0, 0)
+
+[node name="PreviewCamera" type="Camera3D" parent="."]
+position = Vector3(135, 115, 150)
+rotation_degrees = Vector3(-33, 40, 0)
+current = true
+fov = 70.0
+far = 700.0
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-49, -27, 0)
+light_energy = 1.2
+shadow_enabled = true

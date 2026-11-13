@@ -1,0 +1,15 @@
+# Driving Academy performance probe
+# Hardware/display: Linux, AMD Radeon 890M (Mesa, OpenGL compatibility),
+# vsync enabled (16.6 ms cadence), audio driver Dummy, isolated XDG dirs.
+# Method: --academy-perf, 300 town frames, 600 academy frames, 300 return frames.
+
+ACADEMY PERF town-only 1280x720 p50_ms=16.52 p95_ms=33.34 max_ms=47.75 frames=300 nodes=4915 draw_calls=2324 primitives=49964
+ACADEMY PERF academy-course 1280x720 p50_ms=16.56 p95_ms=26.93 max_ms=230.40 frames=600 nodes=5253 draw_calls=224 primitives=8202
+ACADEMY PERF town-return 1280x720 p50_ms=16.59 p95_ms=26.64 max_ms=39.34 frames=300 nodes=4915 draw_calls=2141 primitives=43780
+ACADEMY PERF town-only 1920x1080 p50_ms=16.59 p95_ms=26.15 max_ms=35.30 frames=300 nodes=4915 draw_calls=2324 primitives=50000
+ACADEMY PERF academy-course 1920x1080 p50_ms=16.58 p95_ms=26.92 max_ms=135.80 frames=600 nodes=5253 draw_calls=224 primitives=8202
+ACADEMY PERF town-return 1920x1080 p50_ms=16.72 p95_ms=26.79 max_ms=34.23 frames=300 nodes=4915 draw_calls=2141 primitives=43822
+
+# Xvfb/llvmpipe is software rendering (p50 39-86 ms) and is not a GPU result.
+# The 230.40 ms academy-entry maximum includes the one-time authored course load
+# and is recorded as a known transition spike, not a steady-state result.

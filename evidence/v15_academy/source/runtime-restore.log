@@ -1,0 +1,82 @@
+COMMAND: godot --path . --headless --audio-driver Dummy -- --selftest-restore
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+
+Unicode parsing error, some characters were replaced with � (U+FFFD): Invalid UTF-8 leading byte (b7)
+[WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 158 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.
+[CITY SCENE] res://scenes/city/CityDistrict.tscn: 36 buildings, 36 HLOD proxies, 9 cells, 15 job markers, 4 vehicle routes, 11 pedestrian routes.
+Unicode parsing error, some characters were replaced with � (U+FFFD): Invalid UTF-8 leading byte (b7)
+[WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 158 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.
+[CITY SCENE] res://scenes/city/CityDistrict.tscn: 36 buildings, 36 HLOD proxies, 9 cells, 15 job markers, 4 vehicle routes, 11 pedestrian routes.
+PASS  restore phase 1 starts at the title
+PASS  restore phase 1 offers Continue
+PASS  restore phase 1 continues into the town
+PASS  partial M03 active job restores
+PASS  partial M03 bridge pieces restore as visible placed parts
+PASS  partial M03 bridge is still visibly under construction
+PASS  partial M03 keeps the scene-owned barrier visible
+Unicode parsing error, some characters were replaced with � (U+FFFD): Invalid UTF-8 leading byte (b7)
+[WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 158 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.
+[CITY SCENE] res://scenes/city/CityDistrict.tscn: 36 buildings, 36 HLOD proxies, 9 cells, 15 job markers, 4 vehicle routes, 11 pedestrian routes.
+PASS  restore phase 2 starts at the title
+PASS  restore phase 2 offers Continue
+PASS  restore phase 2 continues into the town
+PASS  partial M07 active job restores
+PASS  completed M03 bridge restores in the same save
+PASS  partial M07 swing pieces restore as visible placed parts
+PASS  partial M07 playground still shows its repair sign
+PASS  partial M07 keeps every scene-authored BROKEN label visible
+Unicode parsing error, some characters were replaced with � (U+FFFD): Invalid UTF-8 leading byte (b7)
+[WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 158 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.
+[CITY SCENE] res://scenes/city/CityDistrict.tscn: 36 buildings, 36 HLOD proxies, 9 cells, 15 job markers, 4 vehicle routes, 11 pedestrian routes.
+PASS  restore phase 3 starts at the title
+PASS  restore phase 3 offers Continue
+PASS  restore phase 3 continues into the town
+PASS  partial M08 active job restores
+PASS  completed M07 swing state restores visually
+PASS  partial M08 village-green placement restores visually
+Unicode parsing error, some characters were replaced with � (U+FFFD): Invalid UTF-8 leading byte (b7)
+[WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 158 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.
+[CITY SCENE] res://scenes/city/CityDistrict.tscn: 36 buildings, 36 HLOD proxies, 9 cells, 15 job markers, 4 vehicle routes, 11 pedestrian routes.
+PASS  restore phase 4 starts at the title
+PASS  restore phase 4 offers Continue
+PASS  restore phase 4 continues into the town
+PASS  partial M10 active job restores
+PASS  partial M10 furniture placements restore inside the house
+PASS  completed M08 park placements stay restored
+Unicode parsing error, some characters were replaced with � (U+FFFD): Invalid UTF-8 leading byte (b7)
+[WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 158 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.
+[CITY SCENE] res://scenes/city/CityDistrict.tscn: 36 buildings, 36 HLOD proxies, 9 cells, 15 job markers, 4 vehicle routes, 11 pedestrian routes.
+PASS  restore phase 5 starts at the title
+PASS  restore phase 5 offers Continue
+PASS  restore phase 5 continues into the town
+PASS  partial M15 active job restores
+PASS  partial M15 garden counters restore
+PASS  partial M15 flowers restore exactly where planted
+PASS  completed M14 sign visuals stay restored
+PASS  completed M12 bakery slots stay restored
+PASS  completed M13 library slots stay restored
+Unicode parsing error, some characters were replaced with � (U+FFFD): Invalid UTF-8 leading byte (b7)
+[WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 158 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.
+[CITY SCENE] res://scenes/city/CityDistrict.tscn: 36 buildings, 36 HLOD proxies, 9 cells, 15 job markers, 4 vehicle routes, 11 pedestrian routes.
+PASS  restore phase 6 starts at the title
+PASS  restore phase 6 offers Continue
+PASS  restore phase 6 continues into the town
+PASS  partial M18 active job restores
+PASS  partial M18 tyre progress restores
+PASS  partial M18 collected pickup does not respawn
+PASS  partial M18 keeps the broken car visible
+PASS  completed M16/M17 visuals stay restored
+Unicode parsing error, some characters were replaced with � (U+FFFD): Invalid UTF-8 leading byte (b7)
+[WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 158 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.
+[CITY SCENE] res://scenes/city/CityDistrict.tscn: 36 buildings, 36 HLOD proxies, 9 cells, 15 job markers, 4 vehicle routes, 11 pedestrian routes.
+PASS  restore phase 7 starts at the title
+PASS  restore phase 7 offers Continue
+PASS  restore phase 7 continues into the town
+PASS  partial M20 active job restores
+PASS  partial M20 invitations restore
+PASS  partial M20 table placement restores exactly
+PASS  partial M20 lantern placement restores exactly
+PASS  partial M20 does not show the finished festival bunting
+PASS  completed M16-M19 finale visuals stay restored
+PASS  partial M20 wallet restores exactly
+RUNTIME RESULT: 54 passed, 0 failed

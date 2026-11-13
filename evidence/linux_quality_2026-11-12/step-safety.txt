@@ -1,0 +1,31 @@
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+WARNING: Failed to create wd.xic as the input method or its xim server may not have started yet.
+     at: _create_xic (platform/linuxbsd/x11/display_server_x11.cpp:6347)
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+     at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:372)
+OpenGL API 4.5 (Core Profile) Mesa 26.0.8-1ubuntu0.3 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 21.1.8, 256 bits)
+
+[WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 156 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.
+[CITY SCENE] res://scenes/city/CityDistrict.tscn: 36 buildings, 36 HLOD proxies, 9 cells, 15 job markers, 4 vehicle routes, 11 pedestrian routes.
+PASS  mouse released during pause cannot orbit after resume
+PASS  camera regression leaves player stationary
+PASS  held right mouse still orbits
+PASS  active pickup wins focus over a closer generic interaction
+PASS  available inactive pickups do not outrank nearer interactions
+PASS  locked chapter-two pickup cannot take E focus
+PASS  locked book label is hidden
+PASS  HUD does not duplicate key in action text
+PASS  60 shop opens/closes do not increase orphan Node count
+CURB move_left from=(351, -0.059338108, 0) to=(339.33652, 0.24754545, 0.43022093)
+PASS  grounded player walks onto city plaza via move_left without jumping
+CURB move_right from=(289, -0.059338108, 0) to=(300.96765, 0.24754545, 0.45321384)
+PASS  grounded player walks onto city plaza via move_right without jumping
+CURB move_back from=(320, -0.045255594, -34) to=(320, 0.24754544, -22.334885)
+PASS  grounded player walks onto city plaza via move_back without jumping
+CURB move_forward from=(320, -0.045255594, 34) to=(320, 0.24754545, 22.435022)
+PASS  grounded player walks onto city plaza via move_forward without jumping
+STEP SAFETY x=480 finish=(480, -0.033657573, -155.11205)
+PASS  small-step assist cannot climb a one-metre wall
+STEP SAFETY x=486 finish=(486, -0.03311769, -155.12257)
+PASS  small-step assist rejects blocked headroom
+QUALITY RESULT: 15 passed, 0 failed

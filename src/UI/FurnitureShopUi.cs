@@ -5,7 +5,7 @@ using Godot;
 namespace PatchworkIsland;
 
 /// <summary>Furniture catalogue: core-wallet purchases, free starter fallback, placement entry.</summary>
-public partial class FurnitureShopUi : Node
+public sealed class FurnitureShopUi
 {
     private readonly Hud _hud;
     private readonly GameData _data;

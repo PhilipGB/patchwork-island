@@ -191,6 +191,8 @@ public static class SaveValidation
 
         if (!ValidateCityState(data, out error))
             return SaveValidationResult.Fail(error);
+        if (!ValidateAcademyState(data, out error))
+            return SaveValidationResult.Fail(error);
 
         if (!ValidatePlacements(data.ParkPlacements, ParkRules.Slots, ParkRules.Items, "park", true, out error))
             return SaveValidationResult.Fail(error);
@@ -217,6 +219,109 @@ public static class SaveValidation
         }
 
         return SaveValidationResult.Ok();
+    }
+
+    private static readonly HashSet<string> AcademyLessonIds = new(StringComparer.Ordinal)
+    {
+        "L01", "L02", "L03", "L04", "L05", "L06",
+    };
+
+    private const string AcademyFinalId = "TEST01";
+
+    private static bool ValidateAcademyState(GameData data, out string error)
+    {
+        error = "";
+        if (!ValidateStrings(data.AcademyCompletedLessons, "completed academy lesson", out error))
+            return false;
+        if (data.AcademyCompletedLessons.Count !=
+            data.AcademyCompletedLessons.Distinct(StringComparer.Ordinal).Count())
+        {
+            error = "The academy completed-lesson list contains duplicates.";
+            return false;
+        }
+        foreach (string id in data.AcademyCompletedLessons)
+            if (!AcademyLessonIds.Contains(id))
+            {
+                error = $"Unknown completed academy lesson '{id}'.";
+                return false;
+            }
+
+        string active = data.AcademyActiveStage ?? "";
+        if (active.Length > 0 && !AcademyLessonIds.Contains(active) &&
+            !string.Equals(active, AcademyFinalId, StringComparison.Ordinal))
+        {
+            error = $"Unknown active academy stage '{active}'.";
+            return false;
+        }
+        if (data.AcademyHelperStep < 0 ||
+            data.AcademyHelperStep >= DrivingAcademyRules.HelperConeCount)
+        {
+            error = "The academy helper sequence is out of range.";
+            return false;
+        }
+        if (data.AcademyHelperRoundsPaid < 0 || data.AcademyHelperRoundsPaid > 1_000_000 ||
+            data.AcademyTestAttempts < 0 || data.AcademyTestAttempts > 1_000_000)
+        {
+            error = "The academy attempt counters are out of range.";
+            return false;
+        }
+
+        // Helper-cone progress and rounds can exist before enrolment; they are
+        // the free route to the 15-coin fee.
+        bool hasProgress = data.AcademyEnrolled || data.AcademyCompletedLessons.Count > 0 ||
+                           active.Length > 0 || data.AcademyTestPassed ||
+                           data.DrivingLicenceIssued || data.AcademyGraduationRewardClaimed;
+        if (hasProgress && !data.AcademyEnrolled)
+        {
+            error = "Academy progress exists without paid enrolment.";
+            return false;
+        }
+        if (active.Length > 0 && !data.AcademyEnrolled)
+        {
+            error = "An academy stage is active without enrolment.";
+            return false;
+        }
+        if (AcademyLessonIds.Contains(active) &&
+            data.AcademyCompletedLessons.Contains(active))
+        {
+            error = "A completed academy lesson cannot still be active.";
+            return false;
+        }
+        if (string.Equals(active, AcademyFinalId, StringComparison.Ordinal) &&
+            data.AcademyCompletedLessons.Count != AcademyLessonIds.Count)
+        {
+            error = "The final assessment cannot start before all six lessons.";
+            return false;
+        }
+
+        for (int i = 1; i < AcademyLessonIds.Count; i++)
+        {
+            string previous = $"L{i:00}";
+            string current = $"L{i + 1:00}";
+            if (data.AcademyCompletedLessons.Contains(current) &&
+                !data.AcademyCompletedLessons.Contains(previous))
+            {
+                error = $"Academy lesson {current} is complete before {previous}.";
+                return false;
+            }
+        }
+
+        if (data.AcademyTestPassed && data.AcademyCompletedLessons.Count != AcademyLessonIds.Count)
+        {
+            error = "The academy test passed before every lesson was complete.";
+            return false;
+        }
+        if (data.DrivingLicenceIssued && !data.AcademyTestPassed)
+        {
+            error = "A driving licence exists without a passed academy test.";
+            return false;
+        }
+        if (data.AcademyGraduationRewardClaimed && !data.DrivingLicenceIssued)
+        {
+            error = "The academy graduation gift was claimed without a licence.";
+            return false;
+        }
+        return true;
     }
 
     private static bool ValidateCustomisation(GameData data, out string error)

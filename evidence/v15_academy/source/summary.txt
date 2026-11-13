@@ -1,0 +1,17 @@
+# Tested code commit c6cb6b1f1ac27b191defa0390021202484b798c6
+pure-tests.log: exit=0 RESULT: 146 passed, 0 failed
+boot.log: exit=0
+runtime-base.log: exit=0 RUNTIME RESULT: 286 passed, 0 failed
+runtime-resume.log: exit=0 RUNTIME RESULT: 21 passed, 0 failed
+runtime-recovery.log: exit=0 RUNTIME RESULT: 101 passed, 0 failed
+runtime-living.log: exit=0 RUNTIME RESULT: 238 passed, 0 failed
+runtime-rally.log: exit=0 RUNTIME RESULT: 10 passed, 0 failed
+runtime-chapter.log: exit=0 RUNTIME RESULT: 217 passed, 0 failed
+runtime-hotfix.log: exit=0 RUNTIME RESULT: 48 passed, 0 failed
+runtime-finale.log: exit=0 RUNTIME RESULT: 140 passed, 0 failed
+runtime-traversal.log: exit=0 RUNTIME RESULT: 18 passed, 0 failed
+runtime-release.log: exit=0 RUNTIME RESULT: 40 passed, 0 failed
+runtime-restore.log: exit=0 RUNTIME RESULT: 54 passed, 0 failed
+runtime-city.log: exit=0 CITY RUNTIME RESULT: 138 passed, 0 failed
+runtime-academy.log: exit=0 RUNTIME RESULT: 137 passed, 0 failed
+quality.log: exit=0 QUALITY RESULT: 22 passed, 0 failed

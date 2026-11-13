@@ -1,5 +1,10 @@
 # City expansion performance — measured v1.4.0
 
+> Current unreleased Linux quality results and the baseline comparison are in
+> [the Linux quality report](LINUX_QUALITY_PASS.md).
+> The release-specific results below are retained as historical evidence.
+
+
 Measured on the development machine, not a synthetic estimate. Raw data:
 `evidence/city_perf_1280x720.jsonl` and
 `evidence/city_perf_1920x1080.jsonl`.

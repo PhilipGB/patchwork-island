@@ -35,6 +35,7 @@ public partial class Hud : CanvasLayer
     private PanelContainer _promptPanel;
     private Label _promptKey;
     private Label _promptText;
+    private static readonly string[] DestinationArrows = { "▲", "↗", "→", "↘", "▼", "↙", "←", "↖" };
     private PanelContainer _toastPanel;
     private Label _toastLabel;
     private float _toastTime;
@@ -174,6 +175,13 @@ public partial class Hud : CanvasLayer
         _coinLabel.Text = text;
     }
 
+    /// <summary>Hide the town mission card/destination during an isolated lesson.</summary>
+    public void SetAcademyOverlay(bool active)
+    {
+        if (_missionCard != null) _missionCard.Visible = !active;
+        if (_destPanel != null) _destPanel.Visible = !active;
+    }
+
     public void SetNoMission()
     {
         _lastMissionIconName = "star";
@@ -211,13 +219,12 @@ public partial class Hud : CanvasLayer
                 if (row.IconName != icon)
                 {
                     row.Icon.Texture = Geo.IconTexture(icon);
-                    _missionRows[i] = (row.Icon, row.Text, icon, row.TextValue);
                 }
                 if (row.TextValue != text)
                 {
                     row.Text.Text = text;
-                    _missionRows[i] = (row.Icon, row.Text, row.IconName, text);
                 }
+                _missionRows[i] = (row.Icon, row.Text, icon, text);
             }
             return;
         }
@@ -249,7 +256,9 @@ public partial class Hud : CanvasLayer
         _lastPromptKey = key;
         _lastPromptText = action;
         _promptKey.Text = key;
-        _promptText.Text = action;
+        _promptText.Text = action.StartsWith(key + ":", StringComparison.OrdinalIgnoreCase)
+            ? action.Substring(key.Length + 1).TrimStart()
+            : action;
     }
 
     public void SetDestination(string label, float distance, int arrowIndex, string iconName)
@@ -269,8 +278,7 @@ public partial class Hud : CanvasLayer
             return;
 
         _destPanel.Visible = true;
-        string[] arrows = { "▲", "↗", "→", "↘", "▼", "↙", "←", "↖" };
-        _destArrow.Text = arrows[Mathf.Clamp(arrowIndex, 0, 7)];
+        _destArrow.Text = DestinationArrows[Mathf.Clamp(arrowIndex, 0, 7)];
         _destLabel.Text = text;
         _lastDestText = text;
         _lastDestArrow = arrowIndex;
@@ -450,6 +458,8 @@ public partial class Hud : CanvasLayer
     public string ToastText => _toastLabel?.Text ?? "";
 
     public bool ToastVisible => _toastPanel?.Visible == true;
+
+    internal string PromptActionText => _promptText?.Text ?? "";
 
     public string CoinText => _coinLabel?.Text ?? "";
 

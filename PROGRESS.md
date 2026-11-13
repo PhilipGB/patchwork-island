@@ -3021,3 +3021,264 @@ byte-identical and passed its boot and `--selftest-city` (**82/0**) checks. The
 Windows export is a self-contained PE32+ x86-64 executable reporting file and
 product version `1.4.0.0`; **Windows startup is NOT TESTED**. The release is
 marked pre-release so it does not replace v1.3.0 as the latest stable release.
+
+
+## Independent review — 2026-11-12
+
+Reviewed `a429791` at the user’s request; no gameplay source changed. Full findings and next steps: `docs/REPO_REVIEW_2026-11-12.md`. Evidence: `evidence/review_2026-11-12/`.
+
+- `dotnet build PatchworkIsland.sln`: PASS, zero warnings/errors.
+- `dotnet run --project tests/PatchworkIsland.Tests.csproj`: 132/0.
+- Runtime `--selftest`: 284/0; `--selftest-traversal`: 18/0; `--selftest-city`: 129/0. Successful runtime checks used `XDG_DATA_HOME=/tmp/patchwork-review-tests`.
+- First runtime attempt using the default home directory failed (150 passed / 4 failed, missing selftest save). That location is outside the sandbox writable roots. Isolated writable-directory rerun passed; initial failure log retained.
+- Graphical 720p test on Xvfb/llvmpipe: fresh title → character → M01 → three apple pickups → RED HOUSE → +10 coins. Separate prepared M03 scenario: real clicks placed 3 supports + 4 planks, opened bridge and awarded +20. Pause/resume and camera tested with real X input.
+- CONFIRMED defect: hold right mouse → pause → release right while paused → resume → unheld mouse motion still orbits. Before/after captures preserve identical player coordinates.
+- Code finding: GroceryUi and FurnitureShopUi are unparented Node controllers without explicit freeing. Repeated-open orphan-count soak remains unexecuted.
+- Observed visual/UX issues: jagged roof shadows, duplicate E keycap/prompt, inactive later-job objects competing with the first delivery.
+- Graphical verification gaps: no continuous all-mission playthrough, no Windows launch, no hardware GPU timing or audio listening (dummy driver), no child playtest. Other runtime phases were not rerun.
+- Recommended next: camera/lifetime fixes and regressions; continuous fresh-save and Windows playthrough; child usability sessions; shadow/clarity pass and frame-time profiling; incremental Main.cs extraction and release-document consolidation before more content.
+
+
+## Linux quality and architecture work — in progress (2026-11-12)
+
+User requested fixes, a Linux all-mission playthrough, clarity/performance work, then architectural decomposition and a PR. Branch: `fix/linux-quality-and-architecture`. Existing product feedback and sound acceptance are supplied by the user; no additional user playtest or audio sign-off is requested.
+
+- Initial sandbox runs had no `/dev/dri` and used Mesa llvmpipe. A later approved host probe confirmed physical AMD Radeon 890M access. Hardware baseline/current measurements are being captured separately; software timing is not presented as GPU timing.
+- Camera now consults physical right-button state instead of retaining drag state over pause; grocery/furniture UI controllers are ordinary C# classes; interaction key rendered once; locked mission pickups stop processing and no longer compete for focus. Camera ray query and destination-arrow storage are reused.
+- Graphical `--selftest-quality`: 7 passed / 0 failed, including held/released mouse behaviour and 60 modal opens/closes with unchanged orphan Node count. Headless positive-orbit attempt failed because its captured-mouse semantics differ; graphical verification replaced it. An initial camera assertion also compared a still-smoothing global transform; corrected to inspect orbit yaw. Logs will be preserved in final evidence.
+- `MissionMechanicContract` compares authored tuning to executable rules for all 21 village missions. Pure tests: 133 passed / 0 failed. First version of this new contract failed because it assumed swing socket names started with rope/seat; corrected to the authored s1_rope_l/s1_seat format.
+- Build temporarily failed when treating Godot Collections.Array as IDisposable; removed that invalid assumption. Subsequent build passed.
+- Linux end-to-end input driver has completed M01–M10 from a fresh save with real movement/E/menu/build clicks and normal rewards. It resumes the disposable save across harness fixes, never seeds counters or teleports. Early harness failures (build clicks using the captured OS cursor; van approach radius; FurnitureStation marker/name collision) are retained in /tmp logs for final evidence and are not labelled product defects. Chapter two is currently in progress.
+- Directional shadow atlas increased to 4096 and range reduced from 90 m to 60 m for local detail. Visual comparison and performance limits still need final reporting. No hardware performance gain is claimed.
+- Architectural refactor and PR are still outstanding.
+
+### Additional Linux findings and current verification
+
+- Input-driver progression has completed M01–M21 with normal UI rewards. Disposable save is under `/tmp/patchwork-walkthrough`; all city jobs still outstanding. Logs are `/tmp/walkthrough*.log`; do not present harness failures as game failures. Three explicit save/exit/Continue checkpoints preserved M15 pattern, M18 partial parts and M20 invitation state.
+- A genuine city pedestrian bug was reproduced independently: grounded player at `(351, -.059, 0)` walking left stopped at `(348.38, -.034, .053)`, unable to enter the raised central plaza. Baseline graphical regression `/tmp/curb-baseline.log` fails this assertion. A swept small-step implementation is now being verified in `/tmp/curb-fixed.log`; the all-mission driver is stopped pending the result.
+- Atlas/range changes did not sufficiently improve the wall shadow artifact and were reverted. Only the six town wall materials now disable received shadows; other scenery/ground shadows remain. 720p and actual 1920×1080 captures verified; 9 input/lifetime checks passed before adding the curb regression.
+- Shutdown leak traced with `--verbose` to active OGG playback. AudioManager stops playback during exit; subsequent verbose boot/quit has no leaked instances/resources warnings. Audio mix/assets unchanged.
+- Architecture has begun while city validation continues: MissionService is a compatibility facade (503 lines), CommunityMissionTasks (202) and FinaleMissionTasks (337) own cohesive activities; UI counters depend on the narrower handlers. GameSession centrally replaces data and binds village/city/activity services to the same save. Build clean; 134 pure tests passed. Main decomposition, broader SOLID review, full runtime phases, Linux export/profiling and PR remain outstanding.
+
+### Recovered final verification and architecture (2026-11-12)
+
+- The graphical input-driven fresh-save run completed all M01–M21 and C01–C03,
+  with normal rewards and 441 coins. M15, M18 and M20 were saved, exited and
+  resumed through Continue. Screenshots, raw driver failures and final save are
+  retained under `evidence/linux_quality_2026-11-12/`. This is an input driver,
+  not an uninterrupted human usability session.
+- A second, post-refactor graphical-backend replay with rendering disabled has
+  also completed all 24 missions and 441 coins. Its first M19 route aimed through
+  completed park furniture; the driver was corrected to drive around it and
+  Continue completed the run. No counters/money were seeded or actors teleported.
+- Final graphical `--selftest-quality` passed **17/0 at both 1280×720 and
+  1920×1080**. Covers camera release during pause, positive held-button orbit,
+  pickup priorities/visibility, a 60-shop orphan soak, four real grounded curb
+  approaches, collected-crate focus, tall-wall/headroom rejection and cancelling
+  a queued music fade on stop. Small-step traversal fixes the reproduced city bug.
+- Production Main is now 2,163 lines (from 6,062), MissionService 503 (from
+  1,128), CityActorPool 227 (from 661). GameSession is the live facade;
+  composition controllers and a HUD presenter own activities/presentation.
+  Mission activities, actor visuals, diagnostic fixtures and test phases are
+  split into focused files. See `docs/ARCHITECTURE.md` for boundaries and SOLID review.
+- All 134 pure tests passed. Build after isolated NuGet restore has zero warnings
+  and errors. A previous restore reused a read-only home HTTP cache and emitted
+  NU1900; force-restoring with a writable cache corrected the environment.
+- Linux export initially returned 0 despite a failed .NET publish: first a
+  read-only build-log directory, then .NET mutex storage under `/run/user/1000`.
+  Isolating XDG data/config/cache/runtime corrected both. Initial failed logs are
+  preserved; exit code alone is not treated as proof of a usable export.
+- Audio assets and mix are unchanged. Stopping a pending fade is now covered.
+  Title boot/quit is clean, but immediate test/process exit after gameplay can
+  still report native audio playback resources (WAV/OGG) at engine shutdown.
+  These warnings are retained and are not described as a clean full teardown.
+- Final source/package runtime suite, real-GPU measurements and PR results follow
+  in the Linux quality report when complete. Windows gameplay remains outside
+  the requested scope; existing CI jobs remain intact.
+
+### Hardware measurements and source gate
+
+- All twelve final source runtime phases passed: **1300/0**. Graphical regressions
+  remain **17/0** at 720p and 1080p; pure tests **134/0**.
+- Host hardware confirmed AMD Radeon 890M, Mesa 26.0.8 / OpenGL 4.6. Baseline
+  `a429791` plus identical measurement-only instrumentation was compared with
+  this branch at 720p and 1080p, with matched full-save fixtures and disabled
+  vsync. A final static-only sequential set excluded an early run overlapping
+  export. Allocation fell in every stage (~368–594 B/frame), but frame timings
+  vary; the +1 ms town budget and consistent 60 fps p95 are **not established**.
+  Current 1080p town p95 reached 19.08 ms in the second set.
+- Both physical city-return drives completed (~87.6 s). Current p95 11.93 ms;
+  max tracked LOD-window frame 23.58 ms. Seven frames exceeded 33 ms, with one
+  unattributed 241.74 ms maximum outside those windows. Cold activation also
+  stalls (startup ~2–3 s, first city approach up to ~0.53 s). No hitch-free or
+  uniformly faster rendering claim is made. These are full frame intervals on
+  hardware, not GPU timestamp queries. See `docs/LINUX_QUALITY_PASS.md` and raw
+  GPU evidence for exact tables, variation, counters and remaining profiling work.
+- The first GPU drive failed at x=48.71 on the diagnostic autopilot's river
+  guard. Profiling was corrected to use the approach/city route east of the
+  bridge; normal input-driven bridge crossing already passed. Failure retained.
+- Linux release export now completes without logged errors/warnings using
+  isolated writable XDG and NuGet caches. Final exported-binary checks are in
+  progress. No Windows gameplay verification or new release publication.
+
+### Final Linux package gate — PASS (functional checks)
+
+- The self-contained final Linux release executable booted and passed all twelve
+  runtime phases: **1300 passed / 0 failed**. Its graphical quality suite passed
+  **17/0** at 720p. Source graphical checks passed **17/0** at both resolutions;
+  pure tests passed **134/0**. Build/export have no final errors/warnings.
+- Local review executable: `/tmp/patchwork-quality-export/PatchworkIsland.x86_64`;
+  SHA-256 is recorded in the evidence directory. Gameplay source commit:
+  `b3295e8`. Subsequent commit consolidates docs/evidence only.
+- All rendered M01–M21/C01–C03 completion captures, final normal saves, positive
+  and failed harness/environment logs, GPU measurements/captures and native
+  shutdown warnings are retained in `evidence/linux_quality_2026-11-12/`.
+- Functional Linux checks pass. Performance release gates are not claimed:
+  variable 1080p timing, cold activation stalls and rare unclassified hitches
+  remain documented. No Windows gameplay or new audio sign-off is required by
+  this task; no release/tag is published.
+- Remote fetch initially failed on system SSH proxy configuration ownership.
+  Per-command `core.sshCommand=ssh -F /dev/null` works; no global SSH settings
+  changed. `origin/main` still matches the reviewed base.
+
+## P25 — v1.5.0 Driving Academy — PASS (implementation)
+
+- Added `scenes/academy/` (11 authored scenes), `ui/academy/icons/`, the
+  lesson content contract and the numbered cone yard.
+- School office/yard placed and scaled `0.75` at `(32, 48)` on the open south
+  lawn; footprint tested clear of island edges, buildings, stations and props.
+- Added schema 5 (v1–v4 migration with `LegacyVanPermit`), strict academy
+  validation, and `GameSession` rebinding for village, city and academy.
+- Added one-time 15-coin enrolment, repeatable 3-coin cone job, six spatial
+  lessons, free retries, final assessment (3 minor / 0 major), one-time 5-coin
+  graduation gift and persisted licence.
+- New v5 saves gate the regular van behind the earned licence; migrated saves
+  keep a legacy permit without a false licence.
+- Added isolated venue load/unload at `(2000, 0, 0)`, safe return/Resume,
+  academy HUD/UI, dedicated controller/service/rules and the C02 crate focus fix.
+- CI now runs source and exported-binary graphical checks under Xvfb with
+  disposable XDG directories.
+
+Final verification at the PR head (logs and hashes in `evidence/v15_academy/`):
+
+- Build: 0 warnings, 0 errors.
+- Pure tests: **145 passed, 0 failed**.
+- Source runtime, 13 phases: **1373 passed, 0 failed** (base 286, resume 21,
+  recovery 101, living 238, rally 10, chapter 217, hotfix 48, finale 140,
+  traversal 18, release 40, restore 54, city 138, academy 62).
+- Source graphical quality (Xvfb): **22 passed, 0 failed**.
+- Exported Linux binary: boot exit 0; all 13 phases **1373 passed, 0 failed**;
+  packaged graphical quality **22/22** and packaged graphical academy **62/62**.
+- Fresh-save graphical walkthrough: licence earned through real input, then
+  M01–M15 completed. Stopped at M16 on a pre-existing walkthrough
+  NPC-approach/route-planner limitation; recorded as **PARTIAL** for C03/E03,
+  not claimed as a full-campaign pass.
+- 720p/1080p evidence: 16 screenshots; GPU performance recorded on the AMD
+  Radeon 890M. Windows gameplay startup remains **NOT TESTED**.
+- PR #35 opened against #34's branch; #34 itself was not modified, merged,
+  tagged or released.
+- CI for the code head `a16f616`: `build-test` pass (17m23s) and
+  `windows-tests` pass (1m21s), including the packaged graphical quality and
+  packaged graphical academy steps. The commit that carries this note is
+  documentation-only; it re-runs the same gates without touching code.
+
+## P25 review follow-up — 2026-11-13 (verification in progress)
+
+- Confirmed the review's pedestrian initialisation bug. Stage selection now
+  precedes pedestrian configuration; stage changes remove the old actor, reset
+  restores its waiting position, and movement follows the authored crossing's
+  lateral axis rather than the traffic lane.
+- TEST01 now requires a lawful signal entry. Red/red+amber and amber with safe
+  stopping room produce a major error; the amber exception is latched at amber
+  onset using one second reaction time and 11 m/s² braking, not granted from
+  speed at the eventual crossing. Later signal changes cannot rewrite entry.
+- Replaced the final crossing's X-only bypass with entry, traversal and clear
+  through the authored marker-local rectangle in the forward direction.
+- Added actual scene-tree presence/movement/yield/offence/reset checks in L04
+  and TEST01, school-UI entry checks, red/red+amber/unsafe-amber denial,
+  unavoidable-amber acceptance, green acceptance, wide-detour, reverse and
+  side-exit regressions. Targeted source academy: **92 passed, 0 failed**;
+  build and pure suite pass. Full source/exported/graphical rerun pending.
+- Prior `source/head.txt` incorrectly captured the pre-commit base while the
+  academy was in the working tree. Original logs do not embed a source hash;
+  do not infer an exact historical local revision from them. CI run 43310792796
+  separately verified committed academy code at `a16f616`; `122654c` was the
+  final documentation-only head. Fresh evidence will name the new committed
+  code head before running tests and exporting.
+- No merge, retarget, tag or release. PR #34 remains open at `db7a7db`.
+- First full rerun at `3fd0bc4`: pure 146; source and packaged runtime 1403
+  each; source/packaged graphical quality 22 each; packaged graphical academy
+  92; all exit 0. Close-up review then exposed a white pedestrian: its supplied
+  GLB needs the existing vertex-colour material helper. Applied that helper,
+  added a material regression in both stages, and corrected the amber HUD hint
+  (previously masked by the generic stop-light branch). Full rerun required.
+
+### Final review verification — PASS
+
+- Tested code: `58699c6dd268d67ce512ccf99a62a0aeff47c0ef`. Source and packaged
+  `head.txt` files were written before execution; the subsequent evidence commit
+  changes documentation/logs/captures only.
+- `dotnet build PatchworkIsland.sln`: 0 warnings/errors; pure **146/146**;
+  Godot headless import and source/packaged boot: exit 0.
+- All 13 source phases: **1405 passed, 0 failed**. All 13 packaged phases:
+  **1405 passed, 0 failed**. Academy is now **94/94** in both.
+- Source graphical quality **22/22**, packaged graphical quality **22/22**,
+  packaged graphical academy **94/94**, all under Xvfb with disposable XDG
+  directories. The exported binary's SHA-256 is in `packaged/hash.txt`.
+- Refreshed 18 captures at 720p/1080p. Inspected the close-up pedestrian capture:
+  visible, coloured actor on the zebra crossing. Captures use developer state
+  setup and do not substitute for gameplay assertions.
+- CI at `58699c6`: `build-test` PASS (18m37s), `windows-tests` PASS (1m10s),
+  run https://github.com/PhilipGB/patchwork-island/actions/runs/43336549763.
+- Evidence provenance corrected without inventing a historical local hash.
+  `PROVENANCE.md` distinguishes old local logs, confirmed original CI code head
+  `a16f616`, reviewed documentation head `122654c`, and the newly tested code.
+- Remaining gaps: corrected-code real-input academy/full-campaign walkthrough
+  not repeated; retained old walkthrough stops at M16 and predates these fixes.
+  Performance numbers are historical pre-review measurements, not re-profiled.
+  Windows gameplay startup and human/child usability remain NOT TESTED.
+- No merge, retarget, tag or release; #34 is unchanged.
+
+## P25 follow-up review — finite signal segment and full R retry (in progress)
+
+- Replaced the infinite world-Z signal plane with authored marker-local width
+  and approach bounds (11 m segment, 16 m approach). Directed traversal must
+  pass from that approach through local Z=0 towards -Z within the lane. Side
+  re-entry downstream cannot latch green. The stop hold and amber exception now
+  use the same authored frame.
+- R and pause-menu restart now reuse the complete stage initialiser, clearing
+  major/minor penalties and pending speed warnings as well as checkpoints,
+  signal/crossing history, timers and car position. UI explicitly calls this a
+  fresh attempt, not vehicle-only recovery. No save-schema/economy changes.
+- Added both-side lateral bypass and downstream re-entry regressions in L04
+  and TEST01, wrong-direction checks, full crossing/parking denial after bypass,
+  actual R input after safety offences, and clean completion after restart.
+  TEST01 creates a genuine minor note and pending warning via speeding before
+  R; no penalty-counter injection. The R checks also preserve wallet, enrolment,
+  lesson progress and assessment-attempt count.
+- Targeted build/pure suite pass; source academy **137 passed, 0 failed**,
+  including both distant and just-outside-endpoint signal bypass cases. Full
+  committed-code source/exported/graphical verification pending.
+
+### Follow-up final verification — PASS
+
+- Tested code: `c6cb6b1f1ac27b191defa0390021202484b798c6`, recorded in both
+  source/packaged `head.txt` before execution. Later evidence commit changes
+  only documentation, logs, captures and checksums.
+- Build: 0 warnings/errors; pure **146/146**; headless import and source/
+  packaged boot exit 0. All 13 source phases **1448/1448**, all 13 packaged
+  phases **1448/1448**. Academy is **137/137** in each.
+- Source graphical quality **22/22**, packaged graphical quality **22/22**,
+  packaged graphical academy **137/137** under Xvfb, disposable XDG directories.
+  Export SHA-256 refreshed in `packaged/hash.txt`; 18 captures refreshed at
+  720p/1080p; evidence checksum manifest regenerated and checked.
+- Code-head CI PASS: `build-test` 21m21s, `windows-tests` 1m14s, run
+  https://github.com/PhilipGB/patchwork-island/actions/runs/43346220053.
+- The R regressions use actual key input, include a real speeding minor and
+  partial speed-warning timer, preserve wallet/enrolment/lesson progress, and
+  subsequently finish L04 and earn the licence without exiting the venue.
+  Signal detours are checked at X=±12 m and ±5.75 m (just outside the authored
+  ±5.5 m endpoints), plus downstream re-entry and reverse-direction traversal.
+- Historical real-input full-campaign and performance limitations, Windows
+  startup and human usability gaps remain unchanged and explicitly unverified.
+- No merge, retarget, tag or release. PR #34 remains untouched at `db7a7db`.

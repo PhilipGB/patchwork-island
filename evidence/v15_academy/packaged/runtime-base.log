@@ -1,0 +1,297 @@
+COMMAND: /home/philip/.cache/tmp/opencode/pr35-verified-d8ociq8_/export/PatchworkIsland.x86_64 --headless --audio-driver Dummy -- --selftest
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+
+[WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 158 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.
+[CITY SCENE] res://scenes/city/CityDistrict.tscn: 36 buildings, 36 HLOD proxies, 9 cells, 15 job markers, 4 vehicle routes, 11 pedestrian routes.
+PASS  world is the canonical Town.tscn scene
+PASS  all 75 authored gameplay anchors resolve
+PASS  canonical town keeps its authored top-level roots
+PASS  scene-owned BROKEN swing labels resolve
+PASS  PlaygroundCenter anchor follows the authored playground root
+PASS  playground worksite marker stays inside the authored sand
+PASS  playground interaction station follows the scene-owned worksite marker
+PASS  anchor 'PlayerSpawn' has a usable transform
+PASS  anchor 'VanSpawn' has a usable transform
+PASS  anchor 'JobBoard' has a usable transform
+PASS  anchor 'PlayerHouseDoor' has a usable transform
+PASS  anchor 'TownHallDoor' has a usable transform
+PASS  anchor 'RedHouseDoor' has a usable transform
+PASS  anchor 'ShopDoor' has a usable transform
+PASS  anchor 'ClothesShopDoor' has a usable transform
+PASS  anchor 'WorkshopDoor' has a usable transform
+PASS  anchor 'BridgeSite' has a usable transform
+PASS  anchor 'BridgeCenter' has a usable transform
+PASS  anchor 'RepairCarPosition' has a usable transform
+PASS  anchor 'HousePad_0' has a usable transform
+PASS  anchor 'ParkPad_0' has a usable transform
+PASS  anchor 'GardenPad_0' has a usable transform
+PASS  anchor 'FestivalTable_0' has a usable transform
+PASS  anchor 'DeliveryBoard' has a usable transform
+PASS  anchor 'MarketStock' has a usable transform
+PASS  anchor 'RallyPodium' has a usable transform
+PASS  PlayerHouse scene root exists
+PASS  PlayerHouse DoorMarker resolves
+PASS  PlayerHouse DoorMarker travels with its building
+PASS  TownHall scene root exists
+PASS  TownHall DoorMarker resolves
+PASS  TownHall DoorMarker travels with its building
+PASS  RedHouse scene root exists
+PASS  RedHouse DoorMarker resolves
+PASS  RedHouse DoorMarker travels with its building
+PASS  Market scene root exists
+PASS  Market DoorMarker resolves
+PASS  Market DoorMarker travels with its building
+PASS  ClothesShop scene root exists
+PASS  ClothesShop DoorMarker resolves
+PASS  ClothesShop DoorMarker travels with its building
+[SCENE BINDING] ClothesShop centre=(24, 0, 7) door=(24, 0, 3.5)
+PASS  Workshop scene root exists
+PASS  Workshop DoorMarker resolves
+PASS  Workshop DoorMarker travels with its building
+PASS  market sign socket is scene-owned
+PASS  workshop sign socket is scene-owned
+PASS  green sign socket is scene-owned
+PASS  NPC patrol markers are scene-owned
+PASS  free-roam traffic markers are scene-owned
+PASS  scene NPC route 'milo' resolves
+PASS  scene NPC route 'ada' resolves
+PASS  scene NPC route 'pip' resolves
+PASS  scene NPC route 'fern' resolves
+PASS  scene NPC route 'ollie' resolves
+PASS  scene NPC route 'ivy' resolves
+PASS  both free-roam traffic routes resolve from scene markers
+PASS  player visual comes from the authored boy template
+PASS  delivery van visual comes from the authored van template
+PASS  NPC 'milo' uses its authored GLB template
+PASS  NPC 'ada' uses its authored GLB template
+PASS  NPC 'pip' uses its authored GLB template
+PASS  NPC 'fern' uses its authored GLB template
+PASS  NPC 'ollie' uses its authored GLB template
+PASS  NPC 'ivy' uses its authored GLB template
+PASS  town traffic uses the authored green town-car template
+PASS  delivery traffic uses the authored blue town-car template
+PASS  pickup template 'apple=Pickup_Apple.tscn' is active
+PASS  pickup template 'wood=Pickup_Wood.tscn' is active
+PASS  pickup template 'stone=Pickup_Stone.tscn' is active
+PASS  pickup template 'blue_parcel=Pickup_Parcel.tscn' is active
+PASS  pickup template 'orange_parcel=Pickup_Parcel.tscn' is active
+PASS  pickup template 'book_sun=Pickup_Book.tscn' is active
+PASS  pickup template 'tyre=Pickup_RepairTyre.tscn' is active
+PASS  pickup template 'lamp=Pickup_RepairLamp.tscn' is active
+PASS  pickup template 'battery=Pickup_RepairBattery.tscn' is active
+PASS  four-gate rally root resolves
+PASS  six-gate M19 root resolves
+PASS  four-gate checkpoint 1 has a usable position
+PASS  four-gate checkpoint 1 has a usable yaw
+PASS  four-gate checkpoint 2 has a usable position
+PASS  four-gate checkpoint 2 has a usable yaw
+PASS  four-gate checkpoint 3 has a usable position
+PASS  four-gate checkpoint 3 has a usable yaw
+PASS  four-gate checkpoint 4 has a usable position
+PASS  four-gate checkpoint 4 has a usable yaw
+PASS  M19 checkpoint 1 has a usable position
+PASS  M19 checkpoint 1 has a usable yaw
+PASS  M19 checkpoint 2 has a usable position
+PASS  M19 checkpoint 2 has a usable yaw
+PASS  M19 checkpoint 3 has a usable position
+PASS  M19 checkpoint 3 has a usable yaw
+PASS  M19 checkpoint 4 has a usable position
+PASS  M19 checkpoint 4 has a usable yaw
+PASS  M19 checkpoint 5 has a usable position
+PASS  M19 checkpoint 5 has a usable yaw
+PASS  M19 checkpoint 6 has a usable position
+PASS  M19 checkpoint 6 has a usable yaw
+PASS  broken Pip car starts visible
+PASS  fixed Pip car starts hidden
+PASS  delivery board starts hidden
+PASS  market stock starts hidden
+PASS  rally podium starts hidden
+PASS  festival bunting starts hidden
+PASS  celebration bunting starts hidden
+PASS  gold lap flag starts hidden
+PASS  four-gate rally starts visible
+PASS  six-gate rally starts hidden
+PASS  empty build ghosts and their labels stay hidden outside build mode
+PASS  broken-bridge barrier starts visible
+PASS  playground repair sign starts visible
+PASS  bakery display slot 'milo' is scene-owned
+PASS  bakery display slot 'fern' is scene-owned
+PASS  bakery display slot 'ivy' is scene-owned
+PASS  library slot 'sun' is scene-owned
+PASS  library slot 'moon' is scene-owned
+PASS  library slot 'tree' is scene-owned
+PASS  library slot 'star' is scene-owned
+PASS  main road has layer-1 collision
+PASS  river remains an open collision gap before the bridge is built
+PASS  player-house wall retains layer-1 collision
+PASS  player-house doorway keeps its layer-16 camera blocker
+PASS  starts on the title screen
+PASS  title screen keeps the world paused
+PASS  title control mode
+PASS  player is pausable
+PASS  van is pausable
+PASS  world is pausable
+PASS  audio buses exist
+PASS  title music context starts
+PASS  title music stream is playing
+PASS  title music playback position advances
+PASS  music starts unmuted
+PASS  title opens settings
+PASS  title settings remains paused
+PASS  settings returns to the title screen
+PASS  fresh self-test has no continue
+PASS  new game opens the character chooser
+PASS  character chooser keeps the title safe and paused
+PASS  the real character Cancel button works
+PASS  cancelling the fresh character chooser returns to the title
+PASS  cancelling a fresh character chooser writes no save
+PASS  character chooser opens again after Cancel
+PASS  the real Play as Boy button works
+PASS  real button press triggers the UI sound cue
+PASS  rally road has a dense continuous mesh
+PASS  rally circuit is larger than the old meadow loop
+PASS  rally collision covers the loop (52/52)
+PASS  choosing Boy starts the new game and stores the preset
+PASS  boy appearance is applied to the player
+PASS  new game starts in the free Everyday outfit
+PASS  the chosen boy preset is saved at the current schema
+PASS  the saved boy session offers Continue
+PASS  Continue restores the chosen boy appearance
+PASS  existing save asks before replacement
+PASS  the real replacement confirm button works
+PASS  confirming replacement opens the character chooser
+PASS  the real Cancel button closes the replacement chooser
+PASS  cancelling replacement returns to the title and keeps Continue
+PASS  cancelling replacement leaves the previous save untouched
+PASS  Continue after a cancelled replacement restores the boy session
+PASS  existing save asks before the girl choice
+PASS  replacement confirmation opens for Girl
+PASS  character chooser opens after replacement confirmation
+PASS  the real Play as Girl button works
+PASS  choosing Girl starts the new game and stores the preset
+PASS  girl appearance is applied to the player
+PASS  girl new game starts in the free Everyday outfit
+PASS  the chosen girl preset is saved at Save failed (recoverable I/O): System.IO.IOException: injected clothes-shop save failure
+   at PatchworkIsland.SaveService.InjectTestWriteFailure(String path) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 57
+   at PatchworkIsland.SaveService.Save(GameData data, String path, MissionCatalog catalog, Boolean allowNewerReplacement) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 94
+   at PatchworkIsland.SaveService.TrySave(GameData data, String path, MissionCatalog catalog, Boolean allowNewerReplacement) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Core/SaveService.cs:line 127
+the current schema
+PASS  Continue restores the chosen girl appearance
+PASS  start resumes walking
+PASS  walking owns player input only
+PASS  player moves when unpaused
+PASS  roaming selects village music
+PASS  music toggle mutes the music bus
+PASS  music toggle restores the music bus
+PASS  sound toggle mutes SFX, UI and vehicle buses
+PASS  sound toggle restores SFX, UI and vehicle buses
+PASS  six named villagers are present
+PASS  villager names are readable
+PASS  villager 'milo' present
+PASS  villager 'milo' has a name label
+PASS  villager 'milo' is pausable
+PASS  villager 'ada' present
+PASS  villager 'ada' has a name label
+PASS  villager 'ada' is pausable
+PASS  villager 'pip' present
+PASS  villager 'pip' has a name label
+PASS  villager 'pip' is pausable
+PASS  villager 'fern' present
+PASS  villager 'fern' has a name label
+PASS  villager 'fern' is pausable
+PASS  villager 'ollie' present
+PASS  villager 'ollie' has a name label
+PASS  villager 'ollie' is pausable
+PASS  villager 'ivy' present
+PASS  villager 'ivy' has a name label
+PASS  villager 'ivy' is pausable
+PASS  at least one villager walks its verified patrol
+PASS  Ada has the nearest E interaction
+PASS  E opens Ada's conversation
+PASS  Ada stops and talks while the dialogue is open
+PASS  closing the dialogue resumes Ada's patrol
+PASS  two active NPC-driven vehicles
+PASS  both free-roam traffic routes are active
+PASS  NPC vehicle engine audio exists
+PASS  traffic 'town_scooter' starts on the road
+PASS  traffic 'town_scooter' is moving
+PASS  traffic 'delivery_car' starts on the road
+PASS  traffic 'delivery_car' is moving
+PASS  scooter yields to the player
+PASS  scooter slows to a safe stop
+PASS  scooter resumes after the player moves
+PASS  villager 'milo' pauses with the world
+PASS  villager 'ada' pauses with the world
+PASS  villager 'pip' pauses with the world
+PASS  villager 'fern' pauses with the world
+PASS  villager 'ollie' pauses with the world
+PASS  villager 'ivy' pauses with the world
+PASS  traffic 'town_scooter' pauses with the world
+PASS  traffic 'delivery_car' pauses with the world
+PASS  pause modal opens
+PASS  pause owns the world
+PASS  pause disables gameplay input
+PASS  player physics stops while paused
+PASS  pause opens settings
+PASS  settings stays paused
+PASS  settings returns to pause without unpausing
+PASS  resume returns to walking
+PASS  new-game confirmation opens
+PASS  cancelling new game returns to pause
+PASS  new game persists successfully
+PASS  new game resumes walking
+PASS  new game resets wallet, missions and active job
+PASS  new game keeps the chosen preset and clears outfits
+PASS  automatic save path succeeds
+PASS  completion modal opens
+PASS  completion modal pauses gameplay
+PASS  closing completion resumes walking
+PASS  M01 coins are visible and available to spend
+PASS  clothes-shop prompt follows its scene-owned door
+PASS  clothes shop opens
+PASS  clothes shop pauses the village
+PASS  the real Sunny Day Buy button works
+PASS  outfit price deducted once and shown in the wallet
+PASS  bought outfit is owned and worn
+PASS  equipped outfit visibly refreshes the player model
+PASS  girl silhouette survives an outfit change
+PASS  focusing an outfit preview control works
+PASS  focusing an outfit updates the preview
+PASS  an unaffordable outfit still has a selectable preview control
+PASS  pressing Preview shows the unaffordable outfit
+PASS  the preview shows the selected outfit price
+PASS  the preview shows the current coin balance
+PASS  the preview clearly reports insufficient coins
+PASS  previewing changes neither the equipped outfit, wallet nor ownership
+PASS  unaffordable outfit button is disabled
+PASS  insufficient coins are refused by the domain
+PASS  refused purchase changes neither wallet nor ownership
+PASS  already-worn outfit cannot be bought twice
+PASS  owned outfit cannot be bought twice
+PASS  unowned outfit cannot be equipped
+PASS  the real Everyday Wear button works
+PASS  a failed clothes save still applies the outfit for this session
+PASS  wearing an owned outfit is free
+PASS  a failed clothes-shop save shows its error in the modal
+PASS  the first owned shop outfit can be re-worn
+PASS  owned shop outfit re-equipped through the shop UI
+PASS  re-equipping spends no extra coins
+PASS  a later successful clothes save clears the previous error message
+PASS  leaving the shop resumes walking
+PASS  a new v5 save starts without regular van access
+PASS  the regular van is gated behind the driving licence
+PASS  entering the van switches control
+PASS  player is hidden while driving
+PASS  van has engine audio players
+PASS  van engine audio starts with the vehicle
+PASS  race state prepared for timer test
+PASS  race timer does not advance while paused
+PASS  van does not move while paused
+PASS  driving pause releases van input
+PASS  driving resumes after pause
+PASS  race timer resumes after pause
+PASS  van drives after resume
+PASS  player exits the van
+PASS  re-entered van for save
+PASS  manual save succeeds while driving
+RUNTIME RESULT: 286 passed, 0 failed

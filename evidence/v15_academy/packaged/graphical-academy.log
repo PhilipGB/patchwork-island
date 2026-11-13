@@ -1,0 +1,148 @@
+COMMAND: xvfb-run --auto-servernum --server-args=-screen 0 1280x800x24 /home/philip/.cache/tmp/opencode/pr35-verified-d8ociq8_/export/PatchworkIsland.x86_64 --audio-driver Dummy -- --selftest-academy
+WARNING: Failed to create wd.xic as the input method or its xim server may not have started yet.
+     at: _create_xic (platform/linuxbsd/x11/display_server_x11.cpp:6347)
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+     at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:372)
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 26.0.8-1ubuntu0.3 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 21.1.8, 256 bits)
+
+[WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 158 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.
+[CITY SCENE] res://scenes/city/CityDistrict.tscn: 36 buildings, 36 HLOD proxies, 9 cells, 15 job markers, 4 vehicle routes, 11 pedestrian routes.
+PASS  academy test starts a fresh v5 game
+PASS  academy starts unloaded
+PASS  fresh v5 save has neither a legacy permit nor a licence
+PASS  authored academy contract loads six lessons and 27 markers
+PASS  school approach sits on the measured south-lawn site
+PASS  school opens its own board
+PASS  zero-coin player cannot enrol until the cone job pays
+PASS  physical cone 1 is present
+PASS  physical cone 2 is present
+PASS  physical cone 3 is present
+PASS  physical cone 1 is present
+PASS  physical cone 2 is present
+PASS  physical cone 3 is present
+PASS  physical cone 1 is present
+PASS  physical cone 2 is present
+PASS  physical cone 3 is present
+PASS  physical cone 1 is present
+PASS  physical cone 2 is present
+PASS  physical cone 3 is present
+PASS  physical cone 1 is present
+PASS  physical cone 2 is present
+PASS  physical cone 3 is present
+PASS  five physical cone rounds pay exactly 15 coins
+PASS  helper rounds are persisted
+PASS  enrol button works at 15 coins
+PASS  one-time 15-coin enrolment is deducted exactly once
+PASS  school reopens after enrolment
+PASS  L01 start button works
+PASS  L01 loads the isolated venue
+PASS  course exposes all authored markers
+PASS  academy venue is physically isolated from town, city and rally
+PASS  authored road surface supports the car at (-60, 0, -68)
+PASS  authored road surface supports the car at (60, 0, -68)
+PASS  authored road surface supports the car at (60, 0, 60)
+PASS  authored road surface supports the car at (-60, 0, 60)
+PASS  authored road surface supports the car at (-35, 0, 36)
+PASS  authored road surface supports the car at (37, 0, 36)
+PASS  active lesson is persisted
+PASS  L01 passing speed advances the step
+PASS  L01 completes after a held stop
+PASS  mid-lesson exit keeps L02 resumable
+PASS  town player snapshot stays inside the valid world bounds
+PASS  resume button appears
+PASS  L02 resumes safely
+PASS  L02 ordered gates complete
+PASS  L03 requires a held stop before the line
+PASS  L04 enters from school UI
+PASS  L04 green crossing outside stop-line segment (-12 m) cannot latch entry
+PASS  L04 downstream side re-entry cannot launder the lateral bypass (-12 m)
+PASS  L04 lateral signal bypass (-12 m) cannot complete the lesson
+PASS  L04 reverse-direction traversal cannot satisfy the signal (-12 m fixture)
+PASS  L04 green crossing outside stop-line segment (-5.75 m) cannot latch entry
+PASS  L04 downstream side re-entry cannot launder the lateral bypass (-5.75 m)
+PASS  L04 lateral signal bypass (-5.75 m) cannot complete the lesson
+PASS  L04 reverse-direction traversal cannot satisfy the signal (-5.75 m fixture)
+PASS  L04 green crossing outside stop-line segment (5.75 m) cannot latch entry
+PASS  L04 downstream side re-entry cannot launder the lateral bypass (5.75 m)
+PASS  L04 lateral signal bypass (5.75 m) cannot complete the lesson
+PASS  L04 reverse-direction traversal cannot satisfy the signal (5.75 m fixture)
+PASS  L04 green crossing outside stop-line segment (12 m) cannot latch entry
+PASS  L04 downstream side re-entry cannot launder the lateral bypass (12 m)
+PASS  L04 lateral signal bypass (12 m) cannot complete the lesson
+PASS  L04 reverse-direction traversal cannot satisfy the signal (12 m fixture)
+PASS  L04 creates a visible crossing pedestrian after selecting stage
+PASS  L04 pedestrian displays the authored vertex colours
+PASS  L04 pedestrian actually moves across the lane
+PASS  L04 waiting at occupied crossing is safe
+PASS  L04 moving through occupied crossing is a major offence even reversing
+PASS  L04 crossing offence is counted once
+PASS  L04 R clears every penalty/checkpoint without charging or discarding progression
+PASS  L04 reset restores the waiting pedestrian
+PASS  L04 clean green/crossing attempt completes after R clears the offence
+PASS  switching to parking removes the crossing pedestrian
+PASS  L05 reverse distance is measured
+PASS  L05 parks inside the bay
+PASS  L06 visits all checkpoints in order
+PASS  TEST01 green crossing outside stop-line segment (-12 m) cannot latch entry
+PASS  TEST01 downstream side re-entry cannot launder the lateral bypass (-12 m)
+PASS  TEST01 lateral signal bypass (-12 m), crossing and parking cannot earn a licence
+PASS  TEST01 reverse-direction traversal cannot satisfy the signal (-12 m fixture)
+PASS  TEST01 green crossing outside stop-line segment (-5.75 m) cannot latch entry
+PASS  TEST01 downstream side re-entry cannot launder the lateral bypass (-5.75 m)
+PASS  TEST01 lateral signal bypass (-5.75 m), crossing and parking cannot earn a licence
+PASS  TEST01 reverse-direction traversal cannot satisfy the signal (-5.75 m fixture)
+PASS  TEST01 green crossing outside stop-line segment (5.75 m) cannot latch entry
+PASS  TEST01 downstream side re-entry cannot launder the lateral bypass (5.75 m)
+PASS  TEST01 lateral signal bypass (5.75 m), crossing and parking cannot earn a licence
+PASS  TEST01 reverse-direction traversal cannot satisfy the signal (5.75 m fixture)
+PASS  TEST01 green crossing outside stop-line segment (12 m) cannot latch entry
+PASS  TEST01 downstream side re-entry cannot launder the lateral bypass (12 m)
+PASS  TEST01 lateral signal bypass (12 m), crossing and parking cannot earn a licence
+PASS  TEST01 reverse-direction traversal cannot satisfy the signal (12 m fixture)
+PASS  Red unlawful entry is major and cannot advance final signal checkpoint
+PASS  Red entry cannot be laundered by later green, crossing and parking
+PASS  Red R clears the signal penalty and restarts the assessment
+PASS  Red clean green signal entry works after R without exiting the venue
+PASS  RedAmber unlawful entry is major and cannot advance final signal checkpoint
+PASS  RedAmber entry cannot be laundered by later green, crossing and parking
+PASS  RedAmber R clears the signal penalty and restarts the assessment
+PASS  RedAmber clean green signal entry works after R without exiting the venue
+PASS  Amber unlawful entry is major and cannot advance final signal checkpoint
+PASS  Amber entry cannot be laundered by later green, crossing and parking
+PASS  Amber R clears the signal penalty and restarts the assessment
+PASS  Amber clean green signal entry works after R without exiting the venue
+PASS  Amber with room to stop unlawful entry is major and cannot advance final signal checkpoint
+PASS  Amber with room to stop entry cannot be laundered by later green, crossing and parking
+PASS  Amber with room to stop R clears the signal penalty and restarts the assessment
+PASS  Amber with room to stop clean green signal entry works after R without exiting the venue
+PASS  amber onset too close to stop safely allows lawful entry
+PASS  later red does not penalise an already lawful entry
+PASS  final test enters from school UI
+PASS  TEST01 creates a visible crossing pedestrian after selecting stage
+PASS  TEST01 pedestrian displays the authored vertex colours
+PASS  TEST01 pedestrian actually moves across the lane
+PASS  TEST01 waiting at occupied crossing is safe
+PASS  TEST01 moving through occupied crossing is a major offence even reversing
+PASS  TEST01 crossing offence is counted once
+PASS  TEST01 restart fixture contains major, minor and pending speed warning
+PASS  TEST01 R clears every penalty/checkpoint without charging or discarding progression
+PASS  TEST01 reset restores the waiting pedestrian
+PASS  test holds at the stop line
+PASS  wide detour cannot bypass final crossing
+PASS  bypass followed by parking cannot earn a licence
+PASS  wrong-direction crossing does not advance
+PASS  side exit invalidates crossing entry
+PASS  green entry and bounded forward crossing safely reach parking
+PASS  final assessment issues the official licence after R clears the failed attempt
+PASS  five-coin graduation gift is paid once
+PASS  licence unlocks the regular van
+PASS  practice test can be replayed
+PASS  practice test pays no coins
+PASS  licence and six lessons persist on schema 5
+PASS  graduation gift survives reload without duplication
+PASS  30 school returns leave no course, collision or HUD orphan
+PASS  school returns do not accumulate scene nodes
+PASS  return restores the walking player
+PASS  return position is safe and in town
+RUNTIME RESULT: 137 passed, 0 failed

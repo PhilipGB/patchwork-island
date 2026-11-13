@@ -1,0 +1,49 @@
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+
+[WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 156 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.
+[CITY SCENE] res://scenes/city/CityDistrict.tscn: 36 buildings, 36 HLOD proxies, 9 cells, 15 job markers, 4 vehicle routes, 11 pedestrian routes.
+[WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 156 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.
+[CITY SCENE] res://scenes/city/CityDistrict.tscn: 36 buildings, 36 HLOD proxies, 9 cells, 15 job markers, 4 vehicle routes, 11 pedestrian routes.
+PASS  release test starts at the title after the v1.1 save load
+PASS  v1.1 save offers Continue
+PASS  v1.1 save continues
+PASS  v1.1 coins preserved
+PASS  v1.1 girl preset preserved
+PASS  v1.1 outfit preserved
+PASS  original celebration is preserved and the new finale starts unseen
+PASS  v1.1 bridge world state restored
+PASS  M10 remains complete
+PASS  M11 unlocks immediately on the v1.1 save
+PASS  M12 still waits for M11
+PASS  original ten-job celebration does not repeat
+PASS  migrated save reaches the job board
+PASS  migrated save opens the job board
+PASS  M11 Start is offered on the migrated save
+PASS  M11 starts from the migrated save
+PASS  M11 stock is granted on the migrated save
+PASS  migrated save writes at schema 3
+PASS  Save loaded.
+PASS  migrated save is schema 3
+PASS  migrated save keeps the wallet
+PASS  migrated save keeps active M11
+[WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 156 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.
+[CITY SCENE] res://scenes/city/CityDistrict.tscn: 36 buildings, 36 HLOD proxies, 9 cells, 15 job markers, 4 vehicle routes, 11 pedestrian routes.
+PASS  v1.2.1 fixture starts at the title
+PASS  v1.2.1 save offers Continue
+PASS  v1.2.1 save continues
+PASS  v1.2.1 wallet restores at exactly 158 coins
+PASS  v1.2.1 girl preset restores
+PASS  v1.2.1 owned and equipped outfits restore
+PASS  v1.2.1 celebration state restores without replaying the finale
+PASS  v1.2.1 bridge pieces restore the built crossing and hide the barrier
+PASS  v1.2.1 swing pieces restore the fixed playground
+PASS  v1.2.1 village-green placements restore visually
+PASS  v1.2.1 house furniture placements restore visually
+PASS  v1.2.1 mission state restores and opens chapter two
+PASS  v1.2.1 idle session restores without an active job
+PASS  v1.2.1 player transform restores
+PASS  v1.2.1 van transform restores
+PASS  v1.2.1 walking session restores out of the van
+PASS  unfinished M18 car stays broken
+PASS  the original ten-job celebration does not replay on Continue
+RUNTIME RESULT: 40 passed, 0 failed

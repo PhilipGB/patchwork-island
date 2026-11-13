@@ -1,0 +1,53 @@
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+WARNING: Failed to create wd.xic as the input method or its xim server may not have started yet.
+     at: _create_xic (platform/linuxbsd/x11/display_server_x11.cpp:6347)
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+     at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:372)
+OpenGL API 4.5 (Core Profile) Mesa 26.0.8-1ubuntu0.3 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 21.1.8, 256 bits)
+libpulse.so.0: cannot open shared object file: No such file or directory
+libpulse.so.0: cannot open shared object file: No such file or directory
+ALSA lib confmisc.c:855:(parse_card) [error.core] cannot find card '0'
+ALSA lib conf.c:5211:(_snd_config_evaluate) [error.core] function snd_func_card_inum returned error: No such file or directory
+ALSA lib confmisc.c:422:(snd_func_concat) [error.core] error evaluating strings
+ALSA lib conf.c:5211:(_snd_config_evaluate) [error.core] function snd_func_concat returned error: No such file or directory
+ALSA lib confmisc.c:1342:(snd_func_refer) [error.core] error evaluating name
+ALSA lib conf.c:5211:(_snd_config_evaluate) [error.core] function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5734:(snd_config_expand) [error.core] Evaluate error: No such file or directory
+ALSA lib pcm.c:2722:(snd_pcm_open_noupdate) [error.pcm] Unknown PCM default
+ERROR: Condition "status < 0" is true. Returning: ERR_CANT_OPEN
+   at: init_output_device (drivers/alsa/audio_driver_alsa.cpp:97)
+WARNING: All audio drivers failed, falling back to the dummy driver.
+     at: initialize (servers/audio/audio_server.cpp:258)
+
+[WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 156 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.
+[CITY SCENE] res://scenes/city/CityDistrict.tscn: 36 buildings, 36 HLOD proxies, 9 cells, 15 job markers, 4 vehicle routes, 11 pedestrian routes.
+PLAYTHROUGH M15: starting pos=(31.25814, -0.042843543, 19.000002)
+PLAYTHROUGH M15: walk to GardenPadStation_0 (26, 0.19, 20.8) pos=(31.25814, -0.042843543, 19.000002)
+PLAYTHROUGH M15: walk to GardenPadStation_1 (29, 0.19, 20.8) pos=(26.276524, -0.042843543, 19.000002)
+PLAYTHROUGH M15: walk to GardenPadStation_2 (32, 0.19, 20.8) pos=(28.10651, -0.042843543, 19.000002)
+PLAYTHROUGH M15: walk to GardenPadStation_3 (26, 0.19, 23.4) pos=(31.359814, -0.042843543, 19.000002)
+PLAYTHROUGH M15: nearest was GardenPadStation_4 pos=(28.243795, -0.042843543, 22.36938)
+PLAYTHROUGH M15: nearest was GardenPadStation_0 pos=(26.488739, -0.042843558, 21.85106)
+PLAYTHROUGH M15: nearest was GardenPadStation_0 pos=(26.488739, -0.042843558, 21.85106)
+PLAYTHROUGH M15: walk to GardenPadStation_4 (29, 0.19, 23.4) pos=(25.804523, -0.042843543, 23.438166)
+PLAYTHROUGH M15: nearest was GardenPadStation_3 pos=(27.235435, -0.042843543, 22.910788)
+PLAYTHROUGH M15: walk to GardenPadStation_5 (32, 0.19, 23.4) pos=(28.084618, -0.04266662, 23.010338)
+PLAYTHROUGH M15: COMPLETED coins=218 pos=(30.52452, -0.042843543, 23.002327)
+PLAYTHROUGH M16: starting pos=(30.52452, -0.042843543, 23.002327)
+PLAYTHROUGH M16: walk to PostCounterStation (-11.5, 0.1, 8) pos=(30.52452, -0.042843543, 23.002327)
+PLAYTHROUGH M16: walk to VanEntry (58.58948, 0.10740301, 42.09289) pos=(-9.525381, -0.04284355, 7.9157996)
+PLAYTHROUGH M16: walk to NpcTalk_ada (12.864114, -0.017010562, 5.206665) pos=(11.301773, -0.06920139, 2.5800197)
+PLAYTHROUGH M16: walk to VanEntry (11.332241, 0.0832636, -0.019767832) pos=(12.698851, -0.042843543, 3.4132373)
+PLAYTHROUGH M16: walk to NpcTalk_pip (28.729988, -0.017008295, -8.328902) pos=(30.587822, -0.06920139, -2.5551202)
+PLAYTHROUGH M16: walk to VanEntry (30.46285, 0.08798209, 0.041810483) pos=(30.999767, -0.042843543, -7.178991)
+PLAYER_POS (32.055836, -0.04799802, -1.7408719) ACTIVE=True PAUSED=False CONTROL=False VEL=(0, 0, 0) TARGET= DRIVING=True VAN_POS=(21.004913, -0.017015811, 1.3543928) VAN_YAW=-3.12 VAN_SPEED=0.8 NODES=4803 MODE=Driving
+SCREENSHOT /tmp/patchwork-walkthrough/godot/app_userdata/Patchwork Island/screenshots/manual_140603.png -> Ok
+PLAYTHROUGH FAIL M16: System.Exception: drive stuck (21.16015, -0.017009359, 7.700488) at (21.004913, -0.017015811, 1.3543928)
+   at PatchworkIsland.GameplayWalkthrough.Drive(Vector3 point) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Testing/GameplayWalkthrough.cs:line 289
+   at PatchworkIsland.GameplayWalkthrough.DriveNear(Vector3 target) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Testing/GameplayWalkthrough.cs:line 393
+   at PatchworkIsland.GameplayWalkthrough.ChapterTwo(Int32 number) in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Testing/GameplayWalkthrough.cs:line 356
+   at PatchworkIsland.GameplayWalkthrough.Run() in /home/philip/Downloads/PatchworkIsland_Agent_Handoff/PatchworkIsland_Handoff/src/Testing/GameplayWalkthrough.cs:line 70
+WARNING: 4 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 2 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
