@@ -52,6 +52,15 @@
 - TEST01 requires a lawful signal entry and forward traversal of the authored
   crossing rectangle (marker-local half-width 6 m, half-length 3 m). A side
   detour, reverse traversal or side exit cannot satisfy the crossing checkpoint.
+- Signal markers author an 11 m stop-line segment and a 16 m approach in their
+  local frame. Entry requires movement from the bounded approach through the
+  segment towards marker-local -Z; a lateral detour or downstream side re-entry
+  cannot record a lawful signal entry. Amber stopping distance uses that same
+  directed frame.
+- R and the pause menu's **Restart attempt** action start a fresh attempt in the
+  current lesson, clearing major/minor errors, pending speed warnings, signal and
+  crossing history, timers and checkpoints. Enrolment, wallet, completed lessons
+  and licence ownership are unchanged; restart is free.
 
 ## Persistence
 

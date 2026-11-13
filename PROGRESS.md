@@ -3238,3 +3238,24 @@ Final verification at the PR head (logs and hashes in `evidence/v15_academy/`):
   Performance numbers are historical pre-review measurements, not re-profiled.
   Windows gameplay startup and human/child usability remain NOT TESTED.
 - No merge, retarget, tag or release; #34 is unchanged.
+
+## P25 follow-up review — finite signal segment and full R retry (in progress)
+
+- Replaced the infinite world-Z signal plane with authored marker-local width
+  and approach bounds (11 m segment, 16 m approach). Directed traversal must
+  pass from that approach through local Z=0 towards -Z within the lane. Side
+  re-entry downstream cannot latch green. The stop hold and amber exception now
+  use the same authored frame.
+- R and pause-menu restart now reuse the complete stage initialiser, clearing
+  major/minor penalties and pending speed warnings as well as checkpoints,
+  signal/crossing history, timers and car position. UI explicitly calls this a
+  fresh attempt, not vehicle-only recovery. No save-schema/economy changes.
+- Added both-side lateral bypass and downstream re-entry regressions in L04
+  and TEST01, wrong-direction checks, full crossing/parking denial after bypass,
+  actual R input after safety offences, and clean completion after restart.
+  TEST01 creates a genuine minor note and pending warning via speeding before
+  R; no penalty-counter injection. The R checks also preserve wallet, enrolment,
+  lesson progress and assessment-attempt count.
+- Targeted build/pure suite pass; source academy **137 passed, 0 failed**,
+  including both distant and just-outside-endpoint signal bypass cases. Full
+  committed-code source/exported/graphical verification pending.

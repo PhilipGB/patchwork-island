@@ -48,6 +48,14 @@ internal static partial class Program
             }
             Check(!Regex.IsMatch(course, "StopSign[^\"]*\" type=\"StaticBody3D\""),
                 "roadside signs are visual only");
+            foreach (string id in new[] { "Lesson04_TrafficLight", "Final_Stop" })
+            {
+                var block = Regex.Match(course, $"\\[node name=\"{id}\"[^\\[]*").Value;
+                Check(block.Contains("metadata/stop_line_half_width = 5.5") &&
+                      block.Contains("metadata/stop_line_approach_length = 16.0") &&
+                      block.Contains("rotation_degrees = Vector3(0, 180, 0)"),
+                    $"{id} has an authored finite directed stop-line segment");
+            }
         });
 
         Run("academy school is placed clear of town buildings and roads", () =>

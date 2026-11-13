@@ -1063,6 +1063,8 @@ metadata/academy_id = "Lesson03_AfterStop"
 position = Vector3(0, 0.05, -17)
 rotation_degrees = Vector3(0, 180, 0)
 metadata/academy_id = "Lesson04_TrafficLight"
+metadata/stop_line_half_width = 5.5
+metadata/stop_line_approach_length = 16.0
 
 [node name="Lesson04_Crossing" type="Marker3D" parent="GameplayMarkers"]
 position = Vector3(22, 0.05, 0)
@@ -1115,6 +1117,8 @@ metadata/academy_id = "Final_Start"
 position = Vector3(0, 0.05, -17)
 rotation_degrees = Vector3(0, 180, 0)
 metadata/academy_id = "Final_Stop"
+metadata/stop_line_half_width = 5.5
+metadata/stop_line_approach_length = 16.0
 
 [node name="Final_Light" type="Marker3D" parent="GameplayMarkers"]
 position = Vector3(0, 0.05, -8)

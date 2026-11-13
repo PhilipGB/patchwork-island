@@ -59,6 +59,7 @@ public partial class DrivingAcademyController : Node3D
     private Vector3 _previousCrossingPosition;
     private bool _redOffence;
     private bool _lineCrossed;
+    private Vector3 _previousSignalPosition;
     private bool _pedestrianOffence;
     private int _minor;
     private int _major;
@@ -211,7 +212,7 @@ public partial class DrivingAcademyController : Node3D
         _academyHud.Visible = true;
         _car.SetInputEnabled(true);
         _hud.ShowBigToast(
-            $"{stage.Title}. W/S drive, A/D steer, R reset, Esc pause. {stage.FirstHint}",
+            $"{stage.Title}. W/S drive, A/D steer, R restart, Esc pause. {stage.FirstHint}",
             6f, Palette.Yellow);
         _host.Save(SaveReason.MissionStart);
     }
@@ -276,6 +277,13 @@ public partial class DrivingAcademyController : Node3D
                 if (!marker.HasMeta(key) || marker.GetMeta(key).AsSingle() <= 0f)
                     throw new InvalidOperationException($"Academy crossing '{id}' needs authored '{key}'.");
         }
+        foreach (string id in new[] { "Lesson04_TrafficLight", "Final_Stop" })
+        {
+            Marker3D marker = _markers[id];
+            foreach (string key in new[] { "stop_line_half_width", "stop_line_approach_length" })
+                if (!marker.HasMeta(key) || marker.GetMeta(key).AsSingle() <= 0f)
+                    throw new InvalidOperationException($"Academy signal '{id}' needs authored '{key}'.");
+        }
     }
 
     private void ResetStageState()
@@ -316,6 +324,7 @@ public partial class DrivingAcademyController : Node3D
         _stageYaw = spawn.RotationDegrees.Y;
         _car.TeleportTo(_stageSpawn, _stageYaw);
         _previousCrossingPosition = CrossingMarker().ToLocal(_stageSpawn);
+        _previousSignalPosition = SignalMarker().ToLocal(_stageSpawn);
     }
 
     public void SetInputEnabled(bool enabled)
@@ -325,25 +334,10 @@ public partial class DrivingAcademyController : Node3D
 
     public void ResetStage()
     {
-        if (!Active) return;
-        _car.TeleportTo(_stageSpawn, _stageYaw);
-        _step = 0;
-        _timer = 0f;
-        _reverseDistance = 0f;
-        _stoppedAtLine = false;
-        _lawfulSignalEntry = false;
-        _amberEntryUnavoidable = false;
-        _crossingEntered = false;
-        _previousCrossingPosition = CrossingMarker().ToLocal(_stageSpawn);
-        _redOffence = false;
-        _lineCrossed = false;
-        _pedestrianOffence = false;
-        _light = AcademyLight.Red;
-        _lightTimer = 0f;
-        _pedestrianT = 0f;
-        ApplyLight();
+        if (!InLesson) return;
+        ResetStageState();
         UpdatePedestrian(0f);
-        _hud.ShowBigToast("Back to the safe start. Take your time.", 3f, Palette.Yellow);
+        _hud.ShowBigToast("Fresh attempt — all safety notes cleared. Take your time.", 3f, Palette.Yellow);
     }
 
     public void ShowPauseMenu()
@@ -357,7 +351,7 @@ public partial class DrivingAcademyController : Node3D
             new Color("DFF6E3"), Palette.Success);
         resume.Name = "AcademyPauseResume";
         resume.Pressed += () => _hud.CloseModal();
-        var retry = UiKit.Button(body, "Reset to safe start  [R]", 21, new Vector2(0, 52),
+        var retry = UiKit.Button(body, "Restart attempt — clear safety notes  [R]", 21, new Vector2(0, 52),
             Palette.Cream, Palette.Orange);
         retry.Name = "AcademyPauseRetry";
         retry.Pressed += () =>
@@ -554,7 +548,7 @@ public partial class DrivingAcademyController : Node3D
         Marker3D line = _markers["Lesson04_TrafficLight"];
         Marker3D crossing = _markers["Lesson04_Crossing"];
         Marker3D giveWay = _markers["Lesson04_GiveWay"];
-        if (DrivingAcademyRules.IsStopped(_car.Speed) && Near("Lesson04_TrafficLight", 12f))
+        if (DrivingAcademyRules.IsStopped(_car.Speed) && InsideSignalApproach(line, line.ToLocal(_car.GlobalPosition)))
             _stoppedAtLine = true;
         UpdateStopLine(line);
 
@@ -627,9 +621,10 @@ public partial class DrivingAcademyController : Node3D
         switch (_step)
         {
             case 0:
-                if (Near("Final_Stop", 10f) && DrivingAcademyRules.IsStopped(_car.Speed))
+                if (InsideSignalApproach(stopLine, stopLine.ToLocal(_car.GlobalPosition)) &&
+                    Near("Final_Stop", 10f) && DrivingAcademyRules.IsStopped(_car.Speed))
                     _timer += dt;
-                else if (!Near("Final_Stop", 16f))
+                else
                     _timer = 0f;
                 if (DrivingAcademyRules.StopHeld(_car.Speed, _timer))
                 {
@@ -640,7 +635,7 @@ public partial class DrivingAcademyController : Node3D
                 break;
             case 1:
                 if (_lawfulSignalEntry &&
-                    _car.GlobalPosition.Z > stopLine.GlobalPosition.Z + 2f)
+                    stopLine.ToLocal(_car.GlobalPosition).Z < -2f)
                 {
                     _step = 2;
                     _previousCrossingPosition = crossing.ToLocal(_car.GlobalPosition);
@@ -676,7 +671,14 @@ public partial class DrivingAcademyController : Node3D
     private void UpdateStopLine(Marker3D line)
     {
         if (_lineCrossed) return;
-        if (_car.GlobalPosition.Z <= line.GlobalPosition.Z) return;
+        Vector3 current = line.ToLocal(_car.GlobalPosition);
+        Vector3 previous = _previousSignalPosition;
+        _previousSignalPosition = current;
+        // A finite, directed segment, not an infinite world-Z plane. The car
+        // must approach within the authored lane and travel through local Z=0
+        // towards -Z. Side re-entry beyond the line cannot latch green entry.
+        if (!InsideSignalApproach(line, previous) || current.Z >= 0f ||
+            Math.Abs(current.X) > line.GetMeta("stop_line_half_width").AsSingle()) return;
         _lineCrossed = true;
         _lawfulSignalEntry = DrivingAcademyRules.LightAllowsEntry(_light) ||
                             (_light == AcademyLight.Amber && _amberEntryUnavoidable);
@@ -685,6 +687,13 @@ public partial class DrivingAcademyController : Node3D
         else if (!_lawfulSignalEntry)
             AddMajor("Amber means stop when you can do so safely. Retry is free.");
     }
+
+    private Marker3D SignalMarker() => _markers[
+        _stage == "TEST01" ? "Final_Stop" : "Lesson04_TrafficLight"];
+
+    private static bool InsideSignalApproach(Marker3D line, Vector3 position) =>
+        Math.Abs(position.X) <= line.GetMeta("stop_line_half_width").AsSingle() &&
+        position.Z >= 0f && position.Z <= line.GetMeta("stop_line_approach_length").AsSingle();
 
     private Marker3D CrossingMarker() => _markers[
         _stage == "TEST01" ? "Final_Crossing" : "Lesson04_Crossing"];
@@ -727,10 +736,11 @@ public partial class DrivingAcademyController : Node3D
         _amberEntryUnavoidable = false;
         if (light == AcademyLight.Amber && !_lineCrossed)
         {
-            Marker3D line = _markers[_stage == "TEST01" ? "Final_Stop" : "Lesson04_TrafficLight"];
-            float distance = line.GlobalPosition.Z - _car.GlobalPosition.Z;
-            float approachSpeed = Math.Max(0f, _car.Velocity.Z);
-            _amberEntryUnavoidable = DrivingAcademyRules.AmberEntryUnavoidable(distance, approachSpeed);
+            Marker3D line = SignalMarker();
+            Vector3 position = line.ToLocal(_car.GlobalPosition);
+            float approachSpeed = Math.Max(0f, -line.GlobalBasis.Z.Dot(_car.Velocity));
+            _amberEntryUnavoidable = InsideSignalApproach(line, position) &&
+                DrivingAcademyRules.AmberEntryUnavoidable(position.Z, approachSpeed);
         }
         ApplyLight();
     }
@@ -933,6 +943,8 @@ public partial class DrivingAcademyController : Node3D
         _markers.TryGetValue(id, out Marker3D marker) ? marker.RotationDegrees.Y : 0f;
 
     internal int TestStep => _step;
+    internal bool TestLawfulSignalEntry => _lawfulSignalEntry;
+    internal float TestSpeedWarning => _speedWarning;
     internal Node3D TestPedestrian => _pedestrian;
     internal bool TestPedestrianCrossing => _pedestrianCrossing;
 

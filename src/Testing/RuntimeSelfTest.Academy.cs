@@ -144,8 +144,8 @@ public partial class RuntimeSelfTest
         await Wait(0.15f);
         Expect(Main.Probe.PressModalButton("AcademyStart_L04"), "L04 enters from school UI");
         await Wait(0.3f);
+        await AcademySignalBoundaryChecks(academy, "L04");
         await AcademyPedestrianChecks(academy, "L04");
-        academy.EnterStage("L04", false);
         await Wait(0.1f);
         academy.TestSetLight(AcademyLight.Red);
         academy.TestPlaceCar(academy.TestMarker("Lesson04_TrafficLight"), 180f, 0f);
@@ -158,7 +158,7 @@ public partial class RuntimeSelfTest
         await Wait(0.3f);
         academy.TestPlaceCar(academy.TestMarker("Lesson04_GiveWay"), 180f, 0f);
         await Wait(0.5f);
-        Expect(service.LessonCompleted("L04"), "L04 green/crossing path completes");
+        Expect(service.LessonCompleted("L04"), "L04 clean green/crossing attempt completes after R clears the offence");
         Main.Probe.PressModalButton("AcademyBackToSchool");
         await Wait(0.45f);
 
@@ -200,6 +200,9 @@ public partial class RuntimeSelfTest
 
         // Final assessment: stop, green, crossing, park.
         service.StartLesson("TEST01");
+        academy.EnterStage("TEST01", false);
+        await Wait(0.15f);
+        await AcademySignalBoundaryChecks(academy, "TEST01");
         await AcademySignalChecks(academy);
         academy.ExitVenue(false);
         await Wait(0.2f);
@@ -208,7 +211,6 @@ public partial class RuntimeSelfTest
         Expect(Main.Probe.PressModalButton("AcademyStart_TEST01"), "final test enters from school UI");
         await Wait(0.2f);
         await AcademyPedestrianChecks(academy, "TEST01");
-        academy.EnterStage("TEST01", false);
         await Wait(0.35f);
         academy.TestSetLight(AcademyLight.Red);
         academy.TestPlaceCar(academy.TestMarker("Final_Stop"), 180f, 0f);
@@ -243,7 +245,7 @@ public partial class RuntimeSelfTest
         academy.TestPlaceCar(academy.TestMarker("Final_Park"), 0f, 0f);
         await Wait(2.0f);
         Expect(data.DrivingLicenceIssued && data.AcademyTestPassed,
-            "final assessment issues the official licence");
+            "final assessment issues the official licence after R clears the failed attempt");
         Expect(data.AcademyGraduationRewardClaimed && data.Coins == 5,
             "five-coin graduation gift is paid once");
         Expect(service.CanDriveRegularVan, "licence unlocks the regular van");
@@ -325,10 +327,91 @@ public partial class RuntimeSelfTest
         Expect(academy.MajorErrors == 1, $"{stage} moving through occupied crossing is a major offence even reversing");
         await Wait(0.2f);
         Expect(academy.MajorErrors == 1, $"{stage} crossing offence is counted once");
-        academy.ResetStage();
+        if (stage == "TEST01")
+        {
+            // Accumulate a real speeding note and a partially filled warning
+            // while retaining the crossing major error; no counter injection.
+            academy.TestPlaceCar(academy.TestMarker("Final_Start"), -90f, 11.5f);
+            Input.ActionPress("move_forward");
+            await Wait(1.8f);
+            Input.ActionRelease("move_forward");
+            Expect(academy.MajorErrors > 0 && academy.MinorErrors > 0 && academy.TestSpeedWarning > 0f,
+                "TEST01 restart fixture contains major, minor and pending speed warning");
+        }
+        int coinsBeforeRestart = Main.Probe.Data.Coins;
+        int attemptsBeforeRestart = Main.Probe.Data.AcademyTestAttempts;
+        int lessonsBeforeRestart = Main.Probe.Data.AcademyCompletedLessons.Count;
+        await AcademyRestartWithR();
+        Expect(academy.CurrentStage == stage && academy.TestStep == 0 &&
+               academy.MajorErrors == 0 && academy.MinorErrors == 0 && academy.TestSpeedWarning == 0f &&
+               !academy.TestLawfulSignalEntry && academy.Light == AcademyLight.Red &&
+               Main.Probe.Data.Coins == coinsBeforeRestart &&
+               Main.Probe.Data.AcademyTestAttempts == attemptsBeforeRestart &&
+               Main.Probe.Data.AcademyCompletedLessons.Count == lessonsBeforeRestart &&
+               Main.Probe.Data.AcademyEnrolled,
+            $"{stage} R clears every penalty/checkpoint without charging or discarding progression");
         await Wait(0.1f);
         Expect(pedestrian?.Visible == true && !academy.TestPedestrianCrossing,
             $"{stage} reset restores the waiting pedestrian");
+    }
+
+    private async Task AcademyRestartWithR()
+    {
+        using (var press = new InputEventKey { Keycode = Key.R, PhysicalKeycode = Key.R, Pressed = true })
+            Input.ParseInputEvent(press);
+        await Wait(0.1f);
+        using (var release = new InputEventKey { Keycode = Key.R, PhysicalKeycode = Key.R, Pressed = false })
+            Input.ParseInputEvent(release);
+        await Wait(0.1f);
+    }
+
+    private async Task AcademySignalBoundaryChecks(DrivingAcademyController academy, string stage)
+    {
+        string marker = stage == "TEST01" ? "Final_Stop" : "Lesson04_TrafficLight";
+        Vector3 line = academy.TestMarker(marker);
+        foreach (float side in new[] { -12f, -5.75f, 5.75f, 12f })
+        {
+            academy.ResetStage();
+            academy.TestPlaceCar(line, 180f, 0f);
+            await Wait(1.7f);
+            academy.TestSetLight(AcademyLight.Green);
+            academy.TestPlaceCar(line + new Vector3(side, 0, -4), 180f, 0f);
+            await Wait(0.15f);
+            academy.TestPlaceCar(line + new Vector3(side, 0, 4), 180f, 0f);
+            await Wait(0.15f);
+            Expect(!academy.TestLawfulSignalEntry,
+                $"{stage} green crossing outside stop-line segment ({side} m) cannot latch entry");
+            academy.TestPlaceCar(line + new Vector3(0, 0, 4), 180f, 0f);
+            await Wait(0.15f);
+            Expect(!academy.TestLawfulSignalEntry,
+                $"{stage} downstream side re-entry cannot launder the lateral bypass ({side} m)");
+            if (stage == "TEST01")
+            {
+                await AcademyCrossingPosition(academy, -6f, 0f);
+                await AcademyCrossingPosition(academy, 0f, 0f);
+                await AcademyCrossingPosition(academy, 6f, 0f);
+                academy.TestPlaceCar(academy.TestMarker("Final_Park"), 0f, 0f);
+                await Wait(1.7f);
+                Expect(academy.TestStep == 1 && !Main.Probe.Data.DrivingLicenceIssued,
+                    $"TEST01 lateral signal bypass ({side} m), crossing and parking cannot earn a licence");
+            }
+            else
+            {
+                academy.TestPlaceCar(academy.TestMarker("Lesson04_GiveWay"), 180f, 0f);
+                await Wait(0.15f);
+                Expect(!Main.RtSession.Academy.LessonCompleted(stage),
+                    $"L04 lateral signal bypass ({side} m) cannot complete the lesson");
+            }
+            academy.TestSetLight(AcademyLight.Green);
+            academy.TestPlaceCar(line + new Vector3(0, 0, 4), 0f, 0f);
+            await Wait(0.15f);
+            academy.TestPlaceCar(line + new Vector3(0, 0, -4), 0f, 0f);
+            await Wait(0.15f);
+            Expect(!academy.TestLawfulSignalEntry,
+                $"{stage} reverse-direction traversal cannot satisfy the signal ({side} m fixture)");
+        }
+        academy.ResetStage();
+        await Wait(0.1f);
     }
 
     private async Task AcademySignalChecks(DrivingAcademyController academy)
@@ -363,6 +446,16 @@ public partial class RuntimeSelfTest
             await Wait(1.7f);
             Expect(!Main.Probe.Data.DrivingLicenceIssued && academy.TestStep == 1,
                 $"{label} entry cannot be laundered by later green, crossing and parking");
+            await AcademyRestartWithR();
+            Expect(academy.MajorErrors == 0 && academy.TestStep == 0,
+                $"{label} R clears the signal penalty and restarts the assessment");
+            academy.TestPlaceCar(academy.TestMarker("Final_Stop"), 180f, 0f);
+            await Wait(1.7f);
+            academy.TestSetLight(AcademyLight.Green);
+            academy.TestPlaceCar(academy.TestMarker("Final_Stop") + new Vector3(0, 0, 4), 180f, 0f);
+            await Wait(0.15f);
+            Expect(academy.TestLawfulSignalEntry && academy.TestStep == 2 && academy.MajorErrors == 0,
+                $"{label} clean green signal entry works after R without exiting the venue");
         }
         academy.EnterStage("TEST01", false);
         await Wait(0.1f);
