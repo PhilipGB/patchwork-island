@@ -1,4 +1,4 @@
-COMMAND: /home/philip/.cache/tmp/opencode/pr35-verified-wc5apr67/export/PatchworkIsland.x86_64 --headless --audio-driver Dummy -- --selftest-hotfix
+COMMAND: /home/philip/.cache/tmp/opencode/pr35-verified-oudf8udb/export/PatchworkIsland.x86_64 --headless --audio-driver Dummy -- --selftest-hotfix
 Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
 
 ERROR: Traffic 'town_scooter' left the island at (-35.535576, -6.005, -2); route stopped.

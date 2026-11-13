@@ -1,4 +1,4 @@
-COMMAND: /home/philip/.cache/tmp/opencode/pr35-verified-wc5apr67/export/PatchworkIsland.x86_64 --headless --audio-driver Dummy -- --selftest-chapter
+COMMAND: /home/philip/.cache/tmp/opencode/pr35-verified-oudf8udb/export/PatchworkIsland.x86_64 --headless --audio-driver Dummy -- --selftest-chapter
 Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
 
 [WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 158 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.
@@ -102,11 +102,7 @@ PASS  M13 starts from the job board
 PASS  sun pickup is the nearest E interaction
 PASS  sun book collected through its pickup
 PASS  moon pickup is the nearest E interaction
-PASS  moon book collected through its pWARNING: 6 ObjectDB instances were leaked at exit (run with `--verbose` for details).
-   at: cleanup (core/object/object.cpp:2536)
-ERROR: 2 resources still in use at exit (run with --verbose for details).
-   at: clear (core/io/resource.cpp:822)
-ickup
+PASS  moon book collected through its pickup
 PASS  tree pickup is the nearest E interaction
 PASS  tree book collected through its pickup
 PASS  star pickup is the nearest E interaction

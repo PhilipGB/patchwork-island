@@ -3355,3 +3355,19 @@ Final verification at the PR head (logs and hashes in `evidence/v15_academy/`):
   L02 capture now reads "ahead right" where the old run showed "ahead left",
   so committed evidence matches the corrected code.
 - PR #34/#35 remain merged and untouched; no merge, tag or release performed.
+
+## v1.5.0 Driving Academy test release (2026-11-13) — PUBLISHED
+
+- Version set to `1.5.0` in `project.godot`; Windows export metadata to
+  1.5.0.0 with the Driving Academy description (code `b5becdb`).
+- Full gates at `b5becdb` (named in both `head.txt` before execution): build
+  clean; pure 147/147; source and packaged 13 phases 1457/1457 each;
+  graphical quality 22/22 both; packaged graphical academy 146/146.
+- Release assets exported from `b5becdb`: Linux x86_64 and Windows x64
+  self-contained single executables. The uploaded Linux binary passed the
+  packaged academy suite (146/146) before upload. Windows PE is version
+  1.5.0.0; it was not launched here.
+- Published as a GitHub pre-release (`v1.5.0-rc1` tag) with the two zips,
+  `README.txt` and `SHA256SUMS`; hashes recorded in
+  `docs/RELEASE_NOTES_v1.5.0.md` and `dist/SHA256SUMS.v1.5.0`.
+- PR #37 remains open and is the merge vehicle; no merge was performed.

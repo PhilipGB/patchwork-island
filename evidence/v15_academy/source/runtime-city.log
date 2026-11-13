@@ -115,7 +115,7 @@ PASS  returning to town hides the whole city district
 PASS  returning to town destroys every visual city actor
 PASS  returning to town disables offscreen city collision
 PASS  a fresh/closed state restores the gate exactly
-CITY_TRAVERSAL entered=True first=True centre=True returned=True van=(179.06497, -0.0020163245, 1.3302647) speed=7.29
+CITY_TRAVERSAL entered=True first=True centre=True returned=True van=(179.18513, -0.0070160893, 1.3477267) speed=7.47
 PASS  sustained driving enters the city road
 PASS  sustained driving reaches the first city intersection
 PASS  sustained driving reaches the central city block

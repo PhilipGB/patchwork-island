@@ -190,3 +190,7 @@ PASS  replacement session survives a relaunch
 PASS  relaunched replacement is a normal save
 PASS  Continue after relaunch restores the replacement new game
 RUNTIME RESULT: 101 passed, 0 failed
+WARNING: 6 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 2 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)

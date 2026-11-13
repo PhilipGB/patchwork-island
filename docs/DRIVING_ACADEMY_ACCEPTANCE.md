@@ -5,7 +5,7 @@ identify the tested code in `evidence/v15_academy/source/head.txt`; historical
 walkthrough/performance evidence is explicitly distinguished below. See
 `evidence/v15_academy/PROVENANCE.md` for the original base-commit correction.
 
-Verification at code commit `733043d`: pure **147/147**, source runtime
+Verification at code commit `b5becdb`: pure **147/147**, source runtime
 **1457/1457** across 13 phases, packaged runtime **1457/1457**, source and
 packaged graphical quality **22/22** each, packaged graphical academy **146/146**.
 
@@ -68,5 +68,5 @@ packaged graphical quality **22/22** each, packaged graphical academy **146/146*
 | E03 | PARTIAL | Academy isolation is proven by the 30-cycle venue test and the runtime academy phase. The full 24-mission graphical walkthrough is incomplete at M16 (see C03); this is reported, not claimed. |
 | E04 | PARTIAL | Historical pre-review same-hardware 720p/1080p p50/p95/max, draw calls and primitives remain in `performance.log`. The 230 ms academy-entry maximum is a one-time course load, reported as-is; software Xvfb numbers are labelled separately. Performance has not been remeasured after these safety fixes. |
 | E05 | NOT TESTED | Windows build/pure tests run in CI; Windows gameplay startup could not be tested here. |
-| E06 | PASS | 18 authored screenshots in `evidence/v15_academy/screenshots/` at both resolutions, plus the 52 real-input playthrough captures in `evidence/v15_academy/graphical/walkthrough/`, all from code commit `733043d`. |
+| E06 | PASS | 18 authored screenshots in `evidence/v15_academy/screenshots/` at both resolutions from code commit `b5becdb`, plus the 52 real-input playthrough captures in `evidence/v15_academy/graphical/walkthrough/` from code commit `733043d`. |
 | E07 | PASS | PR #35 opened against the verified base; the code head, CI state and any discrepancy are recorded in `PROGRESS.md` and on the PR. No merge, tag or release. |

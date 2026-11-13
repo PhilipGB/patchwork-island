@@ -1,4 +1,4 @@
-COMMAND: xvfb-run --auto-servernum --server-args=-screen 0 1280x800x24 /home/philip/.cache/tmp/opencode/pr35-verified-wc5apr67/export/PatchworkIsland.x86_64 --audio-driver Dummy -- --selftest-academy
+COMMAND: xvfb-run --auto-servernum --server-args=-screen 0 1280x800x24 /home/philip/.cache/tmp/opencode/pr35-verified-oudf8udb/export/PatchworkIsland.x86_64 --audio-driver Dummy -- --selftest-academy
 WARNING: Failed to create wd.xic as the input method or its xim server may not have started yet.
      at: _create_xic (platform/linuxbsd/x11/display_server_x11.cpp:6347)
 WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.

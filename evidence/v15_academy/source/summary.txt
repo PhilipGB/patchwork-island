@@ -1,4 +1,4 @@
-# Tested code commit 733043d34720e758bbfea66933ab73d4d54c7497
+# Tested code commit b5becdbbc477fd43ff3c2ae4e38d3ccd4b818434
 pure-tests.log: exit=0 RESULT: 147 passed, 0 failed
 boot.log: exit=0 
 runtime-base.log: exit=0 RUNTIME RESULT: 286 passed, 0 failed
