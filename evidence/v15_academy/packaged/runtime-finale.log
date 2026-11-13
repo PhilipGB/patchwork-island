@@ -1,4 +1,4 @@
-COMMAND: /home/philip/.cache/tmp/opencode/pr35-verified-qgyd6eok/export/PatchworkIsland.x86_64 --headless --audio-driver Dummy -- --selftest-finale
+COMMAND: /home/philip/.cache/tmp/opencode/pr35-verified-wc5apr67/export/PatchworkIsland.x86_64 --headless --audio-driver Dummy -- --selftest-finale
 Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
 
 [WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 158 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.
@@ -84,7 +84,7 @@ PASS  M18: completion modal opens
 PASS  M18: closing completion resumes walking
 PASS  M19 autopilot prepared
 PASS  Pip's rally rival is present
-RACE_TIME M19 22.32s bonus=5
+RACE_TIME M19 22.33s bonus=5
 PASS  M19 completes through real driving
 PASS  M19 reaches all six gates
 PASS  M19 reward and medal total 30 coins

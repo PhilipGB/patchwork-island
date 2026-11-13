@@ -1,4 +1,4 @@
-COMMAND: /home/philip/.cache/tmp/opencode/pr35-verified-qgyd6eok/export/PatchworkIsland.x86_64 --headless --audio-driver Dummy -- --selftest-academy
+COMMAND: /home/philip/.cache/tmp/opencode/pr35-verified-wc5apr67/export/PatchworkIsland.x86_64 --headless --audio-driver Dummy -- --selftest-academy
 Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
 
 [WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 158 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.
@@ -82,9 +82,11 @@ PASS  L04 clean green/crossing attempt completes after R clears the offence
 PASS  switching to parking removes the crossing pedestrian
 PASS  L05 reverse distance is measured
 PASS  L05 parks inside the bay
-PASS  L06 HUD guides to the next checkpoint after Lesson06_Checkpoint01
-PASS  L06 HUD guides to the next checkpoint after Lesson06_Checkpoint02
-PASS  L06 HUD guides to the next checkpoint after Lesson06_Checkpoint03
+PASS  L06 guidance names the car's left from Checkpoint01 facing south
+PASS  L06 guidance names the car's right from Checkpoint01 facing north
+PASS  L06 HUD guides to the next checkpoint after Lesson06_Checkpoint01 (ahead right)
+PASS  L06 HUD guides to the next checkpoint after Lesson06_Checkpoint02 (behind, turn left)
+PASS  L06 HUD guides to the next checkpoint after Lesson06_Checkpoint03 (ahead left)
 PASS  L06 visits all checkpoints in order
 PASS  TEST01 green crossing outside stop-line segment (-12 m) cannot latch entry
 PASS  TEST01 downstream side re-entry cannot launder the lateral bypass (-12 m)
@@ -133,11 +135,7 @@ PASS  TEST01 reset restores the waiting pedestrian
 PASS  test holds at the stop line
 PASS  wide detour cannot bypass final crossing
 PASS  bypass followed by parking cannot earn a licence
-PASS  wrong-direction crossinWARNING: 6 ObjectDB instances were leaked at exit (run with `--verbose` for details).
-   at: cleanup (core/object/object.cpp:2536)
-ERROR: 2 resources still in use at exit (run with --verbose for details).
-   at: clear (core/io/resource.cpp:822)
-g does not advance
+PASS  wrong-direction crossing does not advance
 PASS  side exit invalidates crossing entry
 PASS  green entry and bounded forward crossing safely reach parking
 PASS  final assessment issues the official licence after R clears the failed attempt
@@ -151,4 +149,4 @@ PASS  30 school returns leave no course, collision or HUD orphan
 PASS  school returns do not accumulate scene nodes
 PASS  return restores the walking player
 PASS  return position is safe and in town
-RUNTIME RESULT: 144 passed, 0 failed
+RUNTIME RESULT: 146 passed, 0 failed

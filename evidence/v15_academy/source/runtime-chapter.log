@@ -225,7 +225,3 @@ PASS  saved wallet is exact
 PASS  second finale stays unseen until M20
 PASS  all five implemented chapter-two jobs are persisted
 RUNTIME RESULT: 217 passed, 0 failed
-WARNING: 6 ObjectDB instances were leaked at exit (run with `--verbose` for details).
-   at: cleanup (core/object/object.cpp:2536)
-ERROR: 2 resources still in use at exit (run with --verbose for details).
-   at: clear (core/io/resource.cpp:822)

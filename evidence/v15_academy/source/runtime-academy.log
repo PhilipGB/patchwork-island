@@ -84,9 +84,11 @@ PASS  L04 clean green/crossing attempt completes after R clears the offence
 PASS  switching to parking removes the crossing pedestrian
 PASS  L05 reverse distance is measured
 PASS  L05 parks inside the bay
-PASS  L06 HUD guides to the next checkpoint after Lesson06_Checkpoint01
-PASS  L06 HUD guides to the next checkpoint after Lesson06_Checkpoint02
-PASS  L06 HUD guides to the next checkpoint after Lesson06_Checkpoint03
+PASS  L06 guidance names the car's left from Checkpoint01 facing south
+PASS  L06 guidance names the car's right from Checkpoint01 facing north
+PASS  L06 HUD guides to the next checkpoint after Lesson06_Checkpoint01 (ahead right)
+PASS  L06 HUD guides to the next checkpoint after Lesson06_Checkpoint02 (behind, turn left)
+PASS  L06 HUD guides to the next checkpoint after Lesson06_Checkpoint03 (ahead left)
 PASS  L06 visits all checkpoints in order
 PASS  TEST01 green crossing outside stop-line segment (-12 m) cannot latch entry
 PASS  TEST01 downstream side re-entry cannot launder the lateral bypass (-12 m)
@@ -151,4 +153,8 @@ PASS  30 school returns leave no course, collision or HUD orphan
 PASS  school returns do not accumulate scene nodes
 PASS  return restores the walking player
 PASS  return position is safe and in town
-RUNTIME RESULT: 144 passed, 0 failed
+RUNTIME RESULT: 146 passed, 0 failed
+WARNING: 6 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 2 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)

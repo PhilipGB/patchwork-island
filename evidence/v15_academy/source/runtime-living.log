@@ -74,7 +74,7 @@ PASS  traffic 'delivery_car' does not teleport (gap 2.8m at 6s)
 PASS  traffic 'delivery_car' keeps clear of critical stations at 6s
 PASS  traffic 'town_scooter' position is finite at 7s
 PASS  traffic 'town_scooter' stays on the road at 7s
-PASS  traffic 'town_scooter' does not teleport (gap 3.2m at 7s)
+PASS  traffic 'town_scooter' does not teleport (gap 3.3m at 7s)
 PASS  traffic 'town_scooter' keeps clear of critical stations at 7s
 PASS  traffic 'delivery_car' position is finite at 7s
 PASS  traffic 'delivery_car' stays on the road at 7s
@@ -82,7 +82,7 @@ PASS  traffic 'delivery_car' does not teleport (gap 2.8m at 7s)
 PASS  traffic 'delivery_car' keeps clear of critical stations at 7s
 PASS  traffic 'town_scooter' position is finite at 8s
 PASS  traffic 'town_scooter' stays on the road at 8s
-PASS  traffic 'town_scooter' does not teleport (gap 3.3m at 8s)
+PASS  traffic 'town_scooter' does not teleport (gap 3.2m at 8s)
 PASS  traffic 'town_scooter' keeps clear of critical stations at 8s
 PASS  traffic 'delivery_car' position is finite at 8s
 PASS  traffic 'delivery_car' stays on the road at 8s
@@ -90,7 +90,7 @@ PASS  traffic 'delivery_car' does not teleport (gap 2.8m at 8s)
 PASS  traffic 'delivery_car' keeps clear of critical stations at 8s
 PASS  traffic 'town_scooter' position is finite at 9s
 PASS  traffic 'town_scooter' stays on the road at 9s
-PASS  traffic 'town_scooter' does not teleport (gap 3.2m at 9s)
+PASS  traffic 'town_scooter' does not teleport (gap 3.3m at 9s)
 PASS  traffic 'town_scooter' keeps clear of critical stations at 9s
 PASS  traffic 'delivery_car' position is finite at 9s
 PASS  traffic 'delivery_car' stays on the road at 9s
@@ -122,7 +122,7 @@ PASS  traffic 'delivery_car' does not teleport (gap 2.8m at 12s)
 PASS  traffic 'delivery_car' keeps clear of critical stations at 12s
 PASS  traffic 'town_scooter' position is finite at 13s
 PASS  traffic 'town_scooter' stays on the road at 13s
-PASS  traffic 'town_scooter' does not teleport (gap 3.3m at 13s)
+PASS  traffic 'town_scooter' does not teleport (gap 3.2m at 13s)
 PASS  traffic 'town_scooter' keeps clear of critical stations at 13s
 PASS  traffic 'delivery_car' position is finite at 13s
 PASS  traffic 'delivery_car' stays on the road at 13s
@@ -130,7 +130,7 @@ PASS  traffic 'delivery_car' does not teleport (gap 2.8m at 13s)
 PASS  traffic 'delivery_car' keeps clear of critical stations at 13s
 PASS  traffic 'town_scooter' position is finite at 14s
 PASS  traffic 'town_scooter' stays on the road at 14s
-PASS  traffic 'town_scooter' does not teleport (gap 3.2m at 14s)
+PASS  traffic 'town_scooter' does not teleport (gap 3.3m at 14s)
 PASS  traffic 'town_scooter' keeps clear of critical stations at 14s
 PASS  traffic 'delivery_car' position is finite at 14s
 PASS  traffic 'delivery_car' stays on the road at 14s
@@ -162,7 +162,7 @@ PASS  traffic 'delivery_car' does not teleport (gap 2.8m at 17s)
 PASS  traffic 'delivery_car' keeps clear of critical stations at 17s
 PASS  traffic 'town_scooter' position is finite at 18s
 PASS  traffic 'town_scooter' stays on the road at 18s
-PASS  traffic 'town_scooter' does not teleport (gap 3.3m at 18s)
+PASS  traffic 'town_scooter' does not teleport (gap 3.2m at 18s)
 PASS  traffic 'town_scooter' keeps clear of critical stations at 18s
 PASS  traffic 'delivery_car' position is finite at 18s
 PASS  traffic 'delivery_car' stays on the road at 18s
@@ -178,7 +178,7 @@ PASS  traffic 'delivery_car' does not teleport (gap 2.8m at 19s)
 PASS  traffic 'delivery_car' keeps clear of critical stations at 19s
 PASS  traffic 'town_scooter' position is finite at 20s
 PASS  traffic 'town_scooter' stays on the road at 20s
-PASS  traffic 'town_scooter' does not teleport (gap 3.2m at 20s)
+PASS  traffic 'town_scooter' does not teleport (gap 3.3m at 20s)
 PASS  traffic 'town_scooter' keeps clear of critical stations at 20s
 PASS  traffic 'delivery_car' position is finite at 20s
 PASS  traffic 'delivery_car' stays on the road at 20s

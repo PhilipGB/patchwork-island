@@ -20,8 +20,4 @@ ACADEMY SHOT academy_1080_09_crossing_pedestrian.png
 ACADEMY SHOT academy_1080_06_parking.png
 ACADEMY SHOT academy_1080_07_exam.png
 ACADEMY SHOT academy_1080_08_licence.png
-ACADEMY CAPTURES academy_1080 -> /home/philip/.cache/tmp/opencode/pr35-verified-qgyd6eok/captures/data/godot/app_userdata/Patchwork Island/screenshots
-WARNING: 4 ObjectDB instances were leaked at exit (run with `--verbose` for details).
-   at: cleanup (core/object/object.cpp:2536)
-ERROR: 2 resources still in use at exit (run with --verbose for details).
-   at: clear (core/io/resource.cpp:822)
+ACADEMY CAPTURES academy_1080 -> /home/philip/.cache/tmp/opencode/pr35-verified-wc5apr67/captures/data/godot/app_userdata/Patchwork Island/screenshots

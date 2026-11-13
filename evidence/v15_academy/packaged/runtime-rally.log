@@ -1,18 +1,22 @@
-COMMAND: /home/philip/.cache/tmp/opencode/pr35-verified-qgyd6eok/export/PatchworkIsland.x86_64 --headless --audio-driver Dummy -- --selftest-rally
+COMMAND: /home/philip/.cache/tmp/opencode/pr35-verified-wc5apr67/export/PatchworkIsland.x86_64 --headless --audio-driver Dummy -- --selftest-rally
 Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
 
+WARNING: 8 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 2 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
 [WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 158 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.
 [CITY SCENE] res://scenes/city/CityDistrict.tscn: 36 buildings, 36 HLOD proxies, 9 cells, 15 job markers, 4 vehicle routes, 11 pedestrian routes.
 PASS  rally test starts on the title screen
 PASS  rally test starts a fresh village
 PASS  M05 autopilot prepared
 PASS  M05 autopilot owns the van
-RACE_TIME M05 18.97s bonus=5
+RACE_TIME M05 18.98s bonus=5
 PASS  M05 completes through real driving
 PASS  M05 reaches all four gates
 PASS  M09 autopilot prepared
 PASS  M09 autopilot owns the van
-RACE_TIME M09 18.98s bonus=5
+RACE_TIME M09 18.99s bonus=5
 PASS  M09 completes through real driving
 PASS  M09 reaches all four gates
 RUNTIME RESULT: 10 passed, 0 failed

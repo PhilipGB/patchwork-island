@@ -141,18 +141,45 @@ Logs and captures: `evidence/v15_academy/graphical/walkthrough-fresh-save.log`
 and `evidence/v15_academy/graphical/walkthrough/` (52 screenshots). The runtime
 academy suite grew to 144 checks (L02/L06 guidance text, L04 step progression).
 
-## Fresh verification (tested code commit `5a0abda`)
+### P2 correction after merge review: guidance sides were reversed
 
-- Build 0 warnings/errors; pure **146/146**; headless import and source/packaged
-  boot exit 0. All 13 source phases **1455/1455** and all 13 packaged phases
-  **1455/1455** (academy phase now 144). Source graphical quality **22/22**,
-  packaged graphical quality **22/22**, packaged graphical academy **144/144**
+The merge review of this PR found that `TargetGuidance()` computed the relative
+heading correctly but labelled the sides backwards: a marker on the car's right
+was announced as "ahead left" and vice versa (for example, an east-side marker
+from a north-facing car, which renders on the screen's right). This undermined
+the wayfinding line for exactly the audience it was added for.
+
+Fixed in code commit `733043d` by moving the mapping into pure, deterministic
+`DrivingAcademyRules` helpers — `GuidanceRelativeRadians(toX, toZ, yaw)` and
+`GuidanceDirection(relative)` — with positive relative heading meaning the
+car's left (Godot convention: yaw 0 faces -Z). Left/right labels for the ahead
+and behind bands now match the car's handed sides, consistent with
+`DriveTraining`'s `move_left` steering convention.
+
+Tests added:
+
+- Pure suite: a 16-case table asserting ahead/left/right and behind labels from
+  real marker offsets for north-, west-, south- and east-facing cars, plus
+  band-boundary checks. The pure suite is now **147** checks and previously
+  only verified that guidance text existed.
+- Runtime academy suite: at the real L06 markers, Checkpoint02 is "ahead right"
+  from Checkpoint01 facing north, "ahead left" facing south, and Checkpoint03
+  is "behind, turn left" from Checkpoint02 facing north. The runtime suite is
+  now **146** checks.
+
+## Fresh verification (tested code commit `733043d`)
+
+- Build 0 warnings/errors; pure **147/147**; headless import and source/packaged
+  boot exit 0. All 13 source phases **1457/1457** and all 13 packaged phases
+  **1457/1457** (academy phase 146). Source graphical quality **22/22**,
+  packaged graphical quality **22/22**, packaged graphical academy **146/146**
   under Xvfb with disposable XDG directories.
-- The real-input fresh-save walkthrough above completed with exit 0, licence
-  earned on the first TEST01 attempt; all 52 of its screenshots are committed.
+- The real-input fresh-save walkthrough was rerun at the corrected head: exit 0,
+  licence earned on the first TEST01 attempt; all 52 refreshed screenshots are
+  committed and now show the corrected guidance labels.
 - `evidence/v15_academy/source/head.txt` and `packaged/head.txt` name
-  `5a0abda…` before execution; export SHA-256 refreshed in `packaged/hash.txt`;
-  `SHA256SUMS` regenerated over all 119 evidence files and `sha256sum -c` passes.
+  `733043d…` before execution; export SHA-256 refreshed in `packaged/hash.txt`;
+  `SHA256SUMS` regenerated and `sha256sum -c` passes.
 
 ## Evidence
 

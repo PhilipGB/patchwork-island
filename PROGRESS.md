@@ -3325,3 +3325,33 @@ Final verification at the PR head (logs and hashes in `evidence/v15_academy/`):
   labelled pre-review and are not attributed to this code.
 - Remaining limitations unchanged: no human/child usability study, Windows
   gameplay startup untested, performance not remeasured after the fixes.
+
+## Academy guidance P2 merge-review fix (2026-11-13) — PASS
+
+- Merge review of PR #37 found the wayfinding left/right labels reversed
+  (P2): `TargetGuidance()` computed the relative heading correctly but mapped
+  a marker on the car's right to "ahead left" and vice versa. Fixed in code
+  commit `733043d`.
+- The mapping now lives in pure `DrivingAcademyRules` helpers:
+  `GuidanceRelativeRadians(toX, toZ, yawRadians)` and
+  `GuidanceDirection(relative)`. Positive relative heading is the car's LEFT
+  (Godot convention: yaw 0 faces -Z), matching `DriveTraining`'s `move_left`
+  steering sign. The controller only formats distance and text.
+- Tests now actually exercise directions, not just text presence:
+  - Pure: 16-case table (ahead/left/right/behind from real offsets for
+    north-, west-, south- and east-facing cars) plus band boundaries —
+    **147 passed, 0 failed**.
+  - Runtime academy: real L06 markers — Checkpoint02 is "ahead right" from
+    Checkpoint01 facing north and "ahead left" facing south; Checkpoint03 is
+    "behind, turn left" from Checkpoint02 facing north — **146 passed, 0
+    failed**.
+- Fresh full gates at `733043d` (both `head.txt` files name the code before
+  execution): build clean; pure 147/147; source 13 phases **1457/1457**;
+  packaged 13 phases **1457/1457**; source and packaged graphical quality
+  **22/22**; packaged graphical academy **146/146**; export SHA-256
+  refreshed; `SHA256SUMS` regenerated and `sha256sum -c` passes.
+- The real-input fresh-save academy walkthrough was rerun at `733043d`: exit
+  0, licence on the first TEST01 attempt, 52 captures replaced. The refreshed
+  L02 capture now reads "ahead right" where the old run showed "ahead left",
+  so committed evidence matches the corrected code.
+- PR #34/#35 remain merged and untouched; no merge, tag or release performed.
