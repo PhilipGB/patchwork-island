@@ -1,4 +1,4 @@
-COMMAND: xvfb-run --auto-servernum --server-args=-screen 0 1280x800x24 /home/philip/.cache/tmp/opencode/pr35-verified-d8ociq8_/export/PatchworkIsland.x86_64 --audio-driver Dummy -- --selftest-academy
+COMMAND: xvfb-run --auto-servernum --server-args=-screen 0 1280x800x24 /home/philip/.cache/tmp/opencode/pr35-verified-wc5apr67/export/PatchworkIsland.x86_64 --audio-driver Dummy -- --selftest-academy
 WARNING: Failed to create wd.xic as the input method or its xim server may not have started yet.
      at: _create_xic (platform/linuxbsd/x11/display_server_x11.cpp:6347)
 WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
@@ -52,6 +52,8 @@ PASS  mid-lesson exit keeps L02 resumable
 PASS  town player snapshot stays inside the valid world bounds
 PASS  resume button appears
 PASS  L02 resumes safely
+PASS  L02 HUD guides to the next gate after Lesson02_Gate01
+PASS  L02 HUD guides to the next gate after Lesson02_Gate02
 PASS  L02 ordered gates complete
 PASS  L03 requires a held stop before the line
 PASS  L04 enters from school UI
@@ -79,10 +81,17 @@ PASS  L04 moving through occupied crossing is a major offence even reversing
 PASS  L04 crossing offence is counted once
 PASS  L04 R clears every penalty/checkpoint without charging or discarding progression
 PASS  L04 reset restores the waiting pedestrian
+PASS  L04 waiting stopped at the line advances to the signal step
+PASS  L04 lawful green entry advances to the crossing step
 PASS  L04 clean green/crossing attempt completes after R clears the offence
 PASS  switching to parking removes the crossing pedestrian
 PASS  L05 reverse distance is measured
 PASS  L05 parks inside the bay
+PASS  L06 guidance names the car's left from Checkpoint01 facing south
+PASS  L06 guidance names the car's right from Checkpoint01 facing north
+PASS  L06 HUD guides to the next checkpoint after Lesson06_Checkpoint01 (ahead right)
+PASS  L06 HUD guides to the next checkpoint after Lesson06_Checkpoint02 (behind, turn left)
+PASS  L06 HUD guides to the next checkpoint after Lesson06_Checkpoint03 (ahead left)
 PASS  L06 visits all checkpoints in order
 PASS  TEST01 green crossing outside stop-line segment (-12 m) cannot latch entry
 PASS  TEST01 downstream side re-entry cannot launder the lateral bypass (-12 m)
@@ -145,4 +154,4 @@ PASS  30 school returns leave no course, collision or HUD orphan
 PASS  school returns do not accumulate scene nodes
 PASS  return restores the walking player
 PASS  return position is safe and in town
-RUNTIME RESULT: 137 passed, 0 failed
+RUNTIME RESULT: 146 passed, 0 failed

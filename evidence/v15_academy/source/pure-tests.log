@@ -137,6 +137,7 @@ PASS  academy lesson contract and thresholds match the authored handoff
 PASS  academy stop, parking and assessment rules are deterministic
 PASS  academy light cycle and red-line edge cases
 PASS  academy amber exception uses safe stopping distance at onset
+PASS  academy guidance directions match the car's handed sides at every heading
 PASS  academy enrolment and helper job pay exactly once
 PASS  academy lessons are sequential and the licence is exactly-once
 PASS  academy save state validates and rejects impossible progress
@@ -146,4 +147,4 @@ PASS  academy scene exposes every authored marker exactly once
 PASS  academy school is placed clear of town buildings and roads
 PASS  academy office and yard keep their authored interaction contract
 
-RESULT: 146 passed, 0 failed
+RESULT: 147 passed, 0 failed

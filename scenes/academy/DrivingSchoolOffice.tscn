@@ -154,6 +154,7 @@ mesh = SubResource("mesh_box_11")
 material_override = SubResource("mat_teal")
 
 [node name="Title" type="Label3D" parent="."]
+double_sided = false
 position = Vector3(-5.78, 3.78, 6.8)
 text = "DRIVING SCHOOL"
 font_size = 56
@@ -162,6 +163,7 @@ modulate = Color(0.0784, 0.1725, 0.2471, 1)
 outline_size = 3
 
 [node name="BoardText" type="Label3D" parent="."]
+double_sided = false
 position = Vector3(7.05, 1.67, 7.63)
 text = "LEARN  \u00b7  PRACTISE\nGET YOUR LICENCE"
 font_size = 24

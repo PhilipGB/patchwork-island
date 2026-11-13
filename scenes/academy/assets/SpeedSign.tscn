@@ -85,6 +85,7 @@ material_override = SubResource("mat_steel")
 
 
 [node name="LimitLabel" type="Label3D" parent="."]
+double_sided = false
 position = Vector3(-0.42, 2.33, 0.26)
 text = "20"
 font_size = 80

@@ -81,6 +81,7 @@ material_override = SubResource("mat_steel")
 
 
 [node name="GIVE_WAY" type="Label3D" parent="."]
+double_sided = false
 position = Vector3(-0.72, 2.28, 0.24)
 text = "GIVE\nWAY"
 font_size = 46

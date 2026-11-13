@@ -74,6 +74,51 @@ internal static partial class Program
             Check(!DrivingAcademyRules.AmberEntryUnavoidable(stopping, 4f), "exact stopping distance can stop");
         });
 
+        Run("academy guidance directions match the car's handed sides at every heading", () =>
+        {
+            // Car at the origin; markers one metre along each cardinal world
+            // direction. Godot convention: yaw 0 faces -Z (north), and a
+            // positive relative heading is the car's LEFT. Reviewer P2: the
+            // previous controller mapping labelled these sides backwards, so
+            // an east-side marker from a north-facing car read "ahead left".
+            // Expected labels are written out per case, not derived.
+            const float pi = MathF.PI;
+            (float yaw, string facing, float x, float z, string expected)[] cases =
+            {
+                (0f, "north", 0f, -1f, "straight ahead"),
+                (0f, "north", 1f, 0f, "ahead right"),
+                (0f, "north", -1f, 0f, "ahead left"),
+                // Directly behind sits on the +/-pi wrap boundary; Atan2
+                // resolves it to -pi, so the suggestion is "turn right".
+                // Either suggestion would be correct there.
+                (0f, "north", 0f, 1f, "behind, turn right"),
+                (pi / 2f, "west", -1f, 0f, "straight ahead"),
+                (pi / 2f, "west", 0f, -1f, "ahead right"),
+                (pi / 2f, "west", 0f, 1f, "ahead left"),
+                (pi / 2f, "west", 1f, 0f, "behind, turn right"),
+                (pi, "south", 0f, 1f, "straight ahead"),
+                (pi, "south", -1f, 0f, "ahead right"),
+                (pi, "south", 1f, 0f, "ahead left"),
+                (pi, "south", 0f, -1f, "behind, turn right"),
+                (-pi / 2f, "east", 1f, 0f, "straight ahead"),
+                (-pi / 2f, "east", 0f, 1f, "ahead right"),
+                (-pi / 2f, "east", 0f, -1f, "ahead left"),
+                (-pi / 2f, "east", -1f, 0f, "behind, turn left"),
+            };
+            foreach (var (yaw, facing, x, z, expected) in cases)
+            {
+                float relative = DrivingAcademyRules.GuidanceRelativeRadians(x, z, yaw);
+                Equal(expected, DrivingAcademyRules.GuidanceDirection(relative),
+                    $"{facing}-facing car, marker at ({x}, {z}) (relative {relative})");
+            }
+            Check(DrivingAcademyRules.GuidanceDirection(0.5f) == "straight ahead", "small positive is ahead");
+            Check(DrivingAcademyRules.GuidanceDirection(-0.5f) == "straight ahead", "small negative is ahead");
+            Check(DrivingAcademyRules.GuidanceDirection(0.7f) == "ahead left", "band start is left");
+            Check(DrivingAcademyRules.GuidanceDirection(-0.7f) == "ahead right", "band start is right");
+            Check(DrivingAcademyRules.GuidanceDirection(2.1f) == "behind, turn left", "behind band start is left");
+            Check(DrivingAcademyRules.GuidanceDirection(-2.1f) == "behind, turn right", "behind band start is right");
+        });
+
         Run("academy enrolment and helper job pay exactly once", () =>
         {
             var data = new GameData { Coins = 14 };

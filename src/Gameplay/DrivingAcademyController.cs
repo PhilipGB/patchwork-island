@@ -145,6 +145,7 @@ public partial class DrivingAcademyController : Node3D
             _hud.SetModalStatus(result.Message, true);
             return;
         }
+        _hud.SetCoins(Service.Data.Coins);
         _host.Save(SaveReason.MissionStart);
         _hud.ShowBigToast(result.Message, 4f, Palette.Success);
         _hud.CloseModal();
@@ -179,6 +180,7 @@ public partial class DrivingAcademyController : Node3D
         _host.Save(SaveReason.Autosave);
         if (result.Success)
         {
+            _hud.SetCoins(Service.Data.Coins);
             _audio?.PlaySfx(result.CoinsAwarded > 0 ? "coin_collect" : "ui_confirm", -6f);
             _hud.ShowBigToast(result.Message, 3.4f,
                 result.CoinsAwarded > 0 ? Palette.Success : Palette.Yellow);
@@ -408,6 +410,7 @@ public partial class DrivingAcademyController : Node3D
     private void OnCourseCrash()
     {
         if (!Active) return;
+        GD.Print($"ACADEMY CRASH stage={_stage} at={_car.GlobalPosition} step={_step}");
         if (_stage == "TEST01" && !_practice) AddMajor("A dangerous off-course movement.");
         _car.TeleportTo(_stageSpawn, _stageYaw);
         _hud.ShowBigToast("Learner car recovered to the safe start.", 3f, Palette.Water);
@@ -439,7 +442,32 @@ public partial class DrivingAcademyController : Node3D
         int steps = StageSteps(_stage);
         _academyHud.ShowStage(stage.Title, Math.Min(_step + 1, steps), steps,
             HintFor(_stage), Math.Abs(_car.Speed),
-            _stage is "L04" or "TEST01" ? _light : null);
+            _stage is "L04" or "TEST01" ? _light : null, TargetGuidance());
+    }
+
+    /// <summary>Marker the learner should aim for right now, for HUD wayfinding.</summary>
+    private string TargetMarkerFor() => _stage switch
+    {
+        "L01" => _step == 0 ? "Lesson01_Accelerate" : "Lesson01_Stop",
+        "L02" => $"Lesson02_Gate0{Math.Min(_step + 1, 3)}",
+        "L03" => _step == 0 ? "Lesson03_StopLine" : "Lesson03_AfterStop",
+        "L04" => _step switch { 0 => "Lesson04_TrafficLight", 1 => "Lesson04_Crossing", _ => "Lesson04_GiveWay" },
+        "L05" => "Lesson05_ParkingTarget",
+        "L06" => $"Lesson06_Checkpoint0{Math.Min(_step + 1, 4)}",
+        "TEST01" => _step switch { 0 => "Final_Stop", 1 => "Final_Crossing", _ => "Final_Park" },
+        _ => null,
+    };
+
+    private string TargetGuidance()
+    {
+        if (_car == null || !_markers.TryGetValue(TargetMarkerFor() ?? "", out var marker))
+            return null;
+        Vector3 to = marker.GlobalPosition - _car.GlobalPosition;
+        float distance = new Vector2(to.X, to.Z).Length();
+        if (distance < 4f) return null;
+        float relative = DrivingAcademyRules.GuidanceRelativeRadians(to.X, to.Z, _car.Rotation.Y);
+        string direction = DrivingAcademyRules.GuidanceDirection(relative);
+        return $"Next marker: {distance:0} m {direction}";
     }
 
     private static int StageSteps(string id) => id switch
@@ -551,6 +579,10 @@ public partial class DrivingAcademyController : Node3D
         if (DrivingAcademyRules.IsStopped(_car.Speed) && InsideSignalApproach(line, line.ToLocal(_car.GlobalPosition)))
             _stoppedAtLine = true;
         UpdateStopLine(line);
+        if (_step == 0 && _stoppedAtLine)
+            Advance(1, "Waiting at the line. Red and red+amber mean stop.");
+        else if (_step == 1 && _lawfulSignalEntry)
+            Advance(2, "Green — cross when the pedestrian is clear.");
 
         if (InsideCrossing(crossing) &&
             _pedestrianCrossing && Math.Abs(_car.Speed) > 0.3f)
@@ -945,6 +977,8 @@ public partial class DrivingAcademyController : Node3D
     internal int TestStep => _step;
     internal bool TestLawfulSignalEntry => _lawfulSignalEntry;
     internal float TestSpeedWarning => _speedWarning;
+    internal float TestLightRemaining => DrivingAcademyRules.LightSeconds(_light) - _lightTimer;
+    internal string TestGuidance => _academyHud?.GuidanceText ?? "";
     internal Node3D TestPedestrian => _pedestrian;
     internal bool TestPedestrianCrossing => _pedestrianCrossing;
 

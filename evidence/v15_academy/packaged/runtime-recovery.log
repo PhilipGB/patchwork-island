@@ -1,4 +1,4 @@
-COMMAND: /home/philip/.cache/tmp/opencode/pr35-verified-d8ociq8_/export/PatchworkIsland.x86_64 --headless --audio-driver Dummy -- --selftest-recovery
+COMMAND: /home/philip/.cache/tmp/opencode/pr35-verified-wc5apr67/export/PatchworkIsland.x86_64 --headless --audio-driver Dummy -- --selftest-recovery
 Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
 
 Save failed (recoverable I/O): System.IO.IOException: injected save failure

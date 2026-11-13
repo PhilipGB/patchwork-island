@@ -30,3 +30,19 @@ evidence/documentation head `1e8bcaf`. The subsequent finite-signal/R-restart
 follow-up refresh replaces those automated logs/captures; its tested code is
 again named in both `head.txt` files before execution. Historical walkthrough
 and performance limitations remain unchanged.
+
+The 2026-11-13 real-input playthrough review refresh replaces the automated
+logs/captures again and adds the fresh-save walkthrough log plus all 52 of its
+screenshots under `graphical/walkthrough/`. Its tested code is named in both
+`head.txt` files before execution (`5a0abda`). The walk-through evidence was
+produced by the dev-only playthrough driver using real input; historical
+walkthrough and performance limitations remain unchanged.
+
+The merge review of PR #37 then found the guidance left/right labels were
+reversed (P2). Code commit `733043d` corrects them and extracts the mapping into
+pure `DrivingAcademyRules` helpers. On top of a full gate rerun at that commit
+(named in both `head.txt` files before execution), the real-input fresh-save
+academy walkthrough was rerun: exit 0, licence on the first TEST01 attempt, and
+all 52 screenshots under `graphical/walkthrough/` plus
+`graphical/walkthrough-fresh-save.log` were replaced by that run, so the
+committed captures show the corrected guidance labels.

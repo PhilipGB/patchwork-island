@@ -20,6 +20,7 @@ public partial class GameplayWalkthrough : Node
     private Hud Hud => Main.GetNode<Hud>("Hud");
     private VanController Van => Main.GetNode<VanController>("Van");
     private DrivingAcademyController Academy => Main.RtAcademy;
+    private static bool AcademyOnly => OS.GetCmdlineUserArgs().Contains("--academy-only");
     private readonly Dictionary<Vector2I, bool> _walkable = new();
     private readonly HashSet<Vector2I> _blocked = new();
     private string _stage = "boot";
@@ -45,6 +46,15 @@ public partial class GameplayWalkthrough : Node
                 _stage = "academy";
                 Log("earning the driving licence before M05");
                 await CompleteAcademy();
+            }
+            if (AcademyOnly)
+            {
+                Log("academy-only playthrough complete");
+                await PressKey(Key.Escape);
+                await Button("Save now");
+                await Snap("academy-only-complete");
+                GetTree().Quit();
+                return;
             }
             if (Van.Driven)
             {
@@ -311,96 +321,161 @@ public partial class GameplayWalkthrough : Node
                 await Wait(.2f);
             }
             if (Main.Probe.Coins < 15) throw new Exception("cone job did not reach enrolment cost");
+            await Snap("academy-01-cone-job");
             await Use("DrivingSchoolStation");
             await Wait(.3f);
+            await Snap("academy-02-enrol-screen");
             await Button("AcademyEnrol");
             await Wait(.5f);
+            await Snap("academy-03-enrolled");
         }
 
         foreach (string id in new[] { "L01", "L02", "L03", "L04", "L05", "L06" })
         {
             if (service.LessonCompleted(id)) continue;
             await StartAcademyStage(id);
+            await Snap($"academy-{id}-start");
             switch (id)
             {
                 case "L01":
                     Input.ActionPress("move_forward");
                     await Wait(1.4f);
                     Input.ActionRelease("move_forward");
+                    await Snap("academy-L01-accelerating");
                     GD.Print($"ACADEMY WALK L01 after accel car={Academy.TrainingCar?.GlobalPosition} " +
                              $"speed={Academy.TrainingCar?.Speed} stage={Academy.CurrentStage}");
                     await DriveTraining(Academy.TestMarker("Lesson01_Stop"));
                     await Wait(1.8f);
+                    await Snap("academy-L01-end");
                     break;
                 case "L02":
                     await DriveTraining(Academy.TestMarker("Lesson02_Gate01"));
+                    await Snap("academy-L02-gate1");
                     await DriveTraining(Academy.TestMarker("Lesson02_Gate02"));
                     await DriveTraining(Academy.TestMarker("Lesson02_Gate02") + new Vector3(20, 0, 0));
+                    await Snap("academy-L02-mid");
                     await DriveTraining(Academy.TestMarker("Lesson02_Gate03"));
+                    await Snap("academy-L02-end");
                     break;
                 case "L03":
                     await DriveTraining(Academy.TestMarker("Lesson03_StopApproach"));
                     await Wait(2.4f);
+                    await Snap("academy-L03-hold");
                     GD.Print($"ACADEMY L03 after hold step={Academy.TestStep} " +
                              $"car={Academy.TrainingCar?.GlobalPosition} speed={Academy.TrainingCar?.Speed} " +
                              $"done={Main.RtSession.Academy.LessonCompleted("L03")}");
                     await DriveTraining(Academy.TestMarker("Lesson03_AfterStop"));
+                    await Snap("academy-L03-end");
                     GD.Print($"ACADEMY L03 after release step={Academy.TestStep} " +
                              $"car={Academy.TrainingCar?.GlobalPosition} " +
                              $"done={Main.RtSession.Academy.LessonCompleted("L03")}");
                     break;
                 case "L04":
                     await DriveTraining(Academy.TestMarker("Lesson04_TrafficLight") + new Vector3(0, 0, -8));
+                    await Snap("academy-L04-light-red");
                     await WaitForGreen();
-                    await Wait(4.2f);
-                    await DriveTraining(Academy.TestMarker("Lesson04_Crossing"));
+                    await Wait(.8f);
+                    await Snap("academy-L04-light-green");
+                    // Cross the stop line inside the lane first, then turn east,
+                    // like a real driver. A diagonal cut across the junction
+                    // leaves the authored stop-line segment and cannot pass.
+                    await DriveTraining(Academy.TestMarker("Lesson04_TrafficLight") + new Vector3(0, 0, 9));
+                    await Snap("academy-L04-past-line");
+                    await DriveTraining(Academy.TestMarker("Lesson04_Crossing") + new Vector3(-9, 0, 0));
+                    // Cross the zebra during the red phase: the pedestrian is
+                    // then parked at the kerb, so the learner never races the
+                    // next green's 3.5-second crossing window.
+                    for (int i = 0; i < 600 && (Academy.TestPedestrianCrossing ||
+                         Academy.Light is not (AcademyLight.Red or AcademyLight.RedAmber)); i++)
+                        await Wait(.1f);
+                    await DriveTraining(Academy.TestMarker("Lesson04_Crossing") + new Vector3(9, 0, 0),
+                        true, 18f);
+                    await Snap("academy-L04-crossing");
                     await DriveTraining(Academy.TestMarker("Lesson04_GiveWay"));
+                    await Snap("academy-L04-end");
                     break;
                 case "L05":
                     await DriveTraining(Academy.TestMarker("Lesson05_Start"));
                     await ReverseTraining(2.6f);
+                    await Snap("academy-L05-reversed");
                     await Wait(.4f);
                     await DriveTraining(Academy.TestMarker("Lesson05_ParkingTarget"));
                     await Wait(2.2f);
+                    await Snap("academy-L05-end");
                     break;
                 case "L06":
                     await DriveTraining(Academy.TestMarker("Lesson06_Checkpoint01"));
                     await DriveTraining(Academy.VenueOrigin + new Vector3(74, 0, -68));
                     await DriveTraining(Academy.TestMarker("Lesson06_Checkpoint02"));
+                    await Snap("academy-L06-mid");
                     await DriveTraining(Academy.VenueOrigin + new Vector3(74, 0, 68));
                     await DriveTraining(Academy.TestMarker("Lesson06_Checkpoint03"));
                     await DriveTraining(Academy.VenueOrigin + new Vector3(-74, 0, 68));
                     await DriveTraining(Academy.TestMarker("Lesson06_Checkpoint04"));
+                    await Snap("academy-L06-end");
                     break;
             }
             await Wait(.5f);
             if (!service.LessonCompleted(id)) throw new Exception(id + " did not complete");
-            if (Main.Probe.ModalOpen) await Button("AcademyBackToSchool");
+            if (Main.Probe.ModalOpen)
+            {
+                await Snap($"academy-{id}-result");
+                await Button("AcademyBackToSchool");
+            }
             await Wait(.5f);
+            await Snap($"academy-{id}-back-to-school");
         }
 
         await StartAcademyStage("TEST01");
-        await DriveTraining(Academy.VenueOrigin + new Vector3(0, 0, -68));
-        await DriveTraining(Academy.TestMarker("Final_Stop") + new Vector3(0, 0, -6));
-        await Wait(2.4f);
-        await WaitForGreen();
-        await Wait(4.2f);
-        await DriveTraining(Academy.TestMarker("Final_Stop") + new Vector3(0, 0, 9));
-        await DriveTraining(Academy.TestMarker("Final_Crossing") + new Vector3(9, 0, 0));
-        await DriveTraining(Academy.VenueOrigin);
-        await DriveTraining(Academy.VenueOrigin + new Vector3(0, 0, 68));
-        await DriveTraining(Academy.VenueOrigin + new Vector3(-32, 0, 68));
-        await DriveTraining(Academy.TestMarker("Final_Park"));
-        await Wait(2.6f);
-        GD.Print($"ACADEMY TEST FINAL step={Academy.TestStep} car={Academy.TrainingCar?.GlobalPosition} " +
-                 $"speed={Academy.TrainingCar?.Speed} yaw={Academy.TrainingCar?.RotationDegrees.Y} " +
-                 $"modal={Main.Probe.ModalOpen} title={Main.Probe.ModalTitle}");
+        await Snap("academy-TEST01-start");
+        for (int attempt = 1; attempt <= 4 && !Main.Probe.Data.DrivingLicenceIssued; attempt++)
+        {
+            if (attempt > 1)
+            {
+                GD.Print($"ACADEMY TEST retry attempt={attempt} major={Academy.MajorErrors} " +
+                         $"minor={Academy.MinorErrors} step={Academy.TestStep} car={Academy.TrainingCar?.GlobalPosition}");
+                if (Main.Probe.ModalOpen) await Button("AcademyRetry");
+                else await PressKey(Key.R);
+                await Wait(1f);
+            }
+            await DriveTraining(Academy.VenueOrigin + new Vector3(0, 0, -68));
+            await DriveTraining(Academy.TestMarker("Final_Stop") + new Vector3(0, 0, -6));
+            await Wait(2.4f);
+            await Snap("academy-TEST01-stop-line");
+            await WaitForGreen();
+            await Wait(.8f);
+            await Snap("academy-TEST01-green");
+            await DriveTraining(Academy.TestMarker("Final_Stop") + new Vector3(0, 0, 9));
+            await Snap("academy-TEST01-past-line");
+            await DriveTraining(Academy.TestMarker("Final_Crossing") + new Vector3(-9, 0, 0));
+            // Same red-phase zebra crossing as L04: wait out the pedestrian's
+            // green window, then pass the clear crossing during red.
+            for (int i = 0; i < 600 && (Academy.TestPedestrianCrossing ||
+                 Academy.Light is not (AcademyLight.Red or AcademyLight.RedAmber)); i++)
+                await Wait(.1f);
+            await DriveTraining(Academy.TestMarker("Final_Crossing") + new Vector3(9, 0, 0), true, 18f);
+            await Snap("academy-TEST01-crossing");
+            await DriveTraining(Academy.VenueOrigin);
+            await DriveTraining(Academy.VenueOrigin + new Vector3(0, 0, 68));
+            await DriveTraining(Academy.VenueOrigin + new Vector3(-32, 0, 68));
+            await DriveTraining(Academy.TestMarker("Final_Park"));
+            await Wait(2.6f);
+            GD.Print($"ACADEMY TEST FINAL attempt={attempt} step={Academy.TestStep} " +
+                     $"car={Academy.TrainingCar?.GlobalPosition} " +
+                     $"speed={Academy.TrainingCar?.Speed} yaw={Academy.TrainingCar?.RotationDegrees.Y} " +
+                     $"modal={Main.Probe.ModalOpen} title={Main.Probe.ModalTitle}");
+        }
         if (!Main.Probe.Data.DrivingLicenceIssued)
             throw new Exception($"final academy test did not issue the licence " +
                 $"(major={AchievementErrors()})");
 
-        if (Main.Probe.ModalOpen) await Button("AcademyBackToSchool");
+        if (Main.Probe.ModalOpen)
+        {
+            await Snap("academy-TEST01-licence");
+            await Button("AcademyBackToSchool");
+        }
         await Wait(.5f);
+        await Snap("academy-TEST01-back-to-school");
         await Dismiss();
         Log("driving licence earned");
     }
@@ -412,6 +487,7 @@ public partial class GameplayWalkthrough : Node
             await Use("DrivingSchoolStation");
             await Wait(.3f);
         }
+        await Snap($"academy-{id}-school-board");
         if (!Main.Probe.PressModalButton("AcademyStart_" + id))
             throw new Exception("academy start button missing for " + id);
         await Wait(.6f);
@@ -425,17 +501,42 @@ public partial class GameplayWalkthrough : Node
     {
         for (int i = 0; i < 160 && Academy.Light != AcademyLight.Green; i++)
             await Wait(.1f);
+        // A green about to end is not worth entering: wait out the phase and
+        // take the next one, like a driver who sees the change coming.
+        if (Academy.Light == AcademyLight.Green && Academy.TestLightRemaining < 3.5f)
+        {
+            for (int i = 0; i < 160 && Academy.Light == AcademyLight.Green; i++)
+                await Wait(.1f);
+            for (int i = 0; i < 200 && Academy.Light != AcademyLight.Green; i++)
+                await Wait(.1f);
+        }
         if (Academy.Light != AcademyLight.Green)
             throw new Exception("traffic light never turned green");
-        await Wait(.2f);
+        await Wait(.5f);
     }
 
-    private async Task DriveTraining(Vector3 point)
+    private async Task DriveTraining(Vector3 point, bool yieldForPedestrian = false,
+        float yieldRadius = 15f)
     {
         var car = Academy.TrainingCar ?? throw new Exception("learner car missing");
         for (int tick = 0; Horizontal(car.GlobalPosition, point) > 2.6f; tick++)
         {
             if (tick > 900) throw new Exception("learner car stuck " + point + " at " + car.GlobalPosition);
+            // A pedestrian stepping onto the zebra during the approach means
+            // brake and wait, exactly like the lesson demands.
+            if (yieldForPedestrian && Academy.TestPedestrianCrossing &&
+                Horizontal(car.GlobalPosition, point) < yieldRadius)
+            {
+                Stop();
+                if (car.Speed > .1f)
+                {
+                    Input.ActionPress("move_back", .85f);
+                    await Wait(.08f);
+                    Input.ActionRelease("move_back");
+                }
+                else await Wait(.12f);
+                continue;
+            }
             if (tick > 0 && tick % 120 == 0)
             {
                 GD.Print($"ACADEMY DRIVE recover tick={tick} car={car.GlobalPosition} " +

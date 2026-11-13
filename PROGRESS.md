@@ -3282,3 +3282,76 @@ Final verification at the PR head (logs and hashes in `evidence/v15_academy/`):
 - Historical real-input full-campaign and performance limitations, Windows
   startup and human usability gaps remain unchanged and explicitly unverified.
 - No merge, retarget, tag or release. PR #34 remains untouched at `db7a7db`.
+
+## Academy real-input playthrough review (2026-11-13) — PASS
+
+- PR status change: **PhilipGB merged PR #35 (head `d4eb55f`) and PR #34
+  (`db7a7db`, untouched) at 2026-11-13T12:07Z**. The playthrough-review work
+  below lands on top of the merged branch as a follow-up PR.
+- Review method: six real-input playthroughs of the complete academy (cone job
+  → enrolment → L01–L06 → TEST01 → licence) under Xvfb 1280×720 with disposable
+  XDG directories, driven only by keyboard/E/menu input, with screenshots at
+  every stage. Every PNG inspected. The definitive fresh-save run passed the
+  whole academy on the first TEST01 attempt ("Perfect drive", step 4, licence
+  earned, 5-coin gift, 52 captures).
+- Findings fixed in-scope (code commit `5a0abda` over `d4eb55f`):
+  - Coin chip stale after paid cone rounds and enrolment — refresh added.
+  - L04 HUD step counter frozen at "Step 1 of 3" — advances on held stop and
+    lawful green entry now.
+  - No wayfinding: L02/L06 targets unnamed in HUD; L06 hint referenced
+    non-existent arrows — per-stage "Next marker: N m direction" line added,
+    hint rewritten.
+  - Traffic-signal head occluded by the top-centre lesson panel from the
+    learner's stop-line view (projected ≈ (426, 203), verified analytically
+    against authored landmarks and by past-line close-ups) — panel moved
+    top-right; lens now fully visible at the decision point.
+  - Mirrored Label3D sign text (STOP/GIVE WAY/L-plate/yard numbers) — all
+    academy labels single-sided now.
+  - Walkthrough driver timing (harness, not game rules): post-green idle
+    crossed on amber; zebra crossed inside the pedestrian's first-3.5-s green
+    window. Driver now starts promptly on green, skips stale greens and
+    crosses the zebra during the red phase with a mid-approach yield guard.
+- Runtime academy suite: **144 passed, 0 failed** (adds L02/L06 guidance-text
+  and L04 step-progression checks). Pure tests 146/146.
+- Fresh full gates at `5a0abda` (recorded in both `head.txt` files before
+  execution): build clean; source 13 phases **1455/1455**; packaged 13 phases
+  **1455/1455**; source and packaged graphical quality **22/22**; packaged
+  graphical academy **144/144**; export SHA-256 refreshed; `SHA256SUMS`
+  regenerated over 119 evidence files and `sha256sum -c` passes.
+- Evidence refreshed: `evidence/v15_academy/source/`, `packaged/`,
+  `screenshots/` (18 authored captures at 720p/1080p),
+  `graphical/walkthrough-fresh-save.log` and `graphical/walkthrough/` (52
+  playthrough captures). Historical performance/walkthrough logs remain
+  labelled pre-review and are not attributed to this code.
+- Remaining limitations unchanged: no human/child usability study, Windows
+  gameplay startup untested, performance not remeasured after the fixes.
+
+## Academy guidance P2 merge-review fix (2026-11-13) — PASS
+
+- Merge review of PR #37 found the wayfinding left/right labels reversed
+  (P2): `TargetGuidance()` computed the relative heading correctly but mapped
+  a marker on the car's right to "ahead left" and vice versa. Fixed in code
+  commit `733043d`.
+- The mapping now lives in pure `DrivingAcademyRules` helpers:
+  `GuidanceRelativeRadians(toX, toZ, yawRadians)` and
+  `GuidanceDirection(relative)`. Positive relative heading is the car's LEFT
+  (Godot convention: yaw 0 faces -Z), matching `DriveTraining`'s `move_left`
+  steering sign. The controller only formats distance and text.
+- Tests now actually exercise directions, not just text presence:
+  - Pure: 16-case table (ahead/left/right/behind from real offsets for
+    north-, west-, south- and east-facing cars) plus band boundaries —
+    **147 passed, 0 failed**.
+  - Runtime academy: real L06 markers — Checkpoint02 is "ahead right" from
+    Checkpoint01 facing north and "ahead left" facing south; Checkpoint03 is
+    "behind, turn left" from Checkpoint02 facing north — **146 passed, 0
+    failed**.
+- Fresh full gates at `733043d` (both `head.txt` files name the code before
+  execution): build clean; pure 147/147; source 13 phases **1457/1457**;
+  packaged 13 phases **1457/1457**; source and packaged graphical quality
+  **22/22**; packaged graphical academy **146/146**; export SHA-256
+  refreshed; `SHA256SUMS` regenerated and `sha256sum -c` passes.
+- The real-input fresh-save academy walkthrough was rerun at `733043d`: exit
+  0, licence on the first TEST01 attempt, 52 captures replaced. The refreshed
+  L02 capture now reads "ahead right" where the old run showed "ahead left",
+  so committed evidence matches the corrected code.
+- PR #34/#35 remain merged and untouched; no merge, tag or release performed.

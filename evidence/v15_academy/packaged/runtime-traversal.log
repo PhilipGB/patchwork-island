@@ -1,4 +1,4 @@
-COMMAND: /home/philip/.cache/tmp/opencode/pr35-verified-d8ociq8_/export/PatchworkIsland.x86_64 --headless --audio-driver Dummy -- --selftest-traversal
+COMMAND: /home/philip/.cache/tmp/opencode/pr35-verified-wc5apr67/export/PatchworkIsland.x86_64 --headless --audio-driver Dummy -- --selftest-traversal
 Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
 
 [WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 158 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.
@@ -9,10 +9,10 @@ PASS  traversal test enters the van
 PASS  van crosses the bridge and east road seam (x=93.7, start=47.0)
 PASS  van keeps moving across the bridge
 PASS  traversal test leaves the van
-PASS  slow van crosses the bridge/connector seam (x=74.6)
-PASS  van crosses the bridge at lateral offset z=-2.2 (x=85.9)
+PASS  slow van crosses the bridge/connector seam (x=74.7)
+PASS  van crosses the bridge at lateral offset z=-2.2 (x=85.7)
 PASS  bridge seam has no vertical step at lateral offset z=-2.2
-PASS  van crosses the bridge at lateral offset z=2.2 (x=85.9)
+PASS  van crosses the bridge at lateral offset z=2.2 (x=85.7)
 PASS  bridge seam has no vertical step at lateral offset z=2.2
 PASS  van crosses the bridge westbound (x=34.5)
 PASS  westbound bridge seam has no vertical step
@@ -20,5 +20,5 @@ PASS  player walks from grass onto the rally road near the four-gate gate 1 (mov
 PASS  player can jump near the four-gate gate 1
 PASS  player walks from grass onto the rally road near the grand gate 1 (moved 9.1m)
 PASS  player can jump near the grand gate 1
-PASS  player starts from rest at the road lip and walks onto the shoulder (moved 12.3m)
+PASS  player starts from rest at the road lip and walks onto the shoulder (moved 12.2m)
 RUNTIME RESULT: 18 passed, 0 failed

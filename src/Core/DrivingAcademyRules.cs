@@ -65,6 +65,36 @@ public static class DrivingAcademyRules
 
     public static bool IsSpeeding(float speed) => speed > SpeedLimitMps + SpeedWarningMarginMps;
 
+    /// <summary>
+    /// Relative heading from the car to a target, in radians, wrapped to
+    /// (-pi, pi]. Zero means straight ahead. Positive is the car's left,
+    /// negative is the car's right (Godot convention: yaw 0 faces -Z and
+    /// positive yaw turns towards -X, so a target to the right of a car
+    /// facing -Z has a negative relative heading).
+    /// </summary>
+    public static float GuidanceRelativeRadians(float toX, float toZ, float yawRadians)
+    {
+        float desired = MathF.Atan2(-toX, -toZ);
+        float relative = (desired - yawRadians) % (2f * MathF.PI);
+        if (relative > MathF.PI) relative -= 2f * MathF.PI;
+        if (relative < -MathF.PI) relative += 2f * MathF.PI;
+        return relative;
+    }
+
+    /// <summary>
+    /// Wayfinding label for a relative heading from
+    /// <see cref="GuidanceRelativeRadians"/>. Sign convention: positive is the
+    /// car's left, negative is the car's right.
+    /// </summary>
+    public static string GuidanceDirection(float relativeRadians) => relativeRadians switch
+    {
+        > -0.6f and < 0.6f => "straight ahead",
+        >= 0.6f and < 2.0f => "ahead left",
+        <= -0.6f and > -2.0f => "ahead right",
+        >= 2.0f => "behind, turn left",
+        _ => "behind, turn right",
+    };
+
     public static float MathfWrapDegrees(float degrees)
     {
         degrees %= 360f;

@@ -1,4 +1,4 @@
-COMMAND: /home/philip/.cache/tmp/opencode/pr35-verified-d8ociq8_/export/PatchworkIsland.x86_64 --headless --audio-driver Dummy -- --selftest
+COMMAND: /home/philip/.cache/tmp/opencode/pr35-verified-wc5apr67/export/PatchworkIsland.x86_64 --headless --audio-driver Dummy -- --selftest
 Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
 
 [WORLD SCENE] res://scenes/world/Town.tscn: 75 anchors, 158 top-level roots, 6 NPC routes, 2 free-roam routes, 364 rally samples, 206.17 m.
@@ -273,7 +273,11 @@ PASS  the real Everyday Wear button works
 PASS  a failed clothes save still applies the outfit for this session
 PASS  wearing an owned outfit is free
 PASS  a failed clothes-shop save shows its error in the modal
-PASS  the first owned shop outfit can be re-worn
+PASSWARNING: 7 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 2 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+  the first owned shop outfit can be re-worn
 PASS  owned shop outfit re-equipped through the shop UI
 PASS  re-equipping spends no extra coins
 PASS  a later successful clothes save clears the previous error message
