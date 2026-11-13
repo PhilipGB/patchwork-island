@@ -465,16 +465,8 @@ public partial class DrivingAcademyController : Node3D
         Vector3 to = marker.GlobalPosition - _car.GlobalPosition;
         float distance = new Vector2(to.X, to.Z).Length();
         if (distance < 4f) return null;
-        float desired = Mathf.Atan2(-to.X, -to.Z);
-        float relative = Mathf.Wrap(desired - _car.Rotation.Y, -Mathf.Pi, Mathf.Pi);
-        string direction = relative switch
-        {
-            > -0.6f and < 0.6f => "straight ahead",
-            >= 0.6f and < 2.0f => "ahead right",
-            <= -0.6f and > -2.0f => "ahead left",
-            >= 2.0f => "behind, turn right",
-            _ => "behind, turn left",
-        };
+        float relative = DrivingAcademyRules.GuidanceRelativeRadians(to.X, to.Z, _car.Rotation.Y);
+        string direction = DrivingAcademyRules.GuidanceDirection(relative);
         return $"Next marker: {distance:0} m {direction}";
     }
 

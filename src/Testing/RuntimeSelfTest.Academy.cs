@@ -190,6 +190,27 @@ public partial class RuntimeSelfTest
         service.StartLesson("L06");
         academy.EnterStage("L06", false);
         await Wait(0.3f);
+        // Reviewer P2 regression at real markers: guidance sides must match
+        // the car's handed sides. Checkpoint02 lies east-south-east of
+        // Checkpoint01, so it is on the car's RIGHT when facing north
+        // (yaw 0) and on its LEFT when facing south (yaw 180).
+        academy.TestPlaceCar(academy.TestMarker("Lesson06_Checkpoint01"), 180f, 0f);
+        await Wait(0.25f);
+        Expect(academy.TestGuidance.StartsWith("Next marker:") &&
+               academy.TestGuidance.Contains("ahead left"),
+               "L06 guidance names the car's left from Checkpoint01 facing south");
+        academy.TestPlaceCar(academy.TestMarker("Lesson06_Checkpoint01"), 0f, 0f);
+        await Wait(0.25f);
+        Expect(academy.TestGuidance.StartsWith("Next marker:") &&
+               academy.TestGuidance.Contains("ahead right"),
+               "L06 guidance names the car's right from Checkpoint01 facing north");
+        var expectedGuidance = new Dictionary<string, string>
+        {
+            ["Lesson06_Checkpoint01"] = "ahead right",
+            // From Checkpoint02 facing north, Checkpoint03 is behind-left.
+            ["Lesson06_Checkpoint02"] = "behind, turn left",
+            ["Lesson06_Checkpoint03"] = "ahead left",
+        };
         foreach (string point in new[]
                  {
                      "Lesson06_Checkpoint01", "Lesson06_Checkpoint02",
@@ -200,8 +221,10 @@ public partial class RuntimeSelfTest
             await Wait(0.25f);
             if (point != "Lesson06_Checkpoint04")
                 Expect(academy.TestGuidance.StartsWith("Next marker:") &&
-                       academy.TestGuidance.Contains(" m "),
-                       $"L06 HUD guides to the next checkpoint after {point}");
+                       academy.TestGuidance.Contains(" m ") &&
+                       academy.TestGuidance.Contains(expectedGuidance[point]),
+                       $"L06 HUD guides to the next checkpoint after {point} " +
+                       $"({expectedGuidance[point]})");
         }
         Expect(service.LessonCompleted("L06"), "L06 visits all checkpoints in order");
         await Wait(0.35f);
