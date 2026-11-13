@@ -24,3 +24,9 @@ it changes evidence/documentation only.
 `graphical/walkthrough-*.log` and `performance.log` remain historical. They
 predate the review corrections and have no embedded commit attestation; they
 are not claimed as corrected-code walkthrough or performance evidence.
+
+The first safety-review refresh tested code `58699c6` and was committed in
+evidence/documentation head `1e8bcaf`. The subsequent finite-signal/R-restart
+follow-up refresh replaces those automated logs/captures; its tested code is
+again named in both `head.txt` files before execution. Historical walkthrough
+and performance limitations remain unchanged.

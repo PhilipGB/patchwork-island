@@ -40,17 +40,17 @@ recorded separately in `evidence/v15_academy/performance.log`; they are not used
 as GPU evidence.
 These retained figures have not been remeasured after the safety fixes.
 
-## Verification (tested code commit `58699c6`)
+## Verification (tested code commit `c6cb6b1`)
 
 | Gate | Result |
 |---|---|
 | `dotnet build PatchworkIsland.sln` | 0 warnings, 0 errors |
 | Pure tests | **146 passed, 0 failed** |
-| Source runtime, 13 phases | **1405 passed, 0 failed** (base 286, resume 21, recovery 101, living 238, rally 10, chapter 217, hotfix 48, finale 140, traversal 18, release 40, restore 54, city 138, academy 94) |
+| Source runtime, 13 phases | **1448 passed, 0 failed** (base 286, resume 21, recovery 101, living 238, rally 10, chapter 217, hotfix 48, finale 140, traversal 18, release 40, restore 54, city 138, academy 137) |
 | Source graphical quality (Xvfb) | **22 passed, 0 failed** |
-| Packaged Linux boot + 13 phases | exit 0; **1405 passed, 0 failed** |
+| Packaged Linux boot + 13 phases | exit 0; **1448 passed, 0 failed** |
 | Packaged graphical quality (Xvfb) | **22 passed, 0 failed** |
-| Packaged graphical academy (Xvfb) | **94 passed, 0 failed** |
+| Packaged graphical academy (Xvfb) | **137 passed, 0 failed** |
 | Export hash | `evidence/v15_academy/packaged/hash.txt` (SHA-256 of the exact binary run) |
 | Fresh-save graphical walkthrough | historical pre-review run only; not repeated with corrected rules |
 | Exact-head CI | see the PR checks and `PROGRESS.md` |
@@ -84,6 +84,15 @@ not evidence that a real-input walkthrough passes the corrected rules.
   plus braking at 11 m/s²). Later green cannot erase an unlawful entry.
 - The final crossing requires forward entry and clearance within scene-authored
   bounds; detours, reverse traversals and side exits cannot unlock parking.
+- Follow-up: signal entry now also requires directed traversal of an authored
+  11 m stop-line segment from its bounded approach. Lateral green detours beyond
+  either endpoint, downstream side re-entry and backwards traversal cannot
+  satisfy it. Final stop hold and amber checks use the signal's local frame.
+- Follow-up: R and the pause-menu restart action now reuse the full stage
+  initialiser. Major/minor notes, pending speed warnings, timers and signal/
+  crossing/checkpoint history are cleared. Runtime checks generate real offences,
+  send R input, verify progression/economy are preserved, then complete cleanly
+  without leaving the venue.
 - Runtime regressions exercise actual pedestrian presence, visibility, movement,
   stopped yielding, movement offences (including reversing), reset and stage
   cleanup; both

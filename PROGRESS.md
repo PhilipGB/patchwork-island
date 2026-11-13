@@ -3259,3 +3259,26 @@ Final verification at the PR head (logs and hashes in `evidence/v15_academy/`):
 - Targeted build/pure suite pass; source academy **137 passed, 0 failed**,
   including both distant and just-outside-endpoint signal bypass cases. Full
   committed-code source/exported/graphical verification pending.
+
+### Follow-up final verification — PASS
+
+- Tested code: `c6cb6b1f1ac27b191defa0390021202484b798c6`, recorded in both
+  source/packaged `head.txt` before execution. Later evidence commit changes
+  only documentation, logs, captures and checksums.
+- Build: 0 warnings/errors; pure **146/146**; headless import and source/
+  packaged boot exit 0. All 13 source phases **1448/1448**, all 13 packaged
+  phases **1448/1448**. Academy is **137/137** in each.
+- Source graphical quality **22/22**, packaged graphical quality **22/22**,
+  packaged graphical academy **137/137** under Xvfb, disposable XDG directories.
+  Export SHA-256 refreshed in `packaged/hash.txt`; 18 captures refreshed at
+  720p/1080p; evidence checksum manifest regenerated and checked.
+- Code-head CI PASS: `build-test` 21m21s, `windows-tests` 1m14s, run
+  https://github.com/PhilipGB/patchwork-island/actions/runs/43346220053.
+- The R regressions use actual key input, include a real speeding minor and
+  partial speed-warning timer, preserve wallet/enrolment/lesson progress, and
+  subsequently finish L04 and earn the licence without exiting the venue.
+  Signal detours are checked at X=±12 m and ±5.75 m (just outside the authored
+  ±5.5 m endpoints), plus downstream re-entry and reverse-direction traversal.
+- Historical real-input full-campaign and performance limitations, Windows
+  startup and human usability gaps remain unchanged and explicitly unverified.
+- No merge, retarget, tag or release. PR #34 remains untouched at `db7a7db`.

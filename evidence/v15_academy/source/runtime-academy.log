@@ -52,27 +52,68 @@ PASS  L02 resumes safely
 PASS  L02 ordered gates complete
 PASS  L03 requires a held stop before the line
 PASS  L04 enters from school UI
+PASS  L04 green crossing outside stop-line segment (-12 m) cannot latch entry
+PASS  L04 downstream side re-entry cannot launder the lateral bypass (-12 m)
+PASS  L04 lateral signal bypass (-12 m) cannot complete the lesson
+PASS  L04 reverse-direction traversal cannot satisfy the signal (-12 m fixture)
+PASS  L04 green crossing outside stop-line segment (-5.75 m) cannot latch entry
+PASS  L04 downstream side re-entry cannot launder the lateral bypass (-5.75 m)
+PASS  L04 lateral signal bypass (-5.75 m) cannot complete the lesson
+PASS  L04 reverse-direction traversal cannot satisfy the signal (-5.75 m fixture)
+PASS  L04 green crossing outside stop-line segment (5.75 m) cannot latch entry
+PASS  L04 downstream side re-entry cannot launder the lateral bypass (5.75 m)
+PASS  L04 lateral signal bypass (5.75 m) cannot complete the lesson
+PASS  L04 reverse-direction traversal cannot satisfy the signal (5.75 m fixture)
+PASS  L04 green crossing outside stop-line segment (12 m) cannot latch entry
+PASS  L04 downstream side re-entry cannot launder the lateral bypass (12 m)
+PASS  L04 lateral signal bypass (12 m) cannot complete the lesson
+PASS  L04 reverse-direction traversal cannot satisfy the signal (12 m fixture)
 PASS  L04 creates a visible crossing pedestrian after selecting stage
 PASS  L04 pedestrian displays the authored vertex colours
 PASS  L04 pedestrian actually moves across the lane
 PASS  L04 waiting at occupied crossing is safe
 PASS  L04 moving through occupied crossing is a major offence even reversing
 PASS  L04 crossing offence is counted once
+PASS  L04 R clears every penalty/checkpoint without charging or discarding progression
 PASS  L04 reset restores the waiting pedestrian
-PASS  L04 green/crossing path completes
+PASS  L04 clean green/crossing attempt completes after R clears the offence
+Unicode parsing error, some characters were replaced with � (U+FFFD): Invalid UTF-8 leading byte (b7)
 PASS  switching to parking removes the crossing pedestrian
 PASS  L05 reverse distance is measured
 PASS  L05 parks inside the bay
 PASS  L06 visits all checkpoints in order
-Unicode parsing error, some characters were replaced with � (U+FFFD): Invalid UTF-8 leading byte (b7)
+PASS  TEST01 green crossing outside stop-line segment (-12 m) cannot latch entry
+PASS  TEST01 downstream side re-entry cannot launder the lateral bypass (-12 m)
+PASS  TEST01 lateral signal bypass (-12 m), crossing and parking cannot earn a licence
+PASS  TEST01 reverse-direction traversal cannot satisfy the signal (-12 m fixture)
+PASS  TEST01 green crossing outside stop-line segment (-5.75 m) cannot latch entry
+PASS  TEST01 downstream side re-entry cannot launder the lateral bypass (-5.75 m)
+PASS  TEST01 lateral signal bypass (-5.75 m), crossing and parking cannot earn a licence
+PASS  TEST01 reverse-direction traversal cannot satisfy the signal (-5.75 m fixture)
+PASS  TEST01 green crossing outside stop-line segment (5.75 m) cannot latch entry
+PASS  TEST01 downstream side re-entry cannot launder the lateral bypass (5.75 m)
+PASS  TEST01 lateral signal bypass (5.75 m), crossing and parking cannot earn a licence
+PASS  TEST01 reverse-direction traversal cannot satisfy the signal (5.75 m fixture)
+PASS  TEST01 green crossing outside stop-line segment (12 m) cannot latch entry
+PASS  TEST01 downstream side re-entry cannot launder the lateral bypass (12 m)
+PASS  TEST01 lateral signal bypass (12 m), crossing and parking cannot earn a licence
+PASS  TEST01 reverse-direction traversal cannot satisfy the signal (12 m fixture)
 PASS  Red unlawful entry is major and cannot advance final signal checkpoint
 PASS  Red entry cannot be laundered by later green, crossing and parking
+PASS  Red R clears the signal penalty and restarts the assessment
+PASS  Red clean green signal entry works after R without exiting the venue
 PASS  RedAmber unlawful entry is major and cannot advance final signal checkpoint
 PASS  RedAmber entry cannot be laundered by later green, crossing and parking
+PASS  RedAmber R clears the signal penalty and restarts the assessment
+PASS  RedAmber clean green signal entry works after R without exiting the venue
 PASS  Amber unlawful entry is major and cannot advance final signal checkpoint
 PASS  Amber entry cannot be laundered by later green, crossing and parking
+PASS  Amber R clears the signal penalty and restarts the assessment
+PASS  Amber clean green signal entry works after R without exiting the venue
 PASS  Amber with room to stop unlawful entry is major and cannot advance final signal checkpoint
 PASS  Amber with room to stop entry cannot be laundered by later green, crossing and parking
+PASS  Amber with room to stop R clears the signal penalty and restarts the assessment
+PASS  Amber with room to stop clean green signal entry works after R without exiting the venue
 PASS  amber onset too close to stop safely allows lawful entry
 PASS  later red does not penalise an already lawful entry
 PASS  final test enters from school UI
@@ -82,6 +123,8 @@ PASS  TEST01 pedestrian actually moves across the lane
 PASS  TEST01 waiting at occupied crossing is safe
 PASS  TEST01 moving through occupied crossing is a major offence even reversing
 PASS  TEST01 crossing offence is counted once
+PASS  TEST01 restart fixture contains major, minor and pending speed warning
+PASS  TEST01 R clears every penalty/checkpoint without charging or discarding progression
 PASS  TEST01 reset restores the waiting pedestrian
 PASS  test holds at the stop line
 PASS  wide detour cannot bypass final crossing
@@ -89,9 +132,10 @@ PASS  bypass followed by parking cannot earn a licence
 PASS  wrong-direction crossing does not advance
 PASS  side exit invalidates crossing entry
 PASS  green entry and bounded forward crossing safely reach parking
-PASS  final assessment issues the official licence
+PASS  final assessment issues the official licence after R clears the failed attempt
 PASS  five-coin graduation gift is paid once
 PASS  licence unlocks the regular van
+Unicode parsing error, some characters were replaced with � (U+FFFD): Invalid UTF-8 leading byte (b7)
 PASS  practice test can be replayed
 PASS  practice test pays no coins
 PASS  licence and six lessons persist on schema 5
@@ -101,7 +145,7 @@ PASS  30 school returns leave no course, collision or HUD orphan
 PASS  school returns do not accumulate scene nodes
 PASS  return restores the walking player
 PASS  return position is safe and in town
-RUNTIME RESULT: 94 passed, 0 failed
+RUNTIME RESULT: 137 passed, 0 failed
 WARNING: 6 ObjectDB instances were leaked at exit (run with `--verbose` for details).
    at: cleanup (core/object/object.cpp:2536)
 ERROR: 2 resources still in use at exit (run with --verbose for details).
