@@ -1,3 +1,4 @@
+COMMAND: xvfb-run --auto-servernum --server-args=-screen 0 1920x1080x24 godot --path . --audio-driver Dummy -- --capture-academy --capture-1080
 Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
 WARNING: Failed to create wd.xic as the input method or its xim server may not have started yet.
      at: _create_xic (platform/linuxbsd/x11/display_server_x11.cpp:6347)
@@ -15,7 +16,8 @@ ACADEMY SHOT academy_1080_03_lesson_board.png
 Unicode parsing error, some characters were replaced with � (U+FFFD): Invalid UTF-8 leading byte (b7)
 ACADEMY SHOT academy_1080_04_lesson01.png
 ACADEMY SHOT academy_1080_05_road_rules.png
+ACADEMY SHOT academy_1080_09_crossing_pedestrian.png
 ACADEMY SHOT academy_1080_06_parking.png
 ACADEMY SHOT academy_1080_07_exam.png
 ACADEMY SHOT academy_1080_08_licence.png
-ACADEMY CAPTURES academy_1080 -> /home/philip/.cache/tmp/opencode/final-shots/data/godot/app_userdata/Patchwork Island/screenshots
+ACADEMY CAPTURES academy_1080 -> /home/philip/.cache/tmp/opencode/pr35-verified-taq3k5s9/captures/data/godot/app_userdata/Patchwork Island/screenshots

@@ -3212,3 +3212,29 @@ Final verification at the PR head (logs and hashes in `evidence/v15_academy/`):
   GLB needs the existing vertex-colour material helper. Applied that helper,
   added a material regression in both stages, and corrected the amber HUD hint
   (previously masked by the generic stop-light branch). Full rerun required.
+
+### Final review verification — PASS
+
+- Tested code: `58699c6dd268d67ce512ccf99a62a0aeff47c0ef`. Source and packaged
+  `head.txt` files were written before execution; the subsequent evidence commit
+  changes documentation/logs/captures only.
+- `dotnet build PatchworkIsland.sln`: 0 warnings/errors; pure **146/146**;
+  Godot headless import and source/packaged boot: exit 0.
+- All 13 source phases: **1405 passed, 0 failed**. All 13 packaged phases:
+  **1405 passed, 0 failed**. Academy is now **94/94** in both.
+- Source graphical quality **22/22**, packaged graphical quality **22/22**,
+  packaged graphical academy **94/94**, all under Xvfb with disposable XDG
+  directories. The exported binary's SHA-256 is in `packaged/hash.txt`.
+- Refreshed 18 captures at 720p/1080p. Inspected the close-up pedestrian capture:
+  visible, coloured actor on the zebra crossing. Captures use developer state
+  setup and do not substitute for gameplay assertions.
+- CI at `58699c6`: `build-test` PASS (18m37s), `windows-tests` PASS (1m10s),
+  run https://github.com/PhilipGB/patchwork-island/actions/runs/43336549763.
+- Evidence provenance corrected without inventing a historical local hash.
+  `PROVENANCE.md` distinguishes old local logs, confirmed original CI code head
+  `a16f616`, reviewed documentation head `122654c`, and the newly tested code.
+- Remaining gaps: corrected-code real-input academy/full-campaign walkthrough
+  not repeated; retained old walkthrough stops at M16 and predates these fixes.
+  Performance numbers are historical pre-review measurements, not re-profiled.
+  Windows gameplay startup and human/child usability remain NOT TESTED.
+- No merge, retarget, tag or release; #34 is unchanged.

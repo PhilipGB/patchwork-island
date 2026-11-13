@@ -1,12 +1,13 @@
 # Driving Academy acceptance record
 
-Status legend: PASS / FAIL / PARTIAL / NOT TESTED. All results below are from the
-exact source head recorded in `evidence/v15_academy/source/head.txt`; the full
-logs, screenshots and the exported binary hash are in `evidence/v15_academy/`.
+Status legend: PASS / FAIL / PARTIAL / NOT TESTED. Automated gates and captures
+identify the tested code in `evidence/v15_academy/source/head.txt`; historical
+walkthrough/performance evidence is explicitly distinguished below. See
+`evidence/v15_academy/PROVENANCE.md` for the original base-commit correction.
 
-Verification summary: pure **145/145**, source runtime **1373/1373** across 13
-phases, packaged runtime **1373/1373**, source and packaged graphical quality
-**22/22** each, packaged graphical academy **62/62**.
+Verification at code commit `58699c6`: pure **146/146**, source runtime
+**1405/1405** across 13 phases, packaged runtime **1405/1405**, source and
+packaged graphical quality **22/22** each, packaged graphical academy **94/94**.
 
 ## A. Asset and scene contract
 
@@ -28,12 +29,12 @@ phases, packaged runtime **1373/1373**, source and packaged graphical quality
 | B04 | PASS | L01 requires ≥2 m/s of travel and 1.5 s below 0.3 m/s in the stop zone. |
 | B05 | PASS | L02 requires the three gates in order; skipping is impossible. |
 | B06 | PASS | L03 requires a 1.5 s stop before the line and then a safe release past it. |
-| B07 | PASS | L04 stops on red/red+amber, enters only on green and raises a hazard when the pedestrian is on the crossing. |
+| B07 | PASS | L04 configures a visible pedestrian on school entry; runtime checks actual crossing movement, safe stationary yielding and a once-only major error for movement through the occupied crossing (including reverse). Red/red+amber prohibit entry; amber requires a safe stop unless stopping was impossible at onset. |
 | B08 | PASS | L05 measures ≥4 m of reverse and a 1.5 s stationary hold inside the bay within 3.2 m and 25° of the bay axis (either heading). |
 | B09 | PASS | L06 requires four ordered checkpoints and warns above 20 mph (8.9408 m/s). |
-| B10 | PASS | TEST01 combines stop line, signal, crossing and parking; three minor notes are allowed and any major error fails; retry and R-reset are free. A red-light offence is decided only when the car crosses the line, so legally clearing on green is not penalised later. |
+| B10 | PASS | TEST01 requires lawful signal entry and bounded forward crossing traversal before parking. Red/red+amber, stationary amber departure and amber with room to stop cannot advance or earn a licence; unavoidable amber at onset and green entry are accepted. Later green cannot erase an offence; later red cannot penalise lawful entry. Wide detours, wrong-direction traversals and side exits cannot satisfy the crossing. Pedestrian presence/movement/yield/offence/reset are independently checked in TEST01. Three minor notes and zero major errors are allowed; retries are free. |
 | B11 | PASS | A pass issues the licence and one 5-coin gift; practice and reload cannot duplicate either (runtime persistence assertion). |
-| B12 | PASS | 16 screenshots (8 categories × 720p/1080p) show readable school, HUD, lesson, road rules, parking, exam and licence; camera-latch regressions stay green. |
+| B12 | PASS | 18 screenshots (9 categories × 720p/1080p) show school, HUD, lesson, road rules, coloured crossing pedestrian, parking, exam and licence; camera-latch regressions stay green. Captures use developer state setup, not independent gameplay completion. |
 | B13 | PASS | Return is safe before enrolment, mid-lesson, after failure and after success; a mid-lesson exit saves `AcademyActiveStage` and the school offers Resume. |
 
 ## C. Persistence and architecture
@@ -42,7 +43,7 @@ phases, packaged runtime **1373/1373**, source and packaged graphical quality
 |---|---|---|
 | C01 | PASS | Schema 5; v1–v4 fixtures migrate to 5 with the legacy permit. Newer-save protection, backups and corrupt-file recovery remain green. |
 | C02 | PASS | v1–v4 receive `LegacyVanPermit` only; a fresh v5 save starts with neither permit nor licence and the regular van is gated until the licence is earned. |
-| C03 | PARTIAL | All 24 missions and 3 city jobs pass their dedicated runtime phases (base, chapter, finale, city) with the academy code present. The fresh-save graphical walkthrough earned the licence and completed M01–M15, then stopped at M16 on a pre-existing walkthrough NPC-approach/route-planner limitation. Not a human playthrough. |
+| C03 | PARTIAL | All 24 missions and 3 city jobs pass their dedicated runtime phases (base, chapter, finale, city) with the academy code present. The historical pre-review graphical walkthrough earned the licence under the old defective rules, completed M01–M15, then stopped at M16 on a walkthrough NPC-approach/route-planner limitation. A corrected-code real-input academy/campaign walkthrough has not been repeated. Not a human playthrough. |
 | C04 | PASS | Mid-lesson save/exit and Resume restore the physical stage; no academy coordinates enter town/city snapshots. |
 | C05 | PASS | `GameSession.ReplaceData` rebinds village, city and academy to the same `GameData` (unit assertion), so Continue and New Game cannot leave a stale service. |
 | C06 | PASS | Pure tests cover stop duration, parking distance/heading, mph conversion, every light transition, red-line edge cases, grading boundaries, retries and reward idempotency. |
@@ -53,8 +54,8 @@ phases, packaged runtime **1373/1373**, source and packaged graphical quality
 | ID | Result | Evidence |
 |---|---|---|
 | P3-A1 | PASS | CI runs the graphical quality gate on the source build under Xvfb with disposable XDG dirs, and on the exported binary under Xvfb. |
-| P3-A2 | PASS | The exported Linux binary passes the packaged graphical academy gate (62 assertions: enrolment UI, learner car, rendered lesson completion, clean return). |
-| P3-A3 | PASS | Every packaged run uses disposable XDG data/config/cache; `packaged/hash.txt` records the SHA-256 and ELF details of the exported binary. |
+| P3-A2 | PASS | The exported Linux binary passes the packaged graphical academy gate (94 assertions including pedestrian presence/material/movement/offence, signal entry and crossing-bypass regressions). |
+| P3-A3 | PASS | Every packaged run uses disposable XDG data/config/cache; `packaged/hash.txt` records the SHA-256 of the exported binary; `packaged/head.txt` identifies the tested code. |
 | P3-B1 | PASS | C02 crate availability requires an active C02, an open road, an unfinished C02 and an unconsumed crate. |
 | P3-B2 | PASS | Consumed, switched-away and completed crates lose E focus; restoring C02 regains it. Covered by runtime and graphical quality checks. |
 
@@ -65,7 +66,7 @@ phases, packaged runtime **1373/1373**, source and packaged graphical quality
 | E01 | PASS | Pure, 13 source phases, export, 13 packaged phases, source graphical quality and packaged graphical quality/academy all run at this head and exit 0. |
 | E02 | PASS | Camera latch, 60 shop open/close cycles, city kerbs, roadworks, city cars and recovery remain green in the 22-check graphical gate. |
 | E03 | PARTIAL | Academy isolation is proven by the 30-cycle venue test and the runtime academy phase. The full 24-mission graphical walkthrough is incomplete at M16 (see C03); this is reported, not claimed. |
-| E04 | PASS | Same-hardware 720p/1080p p50/p95/max, draw calls and primitives are recorded in `performance.log`. The 230 ms academy-entry maximum is the one-time course load and is reported as-is; software Xvfb numbers are labelled separately. |
+| E04 | PARTIAL | Historical pre-review same-hardware 720p/1080p p50/p95/max, draw calls and primitives remain in `performance.log`. The 230 ms academy-entry maximum is a one-time course load, reported as-is; software Xvfb numbers are labelled separately. Performance has not been remeasured after these safety fixes. |
 | E05 | NOT TESTED | Windows build/pure tests run in CI; Windows gameplay startup could not be tested here. |
-| E06 | PASS | 16 screenshots in `evidence/v15_academy/screenshots/`, captured from the frozen head at both resolutions. |
+| E06 | PASS | 18 screenshots in `evidence/v15_academy/screenshots/`, captured from code commit `58699c6` at both resolutions. |
 | E07 | PASS | PR #35 opened against the verified base; the code head, CI state and any discrepancy are recorded in `PROGRESS.md` and on the PR. No merge, tag or release. |

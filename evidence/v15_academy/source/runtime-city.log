@@ -1,3 +1,4 @@
+COMMAND: godot --path . --headless --audio-driver Dummy -- --selftest-city
 Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
 
 Unicode parsing error, some characters were replaced with � (U+FFFD): Invalid UTF-8 leading byte (b7)
@@ -114,7 +115,7 @@ PASS  returning to town hides the whole city district
 PASS  returning to town destroys every visual city actor
 PASS  returning to town disables offscreen city collision
 PASS  a fresh/closed state restores the gate exactly
-CITY_TRAVERSAL entered=True first=True centre=True returned=True van=(179.06497, -0.0020163245, 1.3302647) speed=7.29
+CITY_TRAVERSAL entered=True first=True centre=True returned=True van=(179.30833, -0.0020160992, 1.3656197) speed=7.38
 PASS  sustained driving enters the city road
 PASS  sustained driving reaches the first city intersection
 PASS  sustained driving reaches the central city block

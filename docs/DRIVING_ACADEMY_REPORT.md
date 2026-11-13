@@ -26,7 +26,7 @@ release was performed.
 - C02 crate focus now requires active C02, open road, unfinished job and an
   unconsumed crate.
 
-## Performance (AMD Radeon 890M, vsync on)
+## Historical pre-review performance (AMD Radeon 890M, vsync on)
 
 | Stage | 720p p50/p95/max | 1080p p50/p95/max | Draw calls |
 |---|---|---:|---:|
@@ -38,28 +38,29 @@ The academy-entry maximum is a one-time course-load transition, not steady
 state. Xvfb/llvmpipe numbers (p50 39–86 ms) are software rendering and are
 recorded separately in `evidence/v15_academy/performance.log`; they are not used
 as GPU evidence.
+These retained figures have not been remeasured after the safety fixes.
 
-## Verification (this head)
+## Verification (tested code commit `58699c6`)
 
 | Gate | Result |
 |---|---|
 | `dotnet build PatchworkIsland.sln` | 0 warnings, 0 errors |
-| Pure tests | **145 passed, 0 failed** |
-| Source runtime, 13 phases | **1373 passed, 0 failed** (base 286, resume 21, recovery 101, living 238, rally 10, chapter 217, hotfix 48, finale 140, traversal 18, release 40, restore 54, city 138, academy 62) |
+| Pure tests | **146 passed, 0 failed** |
+| Source runtime, 13 phases | **1405 passed, 0 failed** (base 286, resume 21, recovery 101, living 238, rally 10, chapter 217, hotfix 48, finale 140, traversal 18, release 40, restore 54, city 138, academy 94) |
 | Source graphical quality (Xvfb) | **22 passed, 0 failed** |
-| Packaged Linux boot + 13 phases | exit 0; **1373 passed, 0 failed** |
+| Packaged Linux boot + 13 phases | exit 0; **1405 passed, 0 failed** |
 | Packaged graphical quality (Xvfb) | **22 passed, 0 failed** |
-| Packaged graphical academy (Xvfb) | **62 passed, 0 failed** |
+| Packaged graphical academy (Xvfb) | **94 passed, 0 failed** |
 | Export hash | `evidence/v15_academy/packaged/hash.txt` (SHA-256 of the exact binary run) |
-| Fresh-save graphical walkthrough | licence earned; M01–M15 complete; M16 blocked (below) |
+| Fresh-save graphical walkthrough | historical pre-review run only; not repeated with corrected rules |
 | Exact-head CI | see the PR checks and `PROGRESS.md` |
 
-The 13-phase logs are in `evidence/v15_academy/source/` and
+The refreshed runs replace the logs in `evidence/v15_academy/source/` and
 `evidence/v15_academy/packaged/`; each `summary.txt` records exit codes.
 
 ### Graphical walkthrough
 
-`--dev --playthrough` under Xvfb earns the licence on a fresh v5 save (five cone
+The retained pre-review `--dev --playthrough` under Xvfb earned the licence on a fresh v5 save (five cone
 rounds, enrolment, L01–L06, TEST01 with 0 major / 0 minor), then completes
 M01–M15 and stops at the deliberate M15 save/reload checkpoint. The continuation
 completes M15 and fails at M16 when the automated walker cannot reach a moving
@@ -69,7 +70,29 @@ and the 24 missions remain green in their dedicated runtime phases. These logs
 were captured immediately before the final UI-only change that hides the town
 compass in the venue; the exact-head screenshots show that fix. This is
 recorded as **PARTIAL** in the acceptance record rather than claimed as a
-full-campaign pass.
+full-campaign pass. It also predates the pedestrian/signal/crossing fixes and is
+not evidence that a real-input walkthrough passes the corrected rules.
+
+## Review corrections (2026-11-13)
+
+- Pedestrian setup follows stage selection, including first entry from school;
+  stage changes remove stale actors and resets restore the waiting actor.
+  Movement is across the authored lane, not along it.
+- Signal entry is recorded once. Red/red+amber and avoidable amber are major
+  errors and cannot unlock the final crossing step. Amber is permitted only
+  if stopping safely was impossible at its onset (one second reaction travel
+  plus braking at 11 m/s²). Later green cannot erase an unlawful entry.
+- The final crossing requires forward entry and clearance within scene-authored
+  bounds; detours, reverse traversals and side exits cannot unlock parking.
+- Runtime regressions exercise actual pedestrian presence, visibility, movement,
+  stopped yielding, movement offences (including reversing), reset and stage
+  cleanup; both
+  relevant stages enter through the school UI. Negative signal attempts cannot
+  issue a licence; a clean green/crossing/parking attempt still earns it.
+- `evidence/v15_academy/PROVENANCE.md` corrects the old base-commit attribution.
+  Fresh logs name the committed tested code before execution; documentation
+  heads are distinct. Historical performance and real-input walkthrough logs
+  are explicitly labelled, not silently attributed to the corrected code.
 
 ## Evidence
 
@@ -78,7 +101,8 @@ full-campaign pass.
 - `evidence/v15_academy/packaged/` — export log, binary hash, boot, 13 packaged
   phases, packaged graphical quality/academy.
 - `evidence/v15_academy/graphical/` — the fresh-save walkthrough logs.
-- `evidence/v15_academy/screenshots/` — 8 categories × 720p/1080p.
+- `evidence/v15_academy/screenshots/` — 9 categories × 720p/1080p, including the
+  coloured pedestrian; developer state setup is used for captures.
 - `evidence/v15_academy/performance.log` — frame-interval probe.
 - `evidence/v15_academy/README.md` — method, environment and limits.
 - `docs/DRIVING_ACADEMY.md` — design and code map.

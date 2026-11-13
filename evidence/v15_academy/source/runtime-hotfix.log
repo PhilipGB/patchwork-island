@@ -1,3 +1,4 @@
+COMMAND: godot --path . --headless --audio-driver Dummy -- --selftest-hotfix
 Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
 
 Unicode parsing error, some characters were replaced with � (U+FFFD): Invalid UTF-8 leading byte (b7)

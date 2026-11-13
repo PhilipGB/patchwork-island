@@ -1,7 +1,10 @@
 # Evidence — v1.5.0 Driving Academy
 
-All runs below use the exact source tree at the commit recorded in
-`source/head.txt`. Godot 4.7.2 .NET (mono) on Linux x86_64, .NET 8.
+Refreshed source, packaged and screenshot gates use the code commit recorded in
+`source/head.txt` and `packaged/head.txt`. These identify tested code, not the
+later evidence/documentation commit. Godot 4.7.2 .NET (mono), Linux x86_64, .NET 8.
+The retained walkthrough and performance logs are historical, pre-review evidence
+and do **not** verify the corrected safety rules. See `PROVENANCE.md`.
 
 ## Environment
 
@@ -47,13 +50,14 @@ E, mouse clicks and menus. Phase 1 earns the driving licence, completes M01–M1
 and stops at the deliberate M15 checkpoint (the game requires a save/reload
 there). Phase 2 continues from that save, completes M15 and fails at M16 on a
 pre-existing walkthrough route-planner limitation (see
-`docs/DRIVING_ACADEMY_REPORT.md`). The academy half of phase 1 is complete and
-passing; this is recorded as a limitation, not as a passing full-campaign run.
+`docs/DRIVING_ACADEMY_REPORT.md`). The old academy half completed under the
+pre-review rules; this is not a passing corrected-code or full-campaign run.
 
-These walkthrough logs were captured immediately before the final one-line UI
-fix that hides the town job compass inside the venue; every gameplay rule and
-the licence flow they exercise is unchanged, and the refreshed exact-head
-screenshots show the compass fix. No other gate below predates the final head.
+These walkthrough logs predate the UI compass fix and the review's pedestrian,
+amber and crossing-checkpoint fixes. Their licence result used the defective
+rules; it is not a corrected-code real-input academy pass. The new runtime gates
+exercise those fixes, but a fresh real-input academy/campaign walkthrough has
+not been repeated. The full-campaign status remains PARTIAL.
 
 ## Packaged Linux
 
@@ -62,7 +66,7 @@ evidence. See `packaged/summary.txt` and `packaged/hash.txt`.
 
 ## Screenshots
 
-`screenshots/` holds eight categories at 1280x720 and 1920x1080:
+`screenshots/` holds nine categories at 1280x720 and 1920x1080:
 
 1. school office in the town
 2. enrolment UI
@@ -72,14 +76,19 @@ evidence. See `packaged/summary.txt` and `packaged/hash.txt`.
 6. parking bay
 7. final assessment
 8. licence card
+9. moving crossing pedestrian
+
+Captures use developer setup (including domain lesson completion and licence
+state setup); they demonstrate rendering, not independent gameplay completion.
 
 ## Performance
 
-`performance.log` is the frame-interval probe (`--academy-perf`) on the AMD
+`performance.log` is the retained **pre-review** frame-interval probe (`--academy-perf`) on the AMD
 Radeon 890M with vsync enabled: 300 town frames, 600 academy frames and 300
 frames after returning. p50/p95/max, draw calls and primitives are recorded per
 resolution. The academy-entry maximum includes the one-time authored course
-load and is not a steady-state figure.
+load and is not a steady-state figure. Performance has not been remeasured after
+the safety fixes; these numbers must not be presented as current-head profiling.
 
 ## What this evidence does not prove
 

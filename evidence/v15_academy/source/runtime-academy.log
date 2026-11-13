@@ -1,3 +1,4 @@
+COMMAND: godot --path . --headless --audio-driver Dummy -- --selftest-academy
 Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
 
 Unicode parsing error, some characters were replaced with � (U+FFFD): Invalid UTF-8 leading byte (b7)
@@ -50,15 +51,47 @@ PASS  resume button appears
 PASS  L02 resumes safely
 PASS  L02 ordered gates complete
 PASS  L03 requires a held stop before the line
+PASS  L04 enters from school UI
+PASS  L04 creates a visible crossing pedestrian after selecting stage
+PASS  L04 pedestrian displays the authored vertex colours
+PASS  L04 pedestrian actually moves across the lane
+PASS  L04 waiting at occupied crossing is safe
+PASS  L04 moving through occupied crossing is a major offence even reversing
+PASS  L04 crossing offence is counted once
+PASS  L04 reset restores the waiting pedestrian
 PASS  L04 green/crossing path completes
+PASS  switching to parking removes the crossing pedestrian
 PASS  L05 reverse distance is measured
 PASS  L05 parks inside the bay
 PASS  L06 visits all checkpoints in order
+Unicode parsing error, some characters were replaced with � (U+FFFD): Invalid UTF-8 leading byte (b7)
+PASS  Red unlawful entry is major and cannot advance final signal checkpoint
+PASS  Red entry cannot be laundered by later green, crossing and parking
+PASS  RedAmber unlawful entry is major and cannot advance final signal checkpoint
+PASS  RedAmber entry cannot be laundered by later green, crossing and parking
+PASS  Amber unlawful entry is major and cannot advance final signal checkpoint
+PASS  Amber entry cannot be laundered by later green, crossing and parking
+PASS  Amber with room to stop unlawful entry is major and cannot advance final signal checkpoint
+PASS  Amber with room to stop entry cannot be laundered by later green, crossing and parking
+PASS  amber onset too close to stop safely allows lawful entry
+PASS  later red does not penalise an already lawful entry
+PASS  final test enters from school UI
+PASS  TEST01 creates a visible crossing pedestrian after selecting stage
+PASS  TEST01 pedestrian displays the authored vertex colours
+PASS  TEST01 pedestrian actually moves across the lane
+PASS  TEST01 waiting at occupied crossing is safe
+PASS  TEST01 moving through occupied crossing is a major offence even reversing
+PASS  TEST01 crossing offence is counted once
+PASS  TEST01 reset restores the waiting pedestrian
 PASS  test holds at the stop line
+PASS  wide detour cannot bypass final crossing
+PASS  bypass followed by parking cannot earn a licence
+PASS  wrong-direction crossing does not advance
+PASS  side exit invalidates crossing entry
+PASS  green entry and bounded forward crossing safely reach parking
 PASS  final assessment issues the official licence
 PASS  five-coin graduation gift is paid once
 PASS  licence unlocks the regular van
-Unicode parsing error, some characters were replaced with � (U+FFFD): Invalid UTF-8 leading byte (b7)
 PASS  practice test can be replayed
 PASS  practice test pays no coins
 PASS  licence and six lessons persist on schema 5
@@ -68,4 +101,8 @@ PASS  30 school returns leave no course, collision or HUD orphan
 PASS  school returns do not accumulate scene nodes
 PASS  return restores the walking player
 PASS  return position is safe and in town
-RUNTIME RESULT: 62 passed, 0 failed
+RUNTIME RESULT: 94 passed, 0 failed
+WARNING: 6 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 2 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)

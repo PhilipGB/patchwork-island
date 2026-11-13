@@ -1,3 +1,4 @@
+COMMAND: godot --headless --path . --editor --quit
 Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
 
 [   0% ] [90m[1mfirst_scan_filesystem[22m | Started Project initialization (5 steps)[39m[0m
@@ -9,108 +10,11 @@ Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
 [  83% ] [90m[1mfirst_scan_filesystem[22m | Starting file scan...[39m[0m
 [92m[ DONE ][39m [1mfirst_scan_filesystem[22m
 [0m
-[   0% ] [90m[1mupdate_scripts_classes[22m | Started Registering global classes... (28 steps)[39m[0m
+[   0% ] [90m[1mupdate_scripts_classes[22m | Started Registering global classes... (3 steps)[39m[0m
 [   0% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[   3% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[   6% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  10% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  13% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  17% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  20% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  24% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  27% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  31% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  34% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  37% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  41% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  44% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  48% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  51% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  55% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  58% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  62% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  65% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  68% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  72% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  75% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  79% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  82% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  86% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  89% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  93% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  25% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  50% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
 [92m[ DONE ][39m [1mupdate_scripts_classes[22m
-[0m
-[   0% ] [90m[1m_update_scan_actions[22m | Started Scanning actions... (20 steps)[39m[0m
-[   0% ] [90m[1m_update_scan_actions[22m | driving_licence.svg[39m[0m
-[   4% ] [90m[1m_update_scan_actions[22m | parking.svg[39m[0m
-[   9% ] [90m[1m_update_scan_actions[22m | steering_wheel.svg[39m[0m
-[  14% ] [90m[1m_update_scan_actions[22m | traffic_light.svg[39m[0m
-[  19% ] [90m[1m_update_scan_actions[22m | academy_720_01_school_office.png[39m[0m
-[  23% ] [90m[1m_update_scan_actions[22m | academy_720_02_enrolment_ui.png[39m[0m
-[  28% ] [90m[1m_update_scan_actions[22m | academy_720_03_lesson_board.png[39m[0m
-[  33% ] [90m[1m_update_scan_actions[22m | academy_720_04_lesson01.png[39m[0m
-[  38% ] [90m[1m_update_scan_actions[22m | academy_720_05_road_rules.png[39m[0m
-[  42% ] [90m[1m_update_scan_actions[22m | academy_720_06_parking.png[39m[0m
-[  47% ] [90m[1m_update_scan_actions[22m | academy_720_07_exam.png[39m[0m
-[  52% ] [90m[1m_update_scan_actions[22m | academy_720_08_licence.png[39m[0m
-[  57% ] [90m[1m_update_scan_actions[22m | academy_1080_01_school_office.png[39m[0m
-[  61% ] [90m[1m_update_scan_actions[22m | academy_1080_02_enrolment_ui.png[39m[0m
-[  66% ] [90m[1m_update_scan_actions[22m | academy_1080_03_lesson_board.png[39m[0m
-[  71% ] [90m[1m_update_scan_actions[22m | academy_1080_04_lesson01.png[39m[0m
-[  76% ] [90m[1m_update_scan_actions[22m | academy_1080_05_road_rules.png[39m[0m
-[  80% ] [90m[1m_update_scan_actions[22m | academy_1080_06_parking.png[39m[0m
-[  85% ] [90m[1m_update_scan_actions[22m | academy_1080_07_exam.png[39m[0m
-[  90% ] [90m[1m_update_scan_actions[22m | academy_1080_08_licence.png[39m[0m
-[92m[ DONE ][39m [1m_update_scan_actions[22m
-[0m
-[   0% ] [90m[1mreimport[22m | Started (Re)Importing Assets (20 steps)[39m[0m
-[   0% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
-[   4% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
-[   9% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
-[  14% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
-[  19% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
-[  23% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
-[  28% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
-[  33% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
-[  38% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
-[  42% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
-[  47% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
-[  52% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
-[  57% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
-[  61% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
-[  66% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
-[  71% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
-[  76% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
-[  80% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
-[  85% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
-[  90% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
-[   0% ] [90m[1mreimport[22m | Executing pre-reimport operations...[39m[0m
-[   0% ] [90m[1mreimport[22m | academy_1080_08_licence.png[39m[0m
-[   4% ] [90m[1mreimport[22m | academy_1080_07_exam.png[39m[0m
-[   9% ] [90m[1mreimport[22m | academy_1080_06_parking.png[39m[0m
-[  14% ] [90m[1mreimport[22m | academy_1080_05_road_rules.png[39m[0m
-[  19% ] [90m[1mreimport[22m | academy_1080_04_lesson01.png[39m[0m
-[  23% ] [90m[1mreimport[22m | academy_1080_03_lesson_board.png[39m[0m
-[  28% ] [90m[1mreimport[22m | academy_1080_02_enrolment_ui.png[39m[0m
-[  33% ] [90m[1mreimport[22m | academy_1080_01_school_office.png[39m[0m
-[  38% ] [90m[1mreimport[22m | academy_720_08_licence.png[39m[0m
-[  42% ] [90m[1mreimport[22m | academy_720_07_exam.png[39m[0m
-[  47% ] [90m[1mreimport[22m | academy_720_06_parking.png[39m[0m
-[  52% ] [90m[1mreimport[22m | academy_720_05_road_rules.png[39m[0m
-[  57% ] [90m[1mreimport[22m | academy_720_04_lesson01.png[39m[0m
-[  61% ] [90m[1mreimport[22m | academy_720_03_lesson_board.png[39m[0m
-[  66% ] [90m[1mreimport[22m | academy_720_02_enrolment_ui.png[39m[0m
-[  71% ] [90m[1mreimport[22m | academy_720_01_school_office.png[39m[0m
-[  76% ] [90m[1mreimport[22m | traffic_light.svg[39m[0m
-[  80% ] [90m[1mreimport[22m | steering_wheel.svg[39m[0m
-[  85% ] [90m[1mreimport[22m | parking.svg[39m[0m
-[  90% ] [90m[1mreimport[22m | driving_licence.svg[39m[0m
-[  95% ] [90m[1mreimport[22m | Finalizing Asset Import...[39m[0m
-[92m[ DONE ][39m [1mreimport[22m
-[0m
-[   0% ] [90m[1mreimport[22m | Started (Re)Importing Assets (20 steps)[39m[0m
-[   0% ] [90m[1mreimport[22m | Executing post-reimport operations...[39m[0m
-[92m[ DONE ][39m [1mreimport[22m
 [0m
 [   0% ] [90m[1mloading_editor_layout[22m | Started Loading editor (5 steps)[39m[0m
 [   0% ] [90m[1mloading_editor_layout[22m | Loading editor layout...[39m[0m

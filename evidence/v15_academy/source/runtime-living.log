@@ -1,3 +1,4 @@
+COMMAND: godot --path . --headless --audio-driver Dummy -- --selftest-living
 Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
 
 Unicode parsing error, some characters were replaced with � (U+FFFD): Invalid UTF-8 leading byte (b7)
@@ -73,7 +74,7 @@ PASS  traffic 'delivery_car' does not teleport (gap 2.8m at 6s)
 PASS  traffic 'delivery_car' keeps clear of critical stations at 6s
 PASS  traffic 'town_scooter' position is finite at 7s
 PASS  traffic 'town_scooter' stays on the road at 7s
-PASS  traffic 'town_scooter' does not teleport (gap 3.3m at 7s)
+PASS  traffic 'town_scooter' does not teleport (gap 3.2m at 7s)
 PASS  traffic 'town_scooter' keeps clear of critical stations at 7s
 PASS  traffic 'delivery_car' position is finite at 7s
 PASS  traffic 'delivery_car' stays on the road at 7s
@@ -81,7 +82,7 @@ PASS  traffic 'delivery_car' does not teleport (gap 2.8m at 7s)
 PASS  traffic 'delivery_car' keeps clear of critical stations at 7s
 PASS  traffic 'town_scooter' position is finite at 8s
 PASS  traffic 'town_scooter' stays on the road at 8s
-PASS  traffic 'town_scooter' does not teleport (gap 3.2m at 8s)
+PASS  traffic 'town_scooter' does not teleport (gap 3.3m at 8s)
 PASS  traffic 'town_scooter' keeps clear of critical stations at 8s
 PASS  traffic 'delivery_car' position is finite at 8s
 PASS  traffic 'delivery_car' stays on the road at 8s
@@ -89,7 +90,7 @@ PASS  traffic 'delivery_car' does not teleport (gap 2.8m at 8s)
 PASS  traffic 'delivery_car' keeps clear of critical stations at 8s
 PASS  traffic 'town_scooter' position is finite at 9s
 PASS  traffic 'town_scooter' stays on the road at 9s
-PASS  traffic 'town_scooter' does not teleport (gap 3.3m at 9s)
+PASS  traffic 'town_scooter' does not teleport (gap 3.2m at 9s)
 PASS  traffic 'town_scooter' keeps clear of critical stations at 9s
 PASS  traffic 'delivery_car' position is finite at 9s
 PASS  traffic 'delivery_car' stays on the road at 9s
@@ -97,7 +98,7 @@ PASS  traffic 'delivery_car' does not teleport (gap 2.8m at 9s)
 PASS  traffic 'delivery_car' keeps clear of critical stations at 9s
 PASS  traffic 'town_scooter' position is finite at 10s
 PASS  traffic 'town_scooter' stays on the road at 10s
-PASS  traffic 'town_scooter' does not teleport (gap 3.2m at 10s)
+PASS  traffic 'town_scooter' does not teleport (gap 3.3m at 10s)
 PASS  traffic 'town_scooter' keeps clear of critical stations at 10s
 PASS  traffic 'delivery_car' position is finite at 10s
 PASS  traffic 'delivery_car' stays on the road at 10s
@@ -113,7 +114,7 @@ PASS  traffic 'delivery_car' does not teleport (gap 2.8m at 11s)
 PASS  traffic 'delivery_car' keeps clear of critical stations at 11s
 PASS  traffic 'town_scooter' position is finite at 12s
 PASS  traffic 'town_scooter' stays on the road at 12s
-PASS  traffic 'town_scooter' does not teleport (gap 3.3m at 12s)
+PASS  traffic 'town_scooter' does not teleport (gap 3.2m at 12s)
 PASS  traffic 'town_scooter' keeps clear of critical stations at 12s
 PASS  traffic 'delivery_car' position is finite at 12s
 PASS  traffic 'delivery_car' stays on the road at 12s
@@ -121,7 +122,7 @@ PASS  traffic 'delivery_car' does not teleport (gap 2.8m at 12s)
 PASS  traffic 'delivery_car' keeps clear of critical stations at 12s
 PASS  traffic 'town_scooter' position is finite at 13s
 PASS  traffic 'town_scooter' stays on the road at 13s
-PASS  traffic 'town_scooter' does not teleport (gap 3.2m at 13s)
+PASS  traffic 'town_scooter' does not teleport (gap 3.3m at 13s)
 PASS  traffic 'town_scooter' keeps clear of critical stations at 13s
 PASS  traffic 'delivery_car' position is finite at 13s
 PASS  traffic 'delivery_car' stays on the road at 13s
@@ -177,7 +178,7 @@ PASS  traffic 'delivery_car' does not teleport (gap 2.8m at 19s)
 PASS  traffic 'delivery_car' keeps clear of critical stations at 19s
 PASS  traffic 'town_scooter' position is finite at 20s
 PASS  traffic 'town_scooter' stays on the road at 20s
-PASS  traffic 'town_scooter' does not teleport (gap 3.3m at 20s)
+PASS  traffic 'town_scooter' does not teleport (gap 3.2m at 20s)
 PASS  traffic 'town_scooter' keeps clear of critical stations at 20s
 PASS  traffic 'delivery_car' position is finite at 20s
 PASS  traffic 'delivery_car' stays on the road at 20s
@@ -185,7 +186,7 @@ PASS  traffic 'delivery_car' does not teleport (gap 2.8m at 20s)
 PASS  traffic 'delivery_car' keeps clear of critical stations at 20s
 PASS  traffic 'town_scooter' position is finite at 21s
 PASS  traffic 'town_scooter' stays on the road at 21s
-PASS  traffic 'town_scooter' does not teleport (gap 3.2m at 21s)
+PASS  traffic 'town_scooter' does not teleport (gap 3.3m at 21s)
 PASS  traffic 'town_scooter' keeps clear of critical stations at 21s
 PASS  traffic 'delivery_car' position is finite at 21s
 PASS  traffic 'delivery_car' stays on the road at 21s
@@ -201,7 +202,7 @@ PASS  traffic 'delivery_car' does not teleport (gap 2.8m at 22s)
 PASS  traffic 'delivery_car' keeps clear of critical stations at 22s
 PASS  traffic 'town_scooter' position is finite at 23s
 PASS  traffic 'town_scooter' stays on the road at 23s
-PASS  traffic 'town_scooter' does not teleport (gap 3.3m at 23s)
+PASS  traffic 'town_scooter' does not teleport (gap 3.2m at 23s)
 PASS  traffic 'town_scooter' keeps clear of critical stations at 23s
 PASS  traffic 'delivery_car' position is finite at 23s
 PASS  traffic 'delivery_car' stays on the road at 23s
@@ -242,7 +243,3 @@ PASS  villager 'ivy' still has a finite position
 PASS  villager 'ivy' still keeps clear of mission stations
 PASS  villager 'ivy' remains pausable
 RUNTIME RESULT: 238 passed, 0 failed
-WARNING: 6 ObjectDB instances were leaked at exit (run with `--verbose` for details).
-   at: cleanup (core/object/object.cpp:2536)
-ERROR: 2 resources still in use at exit (run with --verbose for details).
-   at: clear (core/io/resource.cpp:822)
